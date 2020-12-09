@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,8 @@ namespace Shisho.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
+            Log.Information("TestStatic");
+            _logger.LogInformation("TestingTesting");
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {

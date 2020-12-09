@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +28,16 @@ namespace Shisho
         public void ConfigureServices(IServiceCollection services)
         {
 
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+                });
+            });
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -46,7 +57,11 @@ namespace Shisho
 
             app.UseHttpsRedirection();
 
+            app.UseSerilogRequestLogging();
+
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthorization();
 
