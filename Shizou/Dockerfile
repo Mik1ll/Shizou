@@ -10,16 +10,16 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
-COPY ["Shisho/Shisho.csproj", "Shisho/"]
-RUN dotnet restore "Shisho/Shisho.csproj"
+COPY ["Shizou/Shizou.csproj", "Shizou/"]
+RUN dotnet restore "Shizou/Shizou.csproj"
 COPY . .
-WORKDIR "/src/Shisho"
-RUN dotnet build "Shisho.csproj" -c Release -o /app/build
+WORKDIR "/src/Shizou"
+RUN dotnet build "Shizou.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Shisho.csproj" -c Release -o /app/publish
+RUN dotnet publish "Shizou.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Shisho.dll"]
+ENTRYPOINT ["dotnet", "Shizou.dll"]

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Shisho.Controllers
+namespace Shizou.Controllers
 {
     [ApiController]
     [Route("[controller]")]

@@ -1,6 +1,6 @@
 using System;
 
-namespace Shisho
+namespace Shizou
 {
     public class WeatherForecast
     {

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
-namespace Shisho
+namespace Shizou
 {
     public class Program
     {
