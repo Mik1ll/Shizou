@@ -4,6 +4,8 @@
     <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>eb93ab3c-3c70-47c9-a0d8-1fd4dd784d79</UserSecretsId>
     <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TrimMode>CopyUsed</TrimMode>
   </PropertyGroup>
 
   <ItemGroup>

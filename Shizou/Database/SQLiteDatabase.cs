@@ -18,7 +18,7 @@ namespace Shizou.Database
 
         public override string GetConnectionString()
         {
-            return _configuration.GetConnectionString("Default");
+            return $@"data source={GetDatabasePath()};version=3;foreign keys=true;";
         }
 
         public override SQLiteConnection GetConnection()
@@ -28,7 +28,7 @@ namespace Shizou.Database
 
         public override string GetDatabasePath()
         {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ShizouDB.sqlite3");
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Shizou", "ShizouDB.sqlite3");
         }
 
         public override void CreateDatabase()
