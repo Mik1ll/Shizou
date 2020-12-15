@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Serilog;
+using Shizou.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,17 +21,19 @@ namespace Shizou.Controllers
         };
 
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly ShizouSettings _settings;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IConfiguration configuration, IOptions<ShizouSettings> options)
         {
             _logger = logger;
+            _configuration = configuration;
+            _settings = options.Value;
         }
 
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            Log.Information("TestStatic");
-            _logger.LogInformation("TestingTesting");
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
