@@ -12,24 +12,21 @@ namespace Shizou.Database
     public abstract class BaseDatabase : IDatabase
     {
         protected readonly ILogger<BaseDatabase> _logger;
-        protected readonly IConfiguration _configuration;
 
         private BaseDatabase()
         {
         }
 
-        public BaseDatabase(ILogger<BaseDatabase> logger, IConfiguration configuration)
+        public BaseDatabase(ILogger<BaseDatabase> logger)
         {
             _logger = logger;
-            _configuration = configuration;
         }
 
-        public abstract void CreateDatabase();
-
         public abstract IDbConnection GetConnection();
-
         public abstract string GetConnectionString();
-
-        public abstract string GetDatabasePath();
+        public abstract bool DatabaseExists();
+        public abstract void CreateDatabase();
+        public abstract void BackupDatabase();
+        public abstract void CreateSchema();
     }
 }

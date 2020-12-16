@@ -12,13 +12,13 @@ namespace Shizou.Database
     public class SQLiteDatabase : BaseDatabase
     {
 
-        public SQLiteDatabase(ILogger<SQLiteDatabase> logger, IConfiguration configuration) : base(logger, configuration)
+        public SQLiteDatabase(ILogger<SQLiteDatabase> logger) : base(logger)
         {
         }
 
         public override string GetConnectionString()
         {
-            return $@"data source={GetDatabasePath()};version=3;foreign keys=true;";
+            return $@"data source={DatabasePath};version=3;foreign keys=true;";
         }
 
         public override SQLiteConnection GetConnection()
@@ -26,17 +26,35 @@ namespace Shizou.Database
             return new SQLiteConnection(GetConnectionString());
         }
 
-        public override string GetDatabasePath()
-        {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Shizou", "ShizouDB.sqlite3");
-        }
+        public string DatabasePath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Shizou");
+
+        public string DatabaseFilePath => Path.Combine(DatabasePath, "ShizouDB.sqlite3");
 
         public override void CreateDatabase()
         {
-            if (!File.Exists(GetDatabasePath()))
+            if (!Directory.Exists(DatabasePath))
+                Directory.CreateDirectory(DatabasePath);
+            if (!DatabaseExists())
             {
-                SQLiteConnection.CreateFile(GetDatabasePath());
+                SQLiteConnection.CreateFile(DatabaseFilePath);
+                if (!DatabaseExists())
+                    throw new IOException($"Failed to create sqlite database: {DatabaseFilePath}");
             }
+        }
+
+        public override bool DatabaseExists()
+        {
+            return File.Exists(DatabaseFilePath);
+        }
+
+        public override void BackupDatabase()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void CreateSchema()
+        {
+            throw new NotImplementedException();
         }
     }
 }

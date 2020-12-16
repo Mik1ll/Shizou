@@ -5,9 +5,12 @@ namespace Shizou.Database
 {
     public interface IDatabase
     {
+        bool DatabaseExists();
         void CreateDatabase();
         IDbConnection GetConnection();
         string GetConnectionString();
-        string GetDatabasePath();
+        void BackupDatabase();
+        void CreateSchema();
+
     }
 }
