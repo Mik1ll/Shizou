@@ -1,21 +1,11 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
+﻿using Microsoft.Extensions.Logging;
 using System.Data;
-using System.Data.SQLite;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Shizou.Database
 {
     public abstract class BaseDatabase : IDatabase
     {
         protected readonly ILogger<BaseDatabase> _logger;
-
-        private BaseDatabase()
-        {
-        }
 
         public BaseDatabase(ILogger<BaseDatabase> logger)
         {

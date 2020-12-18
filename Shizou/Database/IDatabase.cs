@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using Shizou.Repositories;
+using System.Data;
 using System.Data.SQLite;
 
 namespace Shizou.Database

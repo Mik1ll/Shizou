@@ -11,16 +11,12 @@ using Dapper.Contrib.Extensions;
 
 namespace Shizou.Repositories
 {
-    public class BaseRepository<TModel> : IRepository<TModel> where TModel : class
+    public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
     {
         protected readonly IDatabase _database;
-        protected readonly ILogger<BaseRepository<TModel>> _logger;
+        protected readonly ILogger<Repository<TEntity>> _logger;
 
-        private BaseRepository()
-        {
-        }
-
-        public BaseRepository(ILogger<BaseRepository<TModel>> logger, IDatabase database)
+        public Repository(ILogger<Repository<TEntity>> logger, IDatabase database)
         {
             _database = database;
             _logger = logger;
@@ -28,22 +24,20 @@ namespace Shizou.Repositories
 
         public void Delete(int id)
         {
-            using (var cnn = _database.GetConnection())
-            {
-            }
+            using var cnn = _database.GetConnection();
         }
 
-        public TModel Get(int id)
+        public TEntity GetByID(int id)
         {
             throw new NotImplementedException();
         }
 
-        public List<TModel> GetAll()
+        public List<TEntity> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public void Save(TModel model)
+        public void Save(TEntity model)
         {
             throw new NotImplementedException();
         }

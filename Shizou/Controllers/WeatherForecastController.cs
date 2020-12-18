@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Shizou.Database;
+using Shizou.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,9 +23,9 @@ namespace Shizou.Controllers
 
         private readonly ILogger<WeatherForecastController> _logger;
         private readonly IConfiguration _configuration;
-        private readonly ShizouSettings _settings;
+        private readonly ShizouOptions _settings;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, IConfiguration configuration, IOptions<ShizouSettings> options)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IConfiguration configuration, IOptions<ShizouOptions> options)
         {
             _logger = logger;
             _configuration = configuration;

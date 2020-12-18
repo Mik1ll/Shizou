@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Shizou.Database;
+using Shizou.Options;
+using Shizou.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +30,7 @@ namespace Shizou
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<ShizouSettings>(Configuration.GetSection(nameof(ShizouSettings)));
+            services.Configure<ShizouOptions>(Configuration.GetSection(ShizouOptions.Shizou));
             services.AddCors(options =>
             {
                 options.AddDefaultPolicy(builder =>
@@ -47,6 +49,7 @@ namespace Shizou
 
 
             services.AddSingleton<IDatabase, SQLiteDatabase>();
+            services.AddSingleton<IRepositoryFactory, RepositoryFactory>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

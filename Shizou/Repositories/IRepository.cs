@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Shizou.Repositories
 {
-    interface IRepository<TModel>
+    interface IRepository<TEntity>
     {
-        List<TModel> GetAll();
-        TModel Get(int id);
-        void Save(TModel model);
+        List<TEntity> GetAll();
+        TEntity GetByID(int id);
+        void Save(TEntity model);
         void Delete(int id);
     }
 }

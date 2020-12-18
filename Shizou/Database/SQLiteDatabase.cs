@@ -1,15 +1,11 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Shizou.Database
 {
-    public class SQLiteDatabase : BaseDatabase
+    public sealed class SQLiteDatabase : BaseDatabase
     {
 
         public SQLiteDatabase(ILogger<SQLiteDatabase> logger) : base(logger)
