@@ -48,8 +48,7 @@ namespace Shizou
             });
 
 
-            services.AddSingleton<IDatabase, SQLiteDatabase>();
-            services.AddSingleton<IRepositoryFactory, RepositoryFactory>();
+            services.AddScoped<IDatabase, SQLiteDatabase>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

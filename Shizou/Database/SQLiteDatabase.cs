@@ -19,7 +19,9 @@ namespace Shizou.Database
 
         public override SQLiteConnection GetConnection()
         {
-            return new SQLiteConnection(GetConnectionString());
+            var cnn = new SQLiteConnection(GetConnectionString());
+            cnn.Open();
+            return cnn;
         }
 
         public string DatabasePath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Shizou");
