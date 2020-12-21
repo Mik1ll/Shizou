@@ -9,12 +9,20 @@ namespace Shizou.Database
         protected readonly IDbConnection _connection;
         private bool disposedValue;
 
-        public BaseDatabase(ILogger<BaseDatabase> logger)
+        public BaseDatabase(ILogger<BaseDatabase> logger, IDbConnection connection)
         {
             _logger = logger;
+            _connection = connection;
         }
 
-        public abstract IDbConnection GetConnection();
+        public IDbConnection GetConnection()
+        {
+            _connection.ConnectionString = GetConnectionString();
+            if (_connection.State == ConnectionState.Closed)
+                _connection.Open();
+            return _connection;
+        }
+
         public abstract string GetConnectionString();
         public abstract bool DatabaseExists();
         public abstract void CreateDatabase();

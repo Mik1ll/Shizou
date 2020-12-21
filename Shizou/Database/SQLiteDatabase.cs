@@ -8,20 +8,13 @@ namespace Shizou.Database
     public sealed class SQLiteDatabase : BaseDatabase
     {
 
-        public SQLiteDatabase(ILogger<SQLiteDatabase> logger) : base(logger)
+        public SQLiteDatabase(ILogger<SQLiteDatabase> logger) : base(logger, new SQLiteConnection())
         {
         }
 
         public override string GetConnectionString()
         {
             return $@"data source={DatabasePath};version=3;foreign keys=true;";
-        }
-
-        public override SQLiteConnection GetConnection()
-        {
-            var cnn = new SQLiteConnection(GetConnectionString());
-            cnn.Open();
-            return cnn;
         }
 
         public string DatabasePath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Shizou");
