@@ -20,32 +20,26 @@ namespace Shizou
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; }
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
-
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<ShizouOptions>(Configuration.GetSection(ShizouOptions.Shizou));
             services.AddCors(options =>
-            {
                 options.AddDefaultPolicy(builder =>
-                {
-                    builder
-                    .AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-                });
-            });
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader()
+                )
+            );
             services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shizou", Version = "v1" });
-            });
+            services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo { Title = "Shizou", Version = "v1" }));
 
 
             services.AddScoped<IDatabase, SQLiteDatabase>();
@@ -58,7 +52,7 @@ namespace Shizou
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shizou v1"));
+                app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "Shizou v1"));
             }
 
             app.UseHttpsRedirection();
@@ -71,10 +65,7 @@ namespace Shizou
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
     }
 }
