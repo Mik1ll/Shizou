@@ -8,10 +8,19 @@ using System.Threading.Tasks;
 using Dapper;
 using Dapper.Contrib;
 using Dapper.Contrib.Extensions;
+using Shizou.Entities;
 
 namespace Shizou.Repositories
 {
-    public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
+    interface IRepository<TEntity>
+    {
+        IEnumerable<TEntity> GetAll();
+        TEntity Get(int id);
+        void Save(TEntity model);
+        void Delete(int id);
+    }
+
+    public class Repository<TEntity> : IRepository<TEntity> where TEntity : Entity, new()
     {
         protected readonly IDatabase _database;
         protected readonly ILogger<Repository<TEntity>> _logger;
@@ -24,22 +33,29 @@ namespace Shizou.Repositories
 
         public void Delete(int id)
         {
-            using var cnn = _database.GetConnection();
+            var cnn = _database.GetConnection();
+            cnn.Delete(new TEntity { Id = id });
         }
 
-        public TEntity GetByID(int id)
+        public TEntity Get(int id)
         {
-            throw new NotImplementedException();
+            var cnn = _database.GetConnection();
+            return cnn.Get<TEntity>(id);
         }
 
-        public List<TEntity> GetAll()
+        public IEnumerable<TEntity> GetAll()
         {
-            throw new NotImplementedException();
+            var cnn = _database.GetConnection();
+            return cnn.GetAll<TEntity>();
         }
 
-        public void Save(TEntity model)
+        public void Save(TEntity entity)
         {
-            throw new NotImplementedException();
+            var cnn = _database.GetConnection();
+            using var trans = cnn.BeginTransaction();
+            var updated = cnn.Update(entity, trans);
+            if (!updated)
+                cnn.Insert(entity, trans);
         }
     }
 }
