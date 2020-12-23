@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Shizou.Repositories
 {
-    public interface IImportFolderRepository
+    public interface IImportFolderRepository : IRepository<ImportFolder>
     {
         ImportFolder GetByLocation(string location);
     }

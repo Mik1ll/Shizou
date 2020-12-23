@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Shizou.Entities;
 using Shizou.Repositories;
 using System;
 using System.Collections.Generic;
@@ -7,17 +8,13 @@ using System.Threading.Tasks;
 
 namespace Shizou.Services
 {
-    interface IImportFolderService
+    public interface IImportFolderService : ISingleRepoService<ImportFolder>
     {
     }
-    public class ImportFolderService : IImportFolderService
+    public class ImportFolderService : BaseSingleRepoService<IImportFolderRepository, ImportFolder>, IImportFolderService
     {
-        private readonly IImportFolderRepository _importFolderRepo;
-        private readonly ILogger<ImportFolderService> _logger;
-        public ImportFolderService(ILogger<ImportFolderService> logger, IImportFolderRepository importFolderRepo)
+        public ImportFolderService(ILogger<ImportFolderService> logger, IImportFolderRepository importFolderRepo) : base(logger, importFolderRepo)
         {
-            _logger = logger;
-            _importFolderRepo = importFolderRepo;
         }
     }
 }

@@ -12,11 +12,11 @@ using Shizou.Entities;
 
 namespace Shizou.Repositories
 {
-    interface IRepository<TEntity>
+    public interface IRepository<TEntity>
     {
         IEnumerable<TEntity> GetAll();
         TEntity Get(int id);
-        void Save(TEntity model);
+        void Save(TEntity entity);
         void Delete(int id);
     }
 
