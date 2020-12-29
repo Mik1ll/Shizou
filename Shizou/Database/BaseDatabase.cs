@@ -17,13 +17,14 @@ namespace Shizou.Database
 
         public IDbConnection GetConnection()
         {
-            _connection.ConnectionString = GetConnectionString();
+            _connection.ConnectionString = ConnectionString;
             if (_connection.State == ConnectionState.Closed)
                 _connection.Open();
             return _connection;
         }
 
-        public abstract string GetConnectionString();
+        public abstract string ConnectionString { get; }
+
         public abstract bool DatabaseExists();
         public abstract void CreateDatabase();
         public abstract void BackupDatabase();

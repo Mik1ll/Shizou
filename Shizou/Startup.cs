@@ -11,6 +11,7 @@ using Serilog;
 using Shizou.Database;
 using Shizou.Options;
 using Shizou.Repositories;
+using Shizou.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +44,9 @@ namespace Shizou
 
 
             services.AddScoped<IDatabase, SQLiteDatabase>();
+            services.AddScoped<IImportFolderRepository, ImportFolderRepository>();
+            services.AddScoped<IImportFolderService, ImportFolderService>();
+            services.AddHostedService<StartupService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

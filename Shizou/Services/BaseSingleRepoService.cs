@@ -9,22 +9,24 @@ using System.Threading.Tasks;
 namespace Shizou.Services
 {
     public abstract class BaseSingleRepoService<TRepository, TEntity> : ISingleRepoService<TEntity>
+        where TRepository : IRepository<TEntity>
+        where TEntity : Entity, new()
     {
         protected readonly ILogger<BaseSingleRepoService<TRepository, TEntity>> _logger;
-        protected readonly IRepository<TEntity> _repo;
+        protected readonly TRepository _repo;
 
-        public BaseSingleRepoService(ILogger<BaseSingleRepoService<TRepository, TEntity>> logger, IRepository<TEntity> repo)
+        public BaseSingleRepoService(ILogger<BaseSingleRepoService<TRepository, TEntity>> logger, TRepository repo)
         {
             _logger = logger;
             _repo = repo;
         }
 
-        public void Delete(int id)
+        public void Delete(long id)
         {
             _repo.Delete(id);
         }
 
-        public TEntity Get(int id)
+        public TEntity Get(long id)
         {
             return _repo.Get(id);
         }
@@ -34,9 +36,9 @@ namespace Shizou.Services
             return _repo.GetAll();
         }
 
-        public void Save(TEntity entity)
+        public long Save(TEntity entity)
         {
-            _repo.Save(entity);
+            return _repo.Save(entity);
         }
     }
 }

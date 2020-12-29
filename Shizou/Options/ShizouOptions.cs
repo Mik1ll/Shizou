@@ -9,7 +9,7 @@ namespace Shizou.Options
     {
         public const string Shizou = "Shizou";
 
-        public ImportOptions Import { get; set; }
+        public ImportOptions Import { get; set; } = null!;
 
         public class ImportOptions
         {

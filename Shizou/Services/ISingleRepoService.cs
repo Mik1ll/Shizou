@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using Shizou.Entities;
+using System.Collections.Generic;
 
 namespace Shizou.Services
 {
-    public interface ISingleRepoService<TEntity>
+    public interface ISingleRepoService<TEntity> where TEntity : Entity, new()
     {
-        void Delete(int id);
-        TEntity Get(int id);
+        void Delete(long id);
+        TEntity Get(long id);
         IEnumerable<TEntity> GetAll();
-        void Save(TEntity entity);
+        long Save(TEntity entity);
     }
 }

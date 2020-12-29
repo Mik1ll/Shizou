@@ -10,7 +10,7 @@ namespace Shizou.Database
         bool DatabaseExists();
         void CreateDatabase();
         IDbConnection GetConnection();
-        string GetConnectionString();
+        string ConnectionString { get; }
         void BackupDatabase();
         void CreateSchema();
 

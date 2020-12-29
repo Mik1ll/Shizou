@@ -14,7 +14,7 @@ namespace Shizou.Repositories
         ImportFolder GetByLocation(string location);
     }
 
-    public class ImportFolderRepository : Repository<ImportFolder>, IImportFolderRepository
+    public class ImportFolderRepository : BaseRepository<ImportFolder>, IImportFolderRepository
     {
         public ImportFolderRepository(ILogger<ImportFolderRepository> logger, IDatabase database) : base(logger, database)
         {

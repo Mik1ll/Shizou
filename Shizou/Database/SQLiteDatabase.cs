@@ -12,10 +12,7 @@ namespace Shizou.Database
         {
         }
 
-        public override string GetConnectionString()
-        {
-            return $@"data source={DatabasePath};version=3;foreign keys=true;";
-        }
+        public override string ConnectionString => @$"Data Source={DatabaseFilePath};Version=3;Foreign Keys=True;";
 
         public string DatabasePath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Shizou");
 
@@ -30,6 +27,11 @@ namespace Shizou.Database
                 SQLiteConnection.CreateFile(DatabaseFilePath);
                 if (!DatabaseExists())
                     throw new IOException($"Failed to create sqlite database: {DatabaseFilePath}");
+            }
+            var cnn = GetConnection() as SQLiteConnection;
+            var cmds = new[] { new SQLiteCommand("CREATE TABLE IF NOT EXISTS ImportFolders (Id INTEGER PRIMARY KEY, Location TEXT UNIQUE)", cnn) };
+            foreach (var cmd in cmds) {
+                cmd.ExecuteNonQuery();
             }
         }
 
