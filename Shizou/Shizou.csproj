@@ -7,6 +7,8 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <TrimMode>copyused</TrimMode>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

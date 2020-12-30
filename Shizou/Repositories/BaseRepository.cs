@@ -1,13 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
-using Shizou.Database;
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Threading.Tasks;
-using Dapper;
-using Dapper.Contrib;
+﻿using System.Collections.Generic;
 using Dapper.Contrib.Extensions;
+using Microsoft.Extensions.Logging;
+using Shizou.Database;
 using Shizou.Entities;
 
 namespace Shizou.Repositories
@@ -25,30 +19,32 @@ namespace Shizou.Repositories
 
         public void Delete(long id)
         {
-            var cnn = _database.GetConnection();
-            cnn.Delete(new TEntity { Id = id });
+            System.Data.IDbConnection? cnn = _database.GetConnection();
+            if (!cnn.Delete(new TEntity { Id = id }))
+                throw new KeyNotFoundException($"Record {typeof(TEntity).Name}:{id} not found in database");
         }
 
         public TEntity Get(long id)
         {
-            var cnn = _database.GetConnection();
+            System.Data.IDbConnection? cnn = _database.GetConnection();
             return cnn.Get<TEntity>(id);
         }
 
         public IEnumerable<TEntity> GetAll()
         {
-            var cnn = _database.GetConnection();
+            System.Data.IDbConnection? cnn = _database.GetConnection();
             return cnn.GetAll<TEntity>();
         }
 
-        public long Save(TEntity entity)
+        public void Save(TEntity entity)
         {
-            var cnn = _database.GetConnection();
-            using var trans = cnn.BeginTransaction();
-            if (entity.Id == 0 || !cnn.Update(entity, trans))
+            System.Data.IDbConnection? cnn = _database.GetConnection();
+            using System.Data.IDbTransaction? trans = cnn.BeginTransaction();
+            if (entity.Id == 0)
                 entity.Id = cnn.Insert(entity, trans);
+            else if (!cnn.Update(entity, trans))
+                throw new KeyNotFoundException($"Record {typeof(TEntity).Name}:{entity.Id} not found in database");
             trans.Commit();
-            return entity.Id;
         }
     }
 }

@@ -1,9 +1,4 @@
-﻿using Dapper.Contrib.Extensions;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Shizou.Entities
 {
@@ -11,6 +6,5 @@ namespace Shizou.Entities
     {
         [Required]
         public string Location { get; set; } = null!;
-
     }
 }

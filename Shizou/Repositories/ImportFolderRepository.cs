@@ -2,10 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Shizou.Database;
 using Shizou.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Shizou.Repositories
 {
@@ -22,7 +18,7 @@ namespace Shizou.Repositories
 
         public ImportFolder GetByLocation(string location)
         {
-            var cnn = _database.GetConnection();
+            System.Data.IDbConnection? cnn = _database.GetConnection();
             return cnn.QuerySingle<ImportFolder>($"SELECT * FROM ImportFolders WHERE Location = @Location", new { Location = location });
         }
     }

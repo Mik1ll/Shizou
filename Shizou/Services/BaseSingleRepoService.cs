@@ -1,10 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using Shizou.Entities;
 using Shizou.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Shizou.Services
 {
@@ -36,9 +33,9 @@ namespace Shizou.Services
             return _repo.GetAll();
         }
 
-        public long Save(TEntity entity)
+        public void Save(TEntity entity)
         {
-            return _repo.Save(entity);
+            _repo.Save(entity);
         }
     }
 }

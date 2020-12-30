@@ -1,13 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Data.SQLite;
 using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace Shizou.Database
 {
     public sealed class SQLiteDatabase : BaseDatabase
     {
-
         public SQLiteDatabase(ILogger<SQLiteDatabase> logger) : base(logger, new SQLiteConnection())
         {
         }
@@ -29,8 +28,9 @@ namespace Shizou.Database
                     throw new IOException($"Failed to create sqlite database: {DatabaseFilePath}");
             }
             var cnn = GetConnection() as SQLiteConnection;
-            var cmds = new[] { new SQLiteCommand("CREATE TABLE IF NOT EXISTS ImportFolders (Id INTEGER PRIMARY KEY, Location TEXT UNIQUE)", cnn) };
-            foreach (var cmd in cmds) {
+            SQLiteCommand[]? cmds = new[] { new SQLiteCommand("CREATE TABLE IF NOT EXISTS ImportFolders (Id INTEGER PRIMARY KEY, Location TEXT UNIQUE)", cnn) };
+            foreach (SQLiteCommand? cmd in cmds)
+            {
                 cmd.ExecuteNonQuery();
             }
         }

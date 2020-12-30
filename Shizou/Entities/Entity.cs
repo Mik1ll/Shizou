@@ -1,27 +1,23 @@
-﻿using Dapper.Contrib.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Shizou.Entities
+﻿namespace Shizou.Entities
 {
-    public abstract class Entity
+    public class Entity
     {
         public long Id { get; set; }
 
         public override bool Equals(object? obj)
         {
-            var other = obj as Entity;
-            if (other is null)
+            if (obj is Entity other)
+            {
+                if (ReferenceEquals(this, other))
+                    return true;
+                if (GetType() != other.GetType())
+                    return false;
+                if (Id == 0 || other.Id == 0)
+                    return false;
+                return Id == other.Id;
+            }
+            else
                 return false;
-            if (ReferenceEquals(this, other))
-                return true;
-            if (GetType() != other.GetType())
-                return false;
-            if (Id == 0 || other.Id == 0)
-                return false;
-            return Id == other.Id;
         }
 
         public static bool operator ==(Entity a, Entity b)
@@ -40,7 +36,7 @@ namespace Shizou.Entities
 
         public override int GetHashCode()
         {
-            return (GetType().ToString() + Id).GetHashCode();
+            return System.HashCode.Combine(GetType(), Id);
         }
     }
 }

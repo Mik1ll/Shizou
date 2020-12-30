@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Data;
+﻿using System.Data;
+using Microsoft.Extensions.Logging;
 
 namespace Shizou.Database
 {
@@ -26,8 +26,11 @@ namespace Shizou.Database
         public abstract string ConnectionString { get; }
 
         public abstract bool DatabaseExists();
+
         public abstract void CreateDatabase();
+
         public abstract void BackupDatabase();
+
         public abstract void CreateSchema();
 
         protected virtual void Dispose(bool disposing)
