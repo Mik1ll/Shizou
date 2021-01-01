@@ -2,15 +2,21 @@ using System;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Shizou.Database;
 using Shizou.Options;
 using Shizou.Repositories;
 using Shizou.Services;
+using System.Linq;
+using Shizou.SwaggerDocumentFilters;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace Shizou
 {
@@ -27,15 +33,19 @@ namespace Shizou
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<ShizouOptions>(Configuration.GetSection(ShizouOptions.Shizou));
-            services.AddControllers();
+            services.AddControllers(options => options.InputFormatters.Insert(0, GetJsonPatchInputFormatter()));
             services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "Shizou", Version = "v1" });
                 // Set the comments path for the Swagger JSON and UI.
-                string? xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                string? xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
+                string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                string xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
                 options.IncludeXmlComments(xmlPath);
+
+                options.DocumentFilter<JsonPatchDocumentFilter>();
+                options.ExampleFilters();
             });
+            services.AddSwaggerExamplesFromAssemblyOf<JsonPatchExample>();
 
             services.AddScoped<IDatabase, SQLiteDatabase>();
             services.AddScoped<IImportFolderRepository, ImportFolderRepository>();
@@ -62,6 +72,22 @@ namespace Shizou
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => endpoints.MapControllers());
+        }
+
+        private static NewtonsoftJsonPatchInputFormatter GetJsonPatchInputFormatter()
+        {
+            var builder = new ServiceCollection()
+                .AddLogging()
+                .AddMvc()
+                .AddNewtonsoftJson()
+                .Services.BuildServiceProvider();
+
+            return builder
+                .GetRequiredService<IOptions<MvcOptions>>()
+                .Value
+                .InputFormatters
+                .OfType<NewtonsoftJsonPatchInputFormatter>()
+                .First();
         }
     }
 }

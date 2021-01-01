@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using Dapper.Contrib.Extensions;
 using Microsoft.Extensions.Logging;
 using Shizou.Database;
@@ -19,27 +20,27 @@ namespace Shizou.Repositories
 
         public void Delete(long id)
         {
-            System.Data.IDbConnection? cnn = _database.GetConnection();
+            IDbConnection cnn = _database.GetConnection();
             if (!cnn.Delete(new TEntity { Id = id }))
                 throw new KeyNotFoundException($"Record {typeof(TEntity).Name}:{id} not found in database");
         }
 
         public TEntity Get(long id)
         {
-            System.Data.IDbConnection? cnn = _database.GetConnection();
+            IDbConnection cnn = _database.GetConnection();
             return cnn.Get<TEntity>(id);
         }
 
         public IEnumerable<TEntity> GetAll()
         {
-            System.Data.IDbConnection? cnn = _database.GetConnection();
+            IDbConnection cnn = _database.GetConnection();
             return cnn.GetAll<TEntity>();
         }
 
         public void Save(TEntity entity)
         {
-            System.Data.IDbConnection? cnn = _database.GetConnection();
-            using System.Data.IDbTransaction? trans = cnn.BeginTransaction();
+            IDbConnection cnn = _database.GetConnection();
+            using System.Data.IDbTransaction trans = cnn.BeginTransaction();
             if (entity.Id == 0)
                 entity.Id = cnn.Insert(entity, trans);
             else if (!cnn.Update(entity, trans))

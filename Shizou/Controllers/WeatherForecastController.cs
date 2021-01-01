@@ -22,7 +22,7 @@ namespace Shizou.Controllers
         private readonly IConfiguration _configuration;
         private readonly ShizouOptions _settings;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, IConfiguration configuration, IOptions<ShizouOptions> options)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IConfiguration configuration, IOptionsSnapshot<ShizouOptions> options)
         {
             _logger = logger;
             _configuration = configuration;

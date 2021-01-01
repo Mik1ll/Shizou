@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using System.Data;
+using Dapper;
 using Microsoft.Extensions.Logging;
 using Shizou.Database;
 using Shizou.Entities;
@@ -18,7 +19,7 @@ namespace Shizou.Repositories
 
         public ImportFolder GetByLocation(string location)
         {
-            System.Data.IDbConnection? cnn = _database.GetConnection();
+            IDbConnection cnn = _database.GetConnection();
             return cnn.QuerySingle<ImportFolder>($"SELECT * FROM ImportFolders WHERE Location = @Location", new { Location = location });
         }
     }

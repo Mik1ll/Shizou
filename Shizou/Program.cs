@@ -1,16 +1,27 @@
 using System;
+using System.IO;
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Shizou.Options;
 
 namespace Shizou
 {
     public class Program
     {
+        public static readonly string ApplicationData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Shizou");
+
         public static int Main(string[] args)
         {
             try
             {
+                if (!Directory.Exists(ApplicationData))
+                    Directory.CreateDirectory(ApplicationData);
+                if (!File.Exists(ShizouOptions.OptionsPath) || string.IsNullOrWhiteSpace(File.ReadAllText(ShizouOptions.OptionsPath)))
+                    ShizouOptions.SaveSettingsToFile(new ShizouOptions());
+
                 CreateHostBuilder(args).Build().Run();
                 return 0;
             }
@@ -29,6 +40,7 @@ namespace Shizou
         {
             return Host.CreateDefaultBuilder(args)
                 .UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration, "Serilog"))
+                .ConfigureAppConfiguration(config => config.AddJsonFile(ShizouOptions.OptionsPath, false, true))
                 .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
         }
     }

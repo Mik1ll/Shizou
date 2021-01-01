@@ -13,14 +13,10 @@ namespace Shizou.Database
 
         public override string ConnectionString => @$"Data Source={DatabaseFilePath};Version=3;Foreign Keys=True;";
 
-        public string DatabasePath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Shizou");
-
-        public string DatabaseFilePath => Path.Combine(DatabasePath, "ShizouDB.sqlite3");
+        public string DatabaseFilePath => Path.Combine(Program.ApplicationData, "ShizouDB.sqlite3");
 
         public override void CreateDatabase()
         {
-            if (!Directory.Exists(DatabasePath))
-                Directory.CreateDirectory(DatabasePath);
             if (!DatabaseExists())
             {
                 SQLiteConnection.CreateFile(DatabaseFilePath);
