@@ -15,11 +15,12 @@ namespace Shizou.SwaggerDocumentFilters
             var schemas = swaggerDoc.Components.Schemas.ToList();
             foreach (var item in schemas)
             {
-                if (item.Key.StartsWith("OperationOf") || item.Key.StartsWith("JsonPatchDocumentOf"))
+                if (item.Key.Contains("Operation") || item.Key.EndsWith("JsonPatchDocument") || item.Key == "IContractResolver" || item.Key == "ProblemDetails")
                     swaggerDoc.Components.Schemas.Remove(item.Key);
             }
             swaggerDoc.Components.Schemas.Add("JsonPatchOperation", new OpenApiSchema
             {
+                Title = "JsonPatchOperation",
                 Type = "object",
                 Properties = new Dictionary<string, OpenApiSchema>
                 {
@@ -31,12 +32,13 @@ namespace Shizou.SwaggerDocumentFilters
 
             swaggerDoc.Components.Schemas.Add("JsonPatchDocument", new OpenApiSchema
             {
+                Title = "JsonPatchDocument",
+                Description = "Array of operations to perform",
                 Type = "array",
                 Items = new OpenApiSchema
                 {
-                    Reference = new OpenApiReference { Type = ReferenceType.Schema, Id = "JsonPatchOperation" }
-                },
-                Description = "Array of operations to perform"
+                    Reference = new OpenApiReference() { Id = "JsonPatchOperation", Type = ReferenceType.Schema }
+                }
             });
 
             foreach (var path in swaggerDoc.Paths.SelectMany(p => p.Value.Operations)
