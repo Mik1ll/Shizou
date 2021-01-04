@@ -12,12 +12,15 @@ namespace Shizou.SwaggerDocumentFilters
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
+            // Remove irrelevent schemas
             var schemas = swaggerDoc.Components.Schemas.ToList();
             foreach (var item in schemas)
             {
-                if (item.Key.Contains("Operation") || item.Key.EndsWith("JsonPatchDocument") || item.Key == "IContractResolver" || item.Key == "ProblemDetails")
+                if (item.Key.Contains("Operation") || item.Key.EndsWith("JsonPatchDocument") || item.Key == "IContractResolver")
                     swaggerDoc.Components.Schemas.Remove(item.Key);
             }
+
+            // Add JsonPatchOperation schema
             swaggerDoc.Components.Schemas.Add("JsonPatchOperation", new OpenApiSchema
             {
                 Title = "JsonPatchOperation",
@@ -30,6 +33,7 @@ namespace Shizou.SwaggerDocumentFilters
                 }
             });
 
+            // Add corrected JsonPatchDocument Schema
             swaggerDoc.Components.Schemas.Add("JsonPatchDocument", new OpenApiSchema
             {
                 Title = "JsonPatchDocument",
@@ -41,6 +45,7 @@ namespace Shizou.SwaggerDocumentFilters
                 }
             });
 
+            // Replace request schemas for patch operations with the new schema
             foreach (var path in swaggerDoc.Paths.SelectMany(p => p.Value.Operations)
                                                  .Where(p => p.Key == OperationType.Patch))
             {
@@ -58,6 +63,8 @@ namespace Shizou.SwaggerDocumentFilters
     public class JsonPatchOperation
     {
         public string Op { get; set; } = string.Empty;
+
+        public string From { get; set; } = string.Empty;
 
         public string Path { get; set; } = string.Empty;
 
