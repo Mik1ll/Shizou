@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -17,6 +17,29 @@ namespace Shizou.Controllers
         public OptionsController(IOptionsSnapshot<ShizouOptions> options)
         {
             _options = options.Value;
+        }
+
+        /// <summary>
+        /// Gets current settings.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [ProducesResponseType(typeof(ShizouOptions), StatusCodes.Status200OK)]
+        public ActionResult<ShizouOptions> Get()
+        {
+            return Ok(_options);
+        }
+
+        /// <summary>
+        /// Overwrites all settings.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public ActionResult Save([FromBody] ShizouOptions options)
+        {
+            ShizouOptions.SaveSettingsToFile(options);
+            return Ok();
         }
 
         /// <summary>

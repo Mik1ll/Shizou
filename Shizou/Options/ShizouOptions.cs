@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Text.Json;
 
 namespace Shizou.Options
@@ -11,7 +11,9 @@ namespace Shizou.Options
 
         public static void SaveSettingsToFile(ShizouOptions options)
         {
-            var jsonSettings = $"{{{Environment.NewLine}  \"{Shizou}\": {JsonSerializer.Serialize(options, new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true }).Replace(Environment.NewLine, $"{Environment.NewLine}  ")}{Environment.NewLine}}}";
+            string nl = Environment.NewLine;
+            Dictionary<string, object> json = new() { { Shizou, options } };
+            string jsonSettings = JsonSerializer.Serialize(json, new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true });
             File.WriteAllText(OptionsPath, jsonSettings);
         }
 

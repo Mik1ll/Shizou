@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,7 +15,6 @@ using Shizou.Database;
 using Shizou.Options;
 using Shizou.Repositories;
 using Shizou.Services;
-using System.Linq;
 using Shizou.SwaggerDocumentFilters;
 using Swashbuckle.AspNetCore.Filters;
 
