@@ -20,7 +20,7 @@ namespace Shizou.Controllers
         }
 
         /// <summary>
-        /// Gets current settings.
+        ///     Gets current settings.
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -31,7 +31,7 @@ namespace Shizou.Controllers
         }
 
         /// <summary>
-        /// Overwrites all settings.
+        ///     Overwrites all settings.
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
@@ -43,7 +43,7 @@ namespace Shizou.Controllers
         }
 
         /// <summary>
-        /// Set settings from json
+        ///     Set settings from json
         /// </summary>
         /// <param name="patch"></param>
         /// <returns></returns>

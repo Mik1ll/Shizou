@@ -22,12 +22,12 @@ namespace Shizou
 {
     public class Startup
     {
-        public IConfiguration Configuration { get; }
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
+
+        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -36,7 +36,7 @@ namespace Shizou
             services.AddControllers(options => options.InputFormatters.Insert(0, GetJsonPatchInputFormatter()));
             services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Shizou", Version = "v1" });
+                options.SwaggerDoc("v1", new OpenApiInfo {Title = "Shizou", Version = "v1"});
                 // Set the comments path for the Swagger JSON and UI.
                 string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 string xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);

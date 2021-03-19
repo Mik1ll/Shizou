@@ -4,7 +4,6 @@ namespace Shizou.Entities
 {
     public class ImportFolder : Entity
     {
-        [Required]
-        public string Location { get; set; } = null!;
+        [Required] public string Location { get; set; } = null!;
     }
 }

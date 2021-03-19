@@ -21,7 +21,7 @@ namespace Shizou.Repositories
         public void Delete(long id)
         {
             IDbConnection cnn = Database.Connection;
-            if (!cnn.Delete(new TEntity { Id = id }))
+            if (!cnn.Delete(new TEntity {Id = id}))
                 throw new KeyNotFoundException($"Record {typeof(TEntity).Name}:{id} not found in database");
         }
 

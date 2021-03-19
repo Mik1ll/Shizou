@@ -12,8 +12,8 @@ namespace Shizou.Controllers
     [Route("[controller]")]
     public class ImportFolderController : ControllerBase
     {
-        private readonly ILogger<ImportFolderController> _logger;
         private readonly IImportFolderService _importFolderService;
+        private readonly ILogger<ImportFolderController> _logger;
 
         public ImportFolderController(ILogger<ImportFolderController> logger, IImportFolderService importFolderService)
         {
@@ -22,7 +22,7 @@ namespace Shizou.Controllers
         }
 
         /// <summary>
-        /// Get all import folders
+        ///     Get all import folders
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -33,7 +33,7 @@ namespace Shizou.Controllers
         }
 
         /// <summary>
-        /// Get import folder
+        ///     Get import folder
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -45,7 +45,7 @@ namespace Shizou.Controllers
         }
 
         /// <summary>
-        /// Get import folder by location
+        ///     Get import folder by location
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
@@ -57,7 +57,7 @@ namespace Shizou.Controllers
         }
 
         /// <summary>
-        /// Create or updates folder if it exists.
+        ///     Create or updates folder if it exists.
         /// </summary>
         /// <param name="importFolder">id 0 or none if inserting</param>
         /// <returns></returns>
@@ -86,7 +86,7 @@ namespace Shizou.Controllers
         }
 
         /// <summary>
-        /// Deletes folder if it exists.
+        ///     Deletes folder if it exists.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>

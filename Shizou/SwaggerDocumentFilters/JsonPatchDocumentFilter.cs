@@ -15,9 +15,7 @@ namespace Shizou.SwaggerDocumentFilters
             var schemas = swaggerDoc.Components.Schemas.ToList();
             foreach (var item in schemas.Where(item =>
                 item.Key.Contains("Operation") || item.Key.EndsWith("JsonPatchDocument") || item.Key == "IContractResolver"))
-            {
                 swaggerDoc.Components.Schemas.Remove(item.Key);
-            }
 
             // Add JsonPatchOperation schema
             swaggerDoc.Components.Schemas.Add("JsonPatchOperation", new OpenApiSchema
