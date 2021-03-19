@@ -24,7 +24,7 @@ namespace Shizou.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(ShizouOptions), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<ShizouOptions> Get()
         {
             return Ok(_options);

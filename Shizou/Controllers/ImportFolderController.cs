@@ -26,7 +26,7 @@ namespace Shizou.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<ImportFolder>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<ImportFolder>> GetAll()
         {
             return Ok(_importFolderService.GetAll());
@@ -38,7 +38,7 @@ namespace Shizou.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(ImportFolder), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<ImportFolder> Get(long id)
         {
             return Ok(_importFolderService.Get(id));
@@ -50,7 +50,7 @@ namespace Shizou.Controllers
         /// <param name="location"></param>
         /// <returns></returns>
         [HttpGet("location/{location}")]
-        [ProducesResponseType(typeof(ImportFolder), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<ImportFolder> GetByLocation(string location)
         {
             return Ok(_importFolderService.GetByLocation(location));
