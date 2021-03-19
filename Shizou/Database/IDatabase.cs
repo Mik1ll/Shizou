@@ -7,11 +7,11 @@ namespace Shizou.Database
     {
         string ConnectionString { get; }
 
-        bool DatabaseExists();
+        bool DatabaseExists { get; }
 
         void CreateDatabase();
 
-        IDbConnection GetConnection();
+        IDbConnection Connection { get; }
 
         void BackupDatabase();
 

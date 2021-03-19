@@ -20,26 +20,26 @@ namespace Shizou.Repositories
 
         public void Delete(long id)
         {
-            IDbConnection cnn = Database.GetConnection();
+            IDbConnection cnn = Database.Connection;
             if (!cnn.Delete(new TEntity { Id = id }))
                 throw new KeyNotFoundException($"Record {typeof(TEntity).Name}:{id} not found in database");
         }
 
         public TEntity Get(long id)
         {
-            IDbConnection cnn = Database.GetConnection();
+            IDbConnection cnn = Database.Connection;
             return cnn.Get<TEntity>(id);
         }
 
         public IEnumerable<TEntity> GetAll()
         {
-            IDbConnection cnn = Database.GetConnection();
+            IDbConnection cnn = Database.Connection;
             return cnn.GetAll<TEntity>();
         }
 
         public void Save(TEntity entity)
         {
-            IDbConnection cnn = Database.GetConnection();
+            IDbConnection cnn = Database.Connection;
             using IDbTransaction trans = cnn.BeginTransaction();
             if (entity.Id == 0)
                 entity.Id = cnn.Insert(entity, trans);

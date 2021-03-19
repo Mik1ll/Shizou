@@ -18,13 +18,13 @@ namespace Shizou.Database
 
         public override void CreateDatabase()
         {
-            if (!DatabaseExists())
+            if (!DatabaseExists)
             {
                 SQLiteConnection.CreateFile(DatabaseFilePath);
-                if (!DatabaseExists())
+                if (!DatabaseExists)
                     throw new IOException($"Failed to create sqlite database: {DatabaseFilePath}");
             }
-            var cnn = GetConnection() as SQLiteConnection;
+            var cnn = Connection as SQLiteConnection;
             SQLiteCommand[] cmds = { new("CREATE TABLE IF NOT EXISTS ImportFolders (Id INTEGER PRIMARY KEY, Location TEXT UNIQUE)", cnn) };
             foreach (var cmd in cmds)
             {
@@ -32,10 +32,7 @@ namespace Shizou.Database
             }
         }
 
-        public override bool DatabaseExists()
-        {
-            return File.Exists(DatabaseFilePath);
-        }
+        public override bool DatabaseExists => File.Exists(DatabaseFilePath);
 
         public override void BackupDatabase()
         {

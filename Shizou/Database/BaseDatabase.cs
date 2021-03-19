@@ -6,26 +6,29 @@ namespace Shizou.Database
     public abstract class BaseDatabase : IDatabase
     {
         protected readonly ILogger<BaseDatabase> Logger;
-        protected readonly IDbConnection Connection;
+        private readonly IDbConnection _connection;
         private bool _disposedValue;
 
         protected BaseDatabase(ILogger<BaseDatabase> logger, IDbConnection connection)
         {
             Logger = logger;
-            Connection = connection;
+            _connection = connection;
         }
 
-        public IDbConnection GetConnection()
+        public IDbConnection Connection
         {
-            Connection.ConnectionString = ConnectionString;
-            if (Connection.State == ConnectionState.Closed)
-                Connection.Open();
-            return Connection;
+            get
+            {
+                _connection.ConnectionString = ConnectionString;
+                if (_connection.State == ConnectionState.Closed)
+                    _connection.Open();
+                return _connection;
+            }
         }
 
         public abstract string ConnectionString { get; }
 
-        public abstract bool DatabaseExists();
+        public abstract bool DatabaseExists { get; }
 
         public abstract void CreateDatabase();
 
@@ -39,7 +42,7 @@ namespace Shizou.Database
             if (disposing)
             {
                 // dispose managed state (managed objects)
-                Connection.Dispose();
+                _connection.Dispose();
             }
 
             // free unmanaged resources (unmanaged objects) and override finalizer
