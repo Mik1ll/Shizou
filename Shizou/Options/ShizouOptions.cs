@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -11,7 +10,6 @@ namespace Shizou.Options
 
         public static void SaveSettingsToFile(ShizouOptions options)
         {
-            string nl = Environment.NewLine;
             Dictionary<string, object> json = new() { { Shizou, options } };
             string jsonSettings = JsonSerializer.Serialize(json, new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true });
             File.WriteAllText(OptionsPath, jsonSettings);
@@ -19,15 +17,15 @@ namespace Shizou.Options
 
         public const string Shizou = "Shizou";
 
-        public ImportOptions Import { get; set; } = new ImportOptions();
+        public ImportOptions Import { get; set; } = new();
 
-        public AniDBOptions AniDB { get; set; } = new AniDBOptions();
+        public AniDbOptions AniDb { get; set; } = new();
 
         public class ImportOptions
         {
         }
 
-        public class AniDBOptions
+        public class AniDbOptions
         {
             public string Username { get; set; } = string.Empty;
 

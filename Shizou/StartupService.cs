@@ -18,11 +18,9 @@ namespace Shizou
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            using (IServiceScope scope = _serviceProvider.CreateScope())
-            {
-                IDatabase database = scope.ServiceProvider.GetRequiredService<IDatabase>();
-                database.CreateDatabase();
-            }
+            using IServiceScope scope = _serviceProvider.CreateScope();
+            IDatabase database = scope.ServiceProvider.GetRequiredService<IDatabase>();
+            database.CreateDatabase();
             return Task.CompletedTask;
         }
 

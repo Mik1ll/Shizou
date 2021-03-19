@@ -17,7 +17,7 @@ namespace Shizou.Services
 
         public ImportFolder GetByLocation(string location)
         {
-            return _repo.GetByLocation(location);
+            return Repo.GetByLocation(location);
         }
     }
 }

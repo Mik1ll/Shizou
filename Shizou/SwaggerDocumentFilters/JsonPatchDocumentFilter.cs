@@ -6,16 +6,17 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Shizou.SwaggerDocumentFilters
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class JsonPatchDocumentFilter : IDocumentFilter
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
             // Remove irrelevent schemas
             var schemas = swaggerDoc.Components.Schemas.ToList();
-            foreach (var item in schemas)
+            foreach (var item in schemas.Where(item =>
+                item.Key.Contains("Operation") || item.Key.EndsWith("JsonPatchDocument") || item.Key == "IContractResolver"))
             {
-                if (item.Key.Contains("Operation") || item.Key.EndsWith("JsonPatchDocument") || item.Key == "IContractResolver")
-                    swaggerDoc.Components.Schemas.Remove(item.Key);
+                swaggerDoc.Components.Schemas.Remove(item.Key);
             }
 
             // Add JsonPatchOperation schema
@@ -25,9 +26,9 @@ namespace Shizou.SwaggerDocumentFilters
                 Type = "object",
                 Properties = new Dictionary<string, OpenApiSchema>
                 {
-                    {"op", new OpenApiSchema{ Type = "string" } },
-                    {"path", new OpenApiSchema{ Type = "string" } },
-                    {"value", new OpenApiSchema{ Type = "object", Nullable = true } }
+                    {"op", new OpenApiSchema {Type = "string"}},
+                    {"path", new OpenApiSchema {Type = "string"}},
+                    {"value", new OpenApiSchema {Type = "object", Nullable = true}}
                 }
             });
 
@@ -39,20 +40,20 @@ namespace Shizou.SwaggerDocumentFilters
                 Type = "array",
                 Items = new OpenApiSchema
                 {
-                    Reference = new OpenApiReference() { Id = "JsonPatchOperation", Type = ReferenceType.Schema }
+                    Reference = new OpenApiReference {Id = "JsonPatchOperation", Type = ReferenceType.Schema}
                 }
             });
 
             // Replace request schemas for patch operations with the new schema
             foreach (var path in swaggerDoc.Paths.SelectMany(p => p.Value.Operations)
-                                                 .Where(p => p.Key == OperationType.Patch))
+                .Where(p => p.Key == OperationType.Patch))
             {
                 foreach (var item in path.Value.RequestBody.Content.Where(c => c.Key != "application/json-patch+json"))
                     path.Value.RequestBody.Content.Remove(item.Key);
                 var response = path.Value.RequestBody.Content.Single(c => c.Key == "application/json-patch+json");
                 response.Value.Schema = new OpenApiSchema
                 {
-                    Reference = new OpenApiReference { Type = ReferenceType.Schema, Id = "JsonPatchDocument" }
+                    Reference = new OpenApiReference {Type = ReferenceType.Schema, Id = "JsonPatchDocument"}
                 };
             }
         }

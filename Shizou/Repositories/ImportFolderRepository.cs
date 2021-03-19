@@ -19,8 +19,8 @@ namespace Shizou.Repositories
 
         public ImportFolder GetByLocation(string location)
         {
-            IDbConnection cnn = _database.GetConnection();
-            return cnn.QuerySingle<ImportFolder>($"SELECT * FROM ImportFolders WHERE Location = @Location", new { Location = location });
+            IDbConnection cnn = Database.GetConnection();
+            return cnn.QuerySingle<ImportFolder>("SELECT * FROM ImportFolders WHERE Location = @Location", new { Location = location });
         }
     }
 }

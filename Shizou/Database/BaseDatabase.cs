@@ -5,22 +5,22 @@ namespace Shizou.Database
 {
     public abstract class BaseDatabase : IDatabase
     {
-        protected readonly ILogger<BaseDatabase> _logger;
-        protected readonly IDbConnection _connection;
-        private bool disposedValue;
+        protected readonly ILogger<BaseDatabase> Logger;
+        protected readonly IDbConnection Connection;
+        private bool _disposedValue;
 
-        public BaseDatabase(ILogger<BaseDatabase> logger, IDbConnection connection)
+        protected BaseDatabase(ILogger<BaseDatabase> logger, IDbConnection connection)
         {
-            _logger = logger;
-            _connection = connection;
+            Logger = logger;
+            Connection = connection;
         }
 
         public IDbConnection GetConnection()
         {
-            _connection.ConnectionString = ConnectionString;
-            if (_connection.State == ConnectionState.Closed)
-                _connection.Open();
-            return _connection;
+            Connection.ConnectionString = ConnectionString;
+            if (Connection.State == ConnectionState.Closed)
+                Connection.Open();
+            return Connection;
         }
 
         public abstract string ConnectionString { get; }
@@ -35,18 +35,16 @@ namespace Shizou.Database
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (_disposedValue) return;
+            if (disposing)
             {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                    _connection?.Dispose();
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                disposedValue = true;
+                // dispose managed state (managed objects)
+                Connection.Dispose();
             }
+
+            // free unmanaged resources (unmanaged objects) and override finalizer
+            // set large fields to null
+            _disposedValue = true;
         }
 
         // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources

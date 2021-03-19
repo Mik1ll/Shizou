@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Shizou.Database
 {
+    // ReSharper disable once InconsistentNaming
     public sealed class SQLiteDatabase : BaseDatabase
     {
         public SQLiteDatabase(ILogger<SQLiteDatabase> logger) : base(logger, new SQLiteConnection())
@@ -13,7 +14,7 @@ namespace Shizou.Database
 
         public override string ConnectionString => @$"Data Source={DatabaseFilePath};Version=3;Foreign Keys=True;";
 
-        public string DatabaseFilePath => Path.Combine(Program.ApplicationData, "ShizouDB.sqlite3");
+        public static string DatabaseFilePath => Path.Combine(Program.ApplicationData, "ShizouDB.sqlite3");
 
         public override void CreateDatabase()
         {
@@ -24,8 +25,8 @@ namespace Shizou.Database
                     throw new IOException($"Failed to create sqlite database: {DatabaseFilePath}");
             }
             var cnn = GetConnection() as SQLiteConnection;
-            SQLiteCommand[]? cmds = new[] { new SQLiteCommand("CREATE TABLE IF NOT EXISTS ImportFolders (Id INTEGER PRIMARY KEY, Location TEXT UNIQUE)", cnn) };
-            foreach (SQLiteCommand? cmd in cmds)
+            SQLiteCommand[] cmds = { new("CREATE TABLE IF NOT EXISTS ImportFolders (Id INTEGER PRIMARY KEY, Location TEXT UNIQUE)", cnn) };
+            foreach (var cmd in cmds)
             {
                 cmd.ExecuteNonQuery();
             }

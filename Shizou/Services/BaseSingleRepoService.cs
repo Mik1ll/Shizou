@@ -9,33 +9,33 @@ namespace Shizou.Services
         where TRepository : IRepository<TEntity>
         where TEntity : Entity, new()
     {
-        protected readonly ILogger<BaseSingleRepoService<TRepository, TEntity>> _logger;
-        protected readonly TRepository _repo;
+        protected readonly ILogger<BaseSingleRepoService<TRepository, TEntity>> Logger;
+        protected readonly TRepository Repo;
 
-        public BaseSingleRepoService(ILogger<BaseSingleRepoService<TRepository, TEntity>> logger, TRepository repo)
+        protected BaseSingleRepoService(ILogger<BaseSingleRepoService<TRepository, TEntity>> logger, TRepository repo)
         {
-            _logger = logger;
-            _repo = repo;
+            Logger = logger;
+            Repo = repo;
         }
 
         public void Delete(long id)
         {
-            _repo.Delete(id);
+            Repo.Delete(id);
         }
 
         public TEntity Get(long id)
         {
-            return _repo.Get(id);
+            return Repo.Get(id);
         }
 
         public IEnumerable<TEntity> GetAll()
         {
-            return _repo.GetAll();
+            return Repo.GetAll();
         }
 
         public void Save(TEntity entity)
         {
-            _repo.Save(entity);
+            Repo.Save(entity);
         }
     }
 }

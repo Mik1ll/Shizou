@@ -73,7 +73,7 @@ namespace Shizou.Controllers
             ActionResult response;
             try
             {
-                long oldid = importFolder.Id;
+                var oldid = importFolder.Id;
                 _importFolderService.Save(importFolder);
                 var path = new Uri(@$"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}/{importFolder.Id}");
                 response = oldid != 0 ? NoContent() : Created(path, null);
