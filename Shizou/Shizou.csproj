@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="CommandQueue" />
     <Folder Include="Dtos\" />
   </ItemGroup>
 </Project>

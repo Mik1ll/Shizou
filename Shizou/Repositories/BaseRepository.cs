@@ -18,26 +18,26 @@ namespace Shizou.Repositories
             Logger = logger;
         }
 
-        public void Delete(long id)
+        public virtual void Delete(long id)
         {
             IDbConnection cnn = Database.Connection;
             if (!cnn.Delete(new TEntity {Id = id}))
                 throw new KeyNotFoundException($"Record {typeof(TEntity).Name}:{id} not found in database");
         }
 
-        public TEntity Get(long id)
+        public virtual TEntity Get(long id)
         {
             IDbConnection cnn = Database.Connection;
             return cnn.Get<TEntity>(id);
         }
 
-        public IEnumerable<TEntity> GetAll()
+        public virtual IEnumerable<TEntity> GetAll()
         {
             IDbConnection cnn = Database.Connection;
             return cnn.GetAll<TEntity>();
         }
 
-        public void Save(TEntity entity)
+        public virtual void Save(TEntity entity)
         {
             IDbConnection cnn = Database.Connection;
             using IDbTransaction trans = cnn.BeginTransaction();
