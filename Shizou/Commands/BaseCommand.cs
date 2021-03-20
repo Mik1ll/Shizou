@@ -1,16 +1,36 @@
-﻿using Shizou.Entities;
+﻿using System.ComponentModel.Design;
+using Shizou.Entities;
 
 namespace Shizou.Commands
 {
     public abstract class BaseCommand
     {
-        public BaseCommand(CommandRequest commandRequest)
+        private CommandRequest _commandRequest;
+        protected BaseCommand(CommandRequest commandRequest)
         {
-            CommandRequest = commandRequest;
+            _commandRequest = commandRequest;
         }
-        
+
+        public bool Completed = false;
+
         public abstract void Process();
-        
-        public CommandRequest CommandRequest { get; }
+
+        protected abstract string GenerateCommandId();
+
+        public BaseCommand FromCommandRequest()
+        {
+            ParamsFromCommandRequest();
+            return this;
+        }
+
+        protected abstract void ParamsFromCommandRequest();
+
+        public CommandRequest CommandRequest
+        {
+            get
+            {
+                return _commandRequest;
+            }
+        }
     }
 }

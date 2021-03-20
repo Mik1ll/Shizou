@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Shizou.Commands;
 using Shizou.Database;
 using Shizou.Options;
 using Shizou.Repositories;
@@ -50,6 +51,8 @@ namespace Shizou
             services.AddScoped<IDatabase, SQLiteDatabase>();
             services.AddScoped<IImportFolderRepository, ImportFolderRepository>();
             services.AddScoped<IImportFolderService, ImportFolderService>();
+            services.AddScoped<ICommandRequestRepository, CommandRequestRepository>();
+            services.AddSingleton<CommandFactory>();
             services.AddHostedService<StartupService>();
         }
 

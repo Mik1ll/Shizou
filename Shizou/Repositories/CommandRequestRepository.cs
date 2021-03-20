@@ -14,14 +14,17 @@ namespace Shizou.Repositories
     
     public class CommandRequestRepository : BaseRepository<CommandRequest>,ICommandRequestRepository
     {
-        public CommandRequestRepository(ILogger<BaseRepository<CommandRequest>> logger, IDatabase database) : base(logger, database)
+        private CommandFactory _commandFactory;
+        
+        public CommandRequestRepository(ILogger<BaseRepository<CommandRequest>> logger, IDatabase database, CommandFactory commandFactory) : base(logger, database)
         {
+            _commandFactory = commandFactory;
         }
 
-        public CommandRequest GetNext()
+        public BaseCommand GetNextCommand()
         {
             IDbConnection cnn = Database.Connection;
-            return cnn.QuerySingle<CommandRequest>("SELECT * FROM CommandRequests ORDER BY Priority, Id LIMIT 1");
+            return _commandFactory.GetCommand(cnn.QuerySingle<CommandRequest>("SELECT * FROM CommandRequests ORDER BY Priority, Id LIMIT 1"));
         }
 
         public override void Save(CommandRequest entity)

@@ -2,6 +2,6 @@
 {
     public enum CommandType
     {
-        
+        Noop = 99
     }
 }
