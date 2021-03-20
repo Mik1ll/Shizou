@@ -27,8 +27,12 @@ namespace Shizou.Database
                     throw new IOException($"Failed to create sqlite database: {DatabaseFilePath}");
             }
             var cnn = Connection as SQLiteConnection;
-            SQLiteCommand[] cmds = {new("CREATE TABLE IF NOT EXISTS ImportFolders (Id INTEGER PRIMARY KEY, Location TEXT UNIQUE)", cnn)};
-            foreach (var cmd in cmds) cmd.ExecuteNonQuery();
+            string[] cmds =
+            {
+                "CREATE TABLE IF NOT EXISTS ImportFolders (Id INTEGER PRIMARY KEY, Location TEXT UNIQUE)",
+                "CREATE TABLE IF NOT EXISTS CommandRequests (Id INTEGER PRIMARY KEY, Type INTEGER NOT NULL, Priority INTEGER NOT NULL, CommandId TEXT NOT NULL UNIQUE, CommandParams TEXT NOT NULL)"
+            };
+            foreach (var cmd in cmds) new SQLiteCommand(cmd, cnn).ExecuteNonQuery();
         }
 
         public override void BackupDatabase()

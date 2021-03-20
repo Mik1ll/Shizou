@@ -4,12 +4,12 @@ namespace Shizou.Entities
 {
     public class CommandRequest : Entity
     {
-        public CommandType Type { get; }
+        CommandType Type { get; }
         
         public CommandPriority Priority { get; } = CommandPriority.Default;
-        
-        public string CommandId { get; }
-        
-        public string CommandParams { get; }
+
+        public string CommandId { get; } = null!;
+
+        public string CommandParams { get; } = null!;
     }
 }

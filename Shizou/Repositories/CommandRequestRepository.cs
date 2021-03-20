@@ -20,7 +20,19 @@ namespace Shizou.Repositories
 
         public CommandRequest GetNext()
         {
-            throw new NotImplementedException();
+            IDbConnection cnn = Database.Connection;
+            return cnn.QuerySingle<CommandRequest>("SELECT * FROM CommandRequests ORDER BY Priority, Id LIMIT 1");
+        }
+
+        public override void Save(CommandRequest entity)
+        {
+            try
+            {
+                base.Save(entity);
+            }
+            catch (ConstraintException)
+            {
+            }
         }
     }
 }
