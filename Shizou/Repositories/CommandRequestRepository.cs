@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using Shizou.Commands;
@@ -8,23 +7,14 @@ using Shizou.Entities;
 
 namespace Shizou.Repositories
 {
-    interface ICommandRequestRepository : IRepository<CommandRequest>
+    public interface ICommandRequestRepository : IRepository<CommandRequest>
     {
     }
-    
-    public class CommandRequestRepository : BaseRepository<CommandRequest>,ICommandRequestRepository
-    {
-        private CommandFactory _commandFactory;
-        
-        public CommandRequestRepository(ILogger<BaseRepository<CommandRequest>> logger, IDatabase database, CommandFactory commandFactory) : base(logger, database)
-        {
-            _commandFactory = commandFactory;
-        }
 
-        public BaseCommand GetNextCommand()
+    public class CommandRequestRepository : BaseRepository<CommandRequest>, ICommandRequestRepository
+    {
+        public CommandRequestRepository(ILogger<BaseRepository<CommandRequest>> logger, IDatabase database) : base(logger, database)
         {
-            IDbConnection cnn = Database.Connection;
-            return _commandFactory.GetCommand(cnn.QuerySingle<CommandRequest>("SELECT * FROM CommandRequests ORDER BY Priority, Id LIMIT 1"));
         }
 
         public override void Save(CommandRequest entity)
@@ -36,6 +26,12 @@ namespace Shizou.Repositories
             catch (ConstraintException)
             {
             }
+        }
+
+        public BaseCommand GetNextCommand()
+        {
+            IDbConnection cnn = Database.Connection;
+            return cnn.QuerySingle<CommandRequest>("SELECT * FROM CommandRequests ORDER BY Priority, Id LIMIT 1").Command;
         }
     }
 }

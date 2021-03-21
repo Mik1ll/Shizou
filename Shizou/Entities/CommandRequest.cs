@@ -1,15 +1,25 @@
-﻿using Shizou.Commands;
+﻿using System;
+using System.Collections.Generic;
+using Dapper.Contrib.Extensions;
+using Shizou.Commands;
 
 namespace Shizou.Entities
 {
     public class CommandRequest : Entity
     {
-        public CommandType Type { get; set; }
-        
-        public CommandPriority Priority { get; set; } = CommandPriority.Default;
+        private static readonly Dictionary<CommandType, Func<BaseCommand>> Commands = new()
+        {
+            {CommandType.Noop, () => new NoopCommand()}
+        };
 
-        public string CommandId { get; set; } = null!;
+        public CommandType Type { get; init; }
 
-        public string CommandParams { get; set; } = null!;
+        public CommandPriority Priority { get; init; }
+
+        public string CommandId { get; init; } = string.Empty;
+
+        public string CommandParams { get; init; } = string.Empty;
+
+        [Computed] public BaseCommand Command => Commands[Type]().Init();
     }
 }
