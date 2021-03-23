@@ -15,6 +15,8 @@ namespace Shizou.Entities
         public CommandType Type { get; init; }
 
         public CommandPriority Priority { get; init; }
+        
+        public QueueType QueueType { get; init; }
 
         public string CommandId { get; init; } = string.Empty;
 

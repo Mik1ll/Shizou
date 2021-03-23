@@ -28,10 +28,11 @@ namespace Shizou.Repositories
             }
         }
 
-        public BaseCommand GetNextCommand()
+        public BaseCommand GetNextCommand(QueueType queueType)
         {
             IDbConnection cnn = Database.Connection;
-            return cnn.QuerySingle<CommandRequest>("SELECT * FROM CommandRequests ORDER BY Priority, Id LIMIT 1").Command;
+            return cnn.QuerySingle<CommandRequest>("SELECT * FROM CommandRequests WHERE QueueType = @QueueType ORDER BY Priority, Id LIMIT 1",
+                new {QueueType = queueType}).Command;
         }
     }
 }

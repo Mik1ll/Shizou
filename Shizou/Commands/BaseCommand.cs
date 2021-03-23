@@ -8,12 +8,15 @@ namespace Shizou.Commands
 
         protected readonly CommandType Type;
 
+        protected readonly QueueType QueueType;
+
         public bool Completed = false;
 
-        protected BaseCommand(CommandType type, CommandPriority priority)
+        protected BaseCommand(CommandType type, CommandPriority priority, QueueType queueType)
         {
             Type = type;
             Priority = priority;
+            QueueType = queueType;
         }
 
         public CommandRequest CommandRequest =>
@@ -21,6 +24,7 @@ namespace Shizou.Commands
             {
                 Type = Type,
                 Priority = Priority,
+                QueueType = QueueType,
                 CommandId = GenerateCommandId(),
                 CommandParams = GenerateCommandParams()
             };

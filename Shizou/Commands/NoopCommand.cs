@@ -4,7 +4,7 @@ namespace Shizou.Commands
 {
     public sealed class NoopCommand : BaseCommand
     {
-        public NoopCommand() : base(CommandType.Noop, CommandPriority.Default)
+        public NoopCommand() : base(CommandType.Noop, CommandPriority.Default, QueueType.General)
         {
         }
 
