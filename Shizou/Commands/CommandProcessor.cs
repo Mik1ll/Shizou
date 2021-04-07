@@ -1,25 +1,24 @@
 ﻿using Microsoft.Extensions.Logging;
-using Serilog;
-using Shizou.Repositories;
+using Shizou.Database;
+using Shizou.Extensions;
 
 namespace Shizou.Commands
 {
     public abstract class CommandProcessor
     {
-        protected ILogger<CommandProcessor> Logger;
-        protected ICommandRequestRepository CommandRequestRepository;
-
-        protected CommandProcessor(ILogger<CommandProcessor> logger, ICommandRequestRepository commandRequestRepository, QueueType queueType)
-        {
-            Logger = logger;
-            CommandRequestRepository = commandRequestRepository;
-            QueueType = queueType;
-        }
-        
         private readonly object _pausedLock = new();
-        private bool _paused;
+        protected readonly ShizouContext Context;
+        protected readonly ILogger<CommandProcessor> Logger;
 
         public readonly QueueType QueueType;
+        private bool _paused;
+
+        protected CommandProcessor(ILogger<CommandProcessor> logger, ShizouContext context, QueueType queueType)
+        {
+            Logger = logger;
+            Context = context;
+            QueueType = queueType;
+        }
 
         public bool Paused
         {
@@ -39,11 +38,11 @@ namespace Shizou.Commands
             }
         }
 
-        public int QueueCount => CommandRequestRepository.GetQueueCount(QueueType);
+        public int QueueCount => Context.CommandRequests.GetQueueCount(QueueType);
 
         public void ClearQueue()
         {
-            CommandRequestRepository.ClearQueue(QueueType);
+            Context.CommandRequests.ClearQueue(QueueType);
         }
     }
 }

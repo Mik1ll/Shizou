@@ -6,9 +6,9 @@ namespace Shizou.Commands
     {
         protected readonly CommandPriority Priority;
 
-        protected readonly CommandType Type;
-
         protected readonly QueueType QueueType;
+
+        protected readonly CommandType Type;
 
         public bool Completed = false;
 

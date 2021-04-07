@@ -1,20 +1,24 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.OData;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.OData.Edm;
+using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Shizou.Database;
+using Shizou.Entities;
 using Shizou.Options;
-using Shizou.Repositories;
-using Shizou.Services;
 using Shizou.SwaggerDocumentFilters;
 using Swashbuckle.AspNetCore.Filters;
 
@@ -39,7 +43,7 @@ namespace Shizou
                 options.SwaggerDoc("v1", new OpenApiInfo {Title = "Shizou", Version = "v1"});
                 // Set the comments path for the Swagger JSON and UI.
                 string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                string xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
+                string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 options.IncludeXmlComments(xmlPath);
 
                 options.DocumentFilter<JsonPatchDocumentFilter>();
@@ -47,11 +51,10 @@ namespace Shizou
             });
             services.AddSwaggerExamplesFromAssemblyOf<JsonPatchExample>();
 
-            services.AddScoped<IDatabase, SQLiteDatabase>();
-            services.AddScoped<IImportFolderRepository, ImportFolderRepository>();
-            services.AddScoped<IImportFolderService, ImportFolderService>();
-            services.AddScoped<ICommandRequestRepository, CommandRequestRepository>();
+            services.AddOData(opt => opt.AddModel("odata", GetEdmModel()).Filter().Select().Expand().OrderBy());
+
             services.AddHostedService<StartupService>();
+            services.AddDbContext<ShizouContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -89,6 +92,13 @@ namespace Shizou
                 .InputFormatters
                 .OfType<NewtonsoftJsonPatchInputFormatter>()
                 .First();
+        }
+
+        private static IEdmModel GetEdmModel()
+        {
+            ODataConventionModelBuilder builder = new();
+            builder.EntitySet<ImportFolder>("ImportFolders");
+            return builder.GetEdmModel();
         }
     }
 }

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Shizou.Database;
 using Shizou.Entities;
-using Shizou.Services;
 
 namespace Shizou.Controllers
 {
@@ -12,13 +13,13 @@ namespace Shizou.Controllers
     [Route("[controller]")]
     public class ImportFolderController : ControllerBase
     {
-        private readonly IImportFolderService _importFolderService;
+        private readonly ShizouContext _context;
         private readonly ILogger<ImportFolderController> _logger;
 
-        public ImportFolderController(ILogger<ImportFolderController> logger, IImportFolderService importFolderService)
+        public ImportFolderController(ILogger<ImportFolderController> logger, ShizouContext context)
         {
             _logger = logger;
-            _importFolderService = importFolderService;
+            _context = context;
         }
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<ImportFolder>> GetAll()
         {
-            return Ok(_importFolderService.GetAll());
+            return Ok(_context.ImportFolders.ToList());
         }
 
         /// <summary>
@@ -39,9 +40,9 @@ namespace Shizou.Controllers
         /// <returns></returns>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<ImportFolder> Get(long id)
+        public ActionResult<ImportFolder> Get(int id)
         {
-            return Ok(_importFolderService.Get(id));
+            return Ok(_context.ImportFolders.Find(id));
         }
 
         /// <summary>
@@ -53,7 +54,7 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<ImportFolder> GetByLocation(string location)
         {
-            return Ok(_importFolderService.GetByLocation(location));
+            return Ok(_context.ImportFolders.Where(f => f.Location == location));
         }
 
         /// <summary>
@@ -74,7 +75,8 @@ namespace Shizou.Controllers
             try
             {
                 var oldid = importFolder.Id;
-                _importFolderService.Save(importFolder);
+                _context.ImportFolders.Update(importFolder);
+                _context.SaveChanges();
                 var path = new Uri(@$"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}/{importFolder.Id}");
                 response = oldid != 0 ? NoContent() : Created(path, null);
             }
@@ -95,11 +97,12 @@ namespace Shizou.Controllers
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult Delete(long id)
+        public ActionResult Delete(int id)
         {
             try
             {
-                _importFolderService.Delete(id);
+                _context.ImportFolders.Remove(new ImportFolder {Id = id});
+                _context.SaveChanges();
                 return NoContent();
             }
             catch (KeyNotFoundException)

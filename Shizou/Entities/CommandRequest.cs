@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Dapper.Contrib.Extensions;
+using System.ComponentModel.DataAnnotations.Schema;
 using Shizou.Commands;
 
 namespace Shizou.Entities
@@ -12,16 +12,16 @@ namespace Shizou.Entities
             {CommandType.Noop, () => new NoopCommand()}
         };
 
-        public CommandType Type { get; init; }
+        public CommandType Type { get; set; }
 
-        public CommandPriority Priority { get; init; }
-        
-        public QueueType QueueType { get; init; }
+        public CommandPriority Priority { get; set; }
 
-        public string CommandId { get; init; } = string.Empty;
+        public QueueType QueueType { get; set; }
 
-        public string CommandParams { get; init; } = string.Empty;
+        public string CommandId { get; set; } = string.Empty;
 
-        [Computed] public BaseCommand Command => Commands[Type]().Init();
+        public string CommandParams { get; set; } = string.Empty;
+
+        [NotMapped] public BaseCommand Command => Commands[Type]().Init();
     }
 }
