@@ -42,19 +42,18 @@ namespace Shizou.Controllers
             return Ok();
         }
 
-        // TODO: Patch options
-        // /// <summary>
-        // ///     Set settings from json
-        // /// </summary>
-        // /// <param name="patch"></param>
-        // /// <returns></returns>
-        // [HttpPatch]
-        // [SwaggerRequestExample(typeof(JsonPatchOperation), typeof(JsonPatchExample))]
-        // public ActionResult PatchShizouOptions([FromBody] JsonPatchDocument<ShizouOptions> patch)
-        // {
-        //     patch.ApplyTo(_options, ModelState);
-        //     ShizouOptions.SaveSettingsToFile(_options);
-        //     return Ok();
-        // }
+        /// <summary>
+        ///     Set settings from json
+        /// </summary>
+        /// <param name="patch"></param>
+        /// <returns></returns>
+        [HttpPatch]
+        [SwaggerRequestExample(typeof(JsonPatchOperation), typeof(JsonPatchExample))]
+        public ActionResult PatchShizouOptions([FromBody] JsonPatchDocument<ShizouOptions> patch)
+        {
+            patch.ApplyTo(_options, ModelState);
+            ShizouOptions.SaveSettingsToFile(_options);
+            return Ok();
+        }
     }
 }

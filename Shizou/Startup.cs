@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.OData;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,9 +36,15 @@ namespace Shizou
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<ShizouOptions>(Configuration.GetSection(ShizouOptions.Shizou));
-            services.AddControllers(options => options.InputFormatters.Insert(0, GetJsonPatchInputFormatter()));
+            services.AddControllers(options =>
+            {
+                var (inputfmtr, outputfmtr) = GetFormatters();
+                options.InputFormatters.Insert(0, inputfmtr);
+                options.OutputFormatters.Insert(0, outputfmtr);
+            });
             services.AddSwaggerGen(options =>
             {
+                options.CustomOperationIds(e => $"{e.ActionDescriptor.RouteValues["controller"]}_{e.HttpMethod}");
                 options.SwaggerDoc("v1", new OpenApiInfo {Title = "Shizou", Version = "v1"});
                 // Set the comments path for the Swagger JSON and UI.
                 string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -47,6 +52,7 @@ namespace Shizou
                 options.IncludeXmlComments(xmlPath);
 
                 options.DocumentFilter<JsonPatchDocumentFilter>();
+                //options.OperationFilter<JsonPatchOperationFilter>();
                 options.ExampleFilters();
             });
             services.AddSwaggerExamplesFromAssemblyOf<JsonPatchExample>();
@@ -78,20 +84,21 @@ namespace Shizou
             app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
 
-        private static NewtonsoftJsonPatchInputFormatter GetJsonPatchInputFormatter()
+        private static (IInputFormatter, IOutputFormatter) GetFormatters()
         {
             var builder = new ServiceCollection()
                 .AddLogging()
-                .AddMvc()
+                .AddMvcCore()
                 .AddNewtonsoftJson()
+                .AddXmlDataContractSerializerFormatters()
                 .Services.BuildServiceProvider();
 
-            return builder
+            var mvcOptions = builder
                 .GetRequiredService<IOptions<MvcOptions>>()
-                .Value
-                .InputFormatters
-                .OfType<NewtonsoftJsonPatchInputFormatter>()
-                .First();
+                .Value;
+
+            return (mvcOptions.InputFormatters.OfType<NewtonsoftJsonPatchInputFormatter>().Single(),
+                mvcOptions.OutputFormatters.OfType<XmlDataContractSerializerOutputFormatter>().Single());
         }
 
         private static IEdmModel GetEdmModel()
