@@ -1,4 +1,5 @@
-﻿using Shizou.Entities;
+﻿using System.Reflection;
+using Shizou.Entities;
 
 namespace Shizou.Commands
 {
@@ -12,11 +13,11 @@ namespace Shizou.Commands
 
         public bool Completed = false;
 
-        protected BaseCommand(CommandType type, CommandPriority priority, QueueType queueType)
+        protected BaseCommand()
         {
-            Type = type;
-            Priority = priority;
-            QueueType = queueType;
+            Type = GetType().GetCustomAttribute<CommandAttribute>()?.Type ?? CommandType.Invalid;
+            Priority = GetType().GetCustomAttribute<CommandAttribute>()?.Priority ?? CommandPriority.Invalid;
+            QueueType = GetType().GetCustomAttribute<CommandAttribute>()?.QueueType ?? QueueType.Invalid;
         }
 
         public CommandRequest CommandRequest =>
@@ -35,12 +36,12 @@ namespace Shizou.Commands
 
         protected abstract string GenerateCommandParams();
 
-        public BaseCommand Init()
+        public BaseCommand Init(CommandRequest commandRequest)
         {
-            ParamsFromCommandRequest();
+            PopulateCommandParams(commandRequest.CommandParams);
             return this;
         }
 
-        protected abstract void ParamsFromCommandRequest();
+        protected abstract void PopulateCommandParams(string commandParams);
     }
 }

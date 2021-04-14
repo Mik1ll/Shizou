@@ -2,12 +2,9 @@
 
 namespace Shizou.Commands
 {
+    [Command(CommandType.Noop, CommandPriority.Default, QueueType.General)]
     public sealed class NoopCommand : BaseCommand
     {
-        public NoopCommand() : base(CommandType.Noop, CommandPriority.Default, QueueType.General)
-        {
-        }
-
         public override void Process()
         {
         }
@@ -22,7 +19,7 @@ namespace Shizou.Commands
             return JsonSerializer.Serialize(new { });
         }
 
-        protected override void ParamsFromCommandRequest()
+        protected override void PopulateCommandParams(string commandParams)
         {
         }
     }

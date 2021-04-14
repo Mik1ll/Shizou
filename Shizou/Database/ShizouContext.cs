@@ -21,8 +21,7 @@ namespace Shizou.Database
         public DbSet<AniDbFile> AniDbFiles { get; set; } = null!;
 
         public DbSet<AniDbGroup> AniDbGroups { get; set; } = null!;
-        
-        
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

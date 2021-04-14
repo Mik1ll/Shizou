@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using Shizou.Enums;
-using Microsoft.Data.Sqlite.Utilities;
 
 namespace Shizou.Entities
 {
