@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Commands;
+using Shizou.Enums;
 
 namespace Shizou.Entities
 {

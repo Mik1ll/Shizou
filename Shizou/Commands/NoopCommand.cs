@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Shizou.Enums;
 
 namespace Shizou.Commands
 {

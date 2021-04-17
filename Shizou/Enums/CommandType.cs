@@ -1,4 +1,4 @@
-﻿namespace Shizou.Commands
+﻿namespace Shizou.Enums
 {
     public enum CommandType
     {

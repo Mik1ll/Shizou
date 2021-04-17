@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Shizou.Entities;
+using Shizou.Enums;
 
 namespace Shizou.Commands
 {
@@ -15,9 +16,10 @@ namespace Shizou.Commands
 
         protected BaseCommand()
         {
-            Type = GetType().GetCustomAttribute<CommandAttribute>()?.Type ?? CommandType.Invalid;
-            Priority = GetType().GetCustomAttribute<CommandAttribute>()?.Priority ?? CommandPriority.Invalid;
-            QueueType = GetType().GetCustomAttribute<CommandAttribute>()?.QueueType ?? QueueType.Invalid;
+            var commandAttr = GetType().GetCustomAttribute<CommandAttribute>();
+            Type = commandAttr?.Type ?? CommandType.Invalid;
+            Priority = commandAttr?.Priority ?? CommandPriority.Invalid;
+            QueueType = commandAttr?.QueueType ?? QueueType.Invalid;
         }
 
         public CommandRequest CommandRequest =>

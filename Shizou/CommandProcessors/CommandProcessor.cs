@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
+using Shizou.Commands;
 using Shizou.Database;
+using Shizou.Enums;
 using Shizou.Extensions;
 
-namespace Shizou.Commands
+namespace Shizou.CommandProcessors
 {
     public abstract class CommandProcessor
     {
