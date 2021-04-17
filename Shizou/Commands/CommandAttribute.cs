@@ -3,7 +3,8 @@ using Shizou.Enums;
 
 namespace Shizou.Commands
 {
-    public class CommandAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class CommandAttribute : Attribute
     {
         public CommandAttribute(CommandType type, CommandPriority priority, QueueType queueType)
         {

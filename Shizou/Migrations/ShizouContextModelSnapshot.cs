@@ -179,9 +179,6 @@ namespace Shizou.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GroupId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -222,6 +219,9 @@ namespace Shizou.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CommandId")
+                        .IsUnique();
 
                     b.ToTable("CommandRequests");
                 });

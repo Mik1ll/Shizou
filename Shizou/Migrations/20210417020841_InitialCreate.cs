@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Shizou.Migrations
 {
-    public partial class anidb_tables : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -34,7 +34,6 @@ namespace Shizou.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    GroupId = table.Column<int>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     ShortName = table.Column<string>(type: "TEXT", nullable: false),
                     Url = table.Column<string>(type: "TEXT", nullable: true)
@@ -42,6 +41,36 @@ namespace Shizou.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AniDbGroups", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CommandRequests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Type = table.Column<int>(type: "INTEGER", nullable: false),
+                    Priority = table.Column<int>(type: "INTEGER", nullable: false),
+                    QueueType = table.Column<int>(type: "INTEGER", nullable: false),
+                    CommandId = table.Column<string>(type: "TEXT", nullable: false),
+                    CommandParams = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CommandRequests", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ImportFolders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Location = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ImportFolders", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -142,12 +171,24 @@ namespace Shizou.Migrations
                 name: "IX_AniDbFiles_AniDbGroupId",
                 table: "AniDbFiles",
                 column: "AniDbGroupId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CommandRequests_CommandId",
+                table: "CommandRequests",
+                column: "CommandId",
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
                 name: "AniDbEpisodeAniDbFile");
+
+            migrationBuilder.DropTable(
+                name: "CommandRequests");
+
+            migrationBuilder.DropTable(
+                name: "ImportFolders");
 
             migrationBuilder.DropTable(
                 name: "AniDbEpisodes");

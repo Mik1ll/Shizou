@@ -9,8 +9,8 @@ using Shizou.Database;
 namespace Shizou.Migrations
 {
     [DbContext(typeof(ShizouContext))]
-    [Migration("20210411020650_anidb_tables")]
-    partial class anidb_tables
+    [Migration("20210417020841_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -181,9 +181,6 @@ namespace Shizou.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GroupId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -224,6 +221,9 @@ namespace Shizou.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CommandId")
+                        .IsUnique();
 
                     b.ToTable("CommandRequests");
                 });
