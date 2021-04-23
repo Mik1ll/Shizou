@@ -30,4 +30,11 @@
   <ItemGroup>
     <Folder Include="Dtos\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Hasher\librhash.dll" />
+    <Content Include="Hasher\librhash.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
