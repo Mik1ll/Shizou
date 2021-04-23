@@ -4,8 +4,10 @@ using Shizou.Enums;
 
 namespace Shizou.Entities
 {
-    public class AniDbAnime : Entity
+    public class AniDbAnime
     {
+        public int Id { get; set; }
+        
         public int EpisodeCount { get; set; }
         public DateTime? AirDate { get; set; }
         public DateTime? EndDate { get; set; }
@@ -15,6 +17,7 @@ namespace Shizou.Entities
         public DateTime Updated { get; set; }
         public bool Restricted { get; set; }
         public string? ImagePath { get; set; } = null!;
+        
         public Collection<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
     }
 }
