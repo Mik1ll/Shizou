@@ -32,8 +32,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Hasher\librhash.dll" />
-    <Content Include="Hasher\librhash.dll">
+    <None Remove="Hashers\librhash.dll" />
+    <Content Include="Hashers\librhash.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
