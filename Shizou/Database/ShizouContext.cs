@@ -8,12 +8,12 @@ namespace Shizou.Database
     public sealed class ShizouContext : DbContext
     {
         private readonly ILoggerFactory _loggerFactory;
-        
+
         public ShizouContext(ILoggerFactory loggerFactory)
         {
             _loggerFactory = loggerFactory;
         }
-        
+
         public ShizouContext(DbContextOptions<ShizouContext> options, ILoggerFactory loggerFactory) : base(options)
         {
             _loggerFactory = loggerFactory;

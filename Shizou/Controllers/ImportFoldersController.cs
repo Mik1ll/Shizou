@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.Extensions.Logging;
 using Shizou.Database;
 using Shizou.Entities;
@@ -11,12 +13,12 @@ namespace Shizou.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ImportFolderController : ControllerBase
+    public class ImportFoldersController : ODataController
     {
         private readonly ShizouContext _context;
-        private readonly ILogger<ImportFolderController> _logger;
+        private readonly ILogger<ImportFoldersController> _logger;
 
-        public ImportFolderController(ILogger<ImportFolderController> logger, ShizouContext context)
+        public ImportFoldersController(ILogger<ImportFoldersController> logger, ShizouContext context)
         {
             _logger = logger;
             _context = context;
@@ -28,9 +30,10 @@ namespace Shizou.Controllers
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<IEnumerable<ImportFolder>> GetAll()
+        [EnableQuery]
+        public ActionResult<IQueryable<ImportFolder>> Get()
         {
-            return Ok(_context.ImportFolders.ToList());
+            return Ok(_context.ImportFolders);
         }
 
         /// <summary>
@@ -40,7 +43,8 @@ namespace Shizou.Controllers
         /// <returns></returns>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<ImportFolder> Get(int id)
+        [EnableQuery]
+        public ActionResult<ImportFolder> GetById(int id)
         {
             return Ok(_context.ImportFolders.Find(id));
         }

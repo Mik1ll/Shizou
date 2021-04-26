@@ -24,7 +24,7 @@ namespace Shizou.Entities
         public QueueType QueueType { get; set; }
         public string CommandId { get; set; } = string.Empty;
         public string CommandParams { get; set; } = string.Empty;
-        
+
         [NotMapped] public BaseCommand Command => Commands[Type]().Init(this);
     }
 }

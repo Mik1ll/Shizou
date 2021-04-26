@@ -58,45 +58,6 @@ namespace Shizou.SwaggerDocumentFilters
         }
     }
 
-    public class JsonPatchOperationFilter : IOperationFilter
-    {
-        public void Apply(OpenApiOperation operation, OperationFilterContext context)
-        {
-            if (operation.OperationId == "Options_PATCH")
-                operation.Parameters = new List<OpenApiParameter>
-                {
-                    new()
-                    {
-                        Name = "op",
-                        In = ParameterLocation.Query,
-                        Required = true,
-                        Description = "replace, add, copy, move, remove, test"
-                    },
-                    new()
-                    {
-                        Name = "path",
-                        In = ParameterLocation.Query,
-                        Required = true,
-                        Description = "path to attribute"
-                    },
-                    new()
-                    {
-                        Name = "from",
-                        In = ParameterLocation.Query,
-                        Required = false,
-                        Description = "move and copy only"
-                    },
-                    new()
-                    {
-                        Name = "value",
-                        In = ParameterLocation.Query,
-                        Required = false,
-                        Description = "add, replace, test only"
-                    }
-                };
-        }
-    }
-
     public class JsonPatchOperation
     {
         public string Op { get; set; } = string.Empty;

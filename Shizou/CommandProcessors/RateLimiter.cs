@@ -8,7 +8,7 @@ namespace Shizou.CommandProcessors
     public abstract class RateLimiter
     {
         protected readonly ILogger<RateLimiter> _logger;
-        
+
         protected RateLimiter(ILogger<RateLimiter> logger)
         {
             _logger = logger;

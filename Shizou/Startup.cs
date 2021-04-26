@@ -40,24 +40,21 @@ namespace Shizou
             {
                 var (inputfmtr, outputfmtr) = GetFormatters();
                 options.InputFormatters.Insert(0, inputfmtr);
-                options.OutputFormatters.Insert(0, outputfmtr);
+                options.OutputFormatters.Add(outputfmtr);
             });
             services.AddSwaggerGen(options =>
             {
-                options.CustomOperationIds(e => $"{e.ActionDescriptor.RouteValues["controller"]}_{e.HttpMethod}");
+                //options.CustomOperationIds(e => $"{e.ActionDescriptor.RouteValues["controller"]}_{e.HttpMethod}");
                 options.SwaggerDoc("v1", new OpenApiInfo {Title = "Shizou", Version = "v1"});
-                // Set the comments path for the Swagger JSON and UI.
-                string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                options.IncludeXmlComments(xmlPath);
+
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
 
                 options.DocumentFilter<JsonPatchDocumentFilter>();
-                //options.OperationFilter<JsonPatchOperationFilter>();
                 options.ExampleFilters();
             });
             services.AddSwaggerExamplesFromAssemblyOf<JsonPatchExample>();
 
-            services.AddOData(opt => opt.AddModel("odata", GetEdmModel()).Filter().Select().Expand().OrderBy());
+            services.AddOData(opt => opt.AddModel("odata", GetEdmModel()).Filter().Select().Expand().OrderBy().Count());
 
             services.AddHostedService<StartupService>();
             services.AddDbContext<ShizouContext>();
@@ -81,7 +78,7 @@ namespace Shizou
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => endpoints.MapControllers());
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
 
         private static (IInputFormatter, IOutputFormatter) GetFormatters()
