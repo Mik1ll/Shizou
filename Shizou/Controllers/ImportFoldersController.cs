@@ -39,14 +39,14 @@ namespace Shizou.Controllers
         /// <summary>
         ///     Get import folder
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        [HttpGet("{id}")]
+        [HttpGet("{key:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [EnableQuery]
-        public ActionResult<ImportFolder> GetById(int id)
+        public ActionResult<ImportFolder> Get(int key)
         {
-            return Ok(_context.ImportFolders.Find(id));
+            return Ok(_context.ImportFolders.Find(key));
         }
 
         /// <summary>

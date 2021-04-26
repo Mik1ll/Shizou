@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
@@ -14,13 +15,14 @@ namespace Shizou.SwaggerDocumentFilters
             // Remove irrelevent schemas
             var schemas = swaggerDoc.Components.Schemas.ToList();
             foreach (var item in schemas.Where(item =>
-                item.Key.Contains("Operation") || item.Key.EndsWith("JsonPatchDocument") || item.Key == "IContractResolver"))
+                item.Key.Contains("Operation") || item.Key.EndsWith("JsonPatchDocument") || item.Key == "IContractResolver" || item.Key.StartsWith("Edm") ||
+                item.Key.StartsWith("IEdm") || item.Key.StartsWith("Odata", StringComparison.OrdinalIgnoreCase) || item.Key.StartsWith("Problem")))
                 swaggerDoc.Components.Schemas.Remove(item.Key);
 
             // Add JsonPatchOperation schema
-            swaggerDoc.Components.Schemas.Add("JsonPatchOperation", new OpenApiSchema
+            swaggerDoc.Components.Schemas.Add(nameof(JsonPatchOperation), new OpenApiSchema
             {
-                Title = "JsonPatchOperation",
+                Title = nameof(JsonPatchOperation),
                 Type = "object",
                 Properties = new Dictionary<string, OpenApiSchema>
                 {
@@ -31,15 +33,12 @@ namespace Shizou.SwaggerDocumentFilters
                 }
             });
 
-            // Add corrected JsonPatchDocument Schema
             swaggerDoc.Components.Schemas.Add("JsonPatchDocument", new OpenApiSchema
             {
-                Title = "JsonPatchDocument",
-                Description = "Array of operations to perform",
                 Type = "array",
                 Items = new OpenApiSchema
                 {
-                    Reference = new OpenApiReference {Id = "JsonPatchOperation", Type = ReferenceType.Schema}
+                    Reference = new OpenApiReference {Id = nameof(JsonPatchOperation), Type = ReferenceType.Schema}
                 }
             });
 

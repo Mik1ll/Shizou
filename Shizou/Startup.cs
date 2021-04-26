@@ -1,12 +1,16 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.OData;
+using Microsoft.AspNetCore.OData.Batch;
+using Microsoft.AspNetCore.OData.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -54,7 +58,7 @@ namespace Shizou
             });
             services.AddSwaggerExamplesFromAssemblyOf<JsonPatchExample>();
 
-            services.AddOData(opt => opt.AddModel("odata", GetEdmModel()).Filter().Select().Expand().OrderBy().Count());
+            services.AddOData(opt => opt.AddModel("odata", GetEdmModel(), new DefaultODataBatchHandler()).Filter().Select().Expand().OrderBy().Count());
 
             services.AddHostedService<StartupService>();
             services.AddDbContext<ShizouContext>();
@@ -74,7 +78,21 @@ namespace Shizou
 
             app.UseSerilogRequestLogging();
 
+            app.UseODataBatching();
+
             app.UseRouting();
+
+            app.Use(next => context =>
+            {
+                var endpoint = context.GetEndpoint();
+                if (endpoint == null) return next(context);
+
+                IEnumerable templates;
+                IODataRoutingMetadata metadata = endpoint.Metadata.GetMetadata<IODataRoutingMetadata>();
+                if (metadata != null) templates = metadata.Template.GetTemplates();
+
+                return next(context); // put a breaking point here
+            });
 
             app.UseAuthorization();
 
