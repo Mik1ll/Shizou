@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using Shizou.Enums;
 
 namespace Shizou.Entities
 {
-    public class AniDbEpisode
+    public class AniDbEpisode : Entity
     {
-        public int Id { get; set; }
-
         public TimeSpan? Length { get; set; }
         public int Number { get; set; }
         public EpisodeType EpisodeType { get; set; }
@@ -15,7 +13,8 @@ namespace Shizou.Entities
         public DateTime? AirDate { get; set; }
         public DateTime Updated { get; set; }
 
+        public int AniDbAnimeId { get; set; }
         public AniDbAnime AniDbAnime { get; set; } = null!;
-        public Collection<AniDbFile> AniDbFiles { get; set; } = null!;
+        public ICollection<AniDbFile> AniDbFiles { get; set; } = null!;
     }
 }

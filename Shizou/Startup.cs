@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -22,7 +21,7 @@ using Serilog;
 using Shizou.Database;
 using Shizou.Entities;
 using Shizou.Options;
-using Shizou.SwaggerDocumentFilters;
+using Shizou.SwaggerFilters;
 using Swashbuckle.AspNetCore.Filters;
 
 namespace Shizou
@@ -54,6 +53,7 @@ namespace Shizou
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
 
                 options.DocumentFilter<JsonPatchDocumentFilter>();
+                options.OperationFilter<ClearContentTypeFilter>();
                 options.ExampleFilters();
             });
             services.AddSwaggerExamplesFromAssemblyOf<JsonPatchExample>();
@@ -85,12 +85,11 @@ namespace Shizou
             app.Use(next => context =>
             {
                 var endpoint = context.GetEndpoint();
-                if (endpoint == null) return next(context);
+                if (endpoint is null) return next(context);
 
-                IEnumerable templates;
-                IODataRoutingMetadata metadata = endpoint.Metadata.GetMetadata<IODataRoutingMetadata>();
-                if (metadata != null) templates = metadata.Template.GetTemplates();
-
+                var metadata = endpoint.Metadata.GetMetadata<IODataRoutingMetadata>();
+                var templates = metadata?.Template.GetTemplates();
+                _ = templates;
                 return next(context); // put a breaking point here
             });
 
@@ -120,6 +119,7 @@ namespace Shizou
         {
             ODataConventionModelBuilder builder = new();
             builder.EntitySet<ImportFolder>("ImportFolders");
+            builder.EntitySet<AniDbFile>("AniDbFiles");
             return builder.GetEdmModel();
         }
     }

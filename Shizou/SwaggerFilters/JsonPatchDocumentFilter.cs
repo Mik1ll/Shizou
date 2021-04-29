@@ -5,7 +5,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Shizou.SwaggerDocumentFilters
+namespace Shizou.SwaggerFilters
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class JsonPatchDocumentFilter : IDocumentFilter

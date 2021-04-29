@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Shizou.Options;
-using Shizou.SwaggerDocumentFilters;
+using Shizou.SwaggerFilters;
 using Swashbuckle.AspNetCore.Filters;
 
 namespace Shizou.Controllers

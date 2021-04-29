@@ -1,8 +1,7 @@
 ﻿namespace Shizou.Entities
 {
-    public class ImportFolder
+    public class ImportFolder : Entity
     {
-        public int Id { get; set; }
         public string Location { get; set; } = null!;
     }
 }
