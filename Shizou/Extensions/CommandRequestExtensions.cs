@@ -8,11 +8,10 @@ namespace Shizou.Extensions
 {
     public static class CommandRequestExtensions
     {
-        public static BaseCommand? GetNextCommand(this DbSet<CommandRequest> commandRequests, QueueType queueType, bool allowUdp, bool allowHttp)
+        public static BaseCommand? GetNextCommand(this DbSet<CommandRequest> commandRequests, QueueType queueType)
         {
-            var excludeFlags = (!allowHttp ? CommandType.AniDbHttp : 0) | (!allowUdp ? CommandType.AniDbUdp : 0);
             return (from cq in commandRequests
-                where cq.QueueType == queueType && (cq.Type & excludeFlags) == 0
+                where cq.QueueType == queueType
                 orderby cq.Priority, cq.Id
                 select cq).FirstOrDefault()?.Command;
         }

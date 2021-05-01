@@ -2,7 +2,9 @@
 {
     public enum QueueType
     {
-        Invalid = -1,
-        General = 1
+        Invalid = 0,
+        General = 1,
+        AniDbUdp = 2,
+        AniDbHttp = 3
     }
 }

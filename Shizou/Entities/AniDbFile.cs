@@ -23,6 +23,8 @@ namespace Shizou.Entities
         public int FileVersion { get; set; }
         public bool Censored { get; set; }
         public bool Deprecated { get; set; }
+        public bool Chaptered { get; set; }
+        
 
         public int? AniDbGroupId { get; set; }
         public AniDbGroup? AniDbGroup { get; set; } = null!;

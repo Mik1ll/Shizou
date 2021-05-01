@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Shizou.Commands;
+using Shizou.Database;
+using Shizou.Enums;
+using Shizou.Extensions;
 
 namespace Shizou
 {
@@ -18,17 +23,19 @@ namespace Shizou
         public Task StartAsync(CancellationToken cancellationToken)
         {
             using IServiceScope scope = _serviceProvider.CreateScope();
+            
             // Testing code
             // var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
             // try
             // {
-            //     context.CommandRequests.Add(new NoopCommand().CommandRequest);
+            //     context.CommandRequests.Add(new NoopCommand(new NoopParams {Testint = 5}).CommandRequest);
             //     context.SaveChanges();
             // }
             // catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") ?? false)
             // {
             // }
-            // var test  = context.CommandRequests.GetNextCommand(QueueType.General, true, true);
+            // var test = context.CommandRequests.GetNextCommand(QueueType.General);
+            
             return Task.CompletedTask;
         }
 

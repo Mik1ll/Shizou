@@ -2,7 +2,7 @@
 {
     public enum CommandPriority
     {
-        Invalid = -1,
+        Invalid = 0,
         Default = 99
     }
 }

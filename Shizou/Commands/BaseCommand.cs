@@ -1,4 +1,8 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Shizou.Database;
 using Shizou.Entities;
 using Shizou.Enums;
 
@@ -6,44 +10,40 @@ namespace Shizou.Commands
 {
     public abstract class BaseCommand
     {
-        protected readonly CommandPriority Priority;
-
-        protected readonly QueueType QueueType;
-
-        protected readonly CommandType Type;
-
         public bool Completed = false;
 
-        protected BaseCommand()
+        // ReSharper disable once InconsistentNaming
+        protected CommandParams _commandParams;
+        protected abstract CommandParams CommandParams { get; }
+
+        protected BaseCommand(CommandParams commandParams)
         {
-            var commandAttr = GetType().GetCustomAttribute<CommandAttribute>();
-            Type = commandAttr?.Type ?? CommandType.Invalid;
-            Priority = commandAttr?.Priority ?? CommandPriority.Invalid;
-            QueueType = commandAttr?.QueueType ?? QueueType.Invalid;
+            _commandParams = commandParams;
         }
 
-        public CommandRequest CommandRequest =>
-            new()
+        protected BaseCommand(CommandRequest commandRequest, Type commandParamType)
+        {
+            _commandParams = (CommandParams)JsonSerializer.Deserialize(commandRequest.CommandParams, commandParamType)!;
+        }
+        
+        public CommandRequest CommandRequest
+        {
+            get
             {
-                Type = Type,
-                Priority = Priority,
-                QueueType = QueueType,
-                CommandId = GenerateCommandId(),
-                CommandParams = GenerateCommandParams()
-            };
+                var commandAttr = GetType().GetCustomAttribute<CommandAttribute>();
+                return new CommandRequest()
+                {
+                    Type = commandAttr?.Type ?? CommandType.Invalid,
+                    Priority = commandAttr?.Priority ?? CommandPriority.Invalid,
+                    QueueType = commandAttr?.QueueType ?? QueueType.Invalid,
+                    CommandId = GenerateCommandId(),
+                    CommandParams = JsonSerializer.Serialize(_commandParams, _commandParams.GetType())
+                };
+            }
+        }
 
         public abstract void Process();
 
         protected abstract string GenerateCommandId();
-
-        protected abstract string GenerateCommandParams();
-
-        public BaseCommand Init(CommandRequest commandRequest)
-        {
-            PopulateCommandParams(commandRequest.CommandParams);
-            return this;
-        }
-
-        protected abstract void PopulateCommandParams(string commandParams);
     }
 }

@@ -82,6 +82,7 @@ namespace Shizou
 
             app.UseRouting();
 
+            // For Debugging OData
             app.Use(next => context =>
             {
                 var endpoint = context.GetEndpoint();
