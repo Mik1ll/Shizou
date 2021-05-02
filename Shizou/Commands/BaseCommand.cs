@@ -1,8 +1,5 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using Shizou.Database;
 using Shizou.Entities;
 using Shizou.Enums;
 
@@ -21,17 +18,12 @@ namespace Shizou.Commands
             _commandParams = commandParams;
         }
 
-        protected BaseCommand(CommandRequest commandRequest, Type commandParamType)
-        {
-            _commandParams = (CommandParams)JsonSerializer.Deserialize(commandRequest.CommandParams, commandParamType)!;
-        }
-        
         public CommandRequest CommandRequest
         {
             get
             {
                 var commandAttr = GetType().GetCustomAttribute<CommandAttribute>();
-                return new CommandRequest()
+                return new CommandRequest
                 {
                     Type = commandAttr?.Type ?? CommandType.Invalid,
                     Priority = commandAttr?.Priority ?? CommandPriority.Invalid,

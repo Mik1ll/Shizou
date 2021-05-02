@@ -23,19 +23,19 @@ namespace Shizou
         public Task StartAsync(CancellationToken cancellationToken)
         {
             using IServiceScope scope = _serviceProvider.CreateScope();
-            
+
             // Testing code
+            // var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
             // var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
             // try
             // {
-            //     context.CommandRequests.Add(new NoopCommand(new NoopParams {Testint = 5}).CommandRequest);
-            //     context.SaveChanges();
+            //     cmdMgr.Dispatch<NoopCommand>(new NoopParams {Testint = 20});
             // }
             // catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") ?? false)
             // {
             // }
-            // var test = context.CommandRequests.GetNextCommand(QueueType.General);
-            
+            // var test = cmdMgr.CommandFromRequest(context.CommandRequests.GetNextRequest(QueueType.General)!);
+
             return Task.CompletedTask;
         }
 

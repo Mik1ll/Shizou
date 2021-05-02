@@ -18,6 +18,7 @@ using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Shizou.Commands;
 using Shizou.Database;
 using Shizou.Entities;
 using Shizou.Options;
@@ -62,6 +63,7 @@ namespace Shizou
 
             services.AddHostedService<StartupService>();
             services.AddDbContext<ShizouContext>();
+            services.AddScoped<CommandManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

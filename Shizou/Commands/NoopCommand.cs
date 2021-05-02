@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-using Shizou.Entities;
-using Shizou.Enums;
+﻿using Shizou.Enums;
 
 namespace Shizou.Commands
 {
@@ -8,17 +6,13 @@ namespace Shizou.Commands
     {
         public int Testint { get; set; }
     }
-    
-    [Command(CommandType.Noop, CommandPriority.Default, QueueType.General)]
+
+    [Command(CommandType.Noop, CommandPriority.Default, QueueType.General, typeof(NoopParams))]
     public sealed class NoopCommand : BaseCommand
     {
         protected override NoopParams CommandParams => (NoopParams)_commandParams;
 
         public NoopCommand(NoopParams commandParams) : base(commandParams)
-        {
-        }
-
-        public NoopCommand(CommandRequest commandRequest) : base(commandRequest, typeof(NoopParams))
         {
         }
 
