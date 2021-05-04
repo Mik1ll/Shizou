@@ -11,7 +11,7 @@ using Shizou.Extensions;
 
 namespace Shizou
 {
-    public sealed class StartupService : IHostedService
+    public sealed class StartupService : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider;
 
@@ -20,10 +20,10 @@ namespace Shizou
             _serviceProvider = serviceProvider;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             using IServiceScope scope = _serviceProvider.CreateScope();
-
+            
             // Testing code
             // var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
             // var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
@@ -35,12 +35,6 @@ namespace Shizou
             // {
             // }
             // var test = cmdMgr.CommandFromRequest(context.CommandRequests.GetNextRequest(QueueType.General)!);
-
-            return Task.CompletedTask;
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
             return Task.CompletedTask;
         }
     }
