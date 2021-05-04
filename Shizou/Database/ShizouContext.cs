@@ -7,11 +7,8 @@ namespace Shizou.Database
 {
     public sealed class ShizouContext : DbContext
     {
-        private readonly ILoggerFactory _loggerFactory;
-
-        public ShizouContext(DbContextOptions<ShizouContext> options, ILoggerFactory loggerFactory) : base(options)
+        public ShizouContext(DbContextOptions<ShizouContext> options) : base(options)
         {
-            _loggerFactory = loggerFactory;
         }
 
         public DbSet<CommandRequest> CommandRequests { get; set; } = null!;
@@ -30,7 +27,7 @@ namespace Shizou.Database
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite(@$"Data Source={Path.Combine(Program.ApplicationData, "ShizouDB.sqlite3")};Foreign Keys=True;")
-                .EnableSensitiveDataLogging().UseLoggerFactory(_loggerFactory);
+                .EnableSensitiveDataLogging();
         }
     }
 }
