@@ -7,11 +7,9 @@ namespace Shizou.Commands
         public int Testint { get; set; }
     }
 
-    [Command(CommandType.Noop, CommandPriority.Default, QueueType.General, typeof(NoopParams))]
-    public sealed class NoopCommand : BaseCommand
+    [Command(CommandType.Noop, CommandPriority.Default, QueueType.General)]
+    public sealed class NoopCommand : BaseCommand<NoopParams>
     {
-        protected override NoopParams CommandParams => (NoopParams)_commandParams;
-
         public NoopCommand(NoopParams commandParams) : base(commandParams)
         {
         }

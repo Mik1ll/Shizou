@@ -5,17 +5,21 @@ using Shizou.Enums;
 
 namespace Shizou.Commands
 {
-    public abstract class BaseCommand
+    public interface ICommand
     {
-        public bool Completed = false;
+        bool Completed { get; set; }
+        CommandRequest CommandRequest { get; }
+        void Process();
+    }
 
-        // ReSharper disable once InconsistentNaming
-        protected CommandParams _commandParams;
-        protected abstract CommandParams CommandParams { get; }
+    public abstract class BaseCommand<T> : ICommand where T : CommandParams
+    {
+        public bool Completed { get; set; } = false;
+        protected T CommandParams { get; }
 
-        protected BaseCommand(CommandParams commandParams)
+        protected BaseCommand(T commandParams)
         {
-            _commandParams = commandParams;
+            CommandParams = commandParams;
         }
 
         public CommandRequest CommandRequest
@@ -29,7 +33,7 @@ namespace Shizou.Commands
                     Priority = commandAttr?.Priority ?? CommandPriority.Invalid,
                     QueueType = commandAttr?.QueueType ?? QueueType.Invalid,
                     CommandId = GenerateCommandId(),
-                    CommandParams = JsonSerializer.Serialize(_commandParams, _commandParams.GetType())
+                    CommandParams = JsonSerializer.Serialize(CommandParams)
                 };
             }
         }
