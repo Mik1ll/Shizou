@@ -10,12 +10,15 @@ namespace Shizou.Commands
         bool Completed { get; set; }
         CommandRequest CommandRequest { get; }
         void Process();
+        string CommandId { get; }
     }
 
     public abstract class BaseCommand<T> : ICommand where T : CommandParams
     {
         public bool Completed { get; set; } = false;
         protected T CommandParams { get; }
+
+        public abstract string CommandId { get; }
 
         protected BaseCommand(T commandParams)
         {
@@ -32,14 +35,12 @@ namespace Shizou.Commands
                     Type = commandAttr?.Type ?? CommandType.Invalid,
                     Priority = commandAttr?.Priority ?? CommandPriority.Invalid,
                     QueueType = commandAttr?.QueueType ?? QueueType.Invalid,
-                    CommandId = GenerateCommandId(),
+                    CommandId = CommandId,
                     CommandParams = JsonSerializer.Serialize(CommandParams)
                 };
             }
         }
 
         public abstract void Process();
-
-        protected abstract string GenerateCommandId();
     }
 }

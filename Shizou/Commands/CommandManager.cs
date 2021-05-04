@@ -31,9 +31,11 @@ namespace Shizou.Commands
             _context = context;
         }
 
-        public void Dispatch<T>(CommandParams commandParams) where T : ICommand
+        public void Dispatch<TCommand, TParams>(TParams commandParams)
+            where TCommand : BaseCommand<TParams>
+            where TParams : CommandParams
         {
-            _context.CommandRequests.Add(ActivatorUtilities.CreateInstance<T>(_serviceProvider, commandParams).CommandRequest);
+            _context.CommandRequests.Add(ActivatorUtilities.CreateInstance<TCommand>(_serviceProvider, commandParams).CommandRequest);
             _context.SaveChanges();
         }
 

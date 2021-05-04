@@ -23,13 +23,12 @@ namespace Shizou
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             using IServiceScope scope = _serviceProvider.CreateScope();
-            
-            // Testing code
+            // // Testing code
             // var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
             // var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
             // try
             // {
-            //     cmdMgr.Dispatch<NoopCommand>(new NoopParams {Testint = 20});
+            //     cmdMgr.Dispatch<NoopCommand, NoopParams>(new NoopParams {Testint = 5});
             // }
             // catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") ?? false)
             // {

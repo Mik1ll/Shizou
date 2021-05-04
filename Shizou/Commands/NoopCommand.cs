@@ -18,9 +18,6 @@ namespace Shizou.Commands
         {
         }
 
-        protected override string GenerateCommandId()
-        {
-            return nameof(NoopCommand);
-        }
+        public override string CommandId => nameof(NoopCommand);
     }
 }
