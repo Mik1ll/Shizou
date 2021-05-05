@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace Shizou.CommandProcessors
 {
     public abstract class RateLimiter
     {
-        protected readonly ILogger<RateLimiter> _logger;
+        protected readonly ILogger<RateLimiter> Logger;
 
         protected RateLimiter(ILogger<RateLimiter> logger)
         {
-            _logger = logger;
+            Logger = logger;
             _watch.Start();
             _activeWatch.Start();
         }
@@ -25,26 +26,29 @@ namespace Shizou.CommandProcessors
         private readonly Stopwatch _activeWatch = new();
 
         public bool Available => _watch.Elapsed > LongDelay ||
-                                 _watch.Elapsed > ShortDelay && _activeWatch.Elapsed < ShortPeriod;
+                                 _watch.Elapsed > ShortDelay && (_activeWatch.Elapsed < ShortPeriod || _activeWatch.Elapsed > ResetPeriod);
 
-        public void Wait()
+        public TimeSpan NextAvailable => Available ? new TimeSpan(0) : (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay) - _watch.Elapsed;
+
+        public async void Wait()
         {
-            lock (_lock)
+            var entered = false;
+            while (!entered)
             {
-                var lastRequest = _watch.Elapsed;
-                if (_watch.Elapsed > ResetPeriod)
-                    _activeWatch.Restart();
-                var thisDelay = _activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay;
-                if (Available)
+                if (!Available)
                 {
-                    _watch.Restart();
+                    Logger.LogDebug($"Time since last command: {_watch.Elapsed}, waiting for {NextAvailable}");
+                    await Task.Delay(NextAvailable);
                 }
-                else
+                lock (_lock)
                 {
-                    _logger.LogTrace($"Time since last command: {lastRequest}, waiting for {thisDelay - lastRequest}");
-                    Thread.Sleep(thisDelay - lastRequest);
-                    _logger.LogTrace("Sending next command");
-                    _watch.Restart();
+                    if (Available)
+                    {
+                        if (_watch.Elapsed > ResetPeriod)
+                            _activeWatch.Restart();
+                        _watch.Restart();
+                        entered = true;
+                    }
                 }
             }
         }
