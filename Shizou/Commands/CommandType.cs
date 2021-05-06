@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Shizou.Enums
+namespace Shizou.Commands
 {
     [Flags]
     public enum CommandType

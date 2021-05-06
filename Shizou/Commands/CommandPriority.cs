@@ -1,4 +1,4 @@
-﻿namespace Shizou.Enums
+﻿namespace Shizou.Commands
 {
     public enum CommandPriority
     {

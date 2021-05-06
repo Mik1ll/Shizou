@@ -1,4 +1,4 @@
-﻿namespace Shizou.Enums
+﻿namespace Shizou.CommandProcessors
 {
     public enum QueueType
     {

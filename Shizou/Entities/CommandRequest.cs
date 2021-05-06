@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shizou.CommandProcessors;
+using Shizou.Commands;
 using Shizou.Enums;
 
 namespace Shizou.Entities
