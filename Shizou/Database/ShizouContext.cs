@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Shizou.Entities;
 
 namespace Shizou.Database

@@ -33,6 +33,8 @@ namespace Shizou.Options
             public string ServerHost { get; set; } = "api.anidb.net";
 
             public ushort ServerPort { get; set; } = 9000;
+
+            public ushort ClientPort { get; set; } = 4556;
         }
     }
 }

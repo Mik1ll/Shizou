@@ -1,6 +1,4 @@
 ﻿namespace Shizou.Commands
 {
-    public abstract record CommandParams
-    {
-    }
+    public abstract record CommandParams;
 }

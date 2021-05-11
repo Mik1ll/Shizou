@@ -2,7 +2,6 @@
 using System.Text.Json;
 using Shizou.CommandProcessors;
 using Shizou.Entities;
-using Shizou.Enums;
 
 namespace Shizou.Commands
 {

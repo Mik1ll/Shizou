@@ -6,7 +6,6 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Shizou.Database;
 using Shizou.Entities;
-using Shizou.Enums;
 
 namespace Shizou.Commands
 {
