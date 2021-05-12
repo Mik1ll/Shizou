@@ -6,6 +6,10 @@ namespace Shizou.Database
 {
     public sealed class ShizouContext : DbContext
     {
+        public ShizouContext()
+        {
+        }
+        
         public ShizouContext(DbContextOptions<ShizouContext> options) : base(options)
         {
         }

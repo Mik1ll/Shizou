@@ -11,37 +11,33 @@ namespace Shizou.Commands
 {
     public class CommandManager
     {
-        public static readonly Dictionary<CommandType, (Type paramType, Func<IServiceProvider, CommandParams, ICommand> create)> Commands = Assembly
+        public static readonly Dictionary<CommandType, (Type type, Type paramType)> Commands = Assembly
             .GetExecutingAssembly().GetTypes()
             .Select(t => new {type = t, commandAttr = t.GetCustomAttribute<CommandAttribute>()})
             .Where(x => x.commandAttr is not null)
-            .ToDictionary(
-                x => x.commandAttr!.Type,
-                x => (x.type.BaseType!.GetGenericArguments()[0],
-                    new Func<IServiceProvider, CommandParams, ICommand>((provider, commandParams) =>
-                        (ICommand)ActivatorUtilities.CreateInstance(provider, x.type, commandParams)!)));
+            .ToDictionary(x => x.commandAttr!.Type, x => (x.type, x.type.BaseType!.GetGenericArguments()[0]));
+
+        public static readonly Dictionary<Type, Type> TypeFromParam = Commands.ToDictionary(x => x.Value.paramType, x => x.Value.type);
 
         private readonly IServiceProvider _serviceProvider;
-        private readonly ShizouContext _context;
 
-        public CommandManager(IServiceProvider serviceProvider, ShizouContext context)
+        public CommandManager(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _context = context;
         }
 
-        public void Dispatch<TCommand, TParams>(TParams commandParams)
-            where TCommand : BaseCommand<TParams>
+        public void Dispatch<TParams>(TParams commandParams)
             where TParams : CommandParams
         {
-            _context.CommandRequests.Add(ActivatorUtilities.CreateInstance<TCommand>(_serviceProvider, commandParams).CommandRequest);
-            _context.SaveChanges();
+            using var context = new ShizouContext();
+            context.CommandRequests.Add(((ICommand)ActivatorUtilities.CreateInstance(_serviceProvider, TypeFromParam[commandParams.GetType()], commandParams)).CommandRequest);
+            context.SaveChanges();
         }
 
         public ICommand CommandFromRequest(CommandRequest commandRequest)
         {
-            var (paramType, create) = Commands[commandRequest.Type];
-            return create(_serviceProvider, (CommandParams)JsonSerializer.Deserialize(commandRequest.CommandParams, paramType)!);
+            var (type, paramType) = Commands[commandRequest.Type];
+            return (ICommand)ActivatorUtilities.CreateInstance(_serviceProvider, type, JsonSerializer.Deserialize(commandRequest.CommandParams, paramType)!);
         }
     }
 }

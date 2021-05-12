@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Shizou.CommandProcessors;
 using Shizou.Entities;
 
@@ -9,21 +10,23 @@ namespace Shizou.Commands
     {
         bool Completed { get; set; }
         CommandRequest CommandRequest { get; }
-        void Process();
         string CommandId { get; }
+        void Process();
     }
 
     public abstract class BaseCommand<T> : ICommand where T : CommandParams
     {
-        public bool Completed { get; set; } = false;
-        protected T CommandParams { get; }
+        protected readonly ILogger<BaseCommand<T>> Logger;
 
-        public abstract string CommandId { get; }
-
-        protected BaseCommand(T commandParams)
+        protected BaseCommand(T commandParams, ILogger<BaseCommand<T>> logger)
         {
             CommandParams = commandParams;
+            Logger = logger;
         }
+
+        protected T CommandParams { get; }
+        public bool Completed { get; set; } = false;
+        public abstract string CommandId { get; }
 
         public CommandRequest CommandRequest
         {

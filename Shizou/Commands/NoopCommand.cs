@@ -1,4 +1,5 @@
-﻿using Shizou.CommandProcessors;
+﻿using Microsoft.Extensions.Logging;
+using Shizou.CommandProcessors;
 
 namespace Shizou.Commands
 {
@@ -10,7 +11,7 @@ namespace Shizou.Commands
     [Command(CommandType.Noop, CommandPriority.Default, QueueType.General)]
     public sealed class NoopCommand : BaseCommand<NoopParams>
     {
-        public NoopCommand(NoopParams commandParams) : base(commandParams)
+        public NoopCommand(NoopParams commandParams, ILogger<NoopCommand> logger) : base(commandParams, logger)
         {
         }
 
@@ -18,6 +19,6 @@ namespace Shizou.Commands
         {
         }
 
-        public override string CommandId => nameof(NoopCommand);
+        public override string CommandId => nameof(NoopCommand) + CommandParams.Testint;
     }
 }

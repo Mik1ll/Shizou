@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Shizou.CommandProcessors;
+using Shizou.Commands;
+using Shizou.Database;
+using Shizou.Extensions;
 
 namespace Shizou
 {
@@ -20,10 +25,10 @@ namespace Shizou
             using IServiceScope scope = _serviceProvider.CreateScope();
             // // Testing code
             // var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
-            // var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
+            // using var context = new ShizouContext();
             // try
             // {
-            //     cmdMgr.Dispatch<NoopCommand, NoopParams>(new NoopParams {Testint = 5});
+            //     cmdMgr.Dispatch(new NoopParams {Testint = 55});
             // }
             // catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") ?? false)
             // {

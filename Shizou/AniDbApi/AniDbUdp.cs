@@ -4,31 +4,25 @@ using System.Threading.Tasks;
 using System.Timers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shizou.Options;
 using Mono.Nat;
 using Shizou.CommandProcessors;
-using Timer = System.Timers.Timer;
+using Shizou.Options;
 
 namespace Shizou.AniDbApi
 {
     public sealed class AniDbUdp : IDisposable
     {
-        private readonly IOptionsMonitor<ShizouOptions> _options;
-        private readonly ILogger<AniDbUdp> _logger;
-        private readonly UdpRateLimiter _rateLimiter;
-
-        public bool LoggedIn { get; private set; }
-        public bool Banned { get; private set; }
-        private readonly TimeSpan _banPeriod = new(12, 0, 0);
         private readonly Timer _bannedTimer;
+        private readonly TimeSpan _banPeriod = new(12, 0, 0);
+        private readonly ILogger<AniDbUdp> _logger;
         private readonly TimeSpan _logoutPeriod = new(0, 30, 0);
         private readonly Timer _logoutTimer;
-
-
-        private readonly UdpClient _udpClient;
-        private INatDevice? _router;
-        private Mapping? _mapping;
         private readonly Timer? _mappingTimer;
+        private readonly IOptionsMonitor<ShizouOptions> _options;
+        private readonly UdpRateLimiter _rateLimiter;
+        private readonly UdpClient _udpClient;
+        private Mapping? _mapping;
+        private INatDevice? _router;
 
         public AniDbUdp(IOptionsMonitor<ShizouOptions> options, ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter)
         {
@@ -62,6 +56,18 @@ namespace Shizou.AniDbApi
             }
         }
 
+        public bool LoggedIn { get; private set; }
+        public bool Banned { get; private set; }
+
+        public void Dispose()
+        {
+            _logger.LogInformation("Closing AniDb connection");
+            _bannedTimer.Dispose();
+            _logoutTimer.Dispose();
+            _udpClient.Dispose();
+            _mappingTimer?.Dispose();
+        }
+
         private void OnOptionsChanged(ShizouOptions options)
         {
             ;
@@ -93,28 +99,22 @@ namespace Shizou.AniDbApi
             if (LoggedIn)
                 return true;
 
-            bool result = false;
-            
+            var result = false;
+
             if (!result)
                 return false;
             LoggedIn = true;
             return true;
         }
 
-        private void FoundRouter(object? s, DeviceEventArgs e) => _router = _router?.NatProtocol == NatProtocol.Pmp ? _router : e.Device;
+        private void FoundRouter(object? s, DeviceEventArgs e)
+        {
+            _router = _router?.NatProtocol == NatProtocol.Pmp ? _router : e.Device;
+        }
 
         public bool Logout()
         {
             throw new NotImplementedException();
-        }
-
-        public void Dispose()
-        {
-            _logger.LogInformation("Closing AniDb connection");
-            _bannedTimer.Dispose();
-            _logoutTimer.Dispose();
-            _udpClient.Dispose();
-            _mappingTimer?.Dispose();
         }
     }
 }
