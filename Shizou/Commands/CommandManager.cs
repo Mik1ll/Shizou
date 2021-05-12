@@ -30,7 +30,8 @@ namespace Shizou.Commands
             where TParams : CommandParams
         {
             using var context = new ShizouContext();
-            context.CommandRequests.Add(((ICommand)ActivatorUtilities.CreateInstance(_serviceProvider, TypeFromParam[commandParams.GetType()], commandParams)).CommandRequest);
+            context.CommandRequests.Add(((ICommand)ActivatorUtilities.CreateInstance(_serviceProvider, TypeFromParam[commandParams.GetType()], commandParams))
+                .CommandRequest);
             context.SaveChanges();
         }
 

@@ -9,7 +9,7 @@ namespace Shizou.Database
         public ShizouContext()
         {
         }
-        
+
         public ShizouContext(DbContextOptions<ShizouContext> options) : base(options)
         {
         }

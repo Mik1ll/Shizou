@@ -70,7 +70,6 @@ namespace Shizou.AniDbApi
 
         private void OnOptionsChanged(ShizouOptions options)
         {
-            ;
         }
 
         private void MappingElapsed(object s, ElapsedEventArgs e)

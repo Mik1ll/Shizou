@@ -10,18 +10,6 @@ namespace Shizou.Hashers
 {
     public class RHasher
     {
-        public static Dictionary<HashIds, string> GetFileHashs(string filepath, HashIds ids, bool useTask = false)
-        {
-            var hasher = new RHasher(ids);
-            if (useTask)
-                hasher.UpdateFileWithTask(filepath);
-            else
-                hasher.UpdateFile(filepath);
-            hasher.Finish();
-            return Enum.GetValues(typeof(HashIds)).Cast<HashIds>().Where(id => ids.HasFlag(id))
-                .ToDictionary(id => id, id => hasher.ToString(id));
-        }
-
         [Flags]
         public enum HashIds : uint
         {
@@ -69,6 +57,18 @@ namespace Shizou.Hashers
             _ptr = Bindings.rhash_init(_hashIds);
         }
 
+        public static Dictionary<HashIds, string> GetFileHashs(string filepath, HashIds ids, bool useTask = false)
+        {
+            var hasher = new RHasher(ids);
+            if (useTask)
+                hasher.UpdateFileWithTask(filepath);
+            else
+                hasher.UpdateFile(filepath);
+            hasher.Finish();
+            return Enum.GetValues(typeof(HashIds)).Cast<HashIds>().Where(id => ids.HasFlag(id))
+                .ToDictionary(id => id, id => hasher.ToString(id));
+        }
+
         ~RHasher()
         {
             if (_ptr == IntPtr.Zero) return;
@@ -97,17 +97,19 @@ namespace Shizou.Hashers
             using FileStream file = new(filePath, FileMode.Open, FileAccess.Read, FileShare.None, bufSize, FileOptions.SequentialScan);
             byte[] buf1 = new byte[bufSize], buf2 = new byte[bufSize];
             int len;
-            Task<int>? a = null;
+            Task<int>? hashTask = null;
             while ((len = file.Read(buf1, 0, buf1.Length)) > 0)
             {
-                if ((a?.Result ?? 0) < 0)
+                if ((hashTask?.Result ?? 0) < 0)
                     throw new ExternalException($"{nameof(Bindings.rhash_update)} failed");
-                a = Task.Run(() => Bindings.rhash_update(_ptr, buf1, len));
+                // ReSharper disable AccessToModifiedClosure
+                hashTask = Task.Run(() => Bindings.rhash_update(_ptr, buf1, len));
+                // ReSharper restore AccessToModifiedClosure
                 byte[] temp = buf1;
                 buf1 = buf2;
                 buf2 = temp;
             }
-            if ((a?.Result ?? 0) < 0)
+            if ((hashTask?.Result ?? 0) < 0)
                 throw new ExternalException($"{nameof(Bindings.rhash_update)} failed");
             return this;
         }

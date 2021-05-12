@@ -16,9 +16,9 @@ namespace Shizou.Controllers
     [Route("[controller]")]
     public class EntityController<T> : ODataController where T : Entity, new()
     {
+        private readonly DbSet<T> _dbSet;
         protected readonly ShizouContext Context;
         protected readonly ILogger<EntityController<T>> Logger;
-        private readonly DbSet<T> _dbSet;
 
         public EntityController(ILogger<EntityController<T>> logger, ShizouContext context)
         {

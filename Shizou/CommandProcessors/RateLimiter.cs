@@ -7,6 +7,9 @@ namespace Shizou.CommandProcessors
 {
     public abstract class RateLimiter
     {
+        private readonly Stopwatch _activeWatch = new();
+        private readonly object _lock = new();
+        private readonly Stopwatch _watch = new();
         protected readonly ILogger<RateLimiter> Logger;
 
         protected RateLimiter(ILogger<RateLimiter> logger)
@@ -16,13 +19,10 @@ namespace Shizou.CommandProcessors
             _activeWatch.Start();
         }
 
-        private readonly object _lock = new();
         protected abstract TimeSpan ShortDelay { get; }
         protected abstract TimeSpan LongDelay { get; }
         protected abstract TimeSpan ShortPeriod { get; }
         protected abstract TimeSpan ResetPeriod { get; }
-        private readonly Stopwatch _watch = new();
-        private readonly Stopwatch _activeWatch = new();
 
         public bool Available => _watch.Elapsed > LongDelay ||
                                  _watch.Elapsed > ShortDelay && (_activeWatch.Elapsed < ShortPeriod || _activeWatch.Elapsed > ResetPeriod);

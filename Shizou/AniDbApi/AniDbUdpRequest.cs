@@ -7,9 +7,16 @@ namespace Shizou.AniDbApi
 {
     public abstract class AniDbUdpRequest
     {
-        protected readonly ILogger<AniDbUdpRequest> Logger;
-        private readonly UdpRateLimiter _rateLimiter;
         private readonly UdpClient _client;
+        private readonly UdpRateLimiter _rateLimiter;
+        protected readonly ILogger<AniDbUdpRequest> Logger;
+
+        protected AniDbUdpRequest(UdpClient client, ILogger<AniDbUdpRequest> logger, UdpRateLimiter rateLimiter)
+        {
+            Logger = logger;
+            _rateLimiter = rateLimiter;
+            _client = client;
+        }
 
         public abstract string CommandText { get; protected set; }
         public string? ResponseText { get; protected set; }
@@ -18,13 +25,6 @@ namespace Shizou.AniDbApi
         public AniDbResponseCode? ResponseCode { get; protected set; }
         public Encoding Encoding { get; } = Encoding.UTF8;
 
-        protected AniDbUdpRequest(UdpClient client, ILogger<AniDbUdpRequest> logger, UdpRateLimiter rateLimiter)
-        {
-            Logger = logger;
-            _rateLimiter = rateLimiter;
-            _client = client;
-        }
-        
         public void SendRequest()
         {
             _rateLimiter.Wait();

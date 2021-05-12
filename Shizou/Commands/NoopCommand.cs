@@ -15,10 +15,10 @@ namespace Shizou.Commands
         {
         }
 
+        public override string CommandId => nameof(NoopCommand) + CommandParams.Testint;
+
         public override void Process()
         {
         }
-
-        public override string CommandId => nameof(NoopCommand) + CommandParams.Testint;
     }
 }
