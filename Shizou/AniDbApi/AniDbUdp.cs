@@ -20,12 +20,14 @@ namespace Shizou.AniDbApi
         private readonly Timer? _mappingTimer;
         private readonly IOptionsMonitor<ShizouOptions> _options;
         private readonly UdpRateLimiter _rateLimiter;
+        private readonly IServiceProvider _serviceProvider;
         private readonly UdpClient _udpClient;
         private Mapping? _mapping;
         private INatDevice? _router;
 
-        public AniDbUdp(IOptionsMonitor<ShizouOptions> options, ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter)
+        public AniDbUdp(IOptionsMonitor<ShizouOptions> options, ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter, IServiceProvider serviceProvider)
         {
+            _serviceProvider = serviceProvider;
             _rateLimiter = rateLimiter;
             _udpClient = new UdpClient(options.CurrentValue.AniDb.ClientPort, AddressFamily.InterNetwork);
             _udpClient.Connect(options.CurrentValue.AniDb.ServerHost, options.CurrentValue.AniDb.ServerPort);

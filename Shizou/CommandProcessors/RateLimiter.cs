@@ -29,7 +29,7 @@ namespace Shizou.CommandProcessors
 
         public TimeSpan NextAvailable => Available ? new TimeSpan(0) : (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay) - _watch.Elapsed;
 
-        public async void Wait()
+        public async Task EnsureRate()
         {
             var entered = false;
             while (!entered)

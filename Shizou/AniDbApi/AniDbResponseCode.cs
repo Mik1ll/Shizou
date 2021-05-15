@@ -2,14 +2,24 @@ namespace Shizou.AniDbApi
 {
     public enum AniDbResponseCode
     {
+        // All
+        IllegalInputOrAccessDenied = 505,
+        Banned = 555,
+        UnknownCommand = 598,
+        InternalServerError = 600,
+        OutOfService = 601,
+        ServerBusy = 602,
+        Timeout = 604,
+        LoginFirst = 501,
+        AccessDenied = 502,
+        InvalidSession = 506,
+
         // Auth
         LoginAccepted = 200,
         LoginAcceptedNewVersion = 201,
         LoginFailed = 500,
         ClientOutdated = 503,
         ClientBanned = 504,
-        IllegalInputOrAccessDenied = 505,
-        AniDbOutOfService = 601,
 
         // Logout
         LoggedOut = 203,
@@ -102,8 +112,6 @@ namespace Shizou.AniDbApi
 
         // Encoding
         EncodingChanged = 219,
-        EncodingNotSupported = 519,
-
-        UnknownCommand = 598
+        EncodingNotSupported = 519
     }
 }
