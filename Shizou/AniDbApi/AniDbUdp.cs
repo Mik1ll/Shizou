@@ -19,18 +19,20 @@ namespace Shizou.AniDbApi
         private readonly Timer _logoutTimer;
         private readonly Timer? _mappingTimer;
         private readonly IOptionsMonitor<ShizouOptions> _options;
-        private readonly UdpRateLimiter _rateLimiter;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly UdpClient _udpClient;
+        private readonly TimeSpan _pausePeriod = new(0, 30, 0);
+        private readonly Timer _pauseTimer;
+        private bool _banned;
+        private bool _loggedIn;
         private Mapping? _mapping;
         private INatDevice? _router;
 
-        public AniDbUdp(IOptionsMonitor<ShizouOptions> options, ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter, IServiceProvider serviceProvider)
+        public AniDbUdp(IOptionsMonitor<ShizouOptions> options,
+            ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter
+        )
         {
-            _serviceProvider = serviceProvider;
-            _rateLimiter = rateLimiter;
-            _udpClient = new UdpClient(options.CurrentValue.AniDb.ClientPort, AddressFamily.InterNetwork);
-            _udpClient.Connect(options.CurrentValue.AniDb.ServerHost, options.CurrentValue.AniDb.ServerPort);
+            RateLimiter = rateLimiter;
+            UdpClient = new UdpClient(options.CurrentValue.AniDb.ClientPort, AddressFamily.InterNetwork);
+            UdpClient.Connect(options.CurrentValue.AniDb.ServerHost, options.CurrentValue.AniDb.ServerPort);
             _options = options;
             _options.OnChange(OnOptionsChanged);
             _logger = logger;
@@ -42,6 +44,10 @@ namespace Shizou.AniDbApi
             _logoutTimer = new Timer(_logoutPeriod.TotalMilliseconds);
             _logoutTimer.Elapsed += LogoutElapsed;
             _logoutTimer.AutoReset = false;
+
+            _pauseTimer = new Timer(_pausePeriod.TotalMilliseconds);
+            _pauseTimer.Elapsed += PausedElapsed;
+            _pauseTimer.AutoReset = false;
 
             NatUtility.DeviceFound += FoundRouter;
             NatUtility.StartDiscovery();
@@ -58,23 +64,61 @@ namespace Shizou.AniDbApi
             }
         }
 
-        public bool LoggedIn { get; private set; }
-        public bool Banned { get; private set; }
+        public UdpClient UdpClient { get; }
+        public UdpRateLimiter RateLimiter { get; }
+        public string? SessionKey { get; set; }
+
+        public bool Paused { get; private set; }
+
+        public bool LoggedIn
+        {
+            get => _loggedIn;
+            private set
+            {
+                _loggedIn = value;
+                if (value)
+                {
+                    _logoutTimer.Stop();
+                    _logoutTimer.Start();
+                }
+            }
+        }
+
+        public bool Banned
+        {
+            get => _banned;
+            private set
+            {
+                _banned = value;
+                if (value)
+                {
+                    _bannedTimer.Stop();
+                    _bannedTimer.Start();
+                }
+            }
+        }
+
+        public string? BanReason { get; private set; }
 
         public void Dispose()
         {
             _logger.LogInformation("Closing AniDb connection");
             _bannedTimer.Dispose();
             _logoutTimer.Dispose();
-            _udpClient.Dispose();
+            UdpClient.Dispose();
             _mappingTimer?.Dispose();
+        }
+
+        private void PausedElapsed(object sender, ElapsedEventArgs e)
+        {
+            Paused = false;
         }
 
         private void OnOptionsChanged(ShizouOptions options)
         {
         }
 
-        private void MappingElapsed(object s, ElapsedEventArgs e)
+        private void MappingElapsed(object sender, ElapsedEventArgs e)
         {
             var oldLifetime = _mapping?.Lifetime;
             _mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, _options.CurrentValue.AniDb.ClientPort, _options.CurrentValue.AniDb.ClientPort));
@@ -82,40 +126,72 @@ namespace Shizou.AniDbApi
                 _mappingTimer!.Interval = _mapping.Lifetime * 1000 - 10000;
         }
 
-        private void BanTimerElapsed(object s, ElapsedEventArgs e)
+        private void BanTimerElapsed(object sender, ElapsedEventArgs e)
         {
             _logger.LogInformation($"Udp ban timer has elapsed: {_banPeriod}");
             Banned = false;
+            BanReason = null;
         }
 
-        private void LogoutElapsed(object s, ElapsedEventArgs e)
+        private void LogoutElapsed(object sender, ElapsedEventArgs e)
         {
-            if (LoggedIn)
-                Logout();
+            // TODO: Logout command
+            //if (LoggedIn)
+            //Logout();
             LoggedIn = false;
         }
 
-        public bool Login()
-        {
-            if (LoggedIn)
-                return true;
-
-            var result = false;
-
-            if (!result)
-                return false;
-            LoggedIn = true;
-            return true;
-        }
-
-        private void FoundRouter(object? s, DeviceEventArgs e)
+        private void FoundRouter(object? sender, DeviceEventArgs e)
         {
             _router = _router?.NatProtocol == NatProtocol.Pmp ? _router : e.Device;
         }
 
-        public bool Logout()
+
+        // TODO: Move to AniDbUdpRequest
+        public void HandleErrors(AniDbUdpRequest request)
         {
-            throw new NotImplementedException();
+            if (request.Errored)
+                switch (request.ResponseCode)
+                {
+                    // No response
+                    case null:
+                        break;
+                    case AniDbResponseCode.ServerBusy:
+                        break;
+                    case AniDbResponseCode.Banned:
+                        Banned = true;
+                        BanReason = request.ResponseText;
+                        _logger.LogWarning("Banned: {banReason}, waiting {hours}hr {minutes}min ({unbanTime})", BanReason, _banPeriod.Hours,
+                            _banPeriod.Minutes, DateTime.Now + _banPeriod);
+                        break;
+                    case AniDbResponseCode.InvalidSession:
+                        _logger.LogWarning("Invalid session, reauth");
+                        LoggedIn = false;
+                        break;
+                    case AniDbResponseCode.LoginFirst:
+                        _logger.LogWarning("Not logged in, reauth");
+                        LoggedIn = false;
+                        break;
+                    case AniDbResponseCode.AccessDenied:
+                        _logger.LogError("Access denied");
+                        break;
+                    case AniDbResponseCode.InternalServerError or (> AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700):
+                        _logger.LogCritical("AniDB Server CRITICAL ERROR {errorCode} : {errorCodeStr}", request.ResponseCode, request.ResponseCodeString);
+                        break;
+                    case AniDbResponseCode.UnknownCommand:
+                        _logger.LogError("Unknown command");
+                        // TODO: decide what to do here
+                        break;
+                    case AniDbResponseCode.IllegalInputOrAccessDenied:
+                        _logger.LogError("Illegal input or access is denied");
+                        // TODO: decide what to do here
+                        break;
+                    default:
+                        if (!Enum.IsDefined(typeof(AniDbResponseCode), request.ResponseCode))
+                            _logger.LogError("Response Code {ResponseCode} not found in enumeration: Code string: {codeString}", request.ResponseCode,
+                                request.ResponseCodeString);
+                        break;
+                }
         }
     }
 }

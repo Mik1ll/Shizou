@@ -3,6 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Shizou.AniDbApi;
 
 namespace Shizou
 {
@@ -15,9 +17,12 @@ namespace Shizou
             _serviceProvider = serviceProvider;
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             using IServiceScope scope = _serviceProvider.CreateScope();
+            var pingCmd = new PingRequest(scope.ServiceProvider.GetRequiredService<ILogger<PingRequest>>(),
+                scope.ServiceProvider.GetRequiredService<AniDbUdp>());
+            await pingCmd.Process();
             // // Testing code
             // var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
             // using var context = new ShizouContext();
@@ -29,7 +34,6 @@ namespace Shizou
             // {
             // }
             // var test = cmdMgr.CommandFromRequest(context.CommandRequests.GetNextRequest(QueueType.General)!);
-            return Task.CompletedTask;
         }
     }
 }

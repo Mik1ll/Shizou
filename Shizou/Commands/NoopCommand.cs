@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Shizou.CommandProcessors;
 
 namespace Shizou.Commands
@@ -17,7 +18,7 @@ namespace Shizou.Commands
 
         public override string CommandId => nameof(NoopCommand) + CommandParams.Testint;
 
-        public override void Process()
+        public override async Task Process()
         {
         }
     }

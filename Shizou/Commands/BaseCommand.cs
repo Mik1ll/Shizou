@@ -1,7 +1,8 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Shizou.CommandProcessors;
 using Shizou.Entities;
 
 namespace Shizou.Commands
@@ -11,7 +12,7 @@ namespace Shizou.Commands
         bool Completed { get; set; }
         CommandRequest CommandRequest { get; }
         string CommandId { get; }
-        void Process();
+        Task Process();
     }
 
     public abstract class BaseCommand<T> : ICommand where T : CommandParams
@@ -32,18 +33,19 @@ namespace Shizou.Commands
         {
             get
             {
-                var commandAttr = GetType().GetCustomAttribute<CommandAttribute>();
+                var commandAttr = GetType().GetCustomAttribute<CommandAttribute>() ??
+                                  throw new InvalidOperationException($"Could not load command attribute from {GetType().Name}");
                 return new CommandRequest
                 {
-                    Type = commandAttr?.Type ?? CommandType.Invalid,
-                    Priority = commandAttr?.Priority ?? CommandPriority.Invalid,
-                    QueueType = commandAttr?.QueueType ?? QueueType.Invalid,
+                    Type = commandAttr.Type,
+                    Priority = commandAttr.Priority,
+                    QueueType = commandAttr.QueueType,
                     CommandId = CommandId,
                     CommandParams = JsonSerializer.Serialize(CommandParams)
                 };
             }
         }
 
-        public abstract void Process();
+        public abstract Task Process();
     }
 }
