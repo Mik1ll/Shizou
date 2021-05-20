@@ -68,7 +68,8 @@ namespace Shizou
             services.AddSingleton<CommandManager>();
             services.AddSingleton<AniDbUdp>();
             services.AddSingleton<UdpRateLimiter>();
-            services.AddHostedService<AniDbUdpProcessor>();
+            services.AddSingleton<AniDbUdpProcessor>();
+            services.AddSingleton<IHostedService>(p => p.GetRequiredService<AniDbUdpProcessor>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

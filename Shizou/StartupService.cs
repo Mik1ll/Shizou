@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi;
+using Shizou.CommandProcessors;
+using Shizou.Commands;
 
 namespace Shizou
 {
@@ -20,20 +23,10 @@ namespace Shizou
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             using IServiceScope scope = _serviceProvider.CreateScope();
-            var pingCmd = new PingRequest(scope.ServiceProvider.GetRequiredService<ILogger<PingRequest>>(),
-                scope.ServiceProvider.GetRequiredService<AniDbUdp>());
-            await pingCmd.Process();
-            // // Testing code
-            // var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
-            // using var context = new ShizouContext();
-            // try
-            // {
-            //     cmdMgr.Dispatch(new NoopParams {Testint = 55});
-            // }
-            // catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE") ?? false)
-            // {
-            // }
-            // var test = cmdMgr.CommandFromRequest(context.CommandRequests.GetNextRequest(QueueType.General)!);
+            var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
+            var log = scope.ServiceProvider.GetRequiredService<ILogger<StartupService>>();
+            scope.ServiceProvider.GetRequiredService<AniDbUdpProcessor>().Paused = false;
+
         }
     }
 }

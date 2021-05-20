@@ -15,7 +15,9 @@ namespace Shizou.AniDbApi
 
         public override async Task Process()
         {
+            Logger.LogDebug("Pinging server...");
             await SendRequest();
+            Logger.LogDebug("Ping Response: {responseCode}", ResponseCode);
         }
     }
 }

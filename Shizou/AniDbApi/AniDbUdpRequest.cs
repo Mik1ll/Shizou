@@ -79,13 +79,59 @@ namespace Shizou.AniDbApi
                 ResponseCode = (AniDbResponseCode)int.Parse(codeLine[..3]);
                 if (codeLine.Length >= 5)
                     ResponseCodeString = codeLine[4..];
-                _udpApi.HandleErrors(this);
+                HandleSharedErrors();
             }
             catch (Exception ex)
             {
                 Errored = true;
                 Logger.LogError(ex, "Error receiving data: {exceptionMsg}", ex.Message);
             }
+        }
+
+        private void HandleSharedErrors()
+        {
+            if (Errored)
+                switch (ResponseCode)
+                {
+                    // No response
+                    case null:
+                        break;
+                    case AniDbResponseCode.ServerBusy:
+                        break;
+                    case AniDbResponseCode.Banned:
+                        _udpApi.Banned = true;
+                        _udpApi.BanReason = ResponseText;
+                        Logger.LogWarning("Banned: {banReason}, waiting {hours}hr {minutes}min ({unbanTime})", _udpApi.BanReason, _udpApi.BanPeriod.Hours,
+                            _udpApi.BanPeriod.Minutes, DateTime.Now + _udpApi.BanPeriod);
+                        break;
+                    case AniDbResponseCode.InvalidSession:
+                        Logger.LogWarning("Invalid session, reauth");
+                        _udpApi.LoggedIn = false;
+                        break;
+                    case AniDbResponseCode.LoginFirst:
+                        Logger.LogWarning("Not logged in, reauth");
+                        _udpApi.LoggedIn = false;
+                        break;
+                    case AniDbResponseCode.AccessDenied:
+                        Logger.LogError("Access denied");
+                        break;
+                    case AniDbResponseCode.InternalServerError or (> AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700):
+                        Logger.LogCritical("AniDB Server CRITICAL ERROR {errorCode} : {errorCodeStr}", ResponseCode, ResponseCodeString);
+                        break;
+                    case AniDbResponseCode.UnknownCommand:
+                        Logger.LogError("Unknown command");
+                        // TODO: decide what to do here
+                        break;
+                    case AniDbResponseCode.IllegalInputOrAccessDenied:
+                        Logger.LogError("Illegal input or access is denied");
+                        // TODO: decide what to do here
+                        break;
+                    default:
+                        if (!Enum.IsDefined(typeof(AniDbResponseCode), ResponseCode))
+                            Logger.LogError("Response Code {ResponseCode} not found in enumeration: Code string: {codeString}", ResponseCode,
+                                ResponseCodeString);
+                        break;
+                }
         }
     }
 }

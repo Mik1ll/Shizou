@@ -19,7 +19,7 @@ namespace Shizou.CommandProcessors
 
         public CommandRequest? CurrentCommand { get; protected set; }
 
-        public bool Paused { get; set; }
+        public bool Paused { get; set; } = true;
         public string? PauseReason { get; set; }
     }
 }

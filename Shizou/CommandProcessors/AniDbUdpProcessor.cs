@@ -27,7 +27,7 @@ namespace Shizou.CommandProcessors
                 ShizouContext context = new();
                 if (Paused || _udpApi.Banned || _udpApi.Paused || (CurrentCommand = context.CommandRequests.GetNextRequest(QueueType.AniDbUdp)) is null)
                 {
-                    await Task.Delay(2000);
+                    await Task.Delay(1000);
                     continue;
                 }
                 ICommand command = _commandManager.CommandFromRequest(CurrentCommand);
@@ -42,6 +42,7 @@ namespace Shizou.CommandProcessors
                 if (!command.Completed)
                     Logger.LogError("Command did not complete successfully: {commandId}", command.CommandId);
                 context.CommandRequests.Remove(CurrentCommand);
+                context.SaveChanges();
             }
         }
     }

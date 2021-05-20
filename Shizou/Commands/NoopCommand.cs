@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 
 namespace Shizou.Commands
@@ -20,6 +23,7 @@ namespace Shizou.Commands
 
         public override async Task Process()
         {
+            Completed = true;
         }
     }
 }

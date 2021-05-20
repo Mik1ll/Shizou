@@ -16,7 +16,6 @@ namespace Shizou.CommandProcessors
         {
             Logger = logger;
             _watch.Start();
-            _activeWatch.Start();
         }
 
         protected abstract TimeSpan ShortDelay { get; }
@@ -25,9 +24,7 @@ namespace Shizou.CommandProcessors
         protected abstract TimeSpan ResetPeriod { get; }
 
         public bool Available => _watch.Elapsed > LongDelay ||
-                                 _watch.Elapsed > ShortDelay && (_activeWatch.Elapsed < ShortPeriod || _activeWatch.Elapsed > ResetPeriod);
-
-        public TimeSpan NextAvailable => Available ? new TimeSpan(0) : (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay) - _watch.Elapsed;
+                                 _watch.Elapsed > ShortDelay && _activeWatch.Elapsed < ShortPeriod;
 
         public async Task EnsureRate()
         {
@@ -36,8 +33,9 @@ namespace Shizou.CommandProcessors
             {
                 if (!Available)
                 {
-                    Logger.LogDebug($"Time since last command: {_watch.Elapsed}, waiting for {NextAvailable}");
-                    await Task.Delay(NextAvailable);
+                    var nextAvailable = (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay) - _watch.Elapsed;
+                    Logger.LogDebug("Time since last command: {watchElapsed}, waiting for {nextAvailable}", _watch.Elapsed, nextAvailable);
+                    await Task.Delay(nextAvailable);
                 }
                 lock (_lock)
                 {
@@ -47,6 +45,7 @@ namespace Shizou.CommandProcessors
                             _activeWatch.Restart();
                         _watch.Restart();
                         entered = true;
+                        Logger.LogDebug("Got rate limiter");
                     }
                 }
             }
