@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -26,28 +28,27 @@ namespace Shizou.CommandProcessors
         public bool Available => _watch.Elapsed > LongDelay ||
                                  _watch.Elapsed > ShortDelay && _activeWatch.Elapsed < ShortPeriod;
 
+        private SemaphoreSlim _rateSemaphore = new(1, 1);
+        
         public async Task EnsureRate()
         {
-            var entered = false;
-            while (!entered)
+            try
             {
+                await _rateSemaphore.WaitAsync();
                 if (!Available)
                 {
                     var nextAvailable = (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay) - _watch.Elapsed;
                     Logger.LogDebug("Time since last command: {watchElapsed}, waiting for {nextAvailable}", _watch.Elapsed, nextAvailable);
                     await Task.Delay(nextAvailable);
                 }
-                lock (_lock)
-                {
-                    if (Available)
-                    {
-                        if (_watch.Elapsed > ResetPeriod)
-                            _activeWatch.Restart();
-                        _watch.Restart();
-                        entered = true;
-                        Logger.LogDebug("Got rate limiter");
-                    }
-                }
+                if (_watch.Elapsed > ResetPeriod)
+                    _activeWatch.Restart();
+                _watch.Restart();
+                Logger.LogDebug("Got rate limiter");
+            }
+            finally
+            {
+                _rateSemaphore.Release();
             }
         }
     }
