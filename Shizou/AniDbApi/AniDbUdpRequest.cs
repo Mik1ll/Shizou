@@ -12,13 +12,13 @@ namespace Shizou.AniDbApi
 {
     public abstract class AniDbUdpRequest
     {
-        private readonly AniDbUdp _udpApi;
+        protected readonly AniDbUdp AniDbUdp;
         protected readonly ILogger<AniDbUdpRequest> Logger;
 
-        protected AniDbUdpRequest(ILogger<AniDbUdpRequest> logger, AniDbUdp udpApi)
+        protected AniDbUdpRequest(ILogger<AniDbUdpRequest> logger, AniDbUdp aniDbUdp)
         {
             Logger = logger;
-            _udpApi = udpApi;
+            AniDbUdp = aniDbUdp;
         }
 
         public abstract string Command { get; }
@@ -36,9 +36,9 @@ namespace Shizou.AniDbApi
         {
             var requestBuilder = new StringBuilder(Command + " ");
             if (!new List<string> {"PING", "ENCRYPT", "AUTH", "VERSION"}.Contains(Command))
-                if (!string.IsNullOrWhiteSpace(_udpApi.SessionKey))
+                if (!string.IsNullOrWhiteSpace(AniDbUdp.SessionKey))
                 {
-                    Params.Add(("s", _udpApi.SessionKey));
+                    Params.Add(("s", AniDbUdp.SessionKey));
                 }
                 else
                 {
@@ -52,12 +52,12 @@ namespace Shizou.AniDbApi
             // Removes the extra & at end of parameters
             requestBuilder.Length--;
             var requestText = requestBuilder.ToString();
-            Logger.LogInformation("Sending AniDb UDP text: {requestText}", requestText);
             var dgramBytes = Encoding.GetBytes(requestText);
-            await _udpApi.RateLimiter.EnsureRate();
+            await AniDbUdp.RateLimiter.EnsureRate();
+            Logger.LogInformation("Sending AniDb UDP text: {requestText}", requestText);
             try
             {
-                await _udpApi.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
+                await AniDbUdp.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
             }
             catch (Exception ex)
             {
@@ -67,15 +67,16 @@ namespace Shizou.AniDbApi
             }
             try
             {
-                var receivedBytes = (await _udpApi.UdpClient.ReceiveAsync()).Buffer;
+                var receivedBytes = (await AniDbUdp.UdpClient.ReceiveAsync()).Buffer;
                 Stream memStream = new MemoryStream(receivedBytes);
                 if (receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0)
                     memStream = new DeflateStream(memStream, CompressionMode.Decompress);
                 using var reader = new StreamReader(memStream, Encoding);
                 var codeLine = reader.ReadLine();
                 ResponseText = reader.ReadToEnd();
-                if (codeLine is null || codeLine.Length <= 2)
+                if (string.IsNullOrWhiteSpace(codeLine) || codeLine.Length <= 2)
                     throw new InvalidOperationException("AniDB response is empty");
+                Logger.LogInformation("Received AniDB UDP response {codeString}", codeLine);
                 ResponseCode = (AniDbResponseCode)int.Parse(codeLine[..3]);
                 if (codeLine.Length >= 5)
                     ResponseCodeString = codeLine[4..];
@@ -90,48 +91,53 @@ namespace Shizou.AniDbApi
 
         private void HandleSharedErrors()
         {
-            if (Errored)
-                switch (ResponseCode)
-                {
-                    // No response
-                    case null:
-                        break;
-                    case AniDbResponseCode.ServerBusy:
-                        break;
-                    case AniDbResponseCode.Banned:
-                        _udpApi.Banned = true;
-                        _udpApi.BanReason = ResponseText;
-                        Logger.LogWarning("Banned: {banReason}, waiting {hours}hr {minutes}min ({unbanTime})", _udpApi.BanReason, _udpApi.BanPeriod.Hours,
-                            _udpApi.BanPeriod.Minutes, DateTime.Now + _udpApi.BanPeriod);
-                        break;
-                    case AniDbResponseCode.InvalidSession:
-                        Logger.LogWarning("Invalid session, reauth");
-                        _udpApi.LoggedIn = false;
-                        break;
-                    case AniDbResponseCode.LoginFirst:
-                        Logger.LogWarning("Not logged in, reauth");
-                        _udpApi.LoggedIn = false;
-                        break;
-                    case AniDbResponseCode.AccessDenied:
-                        Logger.LogError("Access denied");
-                        break;
-                    case AniDbResponseCode.InternalServerError or (> AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700):
-                        Logger.LogCritical("AniDB Server CRITICAL ERROR {errorCode} : {errorCodeStr}", ResponseCode, ResponseCodeString);
-                        break;
-                    case AniDbResponseCode.UnknownCommand:
-                        Logger.LogError("Unknown command");
-                        // TODO: decide what to do here
-                        break;
-                    case AniDbResponseCode.IllegalInputOrAccessDenied:
-                        Logger.LogError("Illegal input or access is denied");
-                        // TODO: decide what to do here
-                        break;
-                    default:
-                        if (!Enum.IsDefined(typeof(AniDbResponseCode), ResponseCode))
-                            Logger.LogError("Response Code {ResponseCode} not found in enumeration: Code string: {codeString}", ResponseCode,
-                                ResponseCodeString);
-                        break;
-                }
+            switch (ResponseCode)
+            {
+                case null:
+                    Logger.LogWarning("Can't handle possible error, no error response code");
+                    Errored = true;
+                    break;
+                case AniDbResponseCode.ServerBusy:
+                    break;
+                case AniDbResponseCode.Banned:
+                    AniDbUdp.Banned = true;
+                    AniDbUdp.BanReason = ResponseText;
+                    Logger.LogWarning("Banned: {banReason}, waiting {hours}hr {minutes}min ({unbanTime})", AniDbUdp.BanReason, AniDbUdp.BanPeriod.Hours,
+                        AniDbUdp.BanPeriod.Minutes, DateTime.Now + AniDbUdp.BanPeriod);
+                    break;
+                case AniDbResponseCode.InvalidSession:
+                    Logger.LogWarning("Invalid session, reauth");
+                    AniDbUdp.LoggedIn = false;
+                    break;
+                case AniDbResponseCode.LoginFirst:
+                    Logger.LogWarning("Not logged in, reauth");
+                    AniDbUdp.LoggedIn = false;
+                    break;
+                case AniDbResponseCode.AccessDenied:
+                    Logger.LogError("Access denied");
+                    AniDbUdp.Pause("Access was denied", TimeSpan.MaxValue);
+                    break;
+                case AniDbResponseCode.InternalServerError or (> AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700):
+                    Logger.LogCritical("AniDB Server CRITICAL ERROR {errorCode} : {errorCodeStr}", ResponseCode, ResponseCodeString);
+                    AniDbUdp.Pause($"Critical error with server {ResponseCode} {ResponseCodeString}", TimeSpan.MaxValue);
+                    break;
+                case AniDbResponseCode.UnknownCommand:
+                    Logger.LogError("Unknown command");
+                    // TODO: decide what to do here
+                    break;
+                case AniDbResponseCode.IllegalInputOrAccessDenied:
+                    Logger.LogError("Illegal input or access is denied");
+                    // TODO: decide what to do here
+                    break;
+                default:
+                    if (!Enum.IsDefined(typeof(AniDbResponseCode), ResponseCode))
+                    {
+                        Logger.LogError("Response Code {ResponseCode} not found in enumeration: Code string: {codeString}", ResponseCode,
+                            ResponseCodeString);
+                        Errored = true;
+                    }
+                    break;
+            }
         }
     }
 }

@@ -33,7 +33,10 @@ namespace Shizou.CommandProcessors
                 ICommand command = _commandManager.CommandFromRequest(CurrentCommand);
                 try
                 {
-                    await command.Process();
+                    Logger.LogTrace("Processing commadn: {commandId}", command.CommandId);
+                    var task = command.Process();
+                    while (!stoppingToken.IsCancellationRequested && !task.IsCompleted)
+                        await Task.Delay(500);
                 }
                 catch (Exception ex)
                 {
@@ -41,9 +44,13 @@ namespace Shizou.CommandProcessors
                 }
                 if (!command.Completed)
                     Logger.LogError("Command did not complete successfully: {commandId}", command.CommandId);
+
+                Logger.LogTrace("Deleting command: {commandId}", command.CommandId);
                 context.CommandRequests.Remove(CurrentCommand);
                 context.SaveChanges();
+                CurrentCommand = null;
             }
+            await _udpApi.Logout();
         }
     }
 }

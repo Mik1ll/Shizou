@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,8 +24,11 @@ namespace Shizou
             using IServiceScope scope = _serviceProvider.CreateScope();
             var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
             var log = scope.ServiceProvider.GetRequiredService<ILogger<StartupService>>();
+            var aniDbUdp = scope.ServiceProvider.GetRequiredService<AniDbUdp>();
             scope.ServiceProvider.GetRequiredService<AniDbUdpProcessor>().Paused = false;
-
+            await aniDbUdp.Login();
+            await Task.Delay(TimeSpan.FromSeconds(30));
+            //await aniDbUdp.Logout();
         }
     }
 }

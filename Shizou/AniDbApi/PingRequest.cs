@@ -6,7 +6,7 @@ namespace Shizou.AniDbApi
 {
     public sealed class PingRequest : AniDbUdpRequest
     {
-        public PingRequest(ILogger<AniDbUdpRequest> logger, AniDbUdp udpApi) : base(logger, udpApi)
+        public PingRequest(ILogger<AniDbUdpRequest> logger, AniDbUdp aniDbUdp) : base(logger, aniDbUdp)
         {
         }
 

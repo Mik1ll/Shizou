@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Timers;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
@@ -18,15 +19,17 @@ namespace Shizou.AniDbApi
         private readonly Timer? _mappingTimer;
         private readonly IOptionsMonitor<ShizouOptions> _options;
         private readonly Timer _pauseTimer;
+        private readonly IServiceProvider _provider;
         private bool _banned;
         private bool _loggedIn;
         private Mapping? _mapping;
         private INatDevice? _router;
 
         public AniDbUdp(IOptionsMonitor<ShizouOptions> options,
-            ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter
+            ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter, IServiceProvider provider
         )
         {
+            _provider = provider;
             RateLimiter = rateLimiter;
             UdpClient = new UdpClient(options.CurrentValue.AniDb.ClientPort, AddressFamily.InterNetwork);
             UdpClient.Connect(options.CurrentValue.AniDb.ServerHost, options.CurrentValue.AniDb.ServerPort);
@@ -42,7 +45,7 @@ namespace Shizou.AniDbApi
             _logoutTimer.Elapsed += LogoutElapsed;
             _logoutTimer.AutoReset = false;
 
-            _pauseTimer = new Timer(PausePeriod.TotalMilliseconds);
+            _pauseTimer = new Timer();
             _pauseTimer.Elapsed += PausedElapsed;
             _pauseTimer.AutoReset = false;
 
@@ -63,13 +66,16 @@ namespace Shizou.AniDbApi
 
         public TimeSpan BanPeriod { get; } = new(12, 0, 0);
         public TimeSpan LogoutPeriod { get; } = new(0, 30, 0);
-        public TimeSpan PausePeriod { get; } = new(0, 30, 0);
 
         public UdpClient UdpClient { get; }
         public UdpRateLimiter RateLimiter { get; }
         public string? SessionKey { get; set; }
 
+        public string? ImageServerUrl { get; set; }
+
         public bool Paused { get; private set; }
+
+        public string? PauseReason { get; private set; }
 
         public bool LoggedIn
         {
@@ -96,6 +102,10 @@ namespace Shizou.AniDbApi
                     _bannedTimer.Stop();
                     _bannedTimer.Start();
                 }
+                else
+                {
+                    BanReason = null;
+                }
             }
         }
 
@@ -110,9 +120,24 @@ namespace Shizou.AniDbApi
             _mappingTimer?.Dispose();
         }
 
-        private void PausedElapsed(object sender, ElapsedEventArgs e)
+        public void Pause(string reason, TimeSpan duration)
+        {
+            Paused = true;
+            PauseReason = reason;
+            _pauseTimer.Interval = duration.TotalMilliseconds;
+            _pauseTimer.Stop();
+            _pauseTimer.Start();
+        }
+
+        public void Unpause()
         {
             Paused = false;
+            PauseReason = null;
+        }
+
+        private void PausedElapsed(object sender, ElapsedEventArgs e)
+        {
+            Unpause();
         }
 
         private void OnOptionsChanged(ShizouOptions options)
@@ -136,15 +161,34 @@ namespace Shizou.AniDbApi
 
         private void LogoutElapsed(object sender, ElapsedEventArgs e)
         {
-            // TODO: Logout command
-            //if (LoggedIn)
-            //Logout();
-            LoggedIn = false;
+            Logout().Wait();
         }
 
         private void FoundRouter(object? sender, DeviceEventArgs e)
         {
             _router = _router?.NatProtocol == NatProtocol.Pmp ? _router : e.Device;
+        }
+
+        public async Task<bool> Login()
+        {
+            if (LoggedIn)
+                return true;
+            var req = ActivatorUtilities.CreateInstance<AuthRequest>(_provider);
+            await req.Process();
+            if (LoggedIn)
+                return true;
+            return false;
+        }
+
+        public async Task<bool> Logout()
+        {
+            if (!LoggedIn)
+                return true;
+            var req = ActivatorUtilities.CreateInstance<LogoutRequest>(_provider);
+            await req.Process();
+            if (!LoggedIn)
+                return true;
+            return false;
         }
     }
 }
