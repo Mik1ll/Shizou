@@ -26,14 +26,14 @@ namespace Shizou
             var log = scope.ServiceProvider.GetRequiredService<ILogger<StartupService>>();
             var aniDbUdp = scope.ServiceProvider.GetRequiredService<AniDbUdp>();
             scope.ServiceProvider.GetRequiredService<AniDbUdpProcessor>().Paused = false;
-            Task[] tasks = new[]
-            {
-                ActivatorUtilities.CreateInstance<PingRequest>(scope.ServiceProvider).Process(),
-                ActivatorUtilities.CreateInstance<PingRequest>(scope.ServiceProvider).Process(),
-                ActivatorUtilities.CreateInstance<PingRequest>(scope.ServiceProvider).Process(),
-            };
-            Task.WaitAll(tasks);
-            //await aniDbUdp.Login();
+            // Task[] tasks = new[]
+            // {
+            //     ActivatorUtilities.CreateInstance<PingRequest>(scope.ServiceProvider).Process(),
+            //     ActivatorUtilities.CreateInstance<PingRequest>(scope.ServiceProvider).Process(),
+            //     ActivatorUtilities.CreateInstance<PingRequest>(scope.ServiceProvider).Process(),
+            // };
+            // Task.WaitAll(tasks);
+            await aniDbUdp.Login();
             //await Task.Delay(TimeSpan.FromSeconds(30));
             //await aniDbUdp.Logout();
         }

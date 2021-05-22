@@ -1,12 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Shizou.AniDbApi
 {
     public class LogoutRequest : AniDbUdpRequest
     {
-        public LogoutRequest(ILogger<AniDbUdpRequest> logger, AniDbUdp aniDbUdp) : base(logger, aniDbUdp)
+        public LogoutRequest(IServiceProvider provider) : base(provider.GetRequiredService<ILogger<LogoutRequest>>(), provider.GetRequiredService<AniDbUdp>())
         {
         }
 

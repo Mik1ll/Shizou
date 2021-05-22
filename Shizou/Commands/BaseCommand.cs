@@ -26,7 +26,7 @@ namespace Shizou.Commands
         }
 
         protected T CommandParams { get; }
-        public bool Completed { get; set; } = false;
+        public bool Completed { get; set; }
         public abstract string CommandId { get; }
 
         public CommandRequest CommandRequest

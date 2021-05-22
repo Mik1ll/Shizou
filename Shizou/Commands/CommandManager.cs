@@ -26,6 +26,7 @@ namespace Shizou.Commands
             _serviceProvider = serviceProvider;
         }
 
+        // TODO: Get ctors from dictionary, don't use ActivatorUtilities
         public void Dispatch<TParams>(TParams commandParams)
             where TParams : CommandParams
         {

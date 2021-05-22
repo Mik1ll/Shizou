@@ -173,7 +173,7 @@ namespace Shizou.AniDbApi
         {
             if (LoggedIn)
                 return true;
-            var req = ActivatorUtilities.CreateInstance<AuthRequest>(_provider);
+            var req = new AuthRequest(_provider);
             await req.Process();
             if (LoggedIn)
                 return true;
@@ -184,7 +184,7 @@ namespace Shizou.AniDbApi
         {
             if (!LoggedIn)
                 return true;
-            var req = ActivatorUtilities.CreateInstance<LogoutRequest>(_provider);
+            var req = new LogoutRequest(_provider);
             await req.Process();
             if (!LoggedIn)
                 return true;

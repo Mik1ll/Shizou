@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Options;
@@ -22,9 +23,9 @@ namespace Shizou.AniDbApi
             TimeSpan.FromHours(2)
         };
 
-        public AuthRequest(ILogger<AniDbUdpRequest> logger, AniDbUdp aniDbUdp, IOptionsMonitor<ShizouOptions> options) : base(logger, aniDbUdp)
+        public AuthRequest(IServiceProvider provider) : base(provider.GetRequiredService<ILogger<AuthRequest>>(), provider.GetRequiredService<AniDbUdp>())
         {
-            var opts = options.CurrentValue;
+            var opts = provider.GetRequiredService<IOptionsMonitor<ShizouOptions>>().CurrentValue;
             Params.Add(("user", opts.AniDb.Username));
             Params.Add(("pass", opts.AniDb.Password));
             Params.Add(("enc", Encoding.BodyName));
