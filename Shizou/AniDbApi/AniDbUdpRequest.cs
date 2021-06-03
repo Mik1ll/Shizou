@@ -30,6 +30,11 @@ namespace Shizou.AniDbApi
         public string? ResponseCodeString { get; protected set; }
         public Encoding Encoding { get; } = Encoding.UTF8;
 
+        protected static string DataUnescape(string data)
+        {
+            return data.Replace("<br />", "\n").Replace('`', '\'').Replace('/', '|');
+        }
+
         public abstract Task Process();
 
         public async Task SendRequest()

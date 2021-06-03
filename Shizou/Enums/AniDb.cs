@@ -1,4 +1,6 @@
-﻿namespace Shizou.Enums
+﻿using System;
+
+namespace Shizou.Enums
 {
     public enum AnimeType
     {
@@ -19,5 +21,41 @@
         Trailer = 4,
         Parody = 5,
         Other = 6
+    }
+
+    [Flags]
+    public enum FileState
+    {
+        CrcOk = 1,
+        CrcError = 1 << 1,
+        Ver2 = 1 << 2,
+        Ver3 = 1 << 3,
+        Ver4 = 1 << 4,
+        Ver5 = 1 << 5,
+        Uncensored = 1 << 6,
+        Censored = 1 << 7
+    }
+
+    public enum MyListState
+    {
+        Unknown = 0,
+        Internal = 1,
+        External = 2,
+        Deleted = 3,
+        Remote = 4
+    }
+
+    public enum MyListFileState
+    {
+        Normal = 0,
+        InvalidCrc = 1,
+        SelfEdited = 2,
+        SelfRipped = 10,
+        Dvd = 11,
+        Vhs = 12,
+        Tv = 13,
+        Theater = 14,
+        Streamed = 15,
+        Other = 100
     }
 }
