@@ -32,7 +32,7 @@ namespace Shizou.AniDbApi
 
         protected static string DataUnescape(string data)
         {
-            return data.Replace("<br />", "\n").Replace('`', '\'').Replace('/', '|');
+            return Regex.Replace(data, @"<br\s*/>", "\n").Replace('`', '\'').Replace('/', '|');
         }
 
         public abstract Task Process();
@@ -73,9 +73,11 @@ namespace Shizou.AniDbApi
             try
             {
                 var receivedBytes = (await AniDbUdp.UdpClient.ReceiveAsync()).Buffer;
-                Stream memStream = new MemoryStream(receivedBytes);
+                Stream memStream;
                 if (receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0)
-                    memStream = new DeflateStream(memStream, CompressionMode.Decompress);
+                    memStream = new DeflateStream(new MemoryStream(receivedBytes, 2, receivedBytes.Length - 2), CompressionMode.Decompress);
+                else
+                    memStream = new MemoryStream(receivedBytes);
                 using var reader = new StreamReader(memStream, Encoding);
                 var codeLine = reader.ReadLine();
                 ResponseText = reader.ReadToEnd();
