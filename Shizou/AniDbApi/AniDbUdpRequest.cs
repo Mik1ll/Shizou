@@ -75,7 +75,8 @@ namespace Shizou.AniDbApi
                 var receivedBytes = (await AniDbUdp.UdpClient.ReceiveAsync()).Buffer;
                 Stream memStream;
                 if (receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0)
-                    memStream = new DeflateStream(new MemoryStream(receivedBytes, 2, receivedBytes.Length - 2), CompressionMode.Decompress);
+                    // Two null bytes and two bytes of Zlib header, seems to ignore trailer automatically
+                    memStream = new DeflateStream(new MemoryStream(receivedBytes, 4, receivedBytes.Length - 4), CompressionMode.Decompress);
                 else
                     memStream = new MemoryStream(receivedBytes);
                 using var reader = new StreamReader(memStream, Encoding);
