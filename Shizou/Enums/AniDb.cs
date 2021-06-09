@@ -33,7 +33,8 @@ namespace Shizou.Enums
         Ver4 = 1 << 4,
         Ver5 = 1 << 5,
         Uncensored = 1 << 6,
-        Censored = 1 << 7
+        Censored = 1 << 7,
+        Chaptered = 1 << 12
     }
 
     public enum MyListState
@@ -56,6 +57,22 @@ namespace Shizou.Enums
         Tv = 13,
         Theater = 14,
         Streamed = 15,
+        Other = 100
+    }
+
+    public enum RelatedAnimeType
+    {
+        Sequel = 1,
+        Prequel = 2,
+        SameSetting = 11,
+        AlternativeSetting = 12,
+        AlternativeVersion = 32,
+        MusicVideo = 41,
+        Character = 42,
+        SideStory = 51,
+        ParentStory = 52,
+        Summary = 61,
+        FullStory = 62,
         Other = 100
     }
 }
