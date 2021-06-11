@@ -33,7 +33,7 @@ namespace Shizou.CommandProcessors
                 ICommand command = _commandManager.CommandFromRequest(CurrentCommand);
                 try
                 {
-                    Logger.LogTrace("Processing commadn: {commandId}", command.CommandId);
+                    Logger.LogTrace("Processing command: {commandId}", command.CommandId);
                     var task = command.Process();
                     while (!stoppingToken.IsCancellationRequested && !task.IsCompleted)
                         await Task.Delay(500);

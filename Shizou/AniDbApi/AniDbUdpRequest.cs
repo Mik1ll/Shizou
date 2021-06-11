@@ -39,6 +39,14 @@ namespace Shizou.AniDbApi
 
         public async Task SendRequest()
         {
+            await BuildAndSendRequest();
+            if (!Errored)
+                await ReceiveResponse();
+            HandleSharedErrors();
+        }
+
+        private async Task BuildAndSendRequest()
+        {
             var requestBuilder = new StringBuilder(Command + " ");
             if (!new List<string> {"PING", "ENCRYPT", "AUTH", "VERSION"}.Contains(Command))
                 if (!string.IsNullOrWhiteSpace(AniDbUdp.SessionKey))
@@ -49,9 +57,7 @@ namespace Shizou.AniDbApi
                 {
                     Errored = true;
                     ResponseCode = AniDbResponseCode.InvalidSession;
-                    return;
                 }
-            // TODO: Check if AUTH allows passwords with special characters
             foreach (var (name, param) in Params)
                 requestBuilder.Append($"{name}={Regex.Replace(HttpUtility.HtmlEncode(param), @"\r?\n|\r", "<br />")}&");
             // Removes the extra & at end of parameters
@@ -68,8 +74,11 @@ namespace Shizou.AniDbApi
             {
                 Errored = true;
                 Logger.LogError(ex, "Error sending data: {exceptionMsg}", ex.Message);
-                return;
             }
+        }
+
+        private async Task ReceiveResponse()
+        {
             try
             {
                 var receivedBytes = (await AniDbUdp.UdpClient.ReceiveAsync()).Buffer;
@@ -88,7 +97,6 @@ namespace Shizou.AniDbApi
                 ResponseCode = (AniDbResponseCode)int.Parse(codeLine[..3]);
                 if (codeLine.Length >= 5)
                     ResponseCodeString = codeLine[4..];
-                HandleSharedErrors();
             }
             catch (Exception ex)
             {
