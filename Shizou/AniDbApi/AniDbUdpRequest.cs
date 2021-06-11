@@ -39,10 +39,12 @@ namespace Shizou.AniDbApi
 
         public async Task SendRequest()
         {
-            await BuildAndSendRequest();
-            if (!Errored)
-                await ReceiveResponse();
-            HandleSharedErrors();
+            do
+            {
+                await BuildAndSendRequest();
+                if (!Errored)
+                    await ReceiveResponse();
+            } while (await HandleSharedErrors());
         }
 
         private async Task BuildAndSendRequest()
@@ -105,7 +107,11 @@ namespace Shizou.AniDbApi
             }
         }
 
-        private void HandleSharedErrors()
+        /// <summary>
+        /// For AniDB general errors
+        /// </summary>
+        /// <returns>True if need to retry</returns>
+        private async Task<bool> HandleSharedErrors()
         {
             switch (ResponseCode)
             {
@@ -128,7 +134,8 @@ namespace Shizou.AniDbApi
                 case AniDbResponseCode.LoginFirst:
                     Logger.LogWarning("Not logged in, reauth");
                     AniDbUdp.LoggedIn = false;
-                    break;
+                    await AniDbUdp.Login();
+                    return true;
                 case AniDbResponseCode.AccessDenied:
                     Logger.LogError("Access denied");
                     AniDbUdp.Pause("Access was denied", TimeSpan.MaxValue);
@@ -154,6 +161,7 @@ namespace Shizou.AniDbApi
                     }
                     break;
             }
+            return false;
         }
     }
 }
