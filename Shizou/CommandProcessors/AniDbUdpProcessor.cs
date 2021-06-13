@@ -33,7 +33,7 @@ namespace Shizou.CommandProcessors
                 ICommand command = _commandManager.CommandFromRequest(CurrentCommand);
                 try
                 {
-                    Logger.LogTrace("Processing command: {commandId}", command.CommandId);
+                    Logger.LogDebug("Processing command: {commandId}", command.CommandId);
                     var task = command.Process();
                     while (!stoppingToken.IsCancellationRequested && !task.IsCompleted)
                         await Task.Delay(500);
@@ -42,12 +42,17 @@ namespace Shizou.CommandProcessors
                 {
                     Logger.LogError(ex, "Error while processing command: {ExMessage}", ex.Message);
                 }
-                if (!command.Completed)
-                    Logger.LogError("Command did not complete successfully: {commandId}", command.CommandId);
-
-                Logger.LogTrace("Deleting command: {commandId}", command.CommandId);
-                context.CommandRequests.Remove(CurrentCommand);
-                context.SaveChanges();
+                
+                if (command.Completed)
+                {
+                    Logger.LogDebug("Deleting command: {commandId}", command.CommandId);
+                    context.CommandRequests.Remove(CurrentCommand);
+                    context.SaveChanges();
+                }
+                else
+                {
+                    Logger.LogWarning("Not deleting uncompleted command: {commandId}", command.CommandId);
+                }
                 CurrentCommand = null;
             }
             await _udpApi.Logout();

@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
 using Shizou.CommandProcessors;
+using Shizou.Commands;
+using Shizou.Commands.AniDb;
 using Shizou.Options;
 
 namespace Shizou.AniDbApi
@@ -24,11 +26,14 @@ namespace Shizou.AniDbApi
         private bool _loggedIn;
         private Mapping? _mapping;
         private INatDevice? _router;
+        private readonly CommandManager _cmdMgr;
+        public DateTime? PauseEndTime { get; private set; }
 
         public AniDbUdp(IOptionsMonitor<ShizouOptions> options,
-            ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter, IServiceProvider provider
+            ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter, IServiceProvider provider, CommandManager cmdMgr
         )
         {
+            _cmdMgr = cmdMgr;
             _provider = provider;
             RateLimiter = rateLimiter;
             UdpClient = new UdpClient(options.CurrentValue.AniDb.ClientPort, AddressFamily.InterNetwork);
@@ -124,6 +129,10 @@ namespace Shizou.AniDbApi
         {
             Paused = true;
             PauseReason = reason;
+            _logger.LogWarning("Paused for {pauseDuration}: {pauseReason}", duration.ToString("c"), reason);
+            if (PauseEndTime > DateTime.UtcNow + duration)
+                return;
+            PauseEndTime = DateTime.UtcNow + duration;
             _pauseTimer.Interval = duration.TotalMilliseconds;
             _pauseTimer.Stop();
             _pauseTimer.Start();
@@ -154,7 +163,7 @@ namespace Shizou.AniDbApi
 
         private void BanTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            _logger.LogInformation($"Udp ban timer has elapsed: {BanPeriod}");
+            _logger.LogInformation("Udp ban timer has elapsed: {BanPeriod}", BanPeriod);
             Banned = false;
             BanReason = null;
         }
@@ -169,14 +178,11 @@ namespace Shizou.AniDbApi
             _router = _router?.NatProtocol == NatProtocol.Pmp ? _router : e.Device;
         }
 
-        public async Task<bool> Login()
+        public bool Login()
         {
             if (LoggedIn)
                 return true;
-            var req = new AuthRequest(_provider);
-            await req.Process();
-            if (LoggedIn)
-                return true;
+            _cmdMgr.Dispatch(new LoginParams());
             return false;
         }
 
@@ -184,6 +190,7 @@ namespace Shizou.AniDbApi
         {
             if (!LoggedIn)
                 return true;
+            // TODO: Dispatch
             var req = new LogoutRequest(_provider);
             await req.Process();
             if (!LoggedIn)

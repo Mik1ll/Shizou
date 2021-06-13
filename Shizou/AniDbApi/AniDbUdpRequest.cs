@@ -24,6 +24,8 @@ namespace Shizou.AniDbApi
         public abstract string Command { get; }
         public abstract List<(string name, string value)> Params { get; }
 
+        public string? RequestText { get; private set; }
+        
         public string? ResponseText { get; protected set; }
         public bool Errored { get; protected set; }
         public AniDbResponseCode? ResponseCode { get; protected set; }
@@ -39,18 +41,20 @@ namespace Shizou.AniDbApi
 
         public async Task SendRequest()
         {
-            do
-            {
-                await BuildAndSendRequest();
-                if (!Errored)
-                    await ReceiveResponse();
-            } while (await HandleSharedErrors());
+            await BuildAndSendRequest();
+            if (!Errored)
+                await ReceiveResponse();
+            HandleSharedErrors();
         }
 
         private async Task BuildAndSendRequest()
         {
             var requestBuilder = new StringBuilder(Command + " ");
             if (!new List<string> {"PING", "ENCRYPT", "AUTH", "VERSION"}.Contains(Command))
+            {
+                if (!AniDbUdp.Login())
+                    return;
+
                 if (!string.IsNullOrWhiteSpace(AniDbUdp.SessionKey))
                 {
                     Params.Add(("s", AniDbUdp.SessionKey));
@@ -60,14 +64,15 @@ namespace Shizou.AniDbApi
                     Errored = true;
                     ResponseCode = AniDbResponseCode.InvalidSession;
                 }
+            }
             foreach (var (name, param) in Params)
                 requestBuilder.Append($"{name}={Regex.Replace(HttpUtility.HtmlEncode(param), @"\r?\n|\r", "<br />")}&");
             // Removes the extra & at end of parameters
             requestBuilder.Length--;
-            var requestText = requestBuilder.ToString();
-            var dgramBytes = Encoding.GetBytes(requestText);
+            RequestText = requestBuilder.ToString();
+            var dgramBytes = Encoding.GetBytes(RequestText);
             await AniDbUdp.RateLimiter.EnsureRate();
-            Logger.LogInformation("Sending AniDb UDP text: {requestText}", requestText);
+            Logger.LogInformation("Sending AniDb UDP text: {requestText}", RequestText);
             try
             {
                 await AniDbUdp.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
@@ -111,7 +116,7 @@ namespace Shizou.AniDbApi
         /// For AniDB general errors
         /// </summary>
         /// <returns>True if need to retry</returns>
-        private async Task<bool> HandleSharedErrors()
+        private bool HandleSharedErrors()
         {
             switch (ResponseCode)
             {
@@ -130,12 +135,15 @@ namespace Shizou.AniDbApi
                 case AniDbResponseCode.InvalidSession:
                     Logger.LogWarning("Invalid session, reauth");
                     AniDbUdp.LoggedIn = false;
+                    Errored = true;
+                    AniDbUdp.Login();
                     break;
                 case AniDbResponseCode.LoginFirst:
                     Logger.LogWarning("Not logged in, reauth");
                     AniDbUdp.LoggedIn = false;
-                    await AniDbUdp.Login();
-                    return true;
+                    Errored = true;
+                    AniDbUdp.Login();
+                    break;
                 case AniDbResponseCode.AccessDenied:
                     Logger.LogError("Access denied");
                     AniDbUdp.Pause("Access was denied", TimeSpan.MaxValue);
@@ -145,12 +153,12 @@ namespace Shizou.AniDbApi
                     AniDbUdp.Pause($"Critical error with server {ResponseCode} {ResponseCodeString}", TimeSpan.MaxValue);
                     break;
                 case AniDbResponseCode.UnknownCommand:
-                    Logger.LogError("Unknown command");
-                    // TODO: decide what to do here
+                    Logger.LogError("Uknown command, {Command}, {RequestText}", Command, RequestText);
+                    AniDbUdp.Pause($"Unknown AniDB command, investigate {Command}", TimeSpan.MaxValue);
                     break;
                 case AniDbResponseCode.IllegalInputOrAccessDenied:
-                    Logger.LogError("Illegal input or access is denied");
-                    // TODO: decide what to do here
+                    Logger.LogError("Illegal input or access is denied, {Command}, {RequestText}", Command, RequestText);
+                    AniDbUdp.Pause($"Illegal AniDB input, investigate {Command}", TimeSpan.MaxValue);
                     break;
                 default:
                     if (!Enum.IsDefined(typeof(AniDbResponseCode), ResponseCode))
