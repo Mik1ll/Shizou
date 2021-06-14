@@ -28,6 +28,8 @@ namespace Shizou.CommandProcessors
         public bool Available => _watch.Elapsed > LongDelay ||
                                  _watch.Elapsed > ShortDelay && _activeWatch.Elapsed < ShortPeriod;
 
+        public DateTime NextAvailable { get; private set; } = DateTime.UtcNow;
+
         private SemaphoreSlim _rateSemaphore = new(1, 1);
         
         public async Task EnsureRate()
@@ -37,13 +39,13 @@ namespace Shizou.CommandProcessors
                 await _rateSemaphore.WaitAsync();
                 if (!Available)
                 {
-                    var nextAvailable = (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay) - _watch.Elapsed;
-                    Logger.LogDebug("Time since last command: {watchElapsed}, waiting for {nextAvailable}", _watch.Elapsed, nextAvailable);
-                    await Task.Delay(nextAvailable);
+                    Logger.LogDebug("Time since last command: {watchElapsed}, waiting for {nextAvailable}", _watch.Elapsed, NextAvailable - DateTime.UtcNow);
+                    await Task.Delay(NextAvailable - DateTime.UtcNow);
                 }
                 if (_watch.Elapsed > ResetPeriod)
                     _activeWatch.Restart();
                 _watch.Restart();
+                NextAvailable = DateTime.UtcNow + (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay);
                 Logger.LogDebug("Got rate limiter");
             }
             finally
