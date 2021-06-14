@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Options;
 
-namespace Shizou.AniDbApi
+namespace Shizou.AniDbApi.Requests
 {
     public sealed class AuthRequest : AniDbUdpRequest
     {
@@ -70,9 +70,10 @@ namespace Shizou.AniDbApi
                     AniDbUdp.Pause("Login failed, client banned", TimeSpan.MaxValue);
                     break;
                 case null:
+                    Errored = true;
                     _failedLoginAttempts = Math.Min(_failedLoginAttempts + 1, FailedLoginPauseTimes.Count - 1);
                     var pauseTime = FailedLoginPauseTimes[_failedLoginAttempts];
-                    AniDbUdp.Pause($"No auth response, retrying in {pauseTime}", pauseTime);
+                    AniDbUdp.Pause($"No auth response, pausing for {pauseTime}", pauseTime);
                     break;
             }
         }

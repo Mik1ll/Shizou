@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Shizou.AniDbApi
+namespace Shizou.AniDbApi.Requests
 {
     public class LogoutRequest : AniDbUdpRequest
     {

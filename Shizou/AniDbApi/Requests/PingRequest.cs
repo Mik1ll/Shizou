@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Shizou.AniDbApi
+namespace Shizou.AniDbApi.Requests
 {
     public sealed class PingRequest : AniDbUdpRequest
     {

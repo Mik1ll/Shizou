@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Enums;
 
-namespace Shizou.AniDbApi
+namespace Shizou.AniDbApi.Requests
 {
     public record AniDbFileResult
     {
@@ -184,7 +184,8 @@ namespace Shizou.AniDbApi
     {
         private readonly AMask _aMask;
         private readonly FMask _fMask;
-        public AniDbFileResult? Result { get; private set; }
+        public AniDbFileResult? FileResult { get; private set; }
+        public List<int>? MultipleFilesResult { get; private set; }
 
         private FileRequest(IServiceProvider provider, FMask fMask, AMask aMask) : base(provider.GetRequiredService<ILogger<FileRequest>>(),
             provider.GetRequiredService<AniDbUdp>())
@@ -207,14 +208,8 @@ namespace Shizou.AniDbApi
         }
 
         /// <summary>
-        ///     This command only returns first file result, try overloads with group/anime id
+        ///     This command only returns first file result, try overloads with group/anime id for multiple results
         /// </summary>
-        /// <param name="provider"></param>
-        /// <param name="animeName"></param>
-        /// <param name="groupName"></param>
-        /// <param name="episodeNumber"></param>
-        /// <param name="fMask"></param>
-        /// <param name="aMask"></param>
         public FileRequest(IServiceProvider provider, string animeName, string groupName, int episodeNumber, FMask fMask, AMask aMask) : this(provider, fMask,
             aMask)
         {
@@ -255,26 +250,27 @@ namespace Shizou.AniDbApi
         public override async Task Process()
         {
             await SendRequest();
-            GetFileResult();
-            // TODO: Handle file responses
             switch (ResponseCode)
             {
                 case AniDbResponseCode.File:
+                    GetFileResult();
                     break;
                 case AniDbResponseCode.MulitipleFilesFound:
+                    if (ResponseText is not null)
+                        MultipleFilesResult = ResponseText.Split('|').Select(fid => int.Parse(fid)).ToList();
                     break;
                 case AniDbResponseCode.NoSuchFile:
                     break;
             }
         }
 
-        private AniDbFileResult? GetFileResult()
+        private void GetFileResult()
         {
             if (ResponseText is null)
-                return null;
+                return;
             string[] dataArr = ResponseText.Split('|');
             var dataIdx = 0;
-            Result = new AniDbFileResult(int.Parse(dataArr[dataIdx++]));
+            FileResult = new AniDbFileResult(int.Parse(dataArr[dataIdx++]));
             foreach (var value in Enum.GetValues<FMask>().OrderByDescending(v => v))
                 if (_fMask.HasFlag(value))
                 {
@@ -284,114 +280,114 @@ namespace Shizou.AniDbApi
                     switch (value)
                     {
                         case FMask.AnimeId:
-                            Result.AnimeId = int.Parse(data);
+                            FileResult.AnimeId = int.Parse(data);
                             break;
                         case FMask.EpisodeId:
-                            Result.EpisodeId = int.Parse(data);
+                            FileResult.EpisodeId = int.Parse(data);
                             break;
                         case FMask.GroupId:
-                            Result.GroupId = int.Parse(data);
+                            FileResult.GroupId = int.Parse(data);
                             break;
                         case FMask.MyListId:
-                            Result.MyListId = int.Parse(data);
+                            FileResult.MyListId = int.Parse(data);
                             break;
                         case FMask.OtherEpisodes:
-                            Result.OtherEpisodes = data.Split('\'').Select(eps =>
+                            FileResult.OtherEpisodes = data.Split('\'').Select(eps =>
                             {
                                 var splitLine = eps.Split(',');
                                 return (int.Parse(splitLine[0]), int.Parse(splitLine[1]) / 100f);
                             }).ToList();
                             break;
                         case FMask.IsDeprecated:
-                            Result.IsDeprecated = int.Parse(data) != 0;
+                            FileResult.IsDeprecated = int.Parse(data) != 0;
                             break;
                         case FMask.State:
-                            Result.State = Enum.Parse<FileState>(data);
+                            FileResult.State = Enum.Parse<FileState>(data);
                             break;
 
                         case FMask.Size:
-                            Result.Size = long.Parse(data);
+                            FileResult.Size = long.Parse(data);
                             break;
                         case FMask.Ed2K:
-                            Result.Ed2K = data;
+                            FileResult.Ed2K = data;
                             break;
                         case FMask.Md5:
-                            Result.Md5 = data;
+                            FileResult.Md5 = data;
                             break;
                         case FMask.Sha1:
-                            Result.Sha1 = data;
+                            FileResult.Sha1 = data;
                             break;
                         case FMask.Crc32:
-                            Result.Crc32 = data;
+                            FileResult.Crc32 = data;
                             break;
                         case FMask.VideoColorDepth:
-                            Result.VideoColorDepth = int.Parse(data);
+                            FileResult.VideoColorDepth = int.Parse(data);
                             break;
 
                         case FMask.Quality:
-                            Result.Quality = data;
+                            FileResult.Quality = data;
                             break;
                         case FMask.Source:
-                            Result.Source = data;
+                            FileResult.Source = data;
                             break;
                         case FMask.AudioCodecs:
-                            Result.AudioCodecs = data.Split('\'').ToList();
+                            FileResult.AudioCodecs = data.Split('\'').ToList();
                             break;
                         case FMask.AudioBitRates:
-                            Result.AudioBitRates = data.Split('\'').Select(x => int.Parse(x)).ToList();
+                            FileResult.AudioBitRates = data.Split('\'').Select(x => int.Parse(x)).ToList();
                             break;
                         case FMask.VideoCodec:
-                            Result.VideoCodec = data;
+                            FileResult.VideoCodec = data;
                             break;
                         case FMask.VideoBitRate:
-                            Result.VideoBitRate = int.Parse(data);
+                            FileResult.VideoBitRate = int.Parse(data);
                             break;
                         case FMask.VideoResolution:
-                            Result.VideoResolution = data;
+                            FileResult.VideoResolution = data;
                             break;
                         case FMask.FileExtension:
-                            Result.FileExtension = data;
+                            FileResult.FileExtension = data;
                             break;
 
                         case FMask.DubLanguages:
-                            Result.DubLanguages = data.Split('\'').ToList();
+                            FileResult.DubLanguages = data.Split('\'').ToList();
                             break;
                         case FMask.SubLangugages:
-                            Result.SubLangugages = data.Split('\'').ToList();
+                            FileResult.SubLangugages = data.Split('\'').ToList();
                             break;
                         case FMask.LengthInSeconds:
-                            Result.LengthInSeconds = int.Parse(data);
+                            FileResult.LengthInSeconds = int.Parse(data);
                             break;
                         case FMask.Description:
-                            Result.Description = DataUnescape(data);
+                            FileResult.Description = DataUnescape(data);
                             break;
                         case FMask.EpisodeAiredDate:
-                            Result.EpisodeAiredDate = data != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime : null;
+                            FileResult.EpisodeAiredDate = data != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime : null;
                             break;
                         case FMask.AniDbFileName:
-                            Result.AniDbFileName = DataUnescape(data);
+                            FileResult.AniDbFileName = DataUnescape(data);
                             break;
 
                         case FMask.MyListState:
-                            Result.MyListState = Enum.Parse<MyListState>(data);
+                            FileResult.MyListState = Enum.Parse<MyListState>(data);
                             break;
                         case FMask.MyListFileState:
-                            Result.MyListFileState = Enum.Parse<MyListFileState>(data);
+                            FileResult.MyListFileState = Enum.Parse<MyListFileState>(data);
                             break;
                         case FMask.MyListViewed:
-                            Result.MyListViewed = int.Parse(data) != 0;
+                            FileResult.MyListViewed = int.Parse(data) != 0;
                             break;
                         case FMask.MyListViewDate:
-                            Result.MyListViewDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
+                            FileResult.MyListViewDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
                             break;
                         case FMask.MyListStorage:
-                            Result.MyListStorage = data;
+                            FileResult.MyListStorage = data;
                             break;
                         case FMask.MyListSource:
-                            Result.MyListSource = data;
+                            FileResult.MyListSource = data;
                             break;
                         case FMask.MyListOther:
-                            Result.MyListOther = data;
+                            FileResult.MyListOther = data;
                             break;
                     }
                 }
@@ -404,78 +400,76 @@ namespace Shizou.AniDbApi
                     switch (value)
                     {
                         case AMask.TotalEpisodes:
-                            Result.TotalEpisodes = int.Parse(data);
+                            FileResult.TotalEpisodes = int.Parse(data);
                             break;
                         case AMask.HighestEpisodeNumber:
-                            Result.HighestEpisodeNumber = int.Parse(data);
+                            FileResult.HighestEpisodeNumber = int.Parse(data);
                             break;
                         case AMask.Year:
-                            Result.Year = data;
+                            FileResult.Year = data;
                             break;
                         case AMask.Type:
-                            Result.Type = Enum.Parse<AnimeType>(data.Replace(" ", string.Empty), true);
+                            FileResult.Type = Enum.Parse<AnimeType>(data.Replace(" ", string.Empty), true);
                             break;
                         case AMask.RelatedAnimeIds:
-                            Result.RelatedAnimeIds = data.Split('\'').Select(x => int.Parse(x)).ToList();
+                            FileResult.RelatedAnimeIds = data.Split('\'').Select(x => int.Parse(x)).ToList();
                             break;
                         case AMask.RelatedAnimeTypes:
-                            Result.RelatedAnimeTypes = data.Split('\'').Select(x => Enum.Parse<RelatedAnimeType>(x.Replace(" ", string.Empty), true)).ToList();
+                            FileResult.RelatedAnimeTypes = data.Split('\'').Select(x => Enum.Parse<RelatedAnimeType>(x.Replace(" ", string.Empty), true)).ToList();
                             break;
                         case AMask.Categories:
-                            Result.Categories = data.Split(',').ToList();
+                            FileResult.Categories = data.Split(',').ToList();
                             break;
 
                         case AMask.RomajiName:
-                            Result.RomajiName = data;
+                            FileResult.RomajiName = data;
                             break;
                         case AMask.KanjiName:
-                            Result.KanjiName = data;
+                            FileResult.KanjiName = data;
                             break;
                         case AMask.EnglishName:
-                            Result.EnglishName = data;
+                            FileResult.EnglishName = data;
                             break;
                         case AMask.OtherNames:
-                            Result.OtherNames = data.Split('\'').ToList();
+                            FileResult.OtherNames = data.Split('\'').ToList();
                             break;
                         case AMask.ShortNames:
-                            Result.ShortNames = data.Split('\'').ToList();
+                            FileResult.ShortNames = data.Split('\'').ToList();
                             break;
                         case AMask.Synonyms:
-                            Result.Synonyms = data.Split('\'').ToList();
+                            FileResult.Synonyms = data.Split('\'').ToList();
                             break;
 
                         case AMask.EpisodeNumber:
-                            Result.EpisodeNumber = data;
+                            FileResult.EpisodeNumber = data;
                             break;
                         case AMask.EpisodeName:
-                            Result.EpisodeName = data;
+                            FileResult.EpisodeName = data;
                             break;
                         case AMask.EpisodeRomajiName:
-                            Result.EpisodeRomajiName = data;
+                            FileResult.EpisodeRomajiName = data;
                             break;
                         case AMask.EpisodeKanjiName:
-                            Result.EpisodeKanjiName = data;
+                            FileResult.EpisodeKanjiName = data;
                             break;
                         case AMask.EpisodeRating:
-                            Result.EpisodeRating = int.Parse(data);
+                            FileResult.EpisodeRating = int.Parse(data);
                             break;
                         case AMask.EpisodeVoteCount:
-                            Result.EpisodeVoteCount = int.Parse(data);
+                            FileResult.EpisodeVoteCount = int.Parse(data);
                             break;
 
                         case AMask.GroupName:
-                            Result.GroupName = data;
+                            FileResult.GroupName = data;
                             break;
                         case AMask.GroupShortName:
-                            Result.GroupShortName = data;
+                            FileResult.GroupShortName = data;
                             break;
                         case AMask.DateAnimeRecordUpdated:
-                            Result.DateAnimeRecordUpdated = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
+                            FileResult.DateAnimeRecordUpdated = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
                             break;
                     }
                 }
-
-            return Result;
         }
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
 
-namespace Shizou.AniDbApi
+namespace Shizou.AniDbApi.Requests
 {
     public abstract class AniDbUdpRequest
     {
@@ -52,9 +52,12 @@ namespace Shizou.AniDbApi
             var requestBuilder = new StringBuilder(Command + " ");
             if (!new List<string> {"PING", "ENCRYPT", "AUTH", "VERSION"}.Contains(Command))
             {
-                if (!AniDbUdp.Login())
+                if (!await AniDbUdp.Login())
+                {
+                    Errored = true;
+                    ResponseCode = AniDbResponseCode.LoginFailed;
                     return;
-
+                }
                 if (!string.IsNullOrWhiteSpace(AniDbUdp.SessionKey))
                 {
                     Params.Add(("s", AniDbUdp.SessionKey));
@@ -63,6 +66,7 @@ namespace Shizou.AniDbApi
                 {
                     Errored = true;
                     ResponseCode = AniDbResponseCode.InvalidSession;
+                    return;
                 }
             }
             foreach (var (name, param) in Params)
@@ -122,49 +126,63 @@ namespace Shizou.AniDbApi
             {
                 case null:
                     Logger.LogWarning("Can't handle possible error, no error response code");
+                    AniDbUdp.Pause("No response code from AniDB", TimeSpan.MaxValue);
+                    Errored = true;
+                    break;
+                
+                case AniDbResponseCode.OutOfService:
+                    Logger.LogWarning("AniDB out of service or in maintenance");
+                    AniDbUdp.Pause("AniDB out of service/maintenance", TimeSpan.FromMinutes(30));
                     Errored = true;
                     break;
                 case AniDbResponseCode.ServerBusy:
+                    Logger.LogWarning("Server busy, try again later");
+                    AniDbUdp.Pause("Server busy, try again later", TimeSpan.MaxValue);
+                    Errored = true;
                     break;
                 case AniDbResponseCode.Banned:
                     AniDbUdp.Banned = true;
                     AniDbUdp.BanReason = ResponseText;
                     Logger.LogWarning("Banned: {banReason}, waiting {hours}hr {minutes}min ({unbanTime})", AniDbUdp.BanReason, AniDbUdp.BanPeriod.Hours,
                         AniDbUdp.BanPeriod.Minutes, DateTime.Now + AniDbUdp.BanPeriod);
+                    Errored = true;
                     break;
                 case AniDbResponseCode.InvalidSession:
                     Logger.LogWarning("Invalid session, reauth");
                     AniDbUdp.LoggedIn = false;
                     Errored = true;
-                    AniDbUdp.Login();
                     break;
                 case AniDbResponseCode.LoginFirst:
                     Logger.LogWarning("Not logged in, reauth");
                     AniDbUdp.LoggedIn = false;
                     Errored = true;
-                    AniDbUdp.Login();
                     break;
                 case AniDbResponseCode.AccessDenied:
                     Logger.LogError("Access denied");
                     AniDbUdp.Pause("Access was denied", TimeSpan.MaxValue);
+                    Errored = true;
                     break;
                 case AniDbResponseCode.InternalServerError or (> AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700):
                     Logger.LogCritical("AniDB Server CRITICAL ERROR {errorCode} : {errorCodeStr}", ResponseCode, ResponseCodeString);
                     AniDbUdp.Pause($"Critical error with server {ResponseCode} {ResponseCodeString}", TimeSpan.MaxValue);
+                    Errored = true;
                     break;
                 case AniDbResponseCode.UnknownCommand:
                     Logger.LogError("Uknown command, {Command}, {RequestText}", Command, RequestText);
                     AniDbUdp.Pause($"Unknown AniDB command, investigate {Command}", TimeSpan.MaxValue);
+                    Errored = true;
                     break;
                 case AniDbResponseCode.IllegalInputOrAccessDenied:
                     Logger.LogError("Illegal input or access is denied, {Command}, {RequestText}", Command, RequestText);
                     AniDbUdp.Pause($"Illegal AniDB input, investigate {Command}", TimeSpan.MaxValue);
+                    Errored = true;
                     break;
                 default:
                     if (!Enum.IsDefined(typeof(AniDbResponseCode), ResponseCode))
                     {
                         Logger.LogError("Response Code {ResponseCode} not found in enumeration: Code string: {codeString}", ResponseCode,
                             ResponseCodeString);
+                        AniDbUdp.Pause($"Unknown response code: {ResponseCode}", TimeSpan.MaxValue);
                         Errored = true;
                     }
                     break;

@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
+using Shizou.AniDbApi.Requests;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
 using Shizou.Commands.AniDb;
@@ -178,11 +179,14 @@ namespace Shizou.AniDbApi
             _router = _router?.NatProtocol == NatProtocol.Pmp ? _router : e.Device;
         }
 
-        public bool Login()
+        public async Task<bool> Login()
         {
             if (LoggedIn)
                 return true;
-            _cmdMgr.Dispatch(new LoginParams());
+            var req = new AuthRequest(_provider);
+            await req.Process();
+            if (LoggedIn)
+                return true;
             return false;
         }
 
