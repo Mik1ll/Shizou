@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +10,7 @@ namespace Shizou.CommandProcessors
     {
         private readonly Stopwatch _activeWatch = new();
         private readonly object _lock = new();
+        private readonly SemaphoreSlim _rateSemaphore = new(1, 1);
         private readonly Stopwatch _watch = new();
         protected readonly ILogger<RateLimiter> Logger;
 
@@ -30,8 +30,6 @@ namespace Shizou.CommandProcessors
 
         public DateTime NextAvailable { get; private set; } = DateTime.UtcNow;
 
-        private SemaphoreSlim _rateSemaphore = new(1, 1);
-        
         public async Task EnsureRate()
         {
             try

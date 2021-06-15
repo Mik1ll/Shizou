@@ -1,8 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 
 namespace Shizou.Commands

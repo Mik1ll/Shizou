@@ -42,7 +42,7 @@ namespace Shizou.CommandProcessors
                 {
                     Logger.LogError(ex, "Error while processing command: {ExMessage}", ex.Message);
                 }
-                
+
                 if (command.Completed)
                 {
                     Logger.LogDebug("Deleting command: {commandId}", command.CommandId);

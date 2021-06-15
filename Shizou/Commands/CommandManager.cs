@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
 using Shizou.Database;
 using Shizou.Entities;
 
@@ -43,7 +42,7 @@ namespace Shizou.Commands
         public ICommand CommandFromRequest(CommandRequest commandRequest)
         {
             var command = Commands.First(x => commandRequest.Type == x.cmdType);
-            return (ICommand)command.ctor.Invoke(new [] {_serviceProvider, JsonSerializer.Deserialize(commandRequest.CommandParams, command.paramType)!});
+            return (ICommand)command.ctor.Invoke(new[] {_serviceProvider, JsonSerializer.Deserialize(commandRequest.CommandParams, command.paramType)!});
         }
     }
 }

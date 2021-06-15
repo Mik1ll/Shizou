@@ -135,7 +135,7 @@ namespace Shizou.AniDbApi.Requests
         MyListViewDate = 1 << 4,
         MyListStorage = 1 << 3,
         MyListSource = 1 << 2,
-        MyListOther = 1 << 1,
+        MyListOther = 1 << 1
         // Unused = 1 << 0,
     }
 
@@ -176,7 +176,7 @@ namespace Shizou.AniDbApi.Requests
         // Unused = 1 << 3,
         // Unused = 1 << 2,
         // Unused = 1 << 1,
-        DateAnimeRecordUpdated = 1 << 0,
+        DateAnimeRecordUpdated = 1 << 0
     }
 
 
@@ -184,8 +184,6 @@ namespace Shizou.AniDbApi.Requests
     {
         private readonly AMask _aMask;
         private readonly FMask _fMask;
-        public AniDbFileResult? FileResult { get; private set; }
-        public List<int>? MultipleFilesResult { get; private set; }
 
         private FileRequest(IServiceProvider provider, FMask fMask, AMask aMask) : base(provider.GetRequiredService<ILogger<FileRequest>>(),
             provider.GetRequiredService<AniDbUdp>())
@@ -238,6 +236,9 @@ namespace Shizou.AniDbApi.Requests
             Params.Add(("gid", groupId.ToString()));
             Params.Add(("epno", episodeNumber.ToString()));
         }
+
+        public AniDbFileResult? FileResult { get; private set; }
+        public List<int>? MultipleFilesResult { get; private set; }
 
         public override string Command { get; } = "FILE";
         public override List<(string name, string value)> Params { get; } = new();
@@ -415,7 +416,8 @@ namespace Shizou.AniDbApi.Requests
                             FileResult.RelatedAnimeIds = data.Split('\'').Select(x => int.Parse(x)).ToList();
                             break;
                         case AMask.RelatedAnimeTypes:
-                            FileResult.RelatedAnimeTypes = data.Split('\'').Select(x => Enum.Parse<RelatedAnimeType>(x.Replace(" ", string.Empty), true)).ToList();
+                            FileResult.RelatedAnimeTypes =
+                                data.Split('\'').Select(x => Enum.Parse<RelatedAnimeType>(x.Replace(" ", string.Empty), true)).ToList();
                             break;
                         case AMask.Categories:
                             FileResult.Categories = data.Split(',').ToList();

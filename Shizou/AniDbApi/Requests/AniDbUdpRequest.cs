@@ -25,7 +25,7 @@ namespace Shizou.AniDbApi.Requests
         public abstract List<(string name, string value)> Params { get; }
 
         public string? RequestText { get; private set; }
-        
+
         public string? ResponseText { get; protected set; }
         public bool Errored { get; protected set; }
         public AniDbResponseCode? ResponseCode { get; protected set; }
@@ -117,7 +117,7 @@ namespace Shizou.AniDbApi.Requests
         }
 
         /// <summary>
-        /// For AniDB general errors
+        ///     For AniDB general errors
         /// </summary>
         /// <returns>True if need to retry</returns>
         private bool HandleSharedErrors()
@@ -129,7 +129,7 @@ namespace Shizou.AniDbApi.Requests
                     AniDbUdp.Pause("No response code from AniDB", TimeSpan.MaxValue);
                     Errored = true;
                     break;
-                
+
                 case AniDbResponseCode.OutOfService:
                     Logger.LogWarning("AniDB out of service or in maintenance");
                     AniDbUdp.Pause("AniDB out of service/maintenance", TimeSpan.FromMinutes(30));

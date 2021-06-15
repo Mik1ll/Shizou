@@ -2,14 +2,11 @@
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Timers;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
 using Shizou.AniDbApi.Requests;
 using Shizou.CommandProcessors;
-using Shizou.Commands;
-using Shizou.Commands.AniDb;
 using Shizou.Options;
 
 namespace Shizou.AniDbApi
@@ -27,14 +24,11 @@ namespace Shizou.AniDbApi
         private bool _loggedIn;
         private Mapping? _mapping;
         private INatDevice? _router;
-        private readonly CommandManager _cmdMgr;
-        public DateTime? PauseEndTime { get; private set; }
 
         public AniDbUdp(IOptionsMonitor<ShizouOptions> options,
-            ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter, IServiceProvider provider, CommandManager cmdMgr
+            ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter, IServiceProvider provider
         )
         {
-            _cmdMgr = cmdMgr;
             _provider = provider;
             RateLimiter = rateLimiter;
             UdpClient = new UdpClient(options.CurrentValue.AniDb.ClientPort, AddressFamily.InterNetwork);
@@ -69,6 +63,8 @@ namespace Shizou.AniDbApi
                 _mappingTimer.Start();
             }
         }
+
+        public DateTime? PauseEndTime { get; private set; }
 
         public TimeSpan BanPeriod { get; } = new(12, 0, 0);
         public TimeSpan LogoutPeriod { get; } = new(0, 30, 0);
@@ -194,7 +190,6 @@ namespace Shizou.AniDbApi
         {
             if (!LoggedIn)
                 return true;
-            // TODO: Dispatch
             var req = new LogoutRequest(_provider);
             await req.Process();
             if (!LoggedIn)
