@@ -3,7 +3,7 @@
     public enum CommandPriority
     {
         Invalid = 0,
-        Highest = 1, // Login, Logout
+        Highest = 1,
         Default = 99
     }
 }

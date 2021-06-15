@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Commands\AniDb" />
     <Folder Include="Dtos\" />
   </ItemGroup>
 
