@@ -28,11 +28,11 @@ namespace Shizou
             var log = scope.ServiceProvider.GetRequiredService<ILogger<StartupService>>();
             var aniDbUdp = scope.ServiceProvider.GetRequiredService<AniDbUdp>();
             scope.ServiceProvider.GetRequiredService<AniDbUdpProcessor>().Paused = false;
-            var req = new FileRequest(scope.ServiceProvider, 2305865,
-                Enum.GetValues<FMask>().Aggregate((a, b) => a | b),
-                Enum.GetValues<AMask>().Aggregate((a, b) => a | b));
-            await req.Process();
-            await Task.Delay(TimeSpan.FromSeconds(30));
+            // var req = new FileRequest(scope.ServiceProvider, 2305865,
+            //     Enum.GetValues<FMask>().Aggregate((a, b) => a | b),
+            //     Enum.GetValues<AMask>().Aggregate((a, b) => a | b));
+            // await req.Process();
+            // await Task.Delay(TimeSpan.FromSeconds(30));
             //await aniDbUdp.Logout();
         }
     }

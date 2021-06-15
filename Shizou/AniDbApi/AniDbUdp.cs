@@ -54,13 +54,18 @@ namespace Shizou.AniDbApi
             Task.Delay(2000).Wait();
             NatUtility.StopDiscovery();
 
-            _mapping = _router?.CreatePortMap(new Mapping(Protocol.Udp, _options.CurrentValue.AniDb.ClientPort, _options.CurrentValue.AniDb.ClientPort));
-            if (_mapping?.Lifetime > 0)
+            if (_router is null)
+                logger.LogInformation("Could not find router, assuming no IP masquerading");
+            else
             {
-                _mappingTimer = new Timer(_mapping.Lifetime * 1000 - 10000);
-                _mappingTimer.Elapsed += MappingElapsed;
-                _mappingTimer.AutoReset = true;
-                _mappingTimer.Start();
+                _mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, _options.CurrentValue.AniDb.ClientPort, _options.CurrentValue.AniDb.ClientPort));
+                if (_mapping.Lifetime > 0)
+                {
+                    _mappingTimer = new Timer(TimeSpan.FromSeconds(_mapping.Lifetime - 60).TotalMilliseconds);
+                    _mappingTimer.Elapsed += MappingElapsed;
+                    _mappingTimer.AutoReset = true;
+                    _mappingTimer.Start();
+                }
             }
         }
 
@@ -152,10 +157,7 @@ namespace Shizou.AniDbApi
 
         private void MappingElapsed(object sender, ElapsedEventArgs e)
         {
-            var oldLifetime = _mapping?.Lifetime;
             _mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, _options.CurrentValue.AniDb.ClientPort, _options.CurrentValue.AniDb.ClientPort));
-            if (_mapping.Lifetime != oldLifetime)
-                _mappingTimer!.Interval = _mapping.Lifetime * 1000 - 10000;
         }
 
         private void BanTimerElapsed(object sender, ElapsedEventArgs e)
