@@ -65,7 +65,7 @@ namespace Shizou
 
             services.AddHostedService<StartupService>();
             services.AddDbContext<ShizouContext>();
-            services.AddSingleton<CommandManager>();
+            services.AddScoped<CommandManager>();
             services.AddSingleton<AniDbUdp>();
             services.AddSingleton<UdpRateLimiter>();
             services.AddSingleton<AniDbUdpProcessor>();

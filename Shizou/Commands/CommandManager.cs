@@ -33,7 +33,7 @@ namespace Shizou.Commands
         public void Dispatch<TParams>(TParams commandParams)
             where TParams : CommandParams
         {
-            using var context = new ShizouContext();
+            var context = _serviceProvider.GetRequiredService<ShizouContext>();
             var command = Commands.First(x => commandParams.GetType() == x.paramType);
             context.CommandRequests.Add(((ICommand)command.ctor.Invoke(new object[] {_serviceProvider, commandParams})).CommandRequest);
             context.SaveChanges();

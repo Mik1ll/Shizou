@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi;
 using Shizou.Commands;
@@ -11,26 +12,28 @@ namespace Shizou.CommandProcessors
 {
     public class AniDbUdpProcessor : CommandProcessor
     {
-        private readonly CommandManager _commandManager;
+        private readonly IServiceProvider _provider;
         private readonly AniDbUdp _udpApi;
 
-        public AniDbUdpProcessor(ILogger<CommandProcessor> logger, CommandManager commandManager, AniDbUdp udpApi) : base(logger)
+        public AniDbUdpProcessor(ILogger<CommandProcessor> logger, AniDbUdp udpApi, IServiceProvider provider) : base(logger)
         {
+            _provider = provider;
             _udpApi = udpApi;
-            _commandManager = commandManager;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                ShizouContext context = new();
+                using var scope = _provider.CreateScope();
+                CommandManager commandManager = scope.ServiceProvider.GetRequiredService<CommandManager>();
+                ShizouContext context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
                 if (Paused || _udpApi.Banned || _udpApi.Paused || (CurrentCommand = context.CommandRequests.GetNextRequest(QueueType.AniDbUdp)) is null)
                 {
                     await Task.Delay(1000);
                     continue;
                 }
-                ICommand command = _commandManager.CommandFromRequest(CurrentCommand);
+                ICommand command = commandManager.CommandFromRequest(CurrentCommand);
                 try
                 {
                     Logger.LogDebug("Processing command: {commandId}", command.CommandId);
