@@ -6,6 +6,7 @@ namespace Shizou.Commands
     public enum CommandType
     {
         Invalid = 0,
+        GetFile = 1,
         Noop = 99
     }
 }
