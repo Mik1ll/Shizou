@@ -55,7 +55,9 @@ namespace Shizou.AniDbApi
             NatUtility.StopDiscovery();
 
             if (_router is null)
+            {
                 logger.LogInformation("Could not find router, assuming no IP masquerading");
+            }
             else
             {
                 _mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, _options.CurrentValue.AniDb.ClientPort, _options.CurrentValue.AniDb.ClientPort));
@@ -120,7 +122,7 @@ namespace Shizou.AniDbApi
 
         public void Dispose()
         {
-            _logger.LogInformation("Closing AniDb connection");
+            Logout().Wait();
             _bannedTimer.Dispose();
             _logoutTimer.Dispose();
             UdpClient.Dispose();
