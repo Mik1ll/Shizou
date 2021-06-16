@@ -46,6 +46,7 @@ namespace Shizou.AniDbApi.Requests
 
         public override async Task Process()
         {
+            Logger.LogInformation("Attempting to log into AniDB");
             await SendRequest();
             switch (ResponseCode)
             {

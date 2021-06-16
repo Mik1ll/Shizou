@@ -17,6 +17,7 @@ namespace Shizou.AniDbApi.Requests
 
         public override async Task Process()
         {
+            Logger.LogInformation("Attempting to log out of AniDB");
             await SendRequest();
 
             if (ResponseCode is AniDbResponseCode.LoggedOut or AniDbResponseCode.NotLoggedIn)
