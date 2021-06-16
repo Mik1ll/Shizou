@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Shizou.Database;
 using Shizou.Entities;
 
@@ -10,16 +11,23 @@ namespace Shizou.Commands
 {
     public class CommandManager
     {
-        public static readonly List<(CommandType cmdType, Type type, Type paramType, ConstructorInfo ctor)> Commands = Assembly
+        public static readonly List<(CommandType cmdType, Type type, Type paramType, Func<IServiceProvider, CommandParams, ICommand> ctor)> Commands = Assembly
             .GetExecutingAssembly().GetTypes()
             .Select(t => new {type = t, commandAttr = t.GetCustomAttribute<CommandAttribute>()})
             .Where(x => x.commandAttr is not null)
-            .Select(x => (
-                x.commandAttr!.Type,
-                x.type,
-                x.type.BaseType!.GetGenericArguments()[0],
-                x.type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, CallingConventions.HasThis,
-                    new[] {typeof(IServiceProvider), typeof(CommandParams)}, null)!))
+            .Select(x =>
+            {
+                var paramType = x.type.BaseType!.GetGenericArguments()[0];
+                Func<IServiceProvider, CommandParams, ICommand> ctor = (provider, cmdParams) =>
+                    (ICommand)x.type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, CallingConventions.HasThis,
+                        new[] {typeof(IServiceProvider), paramType}, null)!.Invoke(new object[] {provider, cmdParams});
+                return (
+                    x.commandAttr!.Type,
+                    x.type,
+                    paramType
+                    , ctor
+                );
+            })
             .ToList();
 
         private readonly IServiceProvider _serviceProvider;
@@ -35,14 +43,16 @@ namespace Shizou.Commands
         {
             var context = _serviceProvider.GetRequiredService<ShizouContext>();
             var command = Commands.First(x => commandParams.GetType() == x.paramType);
-            context.CommandRequests.Add(((ICommand)command.ctor.Invoke(new object[] {_serviceProvider, commandParams})).CommandRequest);
+            var cmdRequest = command.ctor(_serviceProvider, commandParams).CommandRequest;
+            if (!context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
+                context.CommandRequests.Add(cmdRequest);
             context.SaveChanges();
         }
 
         public ICommand CommandFromRequest(CommandRequest commandRequest)
         {
             var command = Commands.First(x => commandRequest.Type == x.cmdType);
-            return (ICommand)command.ctor.Invoke(new[] {_serviceProvider, JsonSerializer.Deserialize(commandRequest.CommandParams, command.paramType)!});
+            return command.ctor(_serviceProvider, (CommandParams)JsonSerializer.Deserialize(commandRequest.CommandParams, command.paramType)!);
         }
     }
 }

@@ -1,18 +1,18 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.CommandProcessors;
 
 namespace Shizou.Commands
 {
-    public sealed record NoopParams : CommandParams
-    {
-        public int Testint { get; set; }
-    }
+    public sealed record NoopParams(int Testint) : CommandParams;
 
-    [Command(CommandType.Noop, CommandPriority.Default, QueueType.General)]
+    [Command(CommandType.Noop, CommandPriority.Default, QueueType.AniDbUdp)]
     public sealed class NoopCommand : BaseCommand<NoopParams>
     {
-        public NoopCommand(NoopParams commandParams, ILogger<NoopCommand> logger) : base(commandParams, logger)
+        public NoopCommand(IServiceProvider provider, NoopParams commandParams)
+            : base(provider, provider.GetRequiredService<ILogger<NoopCommand>>(), commandParams)
         {
         }
 

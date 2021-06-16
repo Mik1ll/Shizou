@@ -18,9 +18,11 @@ namespace Shizou.Commands
     public abstract class BaseCommand<T> : ICommand where T : CommandParams
     {
         protected readonly ILogger<BaseCommand<T>> Logger;
+        protected readonly IServiceProvider Provider;
 
-        protected BaseCommand(T commandParams, ILogger<BaseCommand<T>> logger)
+        protected BaseCommand(IServiceProvider provider, ILogger<BaseCommand<T>> logger, T commandParams)
         {
+            Provider = provider;
             CommandParams = commandParams;
             Logger = logger;
         }
