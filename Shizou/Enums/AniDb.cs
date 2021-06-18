@@ -75,4 +75,34 @@ namespace Shizou.Enums
         FullStory = 62,
         Other = 100
     }
+
+    public enum FileSource
+    {
+        Unknown,
+        Camcorder,
+        Tv,
+        Dtv,
+        Hdtv,
+        Vhs,
+        Vcd,
+        Svcd,
+        Ld,
+        Dvd,
+        HkDvd,
+        HdDvd,
+        Bluray,
+        Www
+    }
+
+    public enum FileQuality
+    {
+        Unknown,
+        VeryHigh,
+        High,
+        Med,
+        Low,
+        VeryLow,
+        Corrupted,
+        Eyecancer
+    }
 }
