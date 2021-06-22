@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Shizou.Enums;
 
 namespace Shizou.Entities
 {
@@ -18,36 +17,24 @@ namespace Shizou.Entities
         public long FileSize { get; set; }
         public TimeSpan? Duration { get; set; }
         public string? Source { get; set; } = null!;
-        public string AudioCodecsJson { get; set; } = null!;
-
-        [NotMapped]
-        public List<Codec> AudioCodecs
-        {
-            get => JsonSerializer.Deserialize<List<Codec>>(string.IsNullOrWhiteSpace(AudioCodecsJson) ? "[]" : AudioCodecsJson)!;
-            set => AudioCodecsJson = JsonSerializer.Serialize(value);
-        }
-
-        public string VideoCodecsJson { get; set; } = null!;
-
-        [NotMapped]
-        public List<Codec> VideoCodecs
-        {
-            get => JsonSerializer.Deserialize<List<Codec>>(string.IsNullOrWhiteSpace(VideoCodecsJson) ? "[]" : VideoCodecsJson)!;
-            set => VideoCodecsJson = JsonSerializer.Serialize(value);
-        }
-
         public DateTime? ReleaseDate { get; set; }
         public DateTime Updated { get; set; }
-        public bool WatchedStatus { get; set; }
-        public DateTime? WatchedDate { get; set; }
         public string FileName { get; set; } = null!;
         public int FileVersion { get; set; }
         public bool Censored { get; set; }
         public bool Deprecated { get; set; }
         public bool Chaptered { get; set; }
 
+        public int MyListId { get; set; }
+        public bool Watched { get; set; }
+        public DateTime? WatchedDate { get; set; }
+        public MyListState MyListState { get; set; }
+        public MyListFileState MyListFileState { get; set; }
 
-        public int? AniDbGroupId { get; set; }
+
+        public AniDbVideo? Video { get; set; }
+        public ICollection<AniDbAudio> Audio { get; set; } = null!;
+        public ICollection<AniDbSubtitle> Subtitles { get; set; } = null!;
         public AniDbGroup? AniDbGroup { get; set; } = null!;
         public ICollection<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
     }

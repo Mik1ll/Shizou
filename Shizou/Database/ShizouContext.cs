@@ -26,6 +26,12 @@ namespace Shizou.Database
 
         public DbSet<AniDbGroup> AniDbGroups { get; set; } = null!;
 
+        public DbSet<AniDbAudio> AniDbAudio { get; set; } = null!;
+
+        public DbSet<AniDbSubtitle> AniDbSubtitles { get; set; } = null!;
+
+        public DbSet<AniDbVideo> AniDbVideos { get; set; } = null!;
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
