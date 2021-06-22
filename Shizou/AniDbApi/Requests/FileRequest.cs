@@ -366,7 +366,7 @@ namespace Shizou.AniDbApi.Requests
                             FileResult.EpisodeAiredDate = data != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime : null;
                             break;
                         case FMask.AniDbFileName:
-                            FileResult.AniDbFileName = DataUnescape(data);
+                            FileResult.AniDbFileName = data;
                             break;
 
                         case FMask.MyListState:
