@@ -21,6 +21,7 @@ using Serilog;
 using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
+using Shizou.Controllers;
 using Shizou.Database;
 using Shizou.Entities;
 using Shizou.Options;
@@ -127,8 +128,8 @@ namespace Shizou
         private static IEdmModel GetEdmModel()
         {
             ODataConventionModelBuilder builder = new();
-            builder.EntitySet<ImportFolder>("ImportFolders");
-            builder.EntitySet<AniDbFile>("AniDbFiles");
+            builder.EntitySet<ImportFolder>(nameof(ImportFoldersController).Replace("Controller", string.Empty));
+            builder.EntitySet<AniDbFile>(nameof(AniDbFilesController).Replace("Controller", string.Empty));
             return builder.GetEdmModel();
         }
     }
