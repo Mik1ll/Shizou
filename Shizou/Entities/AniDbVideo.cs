@@ -8,6 +8,7 @@
         public int Height { get; set; }
         public int ColorDepth { get; set; }
 
+        public int AniDbFileId { get; set; }
         public AniDbFile AniDbFile { get; set; } = null!;
     }
 }
