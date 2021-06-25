@@ -57,7 +57,7 @@ namespace Shizou.Hashers
             _ptr = Bindings.rhash_init(_hashIds);
         }
 
-        public static Dictionary<HashIds, string> GetFileHashs(string filepath, HashIds ids, bool useTask = false)
+        public static Dictionary<HashIds, string> GetFileHashes(string filepath, HashIds ids, bool useTask = false)
         {
             var hasher = new RHasher(ids);
             if (useTask)
@@ -158,6 +158,25 @@ namespace Shizou.Hashers
         public static string GetHashForMsg(byte[] buf, HashIds id)
         {
             return new RHasher(id).Update(buf).Finish().ToString();
+        }
+
+        public static string FileSignature(string filePath)
+        {
+            var file = new FileInfo(filePath);
+            if (!file.Exists)
+                return string.Empty;
+            var bufSize = 1 << 20;
+            var seekLen = Math.Max(file.Length / 30 - bufSize, 0);
+            var hasher = new RHasher(HashIds.Sha1);
+            using FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
+            byte[] buf = new byte[bufSize];
+            int len;
+            while ((len = stream.Read(buf, 0, buf.Length)) > 0)
+            {
+                hasher.Update(buf, len);
+                stream.Seek(seekLen, SeekOrigin.Current);
+            }
+            return hasher.Finish().ToString();
         }
 
         private static class Bindings

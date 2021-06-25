@@ -32,6 +32,8 @@ namespace Shizou.Database
 
         public DbSet<AniDbVideo> AniDbVideos { get; set; } = null!;
 
+        public DbSet<LocalFile> LocalFiles { get; set; } = null!;
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
