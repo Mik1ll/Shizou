@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,7 +20,8 @@ namespace Shizou.Commands
         private readonly ShizouContext _context;
 
 
-        public HashCommand(IServiceProvider provider, ILogger<BaseCommand<HashParams>> logger, HashParams commandParams) : base(provider, logger, commandParams)
+        public HashCommand(IServiceProvider provider, HashParams commandParams) : base(provider, provider.GetRequiredService<ILogger<HashCommand>>(),
+            commandParams)
         {
             CommandId = $"{nameof(HashCommand)}_{commandParams.Path}";
             _context = provider.GetRequiredService<ShizouContext>();
@@ -36,35 +36,42 @@ namespace Shizou.Commands
             if (!file.Exists || (importFolder = _context.ImportFolders.GetByPath(file.FullName)) is null)
                 return;
             var pathTail = file.FullName.Substring(importFolder.Location.Length);
-            var oldLocalFile = _context.LocalFiles.SingleOrDefault(l => l.Signature == RHasher.FileSignature(file.FullName));
-            if (oldLocalFile is not null)
+            var signature = RHasher.FileSignature(file.FullName);
+            var localFile = _context.LocalFiles.SingleOrDefault(l => l.Signature == signature);
+            if (localFile is not null)
             {
-                var oldPath = Path.GetFullPath(Path.Combine(oldLocalFile.ImportFolder.Location, oldLocalFile.PathTail));
-                if (file.FullName != oldPath && File.Exists(oldPath))
+                Logger.LogInformation("Found local file by signature: {signature} {Path}", signature, file.FullName);
+                var oldPath = Path.GetFullPath(Path.Combine(localFile.ImportFolder.Location, localFile.PathTail));
+                if (file.FullName != oldPath)
                 {
-                    Logger.LogError("Skipping add local file for {Path}: duplicate file at {oldPath}.", file.FullName, oldPath);
-                    return;
+                    if (File.Exists(oldPath))
+                    {
+                        Logger.LogError("Skipping add file for {Path}: duplicate file at {oldPath}.", file.FullName, oldPath);
+                        return;
+                    }
+                    localFile.ImportFolder = importFolder;
+                    localFile.PathTail = pathTail;
                 }
             }
-            var hashes = oldLocalFile is null
-                ? RHasher.GetFileHashes(file.FullName, RHasher.HashIds.Ed2K | RHasher.HashIds.Crc32)
-                : new Dictionary<RHasher.HashIds, string>
-                {
-                    {RHasher.HashIds.Crc32, oldLocalFile.Crc},
-                    {RHasher.HashIds.Ed2K, oldLocalFile.Ed2K}
-                };
-            _context.LocalFiles.Update(new LocalFile
+            else
             {
-                Id = oldLocalFile?.Id ?? 0,
-                Crc = hashes[RHasher.HashIds.Crc32],
-                Ed2K = hashes[RHasher.HashIds.Ed2K],
-                Created = file.CreationTimeUtc,
-                Modified = file.LastWriteTimeUtc,
-                FileSize = file.Length,
-                Ignored = false,
-                ImportFolder = importFolder,
-                PathTail = pathTail
-            });
+                Logger.LogInformation("Hashing file: {Path}", file.FullName);
+                var hashes = RHasher.GetFileHashes(file.FullName, RHasher.HashIds.Ed2K | RHasher.HashIds.Crc32);
+                localFile = new LocalFile
+                {
+                    Id = localFile?.Id ?? 0,
+                    Signature = signature,
+                    Crc = hashes[RHasher.HashIds.Crc32],
+                    Ed2K = hashes[RHasher.HashIds.Ed2K],
+                    FileSize = file.Length,
+                    Ignored = false,
+                    ImportFolder = importFolder,
+                    PathTail = pathTail
+                };
+                Logger.LogInformation("Hash result: {Path} {Ed2k} {Crc}", file.FullName, hashes[RHasher.HashIds.Ed2K], hashes[RHasher.HashIds.Crc32]);
+            }
+            _context.LocalFiles.Update(localFile);
+            _context.SaveChanges();
             Completed = true;
         }
     }

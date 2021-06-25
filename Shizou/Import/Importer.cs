@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Shizou.Commands;
 using Shizou.Database;
-using Shizou.Entities;
 
 namespace Shizou.Import
 {
@@ -21,8 +20,9 @@ namespace Shizou.Import
         }
 
 
-        public void ScanImportFolder(ImportFolder importFolder)
+        public void ScanImportFolder(int importFolderId)
         {
+            var importFolder = _context.ImportFolders.Find(importFolderId);
             var dir = new DirectoryInfo(importFolder.Location);
             var allFiles = dir.GetFiles("*", SearchOption.AllDirectories).ToList();
             foreach (var file in allFiles) _cmdMgr.Dispatch(new HashParams(file.FullName));

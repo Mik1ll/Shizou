@@ -24,6 +24,7 @@ using Shizou.Commands;
 using Shizou.Controllers;
 using Shizou.Database;
 using Shizou.Entities;
+using Shizou.Import;
 using Shizou.Options;
 using Shizou.SwaggerFilters;
 using Swashbuckle.AspNetCore.Filters;
@@ -70,7 +71,10 @@ namespace Shizou
             services.AddSingleton<AniDbUdp>();
             services.AddSingleton<UdpRateLimiter>();
             services.AddSingleton<AniDbUdpProcessor>();
+            services.AddSingleton<HashProcessor>();
+            services.AddScoped<Importer>();
             services.AddSingleton<IHostedService>(p => p.GetRequiredService<AniDbUdpProcessor>());
+            services.AddSingleton<IHostedService>(p => p.GetRequiredService<HashProcessor>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

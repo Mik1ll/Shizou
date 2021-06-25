@@ -85,7 +85,7 @@ namespace Shizou.Hashers
 
         public RHasher Update(byte[] buf, int len)
         {
-            if (len < 0 || len >= buf.Length) throw new IndexOutOfRangeException();
+            if (len < 0 || len > buf.Length) throw new IndexOutOfRangeException();
             if (Bindings.rhash_update(_ptr, buf, len) < 0)
                 throw new ExternalException($"{nameof(Bindings.rhash_update)} failed");
             return this;

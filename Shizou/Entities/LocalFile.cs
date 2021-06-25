@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Entities
 {
@@ -12,8 +11,6 @@ namespace Shizou.Entities
         public long FileSize { get; set; }
         public string Signature { get; set; } = null!;
         public bool Ignored { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime Modified { get; set; }
         public string PathTail { get; set; } = null!;
 
         public ImportFolder ImportFolder { get; set; } = null!;

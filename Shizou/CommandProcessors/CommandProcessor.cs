@@ -1,16 +1,26 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Shizou.Commands;
+using Shizou.Database;
 using Shizou.Entities;
+using Shizou.Extensions;
 
 namespace Shizou.CommandProcessors
 {
     public abstract class CommandProcessor : BackgroundService
     {
-        public readonly QueueType QueueType = QueueType.Invalid;
+        protected readonly IServiceProvider Provider;
+        public readonly QueueType QueueType;
 
-        protected CommandProcessor(ILogger<CommandProcessor> logger)
+        protected CommandProcessor(ILogger<CommandProcessor> logger, IServiceProvider provider, QueueType queueType)
         {
             Logger = logger;
+            Provider = provider;
+            QueueType = queueType;
         }
 
         protected ILogger<CommandProcessor> Logger { get; }
@@ -19,7 +29,51 @@ namespace Shizou.CommandProcessors
 
         public CommandRequest? CurrentCommand { get; protected set; }
 
-        public bool Paused { get; set; } = true;
-        public string? PauseReason { get; set; }
+        public virtual bool Paused { get; set; } = true;
+        public virtual string? PauseReason { get; set; }
+
+        public virtual void Shutdown()
+        {
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            stoppingToken.Register(Shutdown);
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                using var scope = Provider.CreateScope();
+                CommandManager commandManager = scope.ServiceProvider.GetRequiredService<CommandManager>();
+                ShizouContext context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
+                if (Paused || (CurrentCommand = context.CommandRequests.GetNextRequest(QueueType)) is null)
+                {
+                    await Task.Delay(1000);
+                    continue;
+                }
+                ICommand command = commandManager.CommandFromRequest(CurrentCommand);
+                try
+                {
+                    Logger.LogDebug("Processing command: {commandId}", command.CommandId);
+                    var task = command.Process();
+                    while (!stoppingToken.IsCancellationRequested && !task.IsCompleted)
+                        await Task.Delay(500);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error while processing command: {ExMessage}", ex.Message);
+                }
+
+                if (command.Completed)
+                {
+                    Logger.LogDebug("Deleting command: {commandId}", command.CommandId);
+                    context.CommandRequests.Remove(CurrentCommand);
+                    context.SaveChanges();
+                }
+                else
+                {
+                    Logger.LogWarning("Not deleting uncompleted command: {commandId}", command.CommandId);
+                }
+                CurrentCommand = null;
+            }
+        }
     }
 }
