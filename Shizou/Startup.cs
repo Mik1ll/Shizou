@@ -4,26 +4,18 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.OData;
-using Microsoft.AspNetCore.OData.Batch;
-using Microsoft.AspNetCore.OData.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.OData.Edm;
-using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
-using Shizou.Controllers;
 using Shizou.Database;
-using Shizou.Entities;
 using Shizou.Import;
 using Shizou.Options;
 using Shizou.SwaggerFilters;
@@ -62,9 +54,6 @@ namespace Shizou
                 options.ExampleFilters();
             });
             services.AddSwaggerExamplesFromAssemblyOf<JsonPatchExample>();
-
-            services.AddOData(opt => opt.AddModel("odata", GetEdmModel(), new DefaultODataBatchHandler()).Filter().Select().Expand().OrderBy().Count());
-
             services.AddHostedService<StartupService>();
             services.AddDbContext<ShizouContext>();
             services.AddScoped<CommandManager>();
@@ -90,22 +79,7 @@ namespace Shizou
             //app.UseHttpsRedirection();
 
             app.UseSerilogRequestLogging();
-
-            app.UseODataBatching();
-
             app.UseRouting();
-
-            // For Debugging OData
-            app.Use(next => context =>
-            {
-                var endpoint = context.GetEndpoint();
-                if (endpoint is null) return next(context);
-
-                var metadata = endpoint.Metadata.GetMetadata<IODataRoutingMetadata>();
-                var templates = metadata?.Template.GetTemplates();
-                _ = templates;
-                return next(context); // put a breaking point here
-            });
 
             app.UseAuthorization();
 
@@ -127,14 +101,6 @@ namespace Shizou
 
             return (mvcOptions.InputFormatters.OfType<NewtonsoftJsonPatchInputFormatter>().Single(),
                 mvcOptions.OutputFormatters.OfType<XmlDataContractSerializerOutputFormatter>().Single());
-        }
-
-        private static IEdmModel GetEdmModel()
-        {
-            ODataConventionModelBuilder builder = new();
-            builder.EntitySet<ImportFolder>(nameof(ImportFoldersController).Replace("Controller", string.Empty));
-            builder.EntitySet<AniDbFile>(nameof(AniDbFilesController).Replace("Controller", string.Empty));
-            return builder.GetEdmModel();
         }
     }
 }
