@@ -13,6 +13,7 @@ namespace Shizou.Entities
         public bool Ignored { get; set; }
         public string PathTail { get; set; } = null!;
 
-        public ImportFolder ImportFolder { get; set; } = null!;
+        public int ImportFolderId { get; set; }
+        public virtual ImportFolder ImportFolder { get; set; } = null!;
     }
 }

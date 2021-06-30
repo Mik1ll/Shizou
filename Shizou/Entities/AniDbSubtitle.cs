@@ -6,6 +6,6 @@
         public string Format { get; set; } = null!;
         public string Language { get; set; } = null!;
 
-        public AniDbFile AniDbFile { get; set; } = null!;
+        public virtual AniDbFile AniDbFile { get; set; } = null!;
     }
 }

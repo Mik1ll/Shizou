@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Entities
 {
@@ -8,6 +10,10 @@ namespace Shizou.Entities
     {
         public string Name { get; set; } = null!;
         public string Path { get; set; } = null!;
-        public ImportFolder? Destination { get; set; }
+
+        public int? DestinationId { get; set; }
+        public virtual ImportFolder? Destination { get; set; }
+
+        [JsonIgnore] public virtual List<LocalFile> LocalFiles { get; set; } = null!;
     }
 }

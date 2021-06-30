@@ -31,11 +31,11 @@ namespace Shizou.Entities
         public MyListState MyListState { get; set; }
         public MyListFileState MyListFileState { get; set; }
 
-
-        public AniDbVideo? Video { get; set; }
-        public ICollection<AniDbAudio> Audio { get; set; } = null!;
-        public ICollection<AniDbSubtitle> Subtitles { get; set; } = null!;
-        public AniDbGroup? AniDbGroup { get; set; } = null!;
-        public ICollection<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
+        public virtual AniDbVideo? Video { get; set; }
+        public int? AniDbGroupId { get; set; }
+        public virtual AniDbGroup? AniDbGroup { get; set; } = null!;
+        public virtual ICollection<AniDbAudio> Audio { get; set; } = null!;
+        public virtual ICollection<AniDbSubtitle> Subtitles { get; set; } = null!;
+        public virtual ICollection<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
     }
 }

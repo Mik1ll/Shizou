@@ -8,6 +8,7 @@
         public int Bitrate { get; set; }
         public int Channels { get; set; }
 
-        public AniDbFile AniDbFile { get; set; } = null!;
+        public int AniDbFileId { get; set; }
+        public virtual AniDbFile AniDbFile { get; set; } = null!;
     }
 }

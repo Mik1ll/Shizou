@@ -16,6 +16,6 @@ namespace Shizou.Entities
         public bool Restricted { get; set; }
         public string? ImagePath { get; set; } = null!;
 
-        public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
+        public virtual List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
     }
 }
