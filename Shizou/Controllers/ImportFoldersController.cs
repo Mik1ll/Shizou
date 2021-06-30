@@ -14,15 +14,15 @@ namespace Shizou.Controllers
         }
 
         /// <summary>
-        ///     Get import folder by location
+        ///     Get import folder by path
         /// </summary>
-        /// <param name="location"></param>
+        /// <param name="path"></param>
         /// <returns></returns>
-        [HttpGet("location/{location}")]
+        [HttpGet("path/{path}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<ImportFolder> GetByLocation(string location)
+        public ActionResult<ImportFolder> GetByPath(string path)
         {
-            return Ok(Context.ImportFolders.Where(f => f.Location == location));
+            return Ok(Context.ImportFolders.Where(f => f.Path == path));
         }
     }
 }

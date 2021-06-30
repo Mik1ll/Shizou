@@ -8,7 +8,7 @@ namespace Shizou.Extensions
     {
         public static ImportFolder? GetByPath(this DbSet<ImportFolder> importFolders, string path)
         {
-            return importFolders.OrderByDescending(i => i.Location.Length).SingleOrDefault(i => path.StartsWith(i.Location));
+            return importFolders.OrderByDescending(i => i.Path.Length).SingleOrDefault(i => path.StartsWith(i.Path));
         }
     }
 }

@@ -35,13 +35,13 @@ namespace Shizou.Commands
             ImportFolder? importFolder;
             if (!file.Exists || (importFolder = _context.ImportFolders.GetByPath(file.FullName)) is null)
                 return;
-            var pathTail = file.FullName.Substring(importFolder.Location.Length);
+            var pathTail = file.FullName.Substring(importFolder.Path.Length);
             var signature = RHasher.FileSignature(file.FullName);
             var localFile = _context.LocalFiles.SingleOrDefault(l => l.Signature == signature);
             if (localFile is not null)
             {
                 Logger.LogInformation("Found local file by signature: {signature} {Path}", signature, file.FullName);
-                var oldPath = Path.GetFullPath(Path.Combine(localFile.ImportFolder.Location, localFile.PathTail));
+                var oldPath = Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
                 if (file.FullName != oldPath)
                 {
                     if (File.Exists(oldPath))

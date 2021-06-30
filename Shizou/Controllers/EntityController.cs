@@ -33,6 +33,7 @@ namespace Shizou.Controllers
         /// <returns></returns>
         /// <response code="200">Success</response>
         [HttpGet]
+        [Route("")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Produces("application/json")]
         [EnableQuery]
@@ -96,23 +97,18 @@ namespace Shizou.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         /// <response code="204">Entity deleted</response>
-        /// <response code="404">Entity not found</response>
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [EnableQuery]
         public ActionResult Delete(int id)
         {
-            try
+            var entity = _dbSet.Find(id);
+            if (entity is not null)
             {
-                _dbSet.Remove(new T {Id = id});
+                _dbSet.Remove(entity);
                 Context.SaveChanges();
-                return NoContent();
             }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
+            return NoContent();
         }
     }
 }

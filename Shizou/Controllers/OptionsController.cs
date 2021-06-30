@@ -43,13 +43,13 @@ namespace Shizou.Controllers
         }
 
         /// <summary>
-        ///     Set settings from json
+        ///     Change settings individually
         /// </summary>
         /// <param name="patch"></param>
         /// <returns></returns>
         [HttpPatch]
         [SwaggerRequestExample(typeof(JsonPatchOperation), typeof(JsonPatchExample))]
-        public ActionResult PatchShizouOptions([FromBody] JsonPatchDocument<ShizouOptions> patch)
+        public ActionResult Patch([FromBody] JsonPatchDocument<ShizouOptions> patch)
         {
             patch.ApplyTo(_options, ModelState);
             ShizouOptions.SaveSettingsToFile(_options);
