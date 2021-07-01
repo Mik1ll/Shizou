@@ -7,8 +7,9 @@ namespace Shizou.SwaggerFilters
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            if (operation.Responses.TryGetValue("404", out var response))
-                response.Content.Clear();
+            foreach (var code in new[] {"404", "409"})
+                if (operation.Responses.TryGetValue(code, out var response))
+                    response.Content.Clear();
 
             // var data = new OpenApiResponse
             // {

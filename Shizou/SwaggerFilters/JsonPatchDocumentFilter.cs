@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
@@ -15,8 +14,7 @@ namespace Shizou.SwaggerFilters
             // Remove irrelevent schemas
             var schemas = swaggerDoc.Components.Schemas.ToList();
             foreach (var item in schemas.Where(item =>
-                item.Key.Contains("Operation") || item.Key.EndsWith("JsonPatchDocument") || item.Key == "IContractResolver" || item.Key.StartsWith("Edm") ||
-                item.Key.StartsWith("IEdm") || item.Key.StartsWith("Odata", StringComparison.OrdinalIgnoreCase) || item.Key.StartsWith("Problem")))
+                item.Key.Contains("Operation") || item.Key.EndsWith("JsonPatchDocument")))
                 swaggerDoc.Components.Schemas.Remove(item.Key);
 
             // Add JsonPatchOperation schema

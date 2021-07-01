@@ -36,12 +36,7 @@ namespace Shizou
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<ShizouOptions>(Configuration.GetSection(ShizouOptions.Shizou));
-            services.AddControllers(options =>
-            {
-                var (inputfmtr, outputfmtr) = GetFormatters();
-                options.InputFormatters.Insert(0, inputfmtr);
-                options.OutputFormatters.Add(outputfmtr);
-            });
+            services.AddControllers(options => { options.InputFormatters.Insert(0, GetJsonPatchInputFormatter()); });
             services.AddSwaggerGen(options =>
             {
                 //options.CustomOperationIds(e => $"{e.ActionDescriptor.RouteValues["controller"]}_{e.HttpMethod}");
@@ -86,21 +81,18 @@ namespace Shizou
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
 
-        private static (IInputFormatter, IOutputFormatter) GetFormatters()
+        private static IInputFormatter GetJsonPatchInputFormatter()
         {
-            var builder = new ServiceCollection()
+            return new ServiceCollection()
                 .AddLogging()
                 .AddMvcCore()
                 .AddNewtonsoftJson()
-                .AddXmlDataContractSerializerFormatters()
-                .Services.BuildServiceProvider();
-
-            var mvcOptions = builder
+                .Services.BuildServiceProvider()
                 .GetRequiredService<IOptions<MvcOptions>>()
-                .Value;
-
-            return (mvcOptions.InputFormatters.OfType<NewtonsoftJsonPatchInputFormatter>().Single(),
-                mvcOptions.OutputFormatters.OfType<XmlDataContractSerializerOutputFormatter>().Single());
+                .Value
+                .InputFormatters
+                .OfType<NewtonsoftJsonPatchInputFormatter>()
+                .First();
         }
     }
 }
