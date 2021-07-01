@@ -55,6 +55,13 @@ namespace Shizou.Controllers
         }
 
 
+        /// <summary>
+        ///     Creates new entity
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        /// <response code="201">Entity created</response>
+        /// <response code="409">Conflict when trying to add in database</response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -67,42 +74,43 @@ namespace Shizou.Controllers
             }
             catch (DbUpdateException ex)
             {
-                return Conflict();
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return Conflict(ModelState);
             }
             var path = new Uri(@$"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}/{entity.Id}");
             return Created(path, entity);
         }
 
+
         /// <summary>
-        ///     Create or updates entity if it exists.
+        ///     Updates existing entity
         /// </summary>
-        /// <param name="entity">id 0 if inserting</param>
+        /// <param name="entity"></param>
         /// <returns></returns>
-        /// <response code="201">Entity is new</response>
         /// <response code="204">Entity updated</response>
-        /// <response code="404">Entity not found</response>
-        // [HttpPost]
-        // [ProducesResponseType(StatusCodes.Status204NoContent)]
-        // [ProducesResponseType(StatusCodes.Status201Created)]
-        // [ProducesResponseType(StatusCodes.Status404NotFound)]
-        // [EnableQuery]
-        // public ActionResult Save([FromBody] T entity)
-        // {
-        //     ActionResult response;
-        //     try
-        //     {
-        //         var oldid = entity.Id;
-        //         _dbSet.Update(entity);
-        //         Context.SaveChanges();
-        //         var path = new Uri(@$"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}/{entity.Id}");
-        //         response = oldid != 0 ? NoContent() : Created(path, null);
-        //     }
-        //     catch (KeyNotFoundException)
-        //     {
-        //         response = NotFound();
-        //     }
-        //     return response;
-        // }
+        /// <response code="404">Entity does not exist</response>
+        /// <response code="409">Conflict when trying to update in database</response>
+        [HttpPut]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public ActionResult Update([FromBody] T entity)
+        {
+            try
+            {
+                var dbEntity = _dbSet.Find(entity);
+                if (dbEntity is null)
+                    NotFound();
+                _dbSet.Update(entity);
+                Context.SaveChanges();
+            }
+            catch (DbUpdateException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return Conflict(ModelState);
+            }
+            return NoContent();
+        }
 
         /// <summary>
         ///     Deletes entity if it exists.
@@ -110,16 +118,24 @@ namespace Shizou.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         /// <response code="204">Entity deleted</response>
+        /// <response code="409">Conflict when trying to delete in database</response>
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public ActionResult Delete(int id)
         {
             var entity = _dbSet.Find(id);
             if (entity is not null)
-            {
-                _dbSet.Remove(entity);
-                Context.SaveChanges();
-            }
+                try
+                {
+                    _dbSet.Remove(entity);
+                    Context.SaveChanges();
+                }
+                catch (DbUpdateException ex)
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                    return Conflict(ModelState);
+                }
             return NoContent();
         }
     }
