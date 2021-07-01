@@ -45,7 +45,7 @@ namespace Shizou
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
 
                 options.DocumentFilter<JsonPatchDocumentFilter>();
-                options.OperationFilter<ClearContentTypeFilter>();
+                options.DocumentFilter<ClearContentTypeFilter>();
                 options.ExampleFilters();
             });
             services.AddSwaggerExamplesFromAssemblyOf<JsonPatchExample>();
