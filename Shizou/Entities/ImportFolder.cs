@@ -12,8 +12,7 @@ namespace Shizou.Entities
         public string Path { get; set; } = null!;
 
         public int? DestinationId { get; set; }
-        public virtual ImportFolder? Destination { get; set; }
-
+        [JsonIgnore] public virtual ImportFolder? Destination { get; set; }
         [JsonIgnore] public virtual List<LocalFile> LocalFiles { get; set; } = null!;
     }
 }

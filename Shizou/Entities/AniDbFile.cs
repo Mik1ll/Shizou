@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Shizou.Enums;
 
 namespace Shizou.Entities
@@ -15,8 +16,8 @@ namespace Shizou.Entities
         public string? Md5 { get; set; }
         public string? Sha1 { get; set; }
         public long FileSize { get; set; }
-        public TimeSpan? Duration { get; set; }
-        public string? Source { get; set; } = null!;
+        public int? Duration { get; set; }
+        public string? Source { get; set; }
         public DateTime? ReleaseDate { get; set; }
         public DateTime Updated { get; set; }
         public string FileName { get; set; } = null!;
@@ -31,11 +32,11 @@ namespace Shizou.Entities
         public MyListState MyListState { get; set; }
         public MyListFileState MyListFileState { get; set; }
 
-        public virtual AniDbVideo? Video { get; set; }
         public int? AniDbGroupId { get; set; }
-        public virtual AniDbGroup? AniDbGroup { get; set; } = null!;
+        [JsonIgnore] public virtual AniDbGroup? AniDbGroup { get; set; } = null!;
+        public virtual AniDbVideo? Video { get; set; }
         public virtual ICollection<AniDbAudio> Audio { get; set; } = null!;
         public virtual ICollection<AniDbSubtitle> Subtitles { get; set; } = null!;
-        public virtual ICollection<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
+        [JsonIgnore] public virtual ICollection<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
     }
 }

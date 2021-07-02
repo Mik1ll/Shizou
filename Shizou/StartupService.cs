@@ -8,6 +8,8 @@ using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
 using Shizou.Database;
+using Shizou.Entities;
+using Shizou.Enums;
 using Shizou.Import;
 
 namespace Shizou
@@ -35,26 +37,31 @@ namespace Shizou
 
             #region AddTest
 
-            // test.AniDbFiles.Add(new AniDbFile
-            // {
-            //     Ed2K = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-            //     Censored = false,
-            //     Chaptered = true,
-            //     Crc = "3242",
-            //     Deprecated = true,
-            //     Duration = new TimeSpan(2, 1, 5),
-            //     Md5 = "25232",
-            //     Sha1 = "3423",
-            //     Updated = DateTime.UtcNow,
-            //     FileName = "uahowh",
-            //     FileSize = 2342342,
-            //     FileVersion = 3,
-            //     WatchedStatus = false,
-            //
-            //     AudioCodecs = new List<Codec> {new("test", 2555)},
-            //     VideoCodecs = new List<Codec>() {new Codec("teste2", 12411)}
-            // });
-            // test.SaveChanges();
+            test.AniDbFiles.Add(new AniDbFile
+            {
+                Ed2K = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+                Censored = false,
+                Chaptered = true,
+                Crc = "3242",
+                Deprecated = true,
+                Duration = 51,
+                Md5 = "25232",
+                Sha1 = "3423",
+                Updated = DateTime.UtcNow,
+                FileName = "uahowh",
+                FileSize = 2342342,
+                FileVersion = 3,
+                Source = "etset",
+                Watched = true,
+                ReleaseDate = DateTime.Now,
+                WatchedDate = DateTime.Now,
+                AniDbGroup = null,
+                MyListId = 922,
+                MyListState = MyListState.Deleted,
+                AniDbGroupId = null,
+                MyListFileState = MyListFileState.Normal
+            });
+            test.SaveChanges();
 
             #endregion
 
@@ -69,7 +76,7 @@ namespace Shizou
 
             #endregion
 
-            importer.ScanImportFolder(1);
+            //importer.ScanImportFolder(1);
         }
     }
 }

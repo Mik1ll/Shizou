@@ -21,7 +21,7 @@ namespace Shizou.Controllers
         {
             Logger = logger;
             Context = context;
-            _dbSet = (DbSet<T>)Context.GetType().GetProperties().Single(_ => _.PropertyType == typeof(DbSet<T>)).GetValue(Context)!;
+            _dbSet = Context.Set<T>();
         }
 
         /// <summary>
@@ -31,8 +31,7 @@ namespace Shizou.Controllers
         /// <response code="200">Success</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [Produces("application/json")]
-        public ActionResult<IQueryable<T>> List()
+        public virtual ActionResult<IQueryable<T>> List()
         {
             return Ok(_dbSet);
         }
@@ -47,13 +46,11 @@ namespace Shizou.Controllers
         [HttpGet("{key:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Produces("application/json")]
-        public ActionResult<T> Get(int key)
+        public virtual ActionResult<T> Get(int key)
         {
             var result = _dbSet.Find(key);
             return result is null ? NotFound() : Ok(result);
         }
-
 
         /// <summary>
         ///     Creates new entity
@@ -65,7 +62,7 @@ namespace Shizou.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public ActionResult<T> Create([FromBody] T entity)
+        public virtual ActionResult<T> Create([FromBody] T entity)
         {
             try
             {
@@ -81,7 +78,6 @@ namespace Shizou.Controllers
             return Created(path, entity);
         }
 
-
         /// <summary>
         ///     Updates existing entity
         /// </summary>
@@ -94,13 +90,12 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public ActionResult Update([FromBody] T entity)
+        public virtual ActionResult Update([FromBody] T entity)
         {
             try
             {
-                var dbEntity = _dbSet.Find(entity);
-                if (dbEntity is null)
-                    NotFound();
+                if (!_dbSet.Any(e => e.Id == entity.Id))
+                    return NotFound();
                 _dbSet.Update(entity);
                 Context.SaveChanges();
             }
@@ -122,7 +117,7 @@ namespace Shizou.Controllers
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public ActionResult Delete(int id)
+        public virtual ActionResult Delete(int id)
         {
             var entity = _dbSet.Find(id);
             if (entity is not null)
