@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using Shizou.Dtos;
+using Shizou.Entities;
 using Shizou.Enums;
 
-namespace Shizou.Entities
+namespace Shizou.Dtos
 {
-    public class AniDbEpisode : Entity
+    public class AniDbEpisodeDto : EntityDto
     {
         public int? Duration { get; set; }
         public int Number { get; set; }
@@ -15,10 +14,9 @@ namespace Shizou.Entities
         public DateTime Updated { get; set; }
 
         public int AniDbAnimeId { get; set; }
-        public AniDbAnime AniDbAnime { get; set; } = null!;
-        public List<AniDbFile> AniDbFiles { get; set; } = null!;
 
-        public override AniDbEpisodeDto ToDto()
+
+        public override AniDbEpisode ToEntity()
         {
             return new()
             {

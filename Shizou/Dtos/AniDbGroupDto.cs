@@ -1,18 +1,14 @@
-﻿using System.Collections.Generic;
-using Shizou.Dtos;
+﻿using Shizou.Entities;
 
-namespace Shizou.Entities
+namespace Shizou.Dtos
 {
-    public class AniDbGroup : Entity
+    public class AniDbGroupDto : EntityDto
     {
         public string Name { get; set; } = null!;
         public string ShortName { get; set; } = null!;
         public string? Url { get; set; }
 
-        public List<AniDbFile> AniDbFiles { get; set; } = null!;
-
-
-        public override AniDbGroupDto ToDto()
+        public override AniDbGroup ToEntity()
         {
             return new()
             {

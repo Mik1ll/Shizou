@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Shizou.Dtos;
+using Shizou.Entities;
 using Shizou.Enums;
 
-namespace Shizou.Entities
+namespace Shizou.Dtos
 {
-    [Index(nameof(Ed2K), IsUnique = true)]
-    public class AniDbFile : Entity
+    public class AniDbFileDto : EntityDto
     {
         public string Ed2K { get; set; } = null!;
         public string? Crc { get; set; }
@@ -32,18 +30,16 @@ namespace Shizou.Entities
         public MyListFileState MyListFileState { get; set; }
 
         public int? AniDbGroupId { get; set; }
-        public AniDbGroup? AniDbGroup { get; set; }
-        public AniDbVideo? Video { get; set; }
-        public List<AniDbAudio> Audio { get; set; } = null!;
-        public List<AniDbSubtitle> Subtitles { get; set; } = null!;
-        public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
+        public AniDbVideoDto? Video { get; set; }
+        public List<AniDbAudioDto> Audio { get; set; } = null!;
+        public List<AniDbSubtitleDto> Subtitles { get; set; } = null!;
 
 
-        public override AniDbFileDto ToDto()
+        public override AniDbFile ToEntity()
         {
             return new()
             {
-                Audio = Audio.Select(a => a.ToDto()).ToList(),
+                Audio = Audio.Select(a => a.ToEntity()).ToList(),
                 Censored = Censored,
                 Chaptered = Chaptered,
                 Crc = Crc,
@@ -53,9 +49,9 @@ namespace Shizou.Entities
                 Md5 = Md5,
                 Sha1 = Sha1,
                 Source = Source,
-                Subtitles = Subtitles.Select(s => s.ToDto()).ToList(),
+                Subtitles = Subtitles.Select(s => s.ToEntity()).ToList(),
                 Updated = Updated,
-                Video = Video?.ToDto(),
+                Video = Video?.ToEntity(),
                 Watched = Watched,
                 Ed2K = Ed2K,
                 FileName = FileName,

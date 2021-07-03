@@ -5,23 +5,26 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Database;
+using Shizou.Dtos;
 using Shizou.Entities;
 
 namespace Shizou.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class EntityController<T> : ControllerBase where T : Entity, new()
+    public class EntityController<TDto, TEntity> : ControllerBase
+        where TDto : EntityDto, new()
+        where TEntity : Entity, new()
     {
-        private readonly DbSet<T> _dbSet;
+        private readonly DbSet<TEntity> _dbSet;
         protected readonly ShizouContext Context;
-        protected readonly ILogger<EntityController<T>> Logger;
+        protected readonly ILogger<EntityController<TDto, TEntity>> Logger;
 
-        public EntityController(ILogger<EntityController<T>> logger, ShizouContext context)
+        public EntityController(ILogger<EntityController<TDto, TEntity>> logger, ShizouContext context)
         {
             Logger = logger;
             Context = context;
-            _dbSet = Context.Set<T>();
+            _dbSet = Context.Set<TEntity>();
         }
 
         /// <summary>
@@ -31,9 +34,9 @@ namespace Shizou.Controllers
         /// <response code="200">Success</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public virtual ActionResult<IQueryable<T>> List()
+        public virtual ActionResult<IQueryable<TDto>> List()
         {
-            return Ok(_dbSet);
+            return Ok(_dbSet.Select(e => e.ToDto()));
         }
 
         /// <summary>
@@ -46,10 +49,10 @@ namespace Shizou.Controllers
         [HttpGet("{key:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public virtual ActionResult<T> Get(int key)
+        public virtual ActionResult<TDto> Get(int key)
         {
             var result = _dbSet.Find(key);
-            return result is null ? NotFound() : Ok(result);
+            return result is null ? NotFound() : Ok(result.ToDto());
         }
 
         /// <summary>
@@ -62,11 +65,11 @@ namespace Shizou.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public virtual ActionResult<T> Create([FromBody] T entity)
+        public virtual ActionResult<TDto> Create([FromBody] TDto entity)
         {
             try
             {
-                _dbSet.Add(entity);
+                _dbSet.Add((TEntity)entity.ToEntity());
                 Context.SaveChanges();
             }
             catch (DbUpdateException ex)
@@ -90,13 +93,13 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public virtual ActionResult Update([FromBody] T entity)
+        public virtual ActionResult Update([FromBody] TDto entity)
         {
             try
             {
                 if (!_dbSet.Any(e => e.Id == entity.Id))
                     return NotFound();
-                _dbSet.Update(entity);
+                _dbSet.Update((TEntity)entity.ToEntity());
                 Context.SaveChanges();
             }
             catch (DbUpdateException ex)

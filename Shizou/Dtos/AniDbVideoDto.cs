@@ -1,8 +1,8 @@
-﻿using Shizou.Dtos;
+﻿using Shizou.Entities;
 
-namespace Shizou.Entities
+namespace Shizou.Dtos
 {
-    public class AniDbVideo : Entity
+    public class AniDbVideoDto : EntityDto
     {
         public string Codec { get; set; } = null!;
         public int BitRate { get; set; }
@@ -11,9 +11,9 @@ namespace Shizou.Entities
         public int ColorDepth { get; set; }
 
         public int AniDbFileId { get; set; }
-        public AniDbFile AniDbFile { get; set; } = null!;
 
-        public override AniDbVideoDto ToDto()
+
+        public override AniDbVideo ToEntity()
         {
             return new()
             {

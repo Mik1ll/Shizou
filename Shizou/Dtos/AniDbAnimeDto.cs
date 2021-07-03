@@ -1,26 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using Shizou.Dtos;
+using Shizou.Entities;
 using Shizou.Enums;
 
-namespace Shizou.Entities
+namespace Shizou.Dtos
 {
-    public class AniDbAnime : Entity
+    public class AniDbAnimeDto : EntityDto
     {
-        public string Title { get; set; } = null!;
-        public AnimeType AnimeType { get; set; }
         public int EpisodeCount { get; set; }
         public DateTime? AirDate { get; set; }
         public DateTime? EndDate { get; set; }
+        public AnimeType AnimeType { get; set; }
+        public string Title { get; set; } = null!;
         public string? Description { get; set; }
+        public DateTime Updated { get; set; }
         public bool Restricted { get; set; }
         public string? ImagePath { get; set; }
-        public DateTime Updated { get; set; }
 
-        public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
-
-
-        public override AniDbAnimeDto ToDto()
+        public override AniDbAnime ToEntity()
         {
             return new()
             {

@@ -1,11 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Shizou.Dtos;
+﻿using Shizou.Entities;
 
-namespace Shizou.Entities
+namespace Shizou.Dtos
 {
-    [Index(nameof(Ed2K), IsUnique = true)]
-    [Index(nameof(Signature), IsUnique = true)]
-    public class LocalFile : Entity
+    public class LocalFileDto : EntityDto
     {
         public string Ed2K { get; set; } = null!;
         public string Crc { get; set; } = null!;
@@ -15,10 +12,9 @@ namespace Shizou.Entities
         public string PathTail { get; set; } = null!;
 
         public int ImportFolderId { get; set; }
-        public ImportFolder ImportFolder { get; set; } = null!;
 
 
-        public override LocalFileDto ToDto()
+        public override LocalFile ToEntity()
         {
             return new()
             {

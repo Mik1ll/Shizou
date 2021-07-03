@@ -1,12 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Shizou.CommandProcessors;
+﻿using Shizou.CommandProcessors;
 using Shizou.Commands;
-using Shizou.Dtos;
+using Shizou.Entities;
 
-namespace Shizou.Entities
+namespace Shizou.Dtos
 {
-    [Index(nameof(CommandId), IsUnique = true)]
-    public class CommandRequest : Entity
+    public class CommandRequestDto : EntityDto
     {
         public CommandType Type { get; set; }
         public CommandPriority Priority { get; set; }
@@ -15,7 +13,7 @@ namespace Shizou.Entities
         public string CommandParams { get; set; } = string.Empty;
 
 
-        public override CommandRequestDto ToDto()
+        public override CommandRequest ToEntity()
         {
             return new()
             {

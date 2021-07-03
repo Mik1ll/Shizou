@@ -1,15 +1,16 @@
-﻿using System.Linq;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Shizou.Database;
+using Shizou.Dtos;
 using Shizou.Entities;
+using Shizou.Extensions;
 
 namespace Shizou.Controllers
 {
-    public class ImportFoldersController : EntityController<ImportFolder>
+    public class ImportFoldersController : EntityController<ImportFolderDto, ImportFolder>
     {
-        public ImportFoldersController(ILogger<EntityController<ImportFolder>> logger, ShizouContext context) : base(logger, context)
+        public ImportFoldersController(ILogger<ImportFoldersController> logger, ShizouContext context) : base(logger, context)
         {
         }
 
@@ -20,9 +21,13 @@ namespace Shizou.Controllers
         /// <returns></returns>
         [HttpGet("path/{path}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<ImportFolder> GetByPath(string path)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<ImportFolderDto> GetByPath(string path)
         {
-            return Ok(Context.ImportFolders.Where(f => f.Path == path));
+            var importFolder = Context.ImportFolders.GetByPath(path);
+            if (importFolder is null)
+                return NotFound();
+            return Ok(importFolder.ToDto());
         }
     }
 }

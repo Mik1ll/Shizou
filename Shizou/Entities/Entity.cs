@@ -6,6 +6,6 @@ namespace Shizou.Entities
     {
         public int Id { get; set; }
 
-        public abstract Dto ToDto();
+        public abstract EntityDto ToDto();
     }
 }
