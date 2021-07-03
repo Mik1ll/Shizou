@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Shizou.Database;
 using Shizou.Dtos;
 using Shizou.Entities;
+using Shizou.Extensions;
 
 namespace Shizou.Controllers
 {
@@ -36,22 +37,22 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public virtual ActionResult<IQueryable<TDto>> List()
         {
-            return Ok(_dbSet.Select(e => e.ToDto()));
+            return Ok(_dbSet.DtoInclude().Select(e => e.ToDto()));
         }
 
         /// <summary>
         ///     Get entity
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
         /// <response code="404">Entity is not found</response>
         /// <response code="200">Entity found</response>
-        [HttpGet("{key:int}")]
+        [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public virtual ActionResult<TDto> Get(int key)
+        public virtual ActionResult<TDto> Get(int id)
         {
-            var result = _dbSet.Find(key);
+            var result = _dbSet.DtoInclude().Where(e => e.Id == id).SingleOrDefault();
             return result is null ? NotFound() : Ok(result.ToDto());
         }
 
