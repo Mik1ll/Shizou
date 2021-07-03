@@ -37,7 +37,9 @@ namespace Shizou.Database
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite(@$"Data Source={Path.Combine(Program.ApplicationData, "ShizouDB.sqlite3")};Foreign Keys=True;")
+            optionsBuilder
+                .UseLazyLoadingProxies()
+                .UseSqlite(@$"Data Source={Path.Combine(Program.ApplicationData, "ShizouDB.sqlite3")};Foreign Keys=True;")
                 .EnableSensitiveDataLogging();
         }
     }
