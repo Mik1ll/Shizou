@@ -75,7 +75,7 @@ namespace Shizou.Controllers
             }
             catch (DbUpdateException ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
                 return Conflict(ModelState);
             }
             var path = new Uri(@$"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}/{entity.Id}");
@@ -105,7 +105,7 @@ namespace Shizou.Controllers
             }
             catch (DbUpdateException ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
                 return Conflict(ModelState);
             }
             return NoContent();
@@ -132,7 +132,7 @@ namespace Shizou.Controllers
                 }
                 catch (DbUpdateException ex)
                 {
-                    ModelState.AddModelError(string.Empty, ex.Message);
+                    ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
                     return Conflict(ModelState);
                 }
             return NoContent();
