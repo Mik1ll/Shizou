@@ -1,7 +1,11 @@
-﻿namespace Shizou.Entities
+﻿using Shizou.Dtos;
+
+namespace Shizou.Entities
 {
-    public class Entity
+    public abstract class Entity
     {
         public int Id { get; set; }
+
+        public abstract Dto ToDto();
     }
 }

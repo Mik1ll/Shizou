@@ -8,6 +8,6 @@ namespace Shizou.Entities
         public string ShortName { get; set; } = null!;
         public string? Url { get; set; }
 
-        public virtual List<AniDbFile> AniDbFiles { get; set; } = null!;
+        public List<AniDbFile> AniDbFiles { get; set; } = null!;
     }
 }

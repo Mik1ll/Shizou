@@ -14,7 +14,6 @@ namespace Shizou.Entities
         public DateTime Updated { get; set; }
 
         public int AniDbAnimeId { get; set; }
-        public virtual AniDbAnime AniDbAnime { get; set; } = null!;
-        public virtual List<AniDbFile> AniDbFiles { get; set; } = null!;
+        public AniDbAnime AniDbAnime { get; set; } = null!;
+        public List<AniDbFile> AniDbFiles { get; set; } = null!;
     }
-}

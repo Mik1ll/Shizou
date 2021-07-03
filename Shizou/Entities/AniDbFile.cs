@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Shizou.Enums;
 
 namespace Shizou.Entities
@@ -33,10 +32,10 @@ namespace Shizou.Entities
         public MyListFileState MyListFileState { get; set; }
 
         public int? AniDbGroupId { get; set; }
-        [JsonIgnore] public virtual AniDbGroup? AniDbGroup { get; set; } = null!;
-        public virtual AniDbVideo? Video { get; set; }
-        public virtual ICollection<AniDbAudio> Audio { get; set; } = null!;
-        public virtual ICollection<AniDbSubtitle> Subtitles { get; set; } = null!;
-        [JsonIgnore] public virtual ICollection<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
+        public AniDbGroup? AniDbGroup { get; set; } = null!;
+        public AniDbVideo? Video { get; set; }
+        public ICollection<AniDbAudio> Audio { get; set; } = null!;
+        public ICollection<AniDbSubtitle> Subtitles { get; set; } = null!;
+        public ICollection<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
     }
 }

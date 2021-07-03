@@ -9,6 +9,6 @@
         public int Channels { get; set; }
 
         public int AniDbFileId { get; set; }
-        public virtual AniDbFile AniDbFile { get; set; } = null!;
+        public AniDbFile AniDbFile { get; set; } = null!;
     }
 }
