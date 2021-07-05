@@ -17,6 +17,8 @@ namespace Shizou.Entities
         public int ImportFolderId { get; set; }
         public ImportFolder ImportFolder { get; set; } = null!;
 
+        public AniDbFile? AniDbFile { get; set; }
+
 
         public override LocalFileDto ToDto()
         {

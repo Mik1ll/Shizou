@@ -8,8 +8,6 @@ using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
 using Shizou.Database;
-using Shizou.Entities;
-using Shizou.Enums;
 using Shizou.Import;
 
 namespace Shizou
@@ -37,30 +35,44 @@ namespace Shizou
 
             #region AddTest
 
-            test.AniDbFiles.Add(new AniDbFile
-            {
-                Ed2K = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-                Censored = false,
-                Chaptered = true,
-                Crc = "3242",
-                Deprecated = true,
-                Duration = 51,
-                Md5 = "25232",
-                Sha1 = "3423",
-                Updated = DateTime.UtcNow,
-                FileName = "uahowh",
-                FileSize = 2342342,
-                FileVersion = 3,
-                Source = "etset",
-                Watched = true,
-                ReleaseDate = DateTime.Now,
-                WatchedDate = DateTime.Now,
-                AniDbGroup = null,
-                MyListId = 922,
-                MyListState = MyListState.Deleted,
-                AniDbGroupId = null,
-                MyListFileState = MyListFileState.Normal
-            });
+            // test.AniDbAnimes.Add(new AniDbAnime()
+            // {
+            //     Title = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+            //     AniDbEpisodes = new List<AniDbEpisode>()
+            //     {
+            //         new()
+            //         {
+            //             
+            //             AniDbFiles = new List<AniDbFile>()
+            //             {
+            //                 new()
+            //                 {
+            //                     Ed2K = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+            //                     FileName = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+            //                     Source = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+            //                     AniDbEpisodes = test.AniDbEpisodes.ToList(),
+            //                     LocalFile = new LocalFile()
+            //                     {
+            //                         Crc = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+            //                         Signature = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+            //                         PathTail = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+            //                         ImportFolder = new ImportFolder()
+            //                         {
+            //                             Name = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+            //                             Path = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+            //                         }
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //         
+            //     }
+            // });
+            // test.SaveChanges();
+
+            // var result = test.AniDbAnimes.Include(e => e.AniDbEpisodes).ThenInclude(e => e.AniDbFiles).ThenInclude(e => e.LocalFile).ThenInclude(e => e.ImportFolder)
+            //     .AsSplitQuery().First();
+
             test.SaveChanges();
 
             #endregion

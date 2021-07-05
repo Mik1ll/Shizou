@@ -41,5 +41,17 @@ namespace Shizou.Database
                 .UseSqlite(@$"Data Source={Path.Combine(Program.ApplicationData, "ShizouDB.sqlite3")};Foreign Keys=True;")
                 .EnableSensitiveDataLogging();
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<LocalFile>()
+                .HasOne(l => l.AniDbFile)
+                .WithOne(e => e!.LocalFile!)
+                .HasForeignKey<LocalFile>(e => e.Ed2K)
+                .HasPrincipalKey<AniDbFile>(e => e.Ed2K)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+        }
     }
 }
