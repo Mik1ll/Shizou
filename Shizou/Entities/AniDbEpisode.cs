@@ -12,7 +12,7 @@ namespace Shizou.Entities
         public EpisodeType EpisodeType { get; set; }
         public string? Description { get; set; }
         public DateTime? AirDate { get; set; }
-        public DateTime Updated { get; set; }
+        public DateTime? Updated { get; set; }
 
         public int AniDbAnimeId { get; set; }
         public AniDbAnime AniDbAnime { get; set; } = null!;

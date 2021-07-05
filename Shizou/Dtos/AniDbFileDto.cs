@@ -16,7 +16,7 @@ namespace Shizou.Dtos
         public int? Duration { get; set; }
         public string? Source { get; set; }
         public DateTime? ReleaseDate { get; set; }
-        public DateTime Updated { get; set; }
+        public DateTime? Updated { get; set; }
         public string FileName { get; set; } = null!;
         public int FileVersion { get; set; }
         public bool Censored { get; set; }
