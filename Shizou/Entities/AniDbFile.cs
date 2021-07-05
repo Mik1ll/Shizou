@@ -38,8 +38,6 @@ namespace Shizou.Entities
         public List<AniDbSubtitle> Subtitles { get; set; } = null!;
         public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
 
-        public LocalFile? LocalFile { get; set; }
-
 
         public override AniDbFileDto ToDto()
         {
@@ -70,6 +68,19 @@ namespace Shizou.Entities
                 AniDbGroupId = AniDbGroupId,
                 MyListFileState = MyListFileState
             };
+        }
+    }
+
+    public static class AniDbFilesExtensions
+    {
+        public static AniDbFile? GetByEd2K(this IQueryable<AniDbFile> query, string ed2K)
+        {
+            return query.FirstOrDefault(e => e.Ed2K == ed2K);
+        }
+
+        public static AniDbFile? GetByLocalFile(this IQueryable<AniDbFile> query, LocalFile localFile)
+        {
+            return query.GetByEd2K(localFile.Ed2K);
         }
     }
 }

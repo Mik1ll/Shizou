@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Shizou.Dtos;
 
 namespace Shizou.Entities
@@ -17,8 +18,6 @@ namespace Shizou.Entities
         public int ImportFolderId { get; set; }
         public ImportFolder ImportFolder { get; set; } = null!;
 
-        public AniDbFile? AniDbFile { get; set; }
-
 
         public override LocalFileDto ToDto()
         {
@@ -33,6 +32,19 @@ namespace Shizou.Entities
                 PathTail = PathTail,
                 ImportFolderId = ImportFolderId
             };
+        }
+    }
+
+    public static class LocalFilesExtensions
+    {
+        public static LocalFile? GetByEd2K(this IQueryable<LocalFile> query, string ed2K)
+        {
+            return query.FirstOrDefault(e => e.Ed2K == ed2K);
+        }
+
+        public static LocalFile? GetByAniDbFile(this IQueryable<LocalFile> query, AniDbFile aniDbFile)
+        {
+            return query.GetByEd2K(aniDbFile.Ed2K);
         }
     }
 }

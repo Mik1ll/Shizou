@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +10,7 @@ using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
 using Shizou.Database;
+using Shizou.Entities;
 using Shizou.Import;
 
 namespace Shizou
@@ -35,44 +38,61 @@ namespace Shizou
 
             #region AddTest
 
-            // test.AniDbAnimes.Add(new AniDbAnime()
-            // {
-            //     Title = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-            //     AniDbEpisodes = new List<AniDbEpisode>()
-            //     {
-            //         new()
-            //         {
-            //             
-            //             AniDbFiles = new List<AniDbFile>()
-            //             {
-            //                 new()
-            //                 {
-            //                     Ed2K = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-            //                     FileName = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-            //                     Source = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-            //                     AniDbEpisodes = test.AniDbEpisodes.ToList(),
-            //                     LocalFile = new LocalFile()
-            //                     {
-            //                         Crc = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-            //                         Signature = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-            //                         PathTail = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-            //                         ImportFolder = new ImportFolder()
-            //                         {
-            //                             Name = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-            //                             Path = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-            //                         }
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //         
-            //     }
-            // });
-            // test.SaveChanges();
+            test.AniDbAnimes.RemoveRange(test.AniDbAnimes.Select(e => new AniDbAnime {Id = e.Id}));
+            test.AniDbFiles.RemoveRange(test.AniDbFiles.Select(e => new AniDbFile {Id = e.Id}));
+            test.LocalFiles.RemoveRange(test.LocalFiles.Select(e => new LocalFile {Id = e.Id}));
 
-            // var result = test.AniDbAnimes.Include(e => e.AniDbEpisodes).ThenInclude(e => e.AniDbFiles).ThenInclude(e => e.LocalFile).ThenInclude(e => e.ImportFolder)
-            //     .AsSplitQuery().First();
+            test.SaveChanges();
 
+            var ed2K = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next()));
+            test.AniDbAnimes.Add(new AniDbAnime
+            {
+                Title = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+                AniDbEpisodes = new List<AniDbEpisode>
+                {
+                    new()
+                    {
+                        AniDbFiles = new List<AniDbFile>
+                        {
+                            new()
+                            {
+                                Ed2K = ed2K,
+                                FileName = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+                                Source = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+                                AniDbEpisodes = test.AniDbEpisodes.ToList()
+                            }
+                        }
+                    }
+                }
+            });
+            test.LocalFiles.Add(new LocalFile
+            {
+                Ed2K = ed2K,
+                Crc = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+                Signature = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+                PathTail = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+                ImportFolder = new ImportFolder
+                {
+                    Name = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
+                    Path = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next()))
+                }
+            });
+            test.SaveChanges();
+
+
+            var blah = test.LocalFiles.GetByAniDbFile(test.AniDbFiles.First());
+            var blah2 = test.AniDbFiles.GetByLocalFile(test.LocalFiles.First());
+            test.LocalFiles.Remove(test.LocalFiles.First());
+            test.SaveChanges();
+
+            test.LocalFiles.Add(new LocalFile
+            {
+                Crc = "test",
+                Signature = "test",
+                Ed2K = "test",
+                PathTail = "test",
+                ImportFolderId = 1
+            });
             test.SaveChanges();
 
             #endregion
