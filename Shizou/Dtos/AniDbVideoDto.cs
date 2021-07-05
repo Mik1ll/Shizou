@@ -10,8 +10,6 @@ namespace Shizou.Dtos
         public int Height { get; set; }
         public int ColorDepth { get; set; }
 
-        public int AniDbFileId { get; set; }
-
 
         public override AniDbVideo ToEntity()
         {
@@ -22,8 +20,7 @@ namespace Shizou.Dtos
                 Id = Id,
                 Width = Width,
                 BitRate = BitRate,
-                ColorDepth = ColorDepth,
-                AniDbFileId = AniDbFileId
+                ColorDepth = ColorDepth
             };
         }
     }

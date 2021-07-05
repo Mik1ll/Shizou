@@ -8,8 +8,6 @@ namespace Shizou.Dtos
         public string Format { get; set; } = null!;
         public string Language { get; set; } = null!;
 
-        public int AniDbFileId { get; set; }
-
 
         public override AniDbSubtitle ToEntity()
         {
@@ -18,8 +16,7 @@ namespace Shizou.Dtos
                 Format = Format,
                 Id = Id,
                 Language = Language,
-                Number = Number,
-                AniDbFileId = AniDbFileId
+                Number = Number
             };
         }
     }

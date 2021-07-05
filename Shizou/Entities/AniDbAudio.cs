@@ -23,8 +23,7 @@ namespace Shizou.Entities
                 Codec = Codec,
                 Id = Id,
                 Language = Language,
-                Number = Number,
-                AniDbFileId = AniDbFileId
+                Number = Number
             };
         }
     }

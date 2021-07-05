@@ -18,8 +18,7 @@ namespace Shizou.Entities
                 Id = Id,
                 Format = Format,
                 Language = Language,
-                Number = Number,
-                AniDbFileId = AniDbFileId
+                Number = Number
             };
         }
     }

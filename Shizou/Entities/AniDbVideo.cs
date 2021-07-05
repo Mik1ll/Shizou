@@ -22,8 +22,7 @@ namespace Shizou.Entities
                 Id = Id,
                 Width = Width,
                 BitRate = BitRate,
-                ColorDepth = ColorDepth,
-                AniDbFileId = AniDbFileId
+                ColorDepth = ColorDepth
             };
         }
     }
