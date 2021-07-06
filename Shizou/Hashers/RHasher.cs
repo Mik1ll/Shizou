@@ -49,7 +49,7 @@ namespace Shizou.Hashers
         private readonly HashIds _hashIds;
 
         /* Pointer to the native structure. */
-        private IntPtr _ptr;
+        private readonly IntPtr _ptr;
 
         public RHasher(HashIds hashtype)
         {
@@ -57,23 +57,52 @@ namespace Shizou.Hashers
             _ptr = Bindings.rhash_init(_hashIds);
         }
 
-        public static Dictionary<HashIds, string> GetFileHashes(string filepath, HashIds ids, bool useTask = false)
+        public static Dictionary<HashIds, string> GetFileHashes(FileInfo file, HashIds ids)
         {
             var hasher = new RHasher(ids);
-            if (useTask)
-                hasher.UpdateFileWithTask(filepath);
-            else
-                hasher.UpdateFile(filepath);
+            hasher.UpdateFile(file);
             hasher.Finish();
             return Enum.GetValues(typeof(HashIds)).Cast<HashIds>().Where(id => ids.HasFlag(id))
                 .ToDictionary(id => id, id => hasher.ToString(id));
+        }
+
+        public static async Task<Dictionary<HashIds, string>> GetFileHashesAsync(FileInfo file, HashIds ids)
+        {
+            var hasher = new RHasher(ids);
+            await hasher.UpdateFileAsync(file);
+            hasher.Finish();
+            return Enum.GetValues(typeof(HashIds)).Cast<HashIds>().Where(id => ids.HasFlag(id))
+                .ToDictionary(id => id, id => hasher.ToString(id));
+        }
+
+        public static string GetMsgHash(byte[] buf, HashIds id)
+        {
+            return new RHasher(id).Update(buf).Finish().ToString();
+        }
+
+        public static string GetFileSignature(string filePath)
+        {
+            var file = new FileInfo(filePath);
+            if (!file.Exists)
+                return string.Empty;
+            var bufSize = 1 << 20;
+            var seekLen = Math.Max(file.Length / 30 - bufSize, 0);
+            var hasher = new RHasher(HashIds.Sha1);
+            using FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
+            byte[] buf = new byte[bufSize];
+            int len;
+            while ((len = stream.Read(buf, 0, buf.Length)) > 0)
+            {
+                hasher.Update(buf, len);
+                stream.Seek(seekLen, SeekOrigin.Current);
+            }
+            return hasher.Finish().ToString();
         }
 
         ~RHasher()
         {
             if (_ptr == IntPtr.Zero) return;
             Bindings.rhash_free(_ptr);
-            _ptr = IntPtr.Zero;
         }
 
         public RHasher Update(byte[] buf)
@@ -91,36 +120,25 @@ namespace Shizou.Hashers
             return this;
         }
 
-        public RHasher UpdateFileWithTask(string filePath)
+        public RHasher UpdateFile(FileInfo file)
         {
             const int bufSize = 1 << 25;
-            using FileStream file = new(filePath, FileMode.Open, FileAccess.Read, FileShare.None, bufSize, FileOptions.SequentialScan);
-            byte[] buf1 = new byte[bufSize], buf2 = new byte[bufSize];
+            using FileStream stream = new(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufSize, FileOptions.SequentialScan);
+            byte[] buf = new byte[bufSize];
             int len;
-            Task<int>? hashTask = null;
-            while ((len = file.Read(buf1, 0, buf1.Length)) > 0)
-            {
-                if ((hashTask?.Result ?? 0) < 0)
+            while ((len = stream.Read(buf, 0, buf.Length)) > 0)
+                if (Bindings.rhash_update(_ptr, buf, len) < 0)
                     throw new ExternalException($"{nameof(Bindings.rhash_update)} failed");
-                // ReSharper disable AccessToModifiedClosure
-                hashTask = Task.Run(() => Bindings.rhash_update(_ptr, buf1, len));
-                // ReSharper restore AccessToModifiedClosure
-                byte[] temp = buf1;
-                buf1 = buf2;
-                buf2 = temp;
-            }
-            if ((hashTask?.Result ?? 0) < 0)
-                throw new ExternalException($"{nameof(Bindings.rhash_update)} failed");
             return this;
         }
 
-        public RHasher UpdateFile(string filePath)
+        public async Task<RHasher> UpdateFileAsync(FileInfo file)
         {
             const int bufSize = 1 << 25;
-            using FileStream file = new(filePath, FileMode.Open, FileAccess.Read, FileShare.None, bufSize, FileOptions.SequentialScan);
+            using FileStream stream = new(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufSize, FileOptions.SequentialScan);
             byte[] buf = new byte[bufSize];
             int len;
-            while ((len = file.Read(buf, 0, buf.Length)) > 0)
+            while ((len = await stream.ReadAsync(buf, 0, buf.Length)) > 0)
                 if (Bindings.rhash_update(_ptr, buf, len) < 0)
                     throw new ExternalException($"{nameof(Bindings.rhash_update)} failed");
             return this;
@@ -153,30 +171,6 @@ namespace Shizou.Hashers
             if (Bindings.rhash_print(sb, _ptr, id, PrintFlags.Default) == 0)
                 throw new ExternalException($"{nameof(Bindings.rhash_print)} failed");
             return sb.ToString();
-        }
-
-        public static string GetHashForMsg(byte[] buf, HashIds id)
-        {
-            return new RHasher(id).Update(buf).Finish().ToString();
-        }
-
-        public static string FileSignature(string filePath)
-        {
-            var file = new FileInfo(filePath);
-            if (!file.Exists)
-                return string.Empty;
-            var bufSize = 1 << 20;
-            var seekLen = Math.Max(file.Length / 30 - bufSize, 0);
-            var hasher = new RHasher(HashIds.Sha1);
-            using FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
-            byte[] buf = new byte[bufSize];
-            int len;
-            while ((len = stream.Read(buf, 0, buf.Length)) > 0)
-            {
-                hasher.Update(buf, len);
-                stream.Seek(seekLen, SeekOrigin.Current);
-            }
-            return hasher.Finish().ToString();
         }
 
         private static class Bindings

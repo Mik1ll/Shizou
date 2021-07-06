@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,18 +33,19 @@ namespace Shizou
             scope.ServiceProvider.GetRequiredService<HashProcessor>().Paused = false;
             var importer = scope.ServiceProvider.GetRequiredService<Importer>();
 
-            var test = scope.ServiceProvider.GetRequiredService<ShizouContext>();
+            var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
 
             #region AddTest
 
-            test.AniDbAnimes.RemoveRange(test.AniDbAnimes.Select(e => new AniDbAnime {Id = e.Id}));
-            test.AniDbFiles.RemoveRange(test.AniDbFiles.Select(e => new AniDbFile {Id = e.Id}));
-            test.LocalFiles.RemoveRange(test.LocalFiles.Select(e => new LocalFile {Id = e.Id}));
+            /*
+            context.AniDbAnimes.RemoveRange(context.AniDbAnimes.Select(e => new AniDbAnime {Id = e.Id}));
+            context.AniDbFiles.RemoveRange(context.AniDbFiles.Select(e => new AniDbFile {Id = e.Id}));
+            context.LocalFiles.RemoveRange(context.LocalFiles.Select(e => new LocalFile {Id = e.Id}));
 
-            test.SaveChanges();
+            context.SaveChanges();
 
             var ed2K = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next()));
-            test.AniDbAnimes.Add(new AniDbAnime
+            context.AniDbAnimes.Add(new AniDbAnime
             {
                 Title = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
                 AniDbEpisodes = new List<AniDbEpisode>
@@ -59,13 +59,13 @@ namespace Shizou
                                 Ed2K = ed2K,
                                 FileName = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
                                 Source = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
-                                AniDbEpisodes = test.AniDbEpisodes.ToList()
+                                AniDbEpisodes = context.AniDbEpisodes.ToList()
                             }
                         }
                     }
                 }
             });
-            test.LocalFiles.Add(new LocalFile
+            context.LocalFiles.Add(new LocalFile
             {
                 Ed2K = ed2K,
                 Crc = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next())),
@@ -77,15 +77,15 @@ namespace Shizou
                     Path = Convert.ToBase64String(BitConverter.GetBytes(new Random().Next()))
                 }
             });
-            test.SaveChanges();
+            context.SaveChanges();
 
 
-            var blah = test.LocalFiles.GetByAniDbFile(test.AniDbFiles.First());
-            var blah2 = test.AniDbFiles.GetByLocalFile(test.LocalFiles.First());
-            test.LocalFiles.Remove(test.LocalFiles.First());
-            test.SaveChanges();
+            var blah = context.LocalFiles.GetByAniDbFile(context.AniDbFiles.First());
+            var blah2 = context.AniDbFiles.GetByLocalFile(context.LocalFiles.First());
+            context.LocalFiles.Remove(context.LocalFiles.First());
+            context.SaveChanges();
 
-            test.LocalFiles.Add(new LocalFile
+            context.LocalFiles.Add(new LocalFile
             {
                 Crc = "test",
                 Signature = "test",
@@ -93,7 +93,7 @@ namespace Shizou
                 PathTail = "test",
                 ImportFolderId = 1
             });
-            test.SaveChanges();
+            context.SaveChanges();*/
 
             #endregion
 
@@ -108,7 +108,17 @@ namespace Shizou
 
             #endregion
 
-            //importer.ScanImportFolder(1);
+            var imptfld = context.ImportFolders.FirstOrDefault();
+            if (imptfld is null)
+            {
+                imptfld = context.ImportFolders.Add(new ImportFolder
+                {
+                    Name = "test",
+                    Path = @"C:\Users\Mike\Desktop\Anime"
+                }).Entity;
+                context.SaveChanges();
+            }
+            importer.ScanImportFolder(imptfld.Id);
         }
     }
 }

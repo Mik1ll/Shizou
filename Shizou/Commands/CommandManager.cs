@@ -37,6 +37,7 @@ namespace Shizou.Commands
             _serviceProvider = serviceProvider;
         }
 
+        // TODO: DispatchRange
         // TODO: Test new implementation without activatorutils
         public void Dispatch<TParams>(TParams commandParams)
             where TParams : CommandParams

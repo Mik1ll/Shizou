@@ -6,6 +6,7 @@ namespace Shizou.Entities
 {
     [Index(nameof(Ed2K), IsUnique = true)]
     [Index(nameof(Signature), IsUnique = true)]
+    [Index(nameof(ImportFolderId), nameof(PathTail), IsUnique = true)]
     public class LocalFile : Entity
     {
         public string Ed2K { get; set; } = null!;
