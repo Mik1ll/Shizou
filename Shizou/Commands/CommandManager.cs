@@ -50,6 +50,29 @@ namespace Shizou.Commands
             context.SaveChanges();
         }
 
+        public void DispatchRange<TParams>(IEnumerable<TParams> commandParamsEnumerable)
+            where TParams : CommandParams
+        {
+            var context = _serviceProvider.GetRequiredService<ShizouContext>();
+            context.CommandRequests.AddRange(
+                commandParamsEnumerable.Select(commandParams =>
+                        Commands.First(x => commandParams.GetType() == x.paramType)
+                            .ctor(_serviceProvider, commandParams).CommandRequest)
+                    // Throw away identical command ids
+                    .GroupBy(cr => cr.CommandId)
+                    .Select(crs => crs.First())
+                    // Left outer join, exclude commands already in database
+                    .GroupJoin(
+                        context.CommandRequests,
+                        e => e.CommandId,
+                        e => e.CommandId,
+                        (request, requests) => new {Request = request, DbRequest = requests.FirstOrDefault()})
+                    .Where(e => e.DbRequest is null)
+                    .Select(e => e.Request)
+            );
+            context.SaveChanges();
+        }
+
         public ICommand CommandFromRequest(CommandRequest commandRequest)
         {
             var command = Commands.First(x => commandRequest.Type == x.cmdType);

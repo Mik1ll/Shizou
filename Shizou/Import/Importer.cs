@@ -20,12 +20,18 @@ namespace Shizou.Import
         }
 
 
+        /// <summary>
+        ///     Scan import folder for new/moved files.
+        /// </summary>
+        /// <param name="importFolderId">Id of the import folder</param>
+        /// <param name="forceRescan">Ensures even files with matching file size are rehashed</param>
         public void ScanImportFolder(int importFolderId, bool forceRescan = false)
         {
             var importFolder = _context.ImportFolders.Find(importFolderId);
             var dir = new DirectoryInfo(importFolder.Path);
             var allFiles = dir.GetFiles("*", SearchOption.AllDirectories);
             var filesToHash = allFiles
+                // Left Outer Join on all files with DB local files. Includes DB files that are not ignored and mismatch filesize.
                 .GroupJoin(
                     _context.LocalFiles
                         .Join(_context.ImportFolders,
@@ -39,11 +45,11 @@ namespace Shizou.Import
                             }),
                     e => e.FullName,
                     e => e.Path,
-                    (info, dbLocals) => new {FileInfo = info, LocalFile = dbLocals.FirstOrDefault()}
-                ).Where(e => !(e.LocalFile?.Ignored ?? false) && (e.FileInfo.Length != e.LocalFile?.FileSize || forceRescan))
+                    (info, dbLocals) => new {FileInfo = info, LocalFile = dbLocals.FirstOrDefault()})
+                .Where(e => !(e.LocalFile?.Ignored ?? false) && (e.FileInfo.Length != e.LocalFile?.FileSize || forceRescan))
                 .Select(e => e.FileInfo);
 
-            foreach (var file in filesToHash) _cmdMgr.Dispatch(new HashParams(file.FullName));
+            _cmdMgr.DispatchRange(filesToHash.Select(e => new HashParams(e.FullName)));
             // TODO: finish this function
         }
     }
