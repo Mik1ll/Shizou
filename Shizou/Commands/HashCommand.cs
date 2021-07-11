@@ -34,7 +34,10 @@ namespace Shizou.Commands
             var file = new FileInfo(CommandParams.Path);
             ImportFolder? importFolder;
             if (!file.Exists || (importFolder = _context.ImportFolders.GetByPath(file.FullName)) is null)
+            {
+                Logger.LogWarning("File not found or not inside an import folder: {Path}", file.FullName);
                 return;
+            }
             var pathTail = file.FullName.Substring(importFolder.Path.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             var signature = RHasher.GetFileSignature(file.FullName);
             var localFile = _context.LocalFiles.Include(e => e.ImportFolder)

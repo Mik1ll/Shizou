@@ -45,15 +45,18 @@ namespace Shizou.Commands
             var context = _serviceProvider.GetRequiredService<ShizouContext>();
             var command = Commands.First(x => commandParams.GetType() == x.paramType);
             var cmdRequest = command.ctor(_serviceProvider, commandParams).CommandRequest;
+            using var transaction = context.Database.BeginTransaction();
             if (!context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
                 context.CommandRequests.Add(cmdRequest);
             context.SaveChanges();
+            transaction.Commit();
         }
 
         public void DispatchRange<TParams>(IEnumerable<TParams> commandParamsEnumerable)
             where TParams : CommandParams
         {
             var context = _serviceProvider.GetRequiredService<ShizouContext>();
+            using var transaction = context.Database.BeginTransaction();
             context.CommandRequests.AddRange(
                 commandParamsEnumerable.Select(commandParams =>
                         Commands.First(x => commandParams.GetType() == x.paramType)
@@ -62,15 +65,10 @@ namespace Shizou.Commands
                     .GroupBy(cr => cr.CommandId)
                     .Select(crs => crs.First())
                     // Left outer join, exclude commands already in database
-                    .GroupJoin(
-                        context.CommandRequests,
-                        e => e.CommandId,
-                        e => e.CommandId,
-                        (request, requests) => new {Request = request, DbRequest = requests.FirstOrDefault()})
-                    .Where(e => e.DbRequest is null)
-                    .Select(e => e.Request)
+                    .Where(e => !context.CommandRequests.Any(c => c.CommandId == e.CommandId))
             );
             context.SaveChanges();
+            transaction.Commit();
         }
 
         public ICommand CommandFromRequest(CommandRequest commandRequest)
