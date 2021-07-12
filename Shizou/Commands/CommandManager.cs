@@ -19,13 +19,12 @@ namespace Shizou.Commands
             {
                 var paramType = x.type.BaseType!.GetGenericArguments()[0];
                 Func<IServiceProvider, CommandParams, ICommand> ctor = (provider, cmdParams) =>
-                    (ICommand)x.type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, CallingConventions.HasThis,
-                        new[] {typeof(IServiceProvider), paramType}, null)!.Invoke(new object[] {provider, cmdParams});
+                    (ICommand)Activator.CreateInstance(x.type, provider, cmdParams)!;
                 return (
                     x.commandAttr!.Type,
                     x.type,
-                    paramType
-                    , ctor
+                    paramType,
+                    ctor
                 );
             })
             .ToList();
@@ -37,8 +36,6 @@ namespace Shizou.Commands
             _serviceProvider = serviceProvider;
         }
 
-        // TODO: DispatchRange
-        // TODO: Test new implementation without activatorutils
         public void Dispatch<TParams>(TParams commandParams)
             where TParams : CommandParams
         {

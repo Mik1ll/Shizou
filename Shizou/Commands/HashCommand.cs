@@ -64,7 +64,7 @@ namespace Shizou.Commands
                 if (localFile is not null)
                     Logger.LogInformation("Found local file with mismatched signature, rehashing: \"{Path}\"", file.FullName);
                 else
-                    Logger.LogInformation("Hashing file: \"{Path}\"", file.FullName);
+                    Logger.LogInformation("Hashing new file: \"{Path}\"", file.FullName);
                 var hashes = await RHasher.GetFileHashesAsync(file, RHasher.HashIds.Ed2K | RHasher.HashIds.Crc32);
                 if (localFile is null)
                 {
