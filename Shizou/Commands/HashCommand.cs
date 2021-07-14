@@ -79,6 +79,7 @@ namespace Shizou.Commands
                         ImportFolder = importFolder,
                         PathTail = pathTail
                     };
+                    _context.LocalFiles.Add(localFile);
                 }
                 else
                 {
@@ -89,7 +90,6 @@ namespace Shizou.Commands
                 }
                 Logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasher.HashIds.Ed2K], hashes[RHasher.HashIds.Crc32]);
             }
-            _context.LocalFiles.Update(localFile);
             _context.SaveChanges();
             Completed = true;
         }
