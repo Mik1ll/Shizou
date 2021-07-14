@@ -38,6 +38,8 @@ namespace Shizou.Entities
         public List<AniDbSubtitle> Subtitles { get; set; } = null!;
         public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
 
+        public LocalFile? LocalFile { get; set; }
+
 
         public override AniDbFileDto ToDto()
         {
@@ -66,7 +68,8 @@ namespace Shizou.Entities
                 MyListId = MyListId,
                 MyListState = MyListState,
                 AniDbGroupId = AniDbGroupId,
-                MyListFileState = MyListFileState
+                MyListFileState = MyListFileState,
+                LocalFileId = LocalFile?.Id
             };
         }
     }

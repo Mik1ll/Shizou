@@ -12,6 +12,8 @@ namespace Shizou.Dtos
         public string PathTail { get; set; } = null!;
 
         public int ImportFolderId { get; set; }
+        public int? ManualLinkEpisodeId { get; set; }
+        public int? AniDbFileId { get; set; }
 
 
         public override LocalFile ToEntity()
@@ -25,7 +27,9 @@ namespace Shizou.Dtos
                 Ed2K = Ed2K,
                 FileSize = FileSize,
                 PathTail = PathTail,
-                ImportFolderId = ImportFolderId
+                ImportFolderId = ImportFolderId,
+                ManualLinkEpisodeId = ManualLinkEpisodeId,
+                AniDbFileId = AniDbFileId
             };
         }
     }

@@ -19,6 +19,8 @@ namespace Shizou.Entities
         public ImportFolder ImportFolder { get; set; } = null!;
         public int? ManualLinkEpisodeId { get; set; }
         public AniDbEpisode? ManualLinkEpisode { get; set; }
+        public int? AniDbFileId { get; set; }
+        public AniDbFile? AniDbFile { get; set; }
 
 
         public override LocalFileDto ToDto()
@@ -32,7 +34,9 @@ namespace Shizou.Entities
                 Ed2K = Ed2K,
                 FileSize = FileSize,
                 PathTail = PathTail,
-                ImportFolderId = ImportFolderId
+                ImportFolderId = ImportFolderId,
+                ManualLinkEpisodeId = ManualLinkEpisodeId,
+                AniDbFileId = AniDbFileId
             };
         }
     }

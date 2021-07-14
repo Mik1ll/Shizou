@@ -34,6 +34,8 @@ namespace Shizou.Dtos
         public List<AniDbAudioDto> Audio { get; set; } = null!;
         public List<AniDbSubtitleDto> Subtitles { get; set; } = null!;
 
+        public int? LocalFileId { get; set; }
+
 
         public override AniDbFile ToEntity()
         {

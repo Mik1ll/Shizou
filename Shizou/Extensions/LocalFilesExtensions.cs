@@ -14,5 +14,12 @@ namespace Shizou.Extensions
         {
             return query.GetByEd2K(aniDbFile.Ed2K);
         }
+
+        public static IQueryable<LocalFile> GetByEpisodeId(this IQueryable<LocalFile> query, int episodeId)
+        {
+            return query.Where(localFile => localFile.ManualLinkEpisodeId == episodeId
+                                            || localFile.AniDbFile != null
+                                            && localFile.AniDbFile.AniDbEpisodes.Any(e => e.Id == episodeId));
+        }
     }
 }

@@ -10,6 +10,7 @@ using Shizou.CommandProcessors;
 using Shizou.Commands;
 using Shizou.Database;
 using Shizou.Entities;
+using Shizou.Extensions;
 using Shizou.Import;
 
 namespace Shizou
@@ -37,8 +38,7 @@ namespace Shizou
 
             #region AddTest
 
-            /*
-            context.AniDbAnimes.RemoveRange(context.AniDbAnimes.Select(e => new AniDbAnime {Id = e.Id}));
+            /*context.AniDbAnimes.RemoveRange(context.AniDbAnimes.Select(e => new AniDbAnime {Id = e.Id}));
             context.AniDbFiles.RemoveRange(context.AniDbFiles.Select(e => new AniDbFile {Id = e.Id}));
             context.LocalFiles.RemoveRange(context.LocalFiles.Select(e => new LocalFile {Id = e.Id}));
 
@@ -119,6 +119,8 @@ namespace Shizou
                 context.SaveChanges();
             }
             importer.ScanImportFolder(imptfld.Id);
+            importer.PopulateLocalFileAniDbRelations();
+            var result = context.LocalFiles.GetByEpisodeId(1).ToList();
         }
     }
 }

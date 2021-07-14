@@ -11,7 +11,12 @@ namespace Shizou.Extensions
         {
             return query switch
             {
-                IQueryable<AniDbFile> q => (IQueryable<TEntity>)q.Include(e => e.Subtitles).Include(e => e.Audio).Include(e => e.Video).AsSplitQuery(),
+                IQueryable<AniDbFile> q => (IQueryable<TEntity>)q
+                    .Include(e => e.Subtitles)
+                    .Include(e => e.Audio)
+                    .Include(e => e.Video)
+                    .Include(e => e.LocalFile)
+                    .AsSplitQuery(),
                 _ => query
             };
         }

@@ -52,5 +52,18 @@ namespace Shizou.Import
             _cmdMgr.DispatchRange(filesToHash.Select(e => new HashParams(e.FullName)));
             // TODO: finish this function
         }
+
+        public void PopulateLocalFileAniDbRelations()
+        {
+            var newRelations = _context.LocalFiles.Where(e => e.AniDbFileId == null)
+                .Join(_context.AniDbFiles.Select(e => new {e.Id, e.Ed2K}),
+                    e => e.Ed2K,
+                    e => e.Ed2K,
+                    (localFile, aniDbFile) => new {localFile, aniDbFile.Id})
+                .ToList();
+            foreach (var relation in newRelations)
+                relation.localFile.AniDbFileId = relation.Id;
+            _context.SaveChanges();
+        }
     }
 }
