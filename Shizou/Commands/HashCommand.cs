@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Shizou.CommandProcessors;
 using Shizou.Database;
 using Shizou.Entities;
+using Shizou.Extensions;
 using Shizou.Hashers;
 
 namespace Shizou.Commands

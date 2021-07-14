@@ -28,7 +28,6 @@ namespace Shizou.Controllers
         /// </summary>
         /// <param name="localFileId"></param>
         /// <returns></returns>
-        /// <response code="404">Not Found</response>
         [HttpGet("{localFileId:int}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status416RangeNotSatisfiable)]

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using Shizou.Dtos;
 using Shizou.Enums;
 
@@ -17,6 +18,9 @@ namespace Shizou.Entities
         public int AniDbAnimeId { get; set; }
         public AniDbAnime AniDbAnime { get; set; } = null!;
         public List<AniDbFile> AniDbFiles { get; set; } = null!;
+
+        [ForeignKey(nameof(LocalFile.ManualLinkEpisodeId))]
+        public List<LocalFile> ManualLinkLocalFiles { get; set; } = null!;
 
         public override AniDbEpisodeDto ToDto()
         {
