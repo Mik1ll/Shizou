@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Shizou.Dtos;
 
 namespace Shizou.Entities
@@ -14,6 +15,8 @@ namespace Shizou.Entities
         public string Signature { get; set; } = null!;
         public bool Ignored { get; set; }
         public string PathTail { get; set; } = null!;
+
+        public DateTime? Updated { get; set; }
 
         public int ImportFolderId { get; set; }
         public ImportFolder ImportFolder { get; set; } = null!;
