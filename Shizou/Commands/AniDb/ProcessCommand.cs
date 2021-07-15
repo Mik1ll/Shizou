@@ -7,17 +7,17 @@ using Shizou.Database;
 
 namespace Shizou.Commands.AniDb
 {
-    public sealed record GetFileParams(int LocalFileId) : CommandParams;
+    public sealed record ProcessParams(int LocalFileId) : CommandParams;
 
     [Command(CommandType.GetFile, CommandPriority.Default, QueueType.AniDbUdp)]
-    public class GetFileCommand : BaseCommand<GetFileParams>
+    public class ProcessCommand : BaseCommand<ProcessParams>
     {
         private ShizouContext _context;
 
-        public GetFileCommand(IServiceProvider provider, GetFileParams commandParams)
-            : base(provider, provider.GetRequiredService<ILogger<GetFileCommand>>(), commandParams)
+        public ProcessCommand(IServiceProvider provider, ProcessParams commandParams)
+            : base(provider, provider.GetRequiredService<ILogger<ProcessCommand>>(), commandParams)
         {
-            CommandId = $"{nameof(GetFileCommand)}_{commandParams.LocalFileId}";
+            CommandId = $"{nameof(ProcessCommand)}_{commandParams.LocalFileId}";
             _context = provider.GetRequiredService<ShizouContext>();
         }
 
