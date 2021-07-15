@@ -6,6 +6,26 @@ using Shizou.Enums;
 
 namespace Shizou.Dtos
 {
+    public class MyListEntryDto : EntityDto
+    {
+        public bool Watched { get; set; }
+        public DateTime? WatchedDate { get; set; }
+        public MyListState MyListState { get; set; }
+        public MyListFileState MyListFileState { get; set; }
+
+        public override MyListEntry ToEntity()
+        {
+            return new()
+            {
+                Id = Id,
+                Watched = Watched,
+                WatchedDate = WatchedDate,
+                MyListState = MyListState,
+                MyListFileState = MyListFileState
+            };
+        }
+    }
+
     public class AniDbFileDto : EntityDto
     {
         public string Ed2K { get; set; } = null!;
@@ -17,17 +37,12 @@ namespace Shizou.Dtos
         public string? Source { get; set; }
         public DateTime? ReleaseDate { get; set; }
         public DateTime? Updated { get; set; }
-        public string FileName { get; set; } = null!;
         public int FileVersion { get; set; }
         public bool Censored { get; set; }
         public bool Deprecated { get; set; }
         public bool Chaptered { get; set; }
 
-        public int MyListId { get; set; }
-        public bool Watched { get; set; }
-        public DateTime? WatchedDate { get; set; }
-        public MyListState MyListState { get; set; }
-        public MyListFileState MyListFileState { get; set; }
+        public MyListEntryDto? MyListEntry { get; set; }
 
         public int? AniDbGroupId { get; set; }
         public AniDbVideoDto? Video { get; set; }
@@ -54,17 +69,12 @@ namespace Shizou.Dtos
                 Subtitles = Subtitles.Select(s => s.ToEntity()).ToList(),
                 Updated = Updated,
                 Video = Video?.ToEntity(),
-                Watched = Watched,
                 Ed2K = Ed2K,
-                FileName = FileName,
                 FileSize = FileSize,
                 FileVersion = FileVersion,
                 ReleaseDate = ReleaseDate,
-                WatchedDate = WatchedDate,
-                MyListId = MyListId,
-                MyListState = MyListState,
                 AniDbGroupId = AniDbGroupId,
-                MyListFileState = MyListFileState
+                MyListEntry = MyListEntry?.ToEntity()
             };
         }
     }
