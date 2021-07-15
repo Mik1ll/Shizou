@@ -53,6 +53,9 @@ namespace Shizou.Import
             // TODO: finish this function
         }
 
+        /// <summary>
+        ///     Replaces manual links with AniDbFile references
+        /// </summary>
         public void PopulateLocalFileAniDbRelations()
         {
             var newRelations = _context.LocalFiles.Where(e => e.AniDbFileId == null)
@@ -62,7 +65,10 @@ namespace Shizou.Import
                     (localFile, aniDbFile) => new {localFile, aniDbFile.Id})
                 .ToList();
             foreach (var relation in newRelations)
+            {
                 relation.localFile.AniDbFileId = relation.Id;
+                relation.localFile.ManualLinkEpisodeId = null;
+            }
             _context.SaveChanges();
         }
     }
