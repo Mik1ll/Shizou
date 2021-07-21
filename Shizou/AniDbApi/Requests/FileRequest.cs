@@ -182,13 +182,14 @@ namespace Shizou.AniDbApi.Requests
 
     public sealed class FileRequest : AniDbUdpRequest
     {
-        public const AMask DefaultAMask = AMask.GroupName | AMask.GroupShortName | AMask.DateAnimeRecordUpdated;
+        public const AMask DefaultAMask = AMask.GroupName | AMask.GroupShortName | AMask.DateAnimeRecordUpdated | AMask.RomajiName | AMask.EpisodeRomajiName |
+                                          AMask.EpisodeNumber | AMask.TotalEpisodes | AMask.HighestEpisodeNumber;
         public const FMask DefaultFMask = FMask.Crc32 | FMask.Md5 | FMask.Sha1 | FMask.Size | FMask.Quality | FMask.Source | FMask.State | FMask.AnimeId |
                                           FMask.AudioCodecs | FMask.DubLanguages | FMask.Ed2K | FMask.EpisodeId | FMask.GroupId | FMask.IsDeprecated |
                                           FMask.OtherEpisodes | FMask.SubLangugages | FMask.VideoCodec | FMask.VideoResolution | FMask.AudioBitRates |
                                           FMask.EpisodeAiredDate | FMask.LengthInSeconds | FMask.MyListId | FMask.MyListOther | FMask.MyListSource |
                                           FMask.MyListState | FMask.MyListStorage | FMask.MyListViewed | FMask.MyListFileState | FMask.MyListViewDate |
-                                          FMask.VideoBitRate | FMask.VideoColorDepth;
+                                          FMask.VideoBitRate | FMask.VideoColorDepth | FMask.AniDbFileName;
         private readonly AMask _aMask;
         private readonly FMask _fMask;
 
