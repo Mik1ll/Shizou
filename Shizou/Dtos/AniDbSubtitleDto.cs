@@ -5,7 +5,6 @@ namespace Shizou.Dtos
     public class AniDbSubtitleDto : EntityDto
     {
         public int Number { get; set; }
-        public string Format { get; set; } = null!;
         public string Language { get; set; } = null!;
 
 
@@ -13,7 +12,6 @@ namespace Shizou.Dtos
         {
             return new()
             {
-                Format = Format,
                 Id = Id,
                 Language = Language,
                 Number = Number

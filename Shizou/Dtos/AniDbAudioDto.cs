@@ -8,7 +8,6 @@ namespace Shizou.Dtos
         public string Language { get; set; } = null!;
         public string Codec { get; set; } = null!;
         public int Bitrate { get; set; }
-        public int Channels { get; set; }
 
 
         public override AniDbAudio ToEntity()
@@ -16,7 +15,6 @@ namespace Shizou.Dtos
             return new()
             {
                 Bitrate = Bitrate,
-                Channels = Channels,
                 Codec = Codec,
                 Id = Id,
                 Language = Language,

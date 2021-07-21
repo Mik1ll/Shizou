@@ -30,8 +30,6 @@ namespace Shizou.Database
 
         public DbSet<AniDbSubtitle> AniDbSubtitles { get; set; } = null!;
 
-        public DbSet<AniDbVideo> AniDbVideos { get; set; } = null!;
-
         public DbSet<LocalFile> LocalFiles { get; set; } = null!;
 
 

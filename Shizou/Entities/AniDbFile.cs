@@ -3,31 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Dtos;
-using Shizou.Enums;
 
 namespace Shizou.Entities
 {
-    [Owned]
-    public class MyListEntry : Entity
-    {
-        public bool Watched { get; set; }
-        public DateTime? WatchedDate { get; set; }
-        public MyListState MyListState { get; set; }
-        public MyListFileState MyListFileState { get; set; }
-
-        public override MyListEntryDto ToDto()
-        {
-            return new()
-            {
-                Id = Id,
-                Watched = Watched,
-                WatchedDate = WatchedDate,
-                MyListState = MyListState,
-                MyListFileState = MyListFileState
-            };
-        }
-    }
-
     [Index(nameof(Ed2K), IsUnique = true)]
     public class AniDbFile : Entity
     {
@@ -38,14 +16,14 @@ namespace Shizou.Entities
         public long FileSize { get; set; }
         public int? Duration { get; set; }
         public string? Source { get; set; }
-        public DateTime? ReleaseDate { get; set; }
         public DateTime? Updated { get; set; }
         public int FileVersion { get; set; }
-        public bool Censored { get; set; }
+        public string FileName { get; set; } = null!;
+        public bool? Censored { get; set; }
         public bool Deprecated { get; set; }
         public bool Chaptered { get; set; }
 
-        public MyListEntry? MyListEntry { get; set; }
+        public AniDbMyListEntry? MyListEntry { get; set; }
 
         public int? AniDbGroupId { get; set; }
         public AniDbGroup? AniDbGroup { get; set; }
@@ -77,7 +55,7 @@ namespace Shizou.Entities
                 Ed2K = Ed2K,
                 FileSize = FileSize,
                 FileVersion = FileVersion,
-                ReleaseDate = ReleaseDate,
+                FileName = FileName,
                 AniDbGroupId = AniDbGroupId,
                 LocalFileId = LocalFile?.Id,
                 MyListEntry = MyListEntry?.ToDto()
