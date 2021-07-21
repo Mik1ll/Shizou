@@ -37,6 +37,22 @@ namespace Shizou.Enums
         Chaptered = 1 << 12
     }
 
+    public static class FileStateExtensions
+    {
+        public static bool? IsCensored(this FileState state)
+        {
+            return state.HasFlag(FileState.Censored) ? true : state.HasFlag(FileState.Uncensored) ? false : null;
+        }
+
+        public static int FileVersion(this FileState state)
+        {
+            return state.HasFlag(FileState.Ver2) ? 2 :
+                state.HasFlag(FileState.Ver3) ? 3 :
+                state.HasFlag(FileState.Ver4) ? 4 :
+                state.HasFlag(FileState.Ver5) ? 5 : 1;
+        }
+    }
+
     public enum MyListState
     {
         Unknown = 0,
