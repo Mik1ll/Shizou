@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi.Requests;
@@ -39,8 +41,20 @@ namespace Shizou.Commands.AniDb
             var fileReq = new FileRequest(Provider, localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
             await fileReq.Process();
             if (fileReq.FileResult is null)
+            {
+                Completed = true;
                 return;
+            }
             var result = fileReq.FileResult;
+            var aniDbGroup = _context.AniDbGroups.Find(result.GroupId);
+            if (aniDbGroup is null)
+                aniDbGroup = _context.AniDbGroups.Add(new AniDbGroup
+                {
+                    Id = result.GroupId!.Value,
+                    Name = result.GroupName!,
+                    ShortName = result.GroupNameShort!
+                }).Entity;
+
             var newAniDbFile = new AniDbFile
             {
                 Id = result.FileId,
@@ -56,7 +70,7 @@ namespace Shizou.Commands.AniDb
                 Source = result.Source,
                 FileVersion = result.State!.Value.FileVersion(),
                 Updated = DateTime.UtcNow,
-                AniDbGroupId = result.GroupId,
+                AniDbGroup = aniDbGroup,
                 MyListEntry = new AniDbMyListEntry
                 {
                     Watched = result.MyListViewed!.Value,
@@ -73,7 +87,7 @@ namespace Shizou.Commands.AniDb
                     {
                         Codec = result.VideoCodec,
                         BitRate = result.VideoBitRate!.Value,
-                        ColorDepth = result.VideoColorDepth!.Value,
+                        ColorDepth = result.VideoColorDepth ?? 8,
                         Height = int.Parse(result.VideoResolution!.Split('x')[1]),
                         Width = int.Parse(result.VideoResolution!.Split('x')[0])
                     },
@@ -83,9 +97,46 @@ namespace Shizou.Commands.AniDb
             };
             var aniDbFile = _context.AniDbFiles.Find(result.FileId);
             if (aniDbFile is null)
-                _context.AniDbFiles.Add(newAniDbFile);
+                aniDbFile = _context.AniDbFiles.Add(newAniDbFile).Entity;
             else
-                _context.Entry(localFile).CurrentValues.SetValues(newAniDbFile);
+                _context.Entry(aniDbFile).CurrentValues.SetValues(newAniDbFile);
+
+            var aniDbAnime = _context.AniDbAnimes.Find(result.AnimeId);
+            if (aniDbAnime is null)
+                aniDbAnime = _context.AniDbAnimes.Add(new AniDbAnime
+                {
+                    Id = result.AnimeId!.Value,
+                    Title = result.NameRomaji!,
+                    EpisodeCount = result.TotalEpisodes!.Value,
+                    AnimeType = result.Type!.Value,
+                    RecordUpdated = result.DateAnimeRecordUpdated!.Value
+                }).Entity;
+
+
+            var aniDbEpisode = _context.AniDbEpisodes.Include(e => e.AniDbFiles).FirstOrDefault(e => e.Id == result.EpisodeId);
+            if (aniDbEpisode is null)
+                aniDbEpisode = _context.Add(new AniDbEpisode
+                {
+                    Id = result.EpisodeId!.Value,
+                    Title = result.EpisodeName!,
+                    EpisodeType = result.EpisodeNumber![0] switch
+                    {
+                        'C' => EpisodeType.Credits,
+                        'S' => EpisodeType.Special,
+                        'T' => EpisodeType.Trailer,
+                        'P' => EpisodeType.Parody,
+                        _ => EpisodeType.Episode
+                    },
+                    Number = int.Parse(char.IsNumber(result.EpisodeNumber[0]) ? result.EpisodeNumber : result.EpisodeNumber[1..]),
+                    AirDate = result.EpisodeAiredDate,
+                    AniDbFiles = new List<AniDbFile> {newAniDbFile},
+                    AniDbAnime = aniDbAnime
+                }).Entity;
+            // TODO: Handle other episodes by creating additional commands
+            if (!aniDbEpisode.AniDbFiles.Any(e => e.Id == aniDbFile.Id))
+                aniDbEpisode.AniDbFiles.Add(aniDbFile);
+            _context.SaveChanges();
+            Completed = true;
         }
     }
 }

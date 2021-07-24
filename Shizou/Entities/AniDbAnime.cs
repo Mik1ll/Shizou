@@ -16,6 +16,7 @@ namespace Shizou.Entities
         public bool Restricted { get; set; }
         public string? ImagePath { get; set; }
         public DateTime? Updated { get; set; }
+        public DateTime RecordUpdated { get; set; }
 
         public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
 

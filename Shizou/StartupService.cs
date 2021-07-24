@@ -10,7 +10,6 @@ using Shizou.CommandProcessors;
 using Shizou.Commands;
 using Shizou.Database;
 using Shizou.Entities;
-using Shizou.Extensions;
 using Shizou.Import;
 
 namespace Shizou
@@ -30,7 +29,7 @@ namespace Shizou
             var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
             var log = scope.ServiceProvider.GetRequiredService<ILogger<StartupService>>();
             var aniDbUdp = scope.ServiceProvider.GetRequiredService<AniDbUdp>();
-            scope.ServiceProvider.GetRequiredService<AniDbUdpProcessor>().Paused = true;
+            scope.ServiceProvider.GetRequiredService<AniDbUdpProcessor>().Paused = false;
             scope.ServiceProvider.GetRequiredService<HashProcessor>().Paused = false;
             var importer = scope.ServiceProvider.GetRequiredService<Importer>();
 
@@ -118,9 +117,8 @@ namespace Shizou
                 }).Entity;
                 context.SaveChanges();
             }
-            importer.ScanImportFolder(imptfld.Id);
-            importer.PopulateLocalFileAniDbRelations();
-            var result = context.LocalFiles.GetByEpisodeId(1).ToList();
+            importer.ScanImportFolder(imptfld.Id, true);
+            //importer.PopulateLocalFileAniDbRelations();
         }
     }
 }

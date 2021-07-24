@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.CommandProcessors;
+using Shizou.Commands.AniDb;
 using Shizou.Database;
 using Shizou.Entities;
 using Shizou.Extensions;
@@ -18,6 +19,7 @@ namespace Shizou.Commands
     [Command(CommandType.Hash, CommandPriority.Default, QueueType.Hash)]
     public class HashCommand : BaseCommand<HashParams>
     {
+        private readonly CommandManager _cmdMgr;
         private readonly ShizouContext _context;
 
 
@@ -26,6 +28,7 @@ namespace Shizou.Commands
         {
             CommandId = $"{nameof(HashCommand)}_{commandParams.Path}";
             _context = provider.GetRequiredService<ShizouContext>();
+            _cmdMgr = provider.GetRequiredService<CommandManager>();
         }
 
         public override string CommandId { get; }
@@ -77,7 +80,9 @@ namespace Shizou.Commands
                         FileSize = file.Length,
                         Ignored = false,
                         ImportFolder = importFolder,
-                        PathTail = pathTail
+                        PathTail = pathTail,
+                        Updated = DateTime.UtcNow,
+                        AniDbFile = _context.AniDbFiles.GetByEd2K(hashes[RHasher.HashIds.Ed2K])
                     };
                     _context.LocalFiles.Add(localFile);
                 }
@@ -87,10 +92,16 @@ namespace Shizou.Commands
                     localFile.Crc = hashes[RHasher.HashIds.Crc32];
                     localFile.Ed2K = hashes[RHasher.HashIds.Ed2K];
                     localFile.FileSize = file.Length;
+                    localFile.Updated = DateTime.UtcNow;
+                    localFile.ImportFolder = importFolder;
+                    localFile.PathTail = pathTail;
+                    localFile.AniDbFile = _context.AniDbFiles.GetByEd2K(hashes[RHasher.HashIds.Ed2K]);
                 }
                 Logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasher.HashIds.Ed2K], hashes[RHasher.HashIds.Crc32]);
             }
             _context.SaveChanges();
+            if (localFile.AniDbFile is null)
+                _cmdMgr.Dispatch(new ProcessParams(localFile.Id));
             Completed = true;
         }
     }

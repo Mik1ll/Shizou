@@ -69,22 +69,22 @@ namespace Shizou.AniDbApi.Requests
         public List<RelatedAnimeType>? RelatedAnimeTypes { get; set; }
         public List<string>? Categories { get; set; }
 
-        public string? RomajiName { get; set; }
-        public string? KanjiName { get; set; }
-        public string? EnglishName { get; set; }
-        public List<string>? OtherNames { get; set; }
-        public List<string>? ShortNames { get; set; }
-        public List<string>? Synonyms { get; set; }
+        public string? NameRomaji { get; set; }
+        public string? NameKanji { get; set; }
+        public string? NameEnglish { get; set; }
+        public List<string>? NamesOther { get; set; }
+        public List<string>? NamesShort { get; set; }
+        public List<string>? NamesSynonym { get; set; }
 
         public string? EpisodeNumber { get; set; }
         public string? EpisodeName { get; set; }
-        public string? EpisodeRomajiName { get; set; }
-        public string? EpisodeKanjiName { get; set; }
+        public string? EpisodeNameRomaji { get; set; }
+        public string? EpisodeNameKanji { get; set; }
         public int? EpisodeRating { get; set; }
         public int? EpisodeVoteCount { get; set; }
 
         public string? GroupName { get; set; }
-        public string? GroupShortName { get; set; }
+        public string? GroupNameShort { get; set; }
         public DateTime? DateAnimeRecordUpdated { get; set; }
 
         #endregion AMask
@@ -151,26 +151,26 @@ namespace Shizou.AniDbApi.Requests
         Categories = 1 << 25,
         // Unused = 1 << 24,
 
-        RomajiName = 1 << 23,
-        KanjiName = 1 << 22,
-        EnglishName = 1 << 21,
-        OtherNames = 1 << 20,
-        ShortNames = 1 << 19,
-        Synonyms = 1 << 18,
+        NameRomaji = 1 << 23,
+        NameKanji = 1 << 22,
+        NameEnglish = 1 << 21,
+        NamesOther = 1 << 20,
+        NamesShort = 1 << 19,
+        NamesSynonym = 1 << 18,
         // Unused = 1 << 17,
         // Unused = 1 << 16,
 
         EpisodeNumber = 1 << 15,
         EpisodeName = 1 << 14,
-        EpisodeRomajiName = 1 << 13,
-        EpisodeKanjiName = 1 << 12,
+        EpisodeNameRomaji = 1 << 13,
+        EpisodeNameKanji = 1 << 12,
         EpisodeRating = 1 << 11,
         EpisodeVoteCount = 1 << 10,
         // Unused = 1 << 9,
         // Unused - 1 << 8,
 
         GroupName = 1 << 7,
-        GroupShortName = 1 << 6,
+        GroupNameShort = 1 << 6,
         // Unused = 1 << 5,
         // Unused = 1 << 4,
         // Unused = 1 << 3,
@@ -182,8 +182,8 @@ namespace Shizou.AniDbApi.Requests
 
     public sealed class FileRequest : AniDbUdpRequest
     {
-        public const AMask DefaultAMask = AMask.GroupName | AMask.GroupShortName | AMask.DateAnimeRecordUpdated | AMask.RomajiName | AMask.EpisodeRomajiName |
-                                          AMask.EpisodeNumber | AMask.TotalEpisodes | AMask.HighestEpisodeNumber;
+        public const AMask DefaultAMask = AMask.GroupName | AMask.GroupNameShort | AMask.DateAnimeRecordUpdated | AMask.NameRomaji | AMask.EpisodeName |
+                                          AMask.EpisodeNumber | AMask.TotalEpisodes | AMask.HighestEpisodeNumber | AMask.Type;
         public const FMask DefaultFMask = FMask.Crc32 | FMask.Md5 | FMask.Sha1 | FMask.Size | FMask.Quality | FMask.Source | FMask.State | FMask.AnimeId |
                                           FMask.AudioCodecs | FMask.DubLanguages | FMask.Ed2K | FMask.EpisodeId | FMask.GroupId | FMask.IsDeprecated |
                                           FMask.OtherEpisodes | FMask.SubLangugages | FMask.VideoCodec | FMask.VideoResolution | FMask.AudioBitRates |
@@ -431,23 +431,23 @@ namespace Shizou.AniDbApi.Requests
                             FileResult.Categories = data.Split(',').ToList();
                             break;
 
-                        case AMask.RomajiName:
-                            FileResult.RomajiName = data;
+                        case AMask.NameRomaji:
+                            FileResult.NameRomaji = data;
                             break;
-                        case AMask.KanjiName:
-                            FileResult.KanjiName = data;
+                        case AMask.NameKanji:
+                            FileResult.NameKanji = data;
                             break;
-                        case AMask.EnglishName:
-                            FileResult.EnglishName = data;
+                        case AMask.NameEnglish:
+                            FileResult.NameEnglish = data;
                             break;
-                        case AMask.OtherNames:
-                            FileResult.OtherNames = data.Split('\'').ToList();
+                        case AMask.NamesOther:
+                            FileResult.NamesOther = data.Split('\'').ToList();
                             break;
-                        case AMask.ShortNames:
-                            FileResult.ShortNames = data.Split('\'').ToList();
+                        case AMask.NamesShort:
+                            FileResult.NamesShort = data.Split('\'').ToList();
                             break;
-                        case AMask.Synonyms:
-                            FileResult.Synonyms = data.Split('\'').ToList();
+                        case AMask.NamesSynonym:
+                            FileResult.NamesSynonym = data.Split('\'').ToList();
                             break;
 
                         case AMask.EpisodeNumber:
@@ -456,11 +456,11 @@ namespace Shizou.AniDbApi.Requests
                         case AMask.EpisodeName:
                             FileResult.EpisodeName = data;
                             break;
-                        case AMask.EpisodeRomajiName:
-                            FileResult.EpisodeRomajiName = data;
+                        case AMask.EpisodeNameRomaji:
+                            FileResult.EpisodeNameRomaji = data;
                             break;
-                        case AMask.EpisodeKanjiName:
-                            FileResult.EpisodeKanjiName = data;
+                        case AMask.EpisodeNameKanji:
+                            FileResult.EpisodeNameKanji = data;
                             break;
                         case AMask.EpisodeRating:
                             FileResult.EpisodeRating = int.Parse(data);
@@ -472,8 +472,8 @@ namespace Shizou.AniDbApi.Requests
                         case AMask.GroupName:
                             FileResult.GroupName = data;
                             break;
-                        case AMask.GroupShortName:
-                            FileResult.GroupShortName = data;
+                        case AMask.GroupNameShort:
+                            FileResult.GroupNameShort = data;
                             break;
                         case AMask.DateAnimeRecordUpdated:
                             FileResult.DateAnimeRecordUpdated = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
