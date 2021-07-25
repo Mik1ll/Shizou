@@ -298,7 +298,7 @@ namespace Shizou.AniDbApi.Requests
                             FileResult.GroupId = int.Parse(data);
                             break;
                         case FMask.MyListId:
-                            FileResult.MyListId = int.Parse(data);
+                            FileResult.MyListId = data != "0" ? int.Parse(data) : null;
                             break;
                         case FMask.OtherEpisodes:
                             FileResult.OtherEpisodes = data.Split('\'').Select(eps =>
@@ -340,29 +340,29 @@ namespace Shizou.AniDbApi.Requests
                             FileResult.Source = data;
                             break;
                         case FMask.AudioCodecs:
-                            FileResult.AudioCodecs = data.Split('\'').ToList();
+                            FileResult.AudioCodecs = data.Split('\'').Where(e => e != "none").ToList();
                             break;
                         case FMask.AudioBitRates:
-                            FileResult.AudioBitRates = data.Split('\'').Select(x => int.Parse(x)).ToList();
+                            FileResult.AudioBitRates = data.Split('\'').Where(e => e != "none").Select(x => int.Parse(x)).ToList();
                             break;
                         case FMask.VideoCodec:
-                            FileResult.VideoCodec = data;
+                            FileResult.VideoCodec = data != "none" ? data : null;
                             break;
                         case FMask.VideoBitRate:
-                            FileResult.VideoBitRate = int.Parse(data);
+                            FileResult.VideoBitRate = data != "none" ? int.Parse(data) : null;
                             break;
                         case FMask.VideoResolution:
-                            FileResult.VideoResolution = data;
+                            FileResult.VideoResolution = data != "none" ? data : null;
                             break;
                         case FMask.FileExtension:
                             FileResult.FileExtension = data;
                             break;
 
                         case FMask.DubLanguages:
-                            FileResult.DubLanguages = data.Split('\'').ToList();
+                            FileResult.DubLanguages = data.Split('\'').Where(e => e != "none").ToList();
                             break;
                         case FMask.SubLangugages:
-                            FileResult.SubLangugages = data.Split('\'').ToList();
+                            FileResult.SubLangugages = data.Split('\'').Where(e => e != "none").ToList();
                             break;
                         case FMask.LengthInSeconds:
                             FileResult.LengthInSeconds = int.Parse(data);
@@ -387,7 +387,7 @@ namespace Shizou.AniDbApi.Requests
                             FileResult.MyListViewed = int.Parse(data) != 0;
                             break;
                         case FMask.MyListViewDate:
-                            FileResult.MyListViewDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
+                            FileResult.MyListViewDate = data != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime : null;
                             break;
                         case FMask.MyListStorage:
                             FileResult.MyListStorage = data;

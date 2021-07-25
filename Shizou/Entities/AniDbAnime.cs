@@ -10,6 +10,7 @@ namespace Shizou.Entities
         public string Title { get; set; } = null!;
         public AnimeType AnimeType { get; set; }
         public int EpisodeCount { get; set; }
+        public int HighestEpisode { get; set; }
         public DateTime? AirDate { get; set; }
         public DateTime? EndDate { get; set; }
         public string? Description { get; set; }
@@ -34,7 +35,9 @@ namespace Shizou.Entities
                 AnimeType = AnimeType,
                 EndDate = EndDate,
                 EpisodeCount = EpisodeCount,
-                ImagePath = ImagePath
+                HighestEpisode = HighestEpisode,
+                ImagePath = ImagePath,
+                RecordUpdated = RecordUpdated
             };
         }
     }

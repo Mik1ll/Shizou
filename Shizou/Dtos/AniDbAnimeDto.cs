@@ -7,6 +7,7 @@ namespace Shizou.Dtos
     public class AniDbAnimeDto : EntityDto
     {
         public int EpisodeCount { get; set; }
+        public int HighestEpisode { get; set; }
         public DateTime? AirDate { get; set; }
         public DateTime? EndDate { get; set; }
         public AnimeType AnimeType { get; set; }
@@ -15,6 +16,7 @@ namespace Shizou.Dtos
         public bool Restricted { get; set; }
         public string? ImagePath { get; set; }
         public DateTime? Updated { get; set; }
+        public DateTime RecordUpdated { get; set; }
 
         public override AniDbAnime ToEntity()
         {
@@ -29,7 +31,9 @@ namespace Shizou.Dtos
                 AnimeType = AnimeType,
                 EndDate = EndDate,
                 EpisodeCount = EpisodeCount,
-                ImagePath = ImagePath
+                HighestEpisode = HighestEpisode,
+                ImagePath = ImagePath,
+                RecordUpdated = RecordUpdated
             };
         }
     }
