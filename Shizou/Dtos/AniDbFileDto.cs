@@ -21,10 +21,10 @@ namespace Shizou.Dtos
         public bool Deprecated { get; set; }
         public bool Chaptered { get; set; }
 
-        public AniDbMyListEntryDto? MyListEntry { get; set; }
+        public AniDbMyListEntry? MyListEntry { get; set; }
 
         public int? AniDbGroupId { get; set; }
-        public AniDbVideoDto? Video { get; set; }
+        public AniDbVideo? Video { get; set; }
         public List<AniDbAudioDto> Audio { get; set; } = null!;
         public List<AniDbSubtitleDto> Subtitles { get; set; } = null!;
 
@@ -47,13 +47,13 @@ namespace Shizou.Dtos
                 Source = Source,
                 Subtitles = Subtitles.Select(s => s.ToEntity()).ToList(),
                 Updated = Updated,
-                Video = Video?.ToEntity(),
+                Video = Video,
                 Ed2K = Ed2K,
                 FileSize = FileSize,
                 FileVersion = FileVersion,
                 FileName = FileName,
                 AniDbGroupId = AniDbGroupId,
-                MyListEntry = MyListEntry?.ToEntity()
+                MyListEntry = MyListEntry
             };
         }
     }

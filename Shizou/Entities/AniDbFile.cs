@@ -51,14 +51,14 @@ namespace Shizou.Entities
                 Source = Source,
                 Subtitles = Subtitles.Select(s => s.ToDto()).ToList(),
                 Updated = Updated,
-                Video = Video?.ToDto(),
+                Video = Video,
                 Ed2K = Ed2K,
                 FileSize = FileSize,
                 FileVersion = FileVersion,
                 FileName = FileName,
                 AniDbGroupId = AniDbGroupId,
                 LocalFileId = LocalFile?.Id,
-                MyListEntry = MyListEntry?.ToDto()
+                MyListEntry = MyListEntry
             };
         }
     }
