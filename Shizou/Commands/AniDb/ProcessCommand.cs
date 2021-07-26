@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Shizou.AniDbApi;
 using Shizou.AniDbApi.Requests;
 using Shizou.CommandProcessors;
 using Shizou.Database;
@@ -35,26 +36,40 @@ namespace Shizou.Commands.AniDb
             if (localFile is null)
             {
                 Completed = true;
-                Logger.LogWarning("Unable to process local file id: {localFileId} Skipping", CommandParams.LocalFileId);
+                Logger.LogWarning("Unable to process local file id: {localFileId} not found, skipping", CommandParams.LocalFileId);
                 return;
             }
+
             var fileReq = new FileRequest(Provider, localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
             await fileReq.Process();
-            if (fileReq.FileResult is null)
+            if (fileReq.ResponseCode == AniDbResponseCode.NoSuchFile)
             {
+                Logger.LogInformation("Skipped processing local file id: {localFileId}, ed2k: {localFileEd2k}, file not found on anidb", localFile.Id,
+                    localFile.Ed2K);
                 Completed = true;
                 return;
             }
+            if (fileReq.FileResult is null)
+            {
+                Logger.LogWarning("Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, no file result", localFile.Id, localFile.Ed2K);
+                return;
+            }
             var result = fileReq.FileResult;
+
+            // Get the group
+            var newAniDbGroup = new AniDbGroup
+            {
+                Id = result.GroupId!.Value,
+                Name = result.GroupName!,
+                ShortName = result.GroupNameShort!
+            };
             var aniDbGroup = _context.AniDbGroups.Find(result.GroupId);
             if (aniDbGroup is null)
-                aniDbGroup = _context.AniDbGroups.Add(new AniDbGroup
-                {
-                    Id = result.GroupId!.Value,
-                    Name = result.GroupName!,
-                    ShortName = result.GroupNameShort!
-                }).Entity;
+                aniDbGroup = _context.AniDbGroups.Add(newAniDbGroup).Entity;
+            else
+                _context.Entry(aniDbGroup).CurrentValues.SetValues(newAniDbGroup);
 
+            // Get the file
             var newAniDbFile = new AniDbFile
             {
                 Id = result.FileId,
@@ -105,6 +120,8 @@ namespace Shizou.Commands.AniDb
             else
                 _context.Entry(aniDbFile).CurrentValues.SetValues(newAniDbFile);
 
+            // Get the anime
+            // TODO: Get with AnimeRequest
             var aniDbAnime = _context.AniDbAnimes.Find(result.AnimeId);
             if (aniDbAnime is null)
                 aniDbAnime = _context.AniDbAnimes.Add(new AniDbAnime
@@ -116,30 +133,42 @@ namespace Shizou.Commands.AniDb
                     RecordUpdated = result.DateAnimeRecordUpdated!.Value
                 }).Entity;
 
-
+            // Get the episode
             var aniDbEpisode = _context.AniDbEpisodes.Include(e => e.AniDbFiles).FirstOrDefault(e => e.Id == result.EpisodeId);
             if (aniDbEpisode is null)
                 aniDbEpisode = _context.Add(new AniDbEpisode
                 {
                     Id = result.EpisodeId!.Value,
                     Title = result.EpisodeName!,
-                    EpisodeType = result.EpisodeNumber![0] switch
-                    {
-                        'C' => EpisodeType.Credits,
-                        'S' => EpisodeType.Special,
-                        'T' => EpisodeType.Trailer,
-                        'P' => EpisodeType.Parody,
-                        _ => EpisodeType.Episode
-                    },
-                    Number = int.Parse(char.IsNumber(result.EpisodeNumber[0]) ? result.EpisodeNumber : result.EpisodeNumber[1..]),
+                    EpisodeType = result.EpisodeNumber!.ParseEpisode().type,
+                    Number = result.EpisodeNumber!.ParseEpisode().number,
                     AirDate = result.EpisodeAiredDate,
                     AniDbFiles = new List<AniDbFile> {aniDbFile},
                     AniDbAnime = aniDbAnime
                 }).Entity;
-            // TODO: Handle other episodes by creating additional commands
+
+            // Add the file relation if not found
             if (!aniDbEpisode.AniDbFiles.Any(e => e.Id == aniDbFile.Id))
                 aniDbEpisode.AniDbFiles.Add(aniDbFile);
+
             _context.SaveChanges();
+
+            // Get all episodes
+            // TODO: Test linq to sql
+            foreach (var eid in result.OtherEpisodes!.Select(e => e.episodeId).Where(eid => _context.AniDbEpisodes.Select(e => e.Id).Contains(eid)))
+            {
+                var episodeReq = new EpisodeRequest(Provider, eid);
+                await episodeReq.Process();
+                if (episodeReq.EpisodeResult is null)
+                {
+                    Logger.LogWarning("Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, failed to get episode id: {episodeId}",
+                        localFile.Id, localFile.Ed2K, eid);
+                    return;
+                }
+                // TODO: Create episodes and anime requests
+            }
+
+            // TODO: Handle other episodes by creating additional commands
             Completed = true;
         }
     }

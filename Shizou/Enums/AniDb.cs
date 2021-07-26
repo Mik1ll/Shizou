@@ -23,6 +23,23 @@ namespace Shizou.Enums
         Other = 6
     }
 
+    public static class EpisodeTypeExtensions
+    {
+        public static (int number, EpisodeType type) ParseEpisode(this string str)
+        {
+            var num = int.Parse(char.IsNumber(str[0]) ? str : str[1..]);
+            var type = str[0] switch
+            {
+                'C' => EpisodeType.Credits,
+                'S' => EpisodeType.Special,
+                'T' => EpisodeType.Trailer,
+                'P' => EpisodeType.Parody,
+                _ => EpisodeType.Episode
+            };
+            return (num, type);
+        }
+    }
+
     [Flags]
     public enum FileState
     {
