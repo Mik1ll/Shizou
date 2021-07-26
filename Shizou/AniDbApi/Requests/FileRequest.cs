@@ -213,31 +213,7 @@ namespace Shizou.AniDbApi.Requests
             Params.Add(("ed2k", ed2K));
         }
 
-        /// <summary>
-        ///     This command only returns first file result, try overloads with group/anime id for multiple results
-        /// </summary>
-        public FileRequest(IServiceProvider provider, string animeName, string groupName, int episodeNumber, FMask fMask, AMask aMask) : this(provider, fMask,
-            aMask)
-        {
-            Params.Add(("aname", animeName));
-            Params.Add(("gname", groupName));
-            Params.Add(("epno", episodeNumber.ToString()));
-        }
-
-        public FileRequest(IServiceProvider provider, string animeName, int groupId, int episodeNumber, FMask fMask, AMask aMask) : this(provider, fMask, aMask)
-        {
-            Params.Add(("aname", animeName));
-            Params.Add(("gid", groupId.ToString()));
-            Params.Add(("epno", episodeNumber.ToString()));
-        }
-
-        public FileRequest(IServiceProvider provider, int animeId, string groupName, int episodeNumber, FMask fMask, AMask aMask) : this(provider, fMask, aMask)
-        {
-            Params.Add(("aid", animeId.ToString()));
-            Params.Add(("gname", groupName));
-            Params.Add(("epno", episodeNumber.ToString()));
-        }
-
+        // TODO: Test if epno can take special episode string
         public FileRequest(IServiceProvider provider, int animeId, int groupId, int episodeNumber, FMask fMask, AMask aMask) : this(provider, fMask, aMask)
         {
             Params.Add(("aid", animeId.ToString()));
@@ -250,11 +226,6 @@ namespace Shizou.AniDbApi.Requests
 
         public override string Command { get; } = "FILE";
         public override List<(string name, string value)> Params { get; } = new();
-
-        public static string TestEnum(ulong test)
-        {
-            return ((FMask)test).ToString("X");
-        }
 
         public override async Task Process()
         {
@@ -277,7 +248,7 @@ namespace Shizou.AniDbApi.Requests
         {
             if (ResponseText is null)
                 return;
-            string[] dataArr = ResponseText.Split('|');
+            var dataArr = ResponseText.Split('|');
             var dataIdx = 0;
             FileResult = new AniDbFileResult(int.Parse(dataArr[dataIdx++]));
             foreach (var value in Enum.GetValues<FMask>().OrderByDescending(v => v))
