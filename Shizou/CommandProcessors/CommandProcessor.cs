@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +34,8 @@ namespace Shizou.CommandProcessors
         public virtual bool Paused { get; set; } = true;
         public virtual string? PauseReason { get; set; }
 
+        public Queue<string> LastThreeCommands { get; set; } = new(3);
+
         public virtual void Shutdown()
         {
         }
@@ -53,6 +57,9 @@ namespace Shizou.CommandProcessors
                 try
                 {
                     Logger.LogDebug("Processing command: {commandId}", command.CommandId);
+                    LastThreeCommands.Enqueue(command.CommandId);
+                    if (LastThreeCommands.Count > 3)
+                        LastThreeCommands.Dequeue();
                     var task = command.Process();
                     while (!stoppingToken.IsCancellationRequested && !task.IsCompleted)
                         await Task.Delay(500);
@@ -71,6 +78,12 @@ namespace Shizou.CommandProcessors
                 else
                 {
                     Logger.LogWarning("Not deleting uncompleted command: {commandId}", command.CommandId);
+                    if (LastThreeCommands.Count >= 3 && LastThreeCommands.Distinct().Count() == 1)
+                    {
+                        Paused = true;
+                        PauseReason = $"Failed to complete command: {command.CommandId} after three attempts";
+                        Logger.LogWarning("Queue paused after failing to complete command three times: {commandId}", command.CommandId);
+                    }
                 }
                 CurrentCommand = null;
             }
