@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,21 +42,40 @@ namespace Shizou.Commands.AniDb
                 return;
             }
 
-            var fileReq = new FileRequest(Provider, localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
-            await fileReq.Process();
-            if (fileReq.ResponseCode == AniDbResponseCode.NoSuchFile)
+            // Check if file was requested before and did not complete
+            var fileResultTempPath = Path.Combine(Program.ApplicationData, "Temp", CommandId + ".json");
+            AniDbFileResult? result = null;
+            if (File.Exists(fileResultTempPath))
+                using (var file = new FileStream(fileResultTempPath, FileMode.Open, FileAccess.Read))
+                {
+                    result = await JsonSerializer.DeserializeAsync<AniDbFileResult>(file);
+                }
+
+            if (result is null)
             {
-                Logger.LogInformation("Skipped processing local file id: {localFileId}, ed2k: {localFileEd2k}, file not found on anidb", localFile.Id,
-                    localFile.Ed2K);
-                Completed = true;
-                return;
+                var fileReq = new FileRequest(Provider, localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                await fileReq.Process();
+                if (fileReq.ResponseCode == AniDbResponseCode.NoSuchFile)
+                {
+                    Logger.LogInformation("Skipped processing local file id: {localFileId}, ed2k: {localFileEd2k}, file not found on anidb", localFile.Id,
+                        localFile.Ed2K);
+                    Completed = true;
+                    return;
+                }
+                if (fileReq.FileResult is null)
+                {
+                    Logger.LogWarning("Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, no file result", localFile.Id, localFile.Ed2K);
+                    return;
+                }
+                result = fileReq.FileResult;
+
+                // Keep file result just in case command does not complete
+                Directory.CreateDirectory(Path.GetDirectoryName(fileResultTempPath)!);
+                using (var file = new FileStream(fileResultTempPath, FileMode.Create, FileAccess.Write))
+                {
+                    await JsonSerializer.SerializeAsync(file, result);
+                }
             }
-            if (fileReq.FileResult is null)
-            {
-                Logger.LogWarning("Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, no file result", localFile.Id, localFile.Ed2K);
-                return;
-            }
-            var result = fileReq.FileResult;
 
             // Get the group
             var newAniDbGroup = new AniDbGroup
@@ -144,8 +165,8 @@ namespace Shizou.Commands.AniDb
                     TitleKanji = result.EpisodeTitleKanji,
                     Number = result.EpisodeNumber!.ParseEpisode().number,
                     EpisodeType = result.EpisodeNumber!.ParseEpisode().type,
-                    Number = result.EpisodeNumber!.ParseEpisode().number,
                     AirDate = result.EpisodeAiredDate,
+                    Updated = DateTime.UtcNow,
                     AniDbFiles = new List<AniDbFile> {aniDbFile},
                     AniDbAnime = aniDbAnime
                 }).Entity;
@@ -156,23 +177,52 @@ namespace Shizou.Commands.AniDb
 
             _context.SaveChanges();
 
-            // Get all episodes
-            // TODO: Test linq to sql
-            foreach (var eid in result.OtherEpisodes!.Select(e => e.episodeId).Where(eid => _context.AniDbEpisodes.Select(e => e.Id).Contains(eid)))
+            // Get other episodes
+            if (result.OtherEpisodes is not null)
             {
-                var episodeReq = new EpisodeRequest(Provider, eid);
-                await episodeReq.Process();
-                if (episodeReq.EpisodeResult is null)
+                // Associate episodes already in database
+                // TODO: test linq to sql
+                var foundOtherEpisodes = _context.AniDbEpisodes.Include(e => e.AniDbFiles)
+                    .Where(e => result.OtherEpisodes.Select(a => a.episodeId).Contains(e.Id)).ToList();
+                foreach (var ep in foundOtherEpisodes)
+                    if (!ep.AniDbFiles.Any(e => e.Id == aniDbFile.Id))
+                        ep.AniDbFiles.Add(aniDbFile);
+                _context.SaveChanges();
+
+                // Get episodes not in database
+                // TODO: Test linq to sql
+                foreach (var eid in result.OtherEpisodes.Select(e => e.episodeId).Except(foundOtherEpisodes.Select(e => e.Id)))
                 {
-                    Logger.LogWarning("Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, failed to get episode id: {episodeId}",
-                        localFile.Id, localFile.Ed2K, eid);
-                    return;
+                    var episodeReq = new EpisodeRequest(Provider, eid);
+                    await episodeReq.Process();
+                    if (episodeReq.EpisodeResult is null)
+                    {
+                        Logger.LogWarning("Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, failed to get episode id: {episodeId}",
+                            localFile.Id, localFile.Ed2K, eid);
+                        return;
+                    }
+                    var epResult = episodeReq.EpisodeResult;
+                    var newAniDbEpisode = new AniDbEpisode
+                    {
+                        Id = epResult.EpisodeId,
+                        TitleEnglish = epResult.TitleEnglish,
+                        TitleRomaji = epResult.TitleRomaji,
+                        TitleKanji = epResult.TitleKanji,
+                        Number = epResult.EpisodeNumber,
+                        EpisodeType = epResult.Type,
+                        AirDate = epResult.AiredDate,
+                        Updated = DateTime.UtcNow,
+                        AniDbFiles = new List<AniDbFile> {aniDbFile},
+                        AniDbAnimeId = epResult.AnimeId
+                    };
+                    // TODO: Create anime relations
+                    _context.AniDbEpisodes.Add(newAniDbEpisode);
+                    _context.SaveChanges();
                 }
-                // TODO: Create episodes and anime requests
             }
 
-            // TODO: Handle other episodes by creating additional commands
             Completed = true;
+            File.Delete(fileResultTempPath);
         }
     }
 }

@@ -39,7 +39,7 @@ namespace Shizou.Commands
             ImportFolder? importFolder;
             if (!file.Exists || (importFolder = _context.ImportFolders.GetByPath(file.FullName)) is null)
             {
-                Logger.LogWarning("File not found or not inside an import folder: {Path}", file.FullName);
+                Logger.LogWarning("File not found or not inside an import folder: \"{Path}\"", file.FullName);
                 return;
             }
             var pathTail = file.FullName.Substring(importFolder.Path.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);

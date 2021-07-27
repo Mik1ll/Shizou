@@ -117,7 +117,7 @@ namespace Shizou
                 }).Entity;
                 context.SaveChanges();
             }
-            importer.ScanImportFolder(imptfld.Id, true);
+            importer.ScanImportFolder(imptfld.Id);
             //importer.PopulateLocalFileAniDbRelations();
         }
     }
