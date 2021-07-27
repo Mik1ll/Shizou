@@ -127,7 +127,7 @@ namespace Shizou.Commands.AniDb
                 aniDbAnime = _context.AniDbAnimes.Add(new AniDbAnime
                 {
                     Id = result.AnimeId!.Value,
-                    Title = result.NameRomaji!,
+                    Title = result.TitleRomaji!,
                     EpisodeCount = result.TotalEpisodes!.Value,
                     AnimeType = result.Type!.Value,
                     RecordUpdated = result.DateAnimeRecordUpdated!.Value
@@ -136,10 +136,13 @@ namespace Shizou.Commands.AniDb
             // Get the episode
             var aniDbEpisode = _context.AniDbEpisodes.Include(e => e.AniDbFiles).FirstOrDefault(e => e.Id == result.EpisodeId);
             if (aniDbEpisode is null)
-                aniDbEpisode = _context.Add(new AniDbEpisode
+                aniDbEpisode = _context.AniDbEpisodes.Add(new AniDbEpisode
                 {
                     Id = result.EpisodeId!.Value,
-                    Title = result.EpisodeName!,
+                    TitleEnglish = result.EpisodeTitleEnglish!,
+                    TitleRomaji = result.EpisodeTitleRomaji,
+                    TitleKanji = result.EpisodeTitleKanji,
+                    Number = result.EpisodeNumber!.ParseEpisode().number,
                     EpisodeType = result.EpisodeNumber!.ParseEpisode().type,
                     Number = result.EpisodeNumber!.ParseEpisode().number,
                     AirDate = result.EpisodeAiredDate,

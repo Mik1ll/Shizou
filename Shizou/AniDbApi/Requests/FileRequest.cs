@@ -69,17 +69,17 @@ namespace Shizou.AniDbApi.Requests
         public List<RelatedAnimeType>? RelatedAnimeTypes { get; set; }
         public List<string>? Categories { get; set; }
 
-        public string? NameRomaji { get; set; }
-        public string? NameKanji { get; set; }
-        public string? NameEnglish { get; set; }
-        public List<string>? NamesOther { get; set; }
-        public List<string>? NamesShort { get; set; }
-        public List<string>? NamesSynonym { get; set; }
+        public string? TitleRomaji { get; set; }
+        public string? TitleKanji { get; set; }
+        public string? TitleEnglish { get; set; }
+        public List<string>? TitlesOther { get; set; }
+        public List<string>? TitlesShort { get; set; }
+        public List<string>? TitlesSynonym { get; set; }
 
         public string? EpisodeNumber { get; set; }
-        public string? EpisodeName { get; set; }
-        public string? EpisodeNameRomaji { get; set; }
-        public string? EpisodeNameKanji { get; set; }
+        public string? EpisodeTitleEnglish { get; set; }
+        public string? EpisodeTitleRomaji { get; set; }
+        public string? EpisodeTitleKanji { get; set; }
         public int? EpisodeRating { get; set; }
         public int? EpisodeVoteCount { get; set; }
 
@@ -151,19 +151,19 @@ namespace Shizou.AniDbApi.Requests
         Categories = 1 << 25,
         // Unused = 1 << 24,
 
-        NameRomaji = 1 << 23,
-        NameKanji = 1 << 22,
-        NameEnglish = 1 << 21,
-        NamesOther = 1 << 20,
-        NamesShort = 1 << 19,
-        NamesSynonym = 1 << 18,
+        TitleRomaji = 1 << 23,
+        TitleKanji = 1 << 22,
+        TitleEnglish = 1 << 21,
+        TitlesOther = 1 << 20,
+        TitlesShort = 1 << 19,
+        TitlesSynonym = 1 << 18,
         // Unused = 1 << 17,
         // Unused = 1 << 16,
 
         EpisodeNumber = 1 << 15,
-        EpisodeName = 1 << 14,
-        EpisodeNameRomaji = 1 << 13,
-        EpisodeNameKanji = 1 << 12,
+        EpisodeTitleEnglish = 1 << 14,
+        EpisodeTitleRomaji = 1 << 13,
+        EpisodeTitleKanji = 1 << 12,
         EpisodeRating = 1 << 11,
         EpisodeVoteCount = 1 << 10,
         // Unused = 1 << 9,
@@ -182,8 +182,10 @@ namespace Shizou.AniDbApi.Requests
 
     public sealed class FileRequest : AniDbUdpRequest
     {
-        public const AMask DefaultAMask = AMask.GroupName | AMask.GroupNameShort | AMask.DateAnimeRecordUpdated | AMask.NameRomaji | AMask.EpisodeName |
-                                          AMask.EpisodeNumber | AMask.TotalEpisodes | AMask.HighestEpisodeNumber | AMask.Type;
+        public const AMask DefaultAMask = AMask.GroupName | AMask.GroupNameShort | AMask.DateAnimeRecordUpdated | AMask.TitleRomaji |
+                                          AMask.EpisodeTitleEnglish |
+                                          AMask.EpisodeNumber | AMask.TotalEpisodes | AMask.HighestEpisodeNumber | AMask.Type | AMask.EpisodeTitleRomaji |
+                                          AMask.EpisodeTitleKanji;
         public const FMask DefaultFMask = FMask.Crc32 | FMask.Md5 | FMask.Sha1 | FMask.Size | FMask.Quality | FMask.Source | FMask.State | FMask.AnimeId |
                                           FMask.AudioCodecs | FMask.DubLanguages | FMask.Ed2K | FMask.EpisodeId | FMask.GroupId | FMask.IsDeprecated |
                                           FMask.OtherEpisodes | FMask.SubLangugages | FMask.VideoCodec | FMask.VideoResolution | FMask.AudioBitRates |
@@ -402,36 +404,36 @@ namespace Shizou.AniDbApi.Requests
                             FileResult.Categories = data.Split(',').ToList();
                             break;
 
-                        case AMask.NameRomaji:
-                            FileResult.NameRomaji = data;
+                        case AMask.TitleRomaji:
+                            FileResult.TitleRomaji = data;
                             break;
-                        case AMask.NameKanji:
-                            FileResult.NameKanji = data;
+                        case AMask.TitleKanji:
+                            FileResult.TitleKanji = data;
                             break;
-                        case AMask.NameEnglish:
-                            FileResult.NameEnglish = data;
+                        case AMask.TitleEnglish:
+                            FileResult.TitleEnglish = data;
                             break;
-                        case AMask.NamesOther:
-                            FileResult.NamesOther = data.Split('\'').ToList();
+                        case AMask.TitlesOther:
+                            FileResult.TitlesOther = data.Split('\'').ToList();
                             break;
-                        case AMask.NamesShort:
-                            FileResult.NamesShort = data.Split('\'').ToList();
+                        case AMask.TitlesShort:
+                            FileResult.TitlesShort = data.Split('\'').ToList();
                             break;
-                        case AMask.NamesSynonym:
-                            FileResult.NamesSynonym = data.Split('\'').ToList();
+                        case AMask.TitlesSynonym:
+                            FileResult.TitlesSynonym = data.Split('\'').ToList();
                             break;
 
                         case AMask.EpisodeNumber:
                             FileResult.EpisodeNumber = data;
                             break;
-                        case AMask.EpisodeName:
-                            FileResult.EpisodeName = data;
+                        case AMask.EpisodeTitleEnglish:
+                            FileResult.EpisodeTitleEnglish = data;
                             break;
-                        case AMask.EpisodeNameRomaji:
-                            FileResult.EpisodeNameRomaji = data;
+                        case AMask.EpisodeTitleRomaji:
+                            FileResult.EpisodeTitleRomaji = data;
                             break;
-                        case AMask.EpisodeNameKanji:
-                            FileResult.EpisodeNameKanji = data;
+                        case AMask.EpisodeTitleKanji:
+                            FileResult.EpisodeTitleKanji = data;
                             break;
                         case AMask.EpisodeRating:
                             FileResult.EpisodeRating = int.Parse(data);

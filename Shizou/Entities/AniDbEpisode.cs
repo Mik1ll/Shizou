@@ -8,8 +8,9 @@ namespace Shizou.Entities
 {
     public class AniDbEpisode : Entity
     {
-        public string Title { get; set; } = null!;
-        public int? Duration { get; set; }
+        public string TitleEnglish { get; set; } = null!;
+        public string? TitleRomaji { get; set; }
+        public string? TitleKanji { get; set; }
         public int Number { get; set; }
         public EpisodeType EpisodeType { get; set; }
         public string? Description { get; set; }
@@ -27,9 +28,10 @@ namespace Shizou.Entities
         {
             return new()
             {
-                Title = Title,
+                TitleEnglish = TitleEnglish,
+                TitleRomaji = TitleRomaji,
+                TitleKanji = TitleKanji,
                 Description = Description,
-                Duration = Duration,
                 Id = Id,
                 Number = Number,
                 Updated = Updated,

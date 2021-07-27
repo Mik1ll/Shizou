@@ -14,9 +14,9 @@ namespace Shizou.AniDbApi.Requests
         int Votes,
         int EpisodeNumber,
         EpisodeType Type,
-        string NameEnglish,
-        string NameRomaji,
-        string NameKanji,
+        string TitleEnglish,
+        string TitleRomaji,
+        string TitleKanji,
         DateTime? AiredDate);
 
     public sealed class EpisodeRequest : AniDbUdpRequest
