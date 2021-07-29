@@ -59,6 +59,7 @@ namespace Shizou
             services.AddScoped<Importer>();
             services.AddSingleton<IHostedService>(p => p.GetRequiredService<AniDbUdpProcessor>());
             services.AddSingleton<IHostedService>(p => p.GetRequiredService<HashProcessor>());
+            services.AddSingleton<IHostedService>(p => p.GetRequiredService<AniDbHttpProcessor>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

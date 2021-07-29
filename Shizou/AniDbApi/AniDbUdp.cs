@@ -32,7 +32,7 @@ namespace Shizou.AniDbApi
             _provider = provider;
             RateLimiter = rateLimiter;
             UdpClient = new UdpClient(options.CurrentValue.AniDb.ClientPort, AddressFamily.InterNetwork);
-            UdpClient.Connect(options.CurrentValue.AniDb.ServerHost, options.CurrentValue.AniDb.ServerPort);
+            UdpClient.Connect(options.CurrentValue.AniDb.ServerHost, options.CurrentValue.AniDb.UdpServerPort);
             _options = options;
             _options.OnChange(OnOptionsChanged);
             _logger = logger;
