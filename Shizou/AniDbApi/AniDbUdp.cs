@@ -169,9 +169,9 @@ namespace Shizou.AniDbApi
             BanReason = null;
         }
 
-        private void LogoutElapsed(object sender, ElapsedEventArgs e)
+        private async void LogoutElapsed(object sender, ElapsedEventArgs e)
         {
-            Logout().Wait();
+            await Logout();
         }
 
         private void FoundRouter(object? sender, DeviceEventArgs e)
