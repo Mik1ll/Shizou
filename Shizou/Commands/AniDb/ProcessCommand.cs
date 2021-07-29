@@ -150,6 +150,7 @@ namespace Shizou.Commands.AniDb
                     Id = result.AnimeId!.Value,
                     Title = result.TitleRomaji!,
                     EpisodeCount = result.TotalEpisodes!.Value,
+                    HighestEpisode = result.HighestEpisodeNumber!.Value,
                     AnimeType = result.Type!.Value,
                     RecordUpdated = result.DateAnimeRecordUpdated!.Value
                 }).Entity;
