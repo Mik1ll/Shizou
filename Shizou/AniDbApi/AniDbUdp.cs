@@ -182,7 +182,11 @@ namespace Shizou.AniDbApi
         public async Task<bool> Login()
         {
             if (LoggedIn)
+            {
+                _logoutTimer.Stop();
+                _logoutTimer.Start();
                 return true;
+            }
             var req = new AuthRequest(_provider);
             await req.Process();
             if (LoggedIn)
