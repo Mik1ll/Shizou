@@ -9,7 +9,7 @@ namespace Shizou.AniDbApi.Requests
 {
     public record AniDbEpisodeResult(int EpisodeId,
         int AnimeId,
-        int DurationMinutes,
+        int? DurationMinutes,
         int Rating,
         int Votes,
         int EpisodeNumber,
@@ -63,7 +63,7 @@ namespace Shizou.AniDbApi.Requests
             var dataArr = ResponseText.Split('|');
             EpisodeResult = new AniDbEpisodeResult(int.Parse(dataArr[0]),
                 int.Parse(dataArr[1]),
-                int.Parse(dataArr[2]),
+                dataArr[1] != "0" ? int.Parse(dataArr[2]) : null,
                 int.Parse(dataArr[3]),
                 int.Parse(dataArr[4]),
                 dataArr[5].ParseEpisode().number,

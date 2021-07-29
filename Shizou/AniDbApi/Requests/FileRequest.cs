@@ -338,7 +338,7 @@ namespace Shizou.AniDbApi.Requests
                             FileResult.SubLangugages = data.Split('\'').Where(e => e != "none").ToList();
                             break;
                         case FMask.LengthInSeconds:
-                            FileResult.LengthInSeconds = int.Parse(data);
+                            FileResult.LengthInSeconds = data != "0" ? int.Parse(data) : null;
                             break;
                         case FMask.Description:
                             FileResult.Description = DataUnescape(data);

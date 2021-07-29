@@ -102,7 +102,7 @@ namespace Shizou.Commands.AniDb
                 Chaptered = result.State!.Value.HasFlag(FileState.Chaptered),
                 Deprecated = result.IsDeprecated!.Value,
                 FileSize = result.Size!.Value,
-                Duration = result.LengthInSeconds!.Value,
+                Duration = result.LengthInSeconds is null ? null : TimeSpan.FromSeconds(result.LengthInSeconds.Value),
                 Source = result.Source,
                 FileVersion = result.State!.Value.FileVersion(),
                 Updated = DateTime.UtcNow,
@@ -166,7 +166,6 @@ namespace Shizou.Commands.AniDb
                     Number = result.EpisodeNumber!.ParseEpisode().number,
                     EpisodeType = result.EpisodeNumber!.ParseEpisode().type,
                     AirDate = result.EpisodeAiredDate,
-                    Updated = DateTime.UtcNow,
                     AniDbFiles = new List<AniDbFile> {aniDbFile},
                     AniDbAnime = aniDbAnime
                 }).Entity;
@@ -210,6 +209,7 @@ namespace Shizou.Commands.AniDb
                         TitleKanji = epResult.TitleKanji,
                         Number = epResult.EpisodeNumber,
                         EpisodeType = epResult.Type,
+                        Duration = epResult.DurationMinutes is null ? null : TimeSpan.FromMinutes(epResult.DurationMinutes.Value),
                         AirDate = epResult.AiredDate,
                         Updated = DateTime.UtcNow,
                         AniDbFiles = new List<AniDbFile> {aniDbFile},

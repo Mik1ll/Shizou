@@ -12,7 +12,7 @@ namespace Shizou.Dtos
         public string? Md5 { get; set; }
         public string? Sha1 { get; set; }
         public long FileSize { get; set; }
-        public int? Duration { get; set; }
+        public TimeSpan? Duration { get; set; }
         public string? Source { get; set; }
         public DateTime? Updated { get; set; }
         public int FileVersion { get; set; }

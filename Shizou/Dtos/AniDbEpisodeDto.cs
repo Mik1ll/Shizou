@@ -11,6 +11,7 @@ namespace Shizou.Dtos
         public string? TitleKanji { get; set; }
         public int Number { get; set; }
         public EpisodeType EpisodeType { get; set; }
+        public TimeSpan? Duration { get; set; }
         public string? Description { get; set; }
         public DateTime? AirDate { get; set; }
         public DateTime? Updated { get; set; }
@@ -26,6 +27,7 @@ namespace Shizou.Dtos
                 TitleRomaji = TitleRomaji,
                 TitleKanji = TitleKanji,
                 Description = Description,
+                Duration = Duration,
                 Id = Id,
                 Number = Number,
                 Updated = Updated,
