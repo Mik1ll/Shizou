@@ -36,6 +36,8 @@ namespace Shizou.CommandProcessors
 
         public Queue<string> LastThreeCommands { get; set; } = new(3);
 
+        protected int PollInterval { get; set; } = 1000;
+
         public virtual void Shutdown()
         {
         }
@@ -50,7 +52,7 @@ namespace Shizou.CommandProcessors
                 ShizouContext context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
                 if (Paused || (CurrentCommand = context.CommandRequests.GetNextRequest(QueueType)) is null)
                 {
-                    await Task.Delay(1000);
+                    await Task.Delay(PollInterval);
                     continue;
                 }
                 ICommand command = commandManager.CommandFromRequest(CurrentCommand);

@@ -1,16 +1,22 @@
 ﻿using System;
+using System.Xml.Serialization;
 
 namespace Shizou.Enums
 {
     public enum AnimeType
     {
-        None = -1, // Not on AniDB, but for ease of processing
-        Movie = 0,
-        Ova = 1,
-        TvSeries = 2,
-        TvSpecial = 3,
-        Web = 4,
-        Other = 5
+        [XmlEnum("Movie")]
+        Movie = 1,
+        [XmlEnum("OVA")]
+        Ova = 2,
+        [XmlEnum("TV Series")]
+        TvSeries = 3,
+        [XmlEnum("TV Special")]
+        TvSpecial = 4,
+        [XmlEnum("Web")]
+        Web = 5,
+        [XmlEnum("Other")]
+        Other = 6
     }
 
     public enum EpisodeType

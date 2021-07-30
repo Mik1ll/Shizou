@@ -1,20 +1,25 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Xml.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Database;
 using Shizou.Options;
 
 namespace Shizou.Commands.AniDb
 {
-    public record HttpAnimeParams(int AnimeId) : CommandParams;
+    public record HttpAnimeParams(int AnimeId, bool ForceRefresh) : CommandParams;
 
     public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
     {
+        public static readonly string HttpCachePath = Path.Combine(Program.ApplicationData, "HTTPAnime");
+        private readonly string _cacheFilePath;
         private readonly ShizouContext _context;
         private readonly AniDbHttpProcessor _processor;
         private readonly string _url;
@@ -32,23 +37,61 @@ namespace Shizou.Commands.AniDb
             builder.Query = query.ToString();
             _url = builder.ToString();
             CommandId = $"{nameof(HttpAnimeCommand)}_{commandParams.AnimeId}";
+            _cacheFilePath = Path.Combine(HttpCachePath, $"HttpAnime_{CommandParams.AnimeId}.xml");
         }
 
         public override string CommandId { get; }
 
         public override async Task Process()
         {
-            var aniDbAnime = _context.AniDbAnimes.Find(CommandParams.AnimeId);
-            if (aniDbAnime is not null)
+            var (cacheHit, requestable) = CheckCache();
+            if ((!cacheHit || CommandParams.ForceRefresh) && !requestable)
             {
-                if (aniDbAnime.Updated.HasValue && DateTime.UtcNow - aniDbAnime.Updated < TimeSpan.FromHours(24))
-                {
-                    Logger.LogWarning("Ignoring HTTP anime request: {animeId}, already requested in last 24 hours", CommandParams.AnimeId);
-                    Completed = true;
-                    return;
-                }
-                aniDbAnime.Updated = DateTime.UtcNow;
+                Logger.LogWarning("Ignoring HTTP anime request: {animeId}, already requested in last 24 hours", CommandParams.AnimeId);
+                Completed = true;
+                return;
             }
+            string? result;
+            if (!cacheHit || CommandParams.ForceRefresh)
+                result = await GetAnimeHttp();
+            else
+                result = await GetAnimeCache();
+
+            if (result is null)
+            {
+                Completed = true;
+                return;
+            }
+            XmlSerializer serializer = new(typeof(HttpAnimeResult));
+            var animeResult = serializer.Deserialize(new StringReader(result)) as HttpAnimeResult;
+            if (animeResult is null)
+            {
+                Completed = true;
+                return;
+            }
+
+            Completed = true;
+        }
+
+        private async Task<string?> GetAnimeCache()
+        {
+            Logger.LogInformation("Cache getting anime id {animeId}", CommandParams.AnimeId);
+            if (File.Exists(_cacheFilePath))
+                return await File.ReadAllTextAsync(_cacheFilePath);
+            return null;
+        }
+
+        private (bool Hit, bool canRequest) CheckCache()
+        {
+            var fileInfo = new FileInfo(_cacheFilePath);
+            if (fileInfo.Exists)
+                return (fileInfo.Length != 0, DateTime.UtcNow - fileInfo.LastWriteTimeUtc > TimeSpan.FromHours(24));
+            return (false, true);
+        }
+
+        private async Task<string?> GetAnimeHttp()
+        {
+            string? result;
             Logger.LogInformation("HTTP Getting anime id {animeId}", CommandParams.AnimeId);
             HttpWebRequest request = WebRequest.CreateHttp(_url);
             request.AutomaticDecompression = DecompressionMethods.GZip;
@@ -56,30 +99,49 @@ namespace Shizou.Commands.AniDb
             using (Stream stream = response.GetResponseStream())
             using (StreamReader reader = new(stream))
             {
-                string result = await reader.ReadToEndAsync();
+                result = await reader.ReadToEndAsync();
                 if (string.IsNullOrWhiteSpace(result))
                 {
                     Logger.LogWarning("No http response, may be banned or no such anime {animeId}", CommandParams.AnimeId);
                     _processor.Paused = true;
                     _processor.PauseReason = $"No http response, may be banned or no such anime {CommandParams.AnimeId}";
+                    result = null;
                 }
-                const string errStt = "<error>";
-                const string errEnd = "</error>";
-                if (result.StartsWith(errStt))
+                else
                 {
-                    var errText = result.Substring(errStt.Length, result.Length - errEnd.Length - errStt.Length);
-                    if (errText == "Banned")
+                    const string errStt = "<error>";
+                    const string errEnd = "</error>";
+                    if (result.StartsWith(errStt))
                     {
-                        _processor.Banned = true;
-                        _processor.PauseReason = $"No http response, may be banned or no such anime {CommandParams.AnimeId}";
-                        return;
+                        var errText = result.Substring(errStt.Length, result.Length - errEnd.Length - errStt.Length);
+                        if (errText == "Banned")
+                        {
+                            _processor.Banned = true;
+                            _processor.PauseReason = $"No http response, may be banned or no such anime {CommandParams.AnimeId}";
+                            Logger.LogWarning("HTTP Banned! waiting {banPeriod}", _processor.BanPeriod);
+                        }
+                        else
+                        {
+                            Logger.LogCritical("Unknown error http response, not requesting again: {errText}", errText);
+                            _processor.Paused = true;
+                            _processor.PauseReason = "Unknown error http response, check log";
+                            Completed = true;
+                        }
+                        result = null;
                     }
-                    Logger.LogCritical("Unknown error http response, not requesting again: {errText}", errText);
-                    Completed = true;
-                    return;
                 }
             }
-            Completed = true;
+            if (result is null)
+            {
+                if (!File.Exists(_cacheFilePath))
+                    File.Create(_cacheFilePath).Dispose();
+                File.SetLastWriteTime(_cacheFilePath, DateTime.UtcNow);
+            }
+            else
+            {
+                await File.WriteAllTextAsync(_cacheFilePath, result, Encoding.UTF8);
+            }
+            return result;
         }
     }
 }

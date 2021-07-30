@@ -1,65 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Serialization;
+using Shizou.Entities;
+using Shizou.Enums;
 
 namespace Shizou.AniDbApi
 {
-// using System.Xml.Serialization;
-// XmlSerializer serializer = new XmlSerializer(typeof(Anime));
-// using (StringReader reader = new StringReader(xml))
-// {
-//    var test = (Anime)serializer.Deserialize(reader);
-// }
-
-    [XmlRoot(ElementName = "title")]
-    public class Title
-    {
-        [XmlAttribute(AttributeName = "lang")]
-        public string Lang { get; set; }
-
-        [XmlAttribute(AttributeName = "type")]
-        public string Type { get; set; }
-
-        [XmlText]
-        public string Text { get; set; }
-    }
-
-    [XmlRoot(ElementName = "titles")]
-    public class Titles
-    {
-        [XmlElement(ElementName = "title")]
-        public List<Title> Title { get; set; }
-    }
-
-    [XmlRoot(ElementName = "anime")]
-    public class RelatedAnimeEntry
-    {
-        [XmlAttribute(AttributeName = "id")]
-        public int Id { get; set; }
-
-        [XmlAttribute(AttributeName = "type")]
-        public string Type { get; set; }
-
-        [XmlText]
-        public string Text { get; set; }
-    }
-
-    [XmlRoot(ElementName = "anime")]
-    public class SimilarAnimeEntry
-    {
-        [XmlAttribute(AttributeName = "id")]
-        public int Id { get; set; }
-
-        [XmlAttribute(AttributeName = "approval")]
-        public int Approval { get; set; }
-
-        [XmlAttribute(AttributeName = "total")]
-        public int Total { get; set; }
-
-        [XmlText]
-        public string Text { get; set; }
-    }
-
     [XmlRoot(ElementName = "anime")]
     public class HttpAnimeResult
     {
@@ -67,7 +14,7 @@ namespace Shizou.AniDbApi
         public int Id { get; set; }
 
         [XmlElement(ElementName = "type")]
-        public string Type { get; set; }
+        public AnimeType Type { get; set; }
 
         [XmlElement(ElementName = "episodecount")]
         public int Episodecount { get; set; }
@@ -79,7 +26,7 @@ namespace Shizou.AniDbApi
         public DateTime Enddate { get; set; }
 
         [XmlElement(ElementName = "titles")]
-        public Titles Titles { get; set; }
+        public AnimeTitles Titles { get; set; }
 
         [XmlElement(ElementName = "relatedanime")]
         public Relatedanime Relatedanime { get; set; }
@@ -119,6 +66,98 @@ namespace Shizou.AniDbApi
 
         [XmlAttribute(AttributeName = "restricted")]
         public bool Restricted { get; set; }
+
+        public AniDbAnime ToAniDbAnime()
+        {
+            var mainTitle = Titles.Title.First(t => t.Type == "main");
+            var anime = new AniDbAnime
+            {
+                Id = Id,
+                Description = Description,
+                Restricted = Restricted,
+                AirDate = Startdate,
+                EndDate = Enddate,
+                AnimeType = Type,
+                EpisodeCount = Episodecount,
+                ImagePath = Picture,
+                Title = mainTitle.Text,
+                AniDbEpisodes = Episodes.Episode.Select(e => new AniDbEpisode
+                {
+                    Id = e.Id,
+                    Duration = TimeSpan.FromMinutes(e.Length),
+                    Number = e.Epno.Text,
+                    EpisodeType = e.Epno.Type,
+                    AirDate = e.Airdate,
+                    Updated = DateTime.UtcNow,
+                    AniDbAnimeId = Id,
+                    TitleEnglish = e.Title.First(t => t.Lang == "en").Text,
+                    TitleRomaji = e.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == mainTitle.Lang)?.Text,
+                    TitleKanji = e.Title.FirstOrDefault(t =>
+                        t.Lang.StartsWith(mainTitle.Lang switch {"x-jat" => "ja", "x-zht" => "zh-han", "x-kot" => "ko", _ => "none"},
+                            StringComparison.OrdinalIgnoreCase))?.Text
+                }).ToList()
+            };
+            return anime;
+        }
+    }
+
+    [XmlRoot(ElementName = "title")]
+    public class AnimeTitle
+    {
+        [XmlAttribute(AttributeName = "lang")]
+        public string Lang { get; set; }
+
+        [XmlAttribute(AttributeName = "type")]
+        public string Type { get; set; }
+
+        [XmlText]
+        public string Text { get; set; }
+    }
+
+    [XmlRoot(ElementName = "title")]
+    public class EpisodeTitle
+    {
+        [XmlAttribute(AttributeName = "lang")]
+        public string Lang { get; set; }
+
+        [XmlText]
+        public string Text { get; set; }
+    }
+
+    [XmlRoot(ElementName = "titles")]
+    public class AnimeTitles
+    {
+        [XmlElement(ElementName = "title")]
+        public List<AnimeTitle> Title { get; set; }
+    }
+
+    [XmlRoot(ElementName = "anime")]
+    public class RelatedAnimeEntry
+    {
+        [XmlAttribute(AttributeName = "id")]
+        public int Id { get; set; }
+
+        [XmlAttribute(AttributeName = "type")]
+        public string Type { get; set; }
+
+        [XmlText]
+        public string Text { get; set; }
+    }
+
+    [XmlRoot(ElementName = "anime")]
+    public class SimilarAnimeEntry
+    {
+        [XmlAttribute(AttributeName = "id")]
+        public int Id { get; set; }
+
+        [XmlAttribute(AttributeName = "approval")]
+        public int Approval { get; set; }
+
+        [XmlAttribute(AttributeName = "total")]
+        public int Total { get; set; }
+
+        [XmlText]
+        public string Text { get; set; }
     }
 
     [XmlRoot(ElementName = "relatedanime")]
@@ -162,7 +201,7 @@ namespace Shizou.AniDbApi
     }
 
     [XmlRoot(ElementName = "name")]
-    public class Name
+    public class CreatorName
     {
         [XmlAttribute(AttributeName = "id")]
         public int Id { get; set; }
@@ -178,57 +217,27 @@ namespace Shizou.AniDbApi
     public class Creators
     {
         [XmlElement(ElementName = "name")]
-        public List<Name> Name { get; set; }
-    }
-
-    [XmlRoot(ElementName = "permanent")]
-    public class Permanent
-    {
-        [XmlAttribute(AttributeName = "count")]
-        public int Count { get; set; }
-
-        [XmlText]
-        public DateTime Text { get; set; }
-    }
-
-    [XmlRoot(ElementName = "temporary")]
-    public class Temporary
-    {
-        [XmlAttribute(AttributeName = "count")]
-        public int Count { get; set; }
-
-        [XmlText]
-        public DateTime Text { get; set; }
-    }
-
-    [XmlRoot(ElementName = "review")]
-    public class Review
-    {
-        [XmlAttribute(AttributeName = "count")]
-        public int Count { get; set; }
-
-        [XmlText]
-        public double Text { get; set; }
+        public List<CreatorName> Name { get; set; }
     }
 
     [XmlRoot(ElementName = "ratings")]
     public class Ratings
     {
         [XmlElement(ElementName = "permanent")]
-        public Permanent Permanent { get; set; }
+        public Rating Permanent { get; set; }
 
         [XmlElement(ElementName = "temporary")]
-        public Temporary Temporary { get; set; }
+        public Rating Temporary { get; set; }
 
         [XmlElement(ElementName = "review")]
-        public Review Review { get; set; }
+        public Rating Review { get; set; }
     }
 
     [XmlRoot(ElementName = "externalentity")]
     public class Externalentity
     {
         [XmlElement(ElementName = "identifier")]
-        public List<int> Identifier { get; set; }
+        public List<string> Identifier { get; set; }
 
         [XmlElement(ElementName = "url")]
         public string Url { get; set; }
@@ -366,9 +375,6 @@ namespace Shizou.AniDbApi
 
         [XmlAttribute(AttributeName = "update")]
         public DateTime Update { get; set; }
-
-        [XmlText]
-        public string Text { get; set; }
     }
 
     [XmlRoot(ElementName = "characters")]
@@ -382,7 +388,7 @@ namespace Shizou.AniDbApi
     public class Epno
     {
         [XmlAttribute(AttributeName = "type")]
-        public int Type { get; set; }
+        public EpisodeType Type { get; set; }
 
         [XmlText]
         public int Text { get; set; }
@@ -404,16 +410,13 @@ namespace Shizou.AniDbApi
         public Rating Rating { get; set; }
 
         [XmlElement(ElementName = "title")]
-        public List<Title> Title { get; set; }
+        public List<EpisodeTitle> Title { get; set; }
 
         [XmlAttribute(AttributeName = "id")]
         public int Id { get; set; }
 
         [XmlAttribute(AttributeName = "update")]
         public DateTime Update { get; set; }
-
-        [XmlText]
-        public string Text { get; set; }
     }
 
     [XmlRoot(ElementName = "episodes")]
