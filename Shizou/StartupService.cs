@@ -31,6 +31,7 @@ namespace Shizou
             var aniDbUdp = scope.ServiceProvider.GetRequiredService<AniDbUdp>();
             scope.ServiceProvider.GetRequiredService<AniDbUdpProcessor>().Paused = false;
             scope.ServiceProvider.GetRequiredService<HashProcessor>().Paused = false;
+            scope.ServiceProvider.GetRequiredService<AniDbHttpProcessor>().Paused = false;
             var importer = scope.ServiceProvider.GetRequiredService<Importer>();
 
             var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();

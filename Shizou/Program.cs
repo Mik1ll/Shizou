@@ -11,6 +11,9 @@ namespace Shizou
     public class Program
     {
         public static readonly string ApplicationData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Shizou");
+        public static readonly string TempFilePath = Path.Combine(ApplicationData, "Temp");
+
+        public static readonly string HttpCachePath = Path.Combine(ApplicationData, "HTTPAnime");
 
         public static int Main(string[] args)
         {

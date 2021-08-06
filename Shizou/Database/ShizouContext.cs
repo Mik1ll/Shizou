@@ -37,7 +37,7 @@ namespace Shizou.Database
         {
             optionsBuilder
                 .UseSqlite(@$"Data Source={Path.Combine(Program.ApplicationData, "ShizouDB.sqlite3")};Foreign Keys=True;")
-                //.EnableSensitiveDataLogging()
+                .EnableSensitiveDataLogging()
                 ;
         }
     }

@@ -22,7 +22,8 @@ namespace Shizou.AniDbApi.Requests
         public int? EpisodeId { get; set; }
         public int? GroupId { get; set; }
         public int? MyListId { get; set; }
-        public List<(int episodeId, float percentage)>? OtherEpisodes { get; set; }
+        public List<int>? OtherEpisodeIds { get; set; }
+        public List<float>? OtherEpisodePercentages { get; set; }
         public bool? IsDeprecated { get; set; }
         public FileState? State { get; set; }
 
@@ -274,11 +275,13 @@ namespace Shizou.AniDbApi.Requests
                             FileResult.MyListId = data != "0" ? int.Parse(data) : null;
                             break;
                         case FMask.OtherEpisodes:
-                            FileResult.OtherEpisodes = data.Split('\'').Select(eps =>
+                            var otherEpisodes = data.Split('\'').Select(eps =>
                             {
                                 var splitLine = eps.Split(',');
                                 return (int.Parse(splitLine[0]), int.Parse(splitLine[1]) / 100f);
                             }).ToList();
+                            FileResult.OtherEpisodeIds = otherEpisodes.Select(e => e.Item1).ToList();
+                            FileResult.OtherEpisodePercentages = otherEpisodes.Select(e => e.Item2).ToList();
                             break;
                         case FMask.IsDeprecated:
                             FileResult.IsDeprecated = int.Parse(data) != 0;

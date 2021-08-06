@@ -85,7 +85,7 @@ namespace Shizou.AniDbApi
                 {
                     Id = e.Id,
                     Duration = TimeSpan.FromMinutes(e.Length),
-                    Number = e.Epno.Text,
+                    Number = e.Epno.Text.ParseEpisode().number,
                     EpisodeType = e.Epno.Type,
                     AirDate = e.Airdate,
                     Updated = DateTime.UtcNow,
@@ -105,7 +105,7 @@ namespace Shizou.AniDbApi
     [XmlRoot(ElementName = "title")]
     public class AnimeTitle
     {
-        [XmlAttribute(AttributeName = "lang")]
+        [XmlAttribute(AttributeName = "xml:lang", DataType = "language")]
         public string Lang { get; set; }
 
         [XmlAttribute(AttributeName = "type")]
@@ -118,7 +118,7 @@ namespace Shizou.AniDbApi
     [XmlRoot(ElementName = "title")]
     public class EpisodeTitle
     {
-        [XmlAttribute(AttributeName = "lang")]
+        [XmlAttribute(AttributeName = "xml:lang", DataType = "language")]
         public string Lang { get; set; }
 
         [XmlText]
@@ -252,9 +252,6 @@ namespace Shizou.AniDbApi
 
         [XmlAttribute(AttributeName = "type")]
         public int Type { get; set; }
-
-        [XmlText]
-        public int Text { get; set; }
     }
 
     [XmlRoot(ElementName = "resources")]
@@ -318,7 +315,7 @@ namespace Shizou.AniDbApi
         public int Votes { get; set; }
 
         [XmlText]
-        public DateTime Text { get; set; }
+        public float Text { get; set; }
     }
 
     [XmlRoot(ElementName = "charactertype")]
@@ -392,7 +389,7 @@ namespace Shizou.AniDbApi
         public EpisodeType Type { get; set; }
 
         [XmlText]
-        public int Text { get; set; }
+        public string Text { get; set; }
     }
 
     [XmlRoot(ElementName = "episode")]

@@ -1,12 +1,15 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Xml.Serialization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Database;
@@ -19,7 +22,6 @@ namespace Shizou.Commands.AniDb
     [Command(CommandType.HttpGetAnime, CommandPriority.Default, QueueType.AniDbHttp)]
     public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
     {
-        public static readonly string HttpCachePath = Path.Combine(Program.ApplicationData, "HTTPAnime");
         private readonly string _cacheFilePath;
         private readonly ShizouContext _context;
         private readonly AniDbHttpProcessor _processor;
@@ -28,17 +30,17 @@ namespace Shizou.Commands.AniDb
         public HttpAnimeCommand(IServiceProvider provider, HttpAnimeParams commandParams) : base(provider,
             provider.GetRequiredService<ILogger<HttpAnimeCommand>>(), commandParams)
         {
-            var options = provider.GetRequiredService<ShizouOptions>();
+            var options = provider.GetRequiredService<IOptions<ShizouOptions>>();
             _processor = provider.GetRequiredService<AniDbHttpProcessor>();
             _context = provider.GetRequiredService<ShizouContext>();
-            var builder = new UriBuilder("http", options.AniDb.ServerHost, options.AniDb.HttpServerPort, "httpapi");
+            var builder = new UriBuilder("http", options.Value.AniDb.ServerHost, options.Value.AniDb.HttpServerPort, "httpapi");
             var query = HttpUtility.ParseQueryString(builder.Query);
             query["request"] = "anime";
             query["aid"] = commandParams.AnimeId.ToString();
             builder.Query = query.ToString();
             _url = builder.ToString();
             CommandId = $"{nameof(HttpAnimeCommand)}_{commandParams.AnimeId}";
-            _cacheFilePath = Path.Combine(HttpCachePath, $"HttpAnime_{CommandParams.AnimeId}.xml");
+            _cacheFilePath = Path.Combine(Program.HttpCachePath, $"AnimeDoc_{CommandParams.AnimeId}.xml");
         }
 
         public override string CommandId { get; }
@@ -71,6 +73,24 @@ namespace Shizou.Commands.AniDb
                 return;
             }
 
+            var aniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes).AsNoTracking().FirstOrDefault(e => e.Id == CommandParams.AnimeId);
+            var newAniDbAnime = animeResult.ToAniDbAnime();
+            if (aniDbAnime is null)
+            {
+                _context.AniDbAnimes.Add(newAniDbAnime);
+            }
+            else
+            {
+                _context.Update(newAniDbAnime);
+                foreach (var ep in newAniDbAnime.AniDbEpisodes)
+                {
+                    var oldEp = aniDbAnime.AniDbEpisodes.FirstOrDefault(e => e.Id == ep.Id);
+                    if (oldEp is null)
+                        _context.Entry(ep).State = EntityState.Added;
+                }
+            }
+
+            _context.SaveChanges();
             Completed = true;
         }
 
@@ -135,7 +155,11 @@ namespace Shizou.Commands.AniDb
             if (result is null)
             {
                 if (!File.Exists(_cacheFilePath))
+                {
+                    if (!Directory.Exists(Program.HttpCachePath))
+                        Directory.CreateDirectory(Program.HttpCachePath);
                     File.Create(_cacheFilePath).Dispose();
+                }
                 File.SetLastWriteTime(_cacheFilePath, DateTime.UtcNow);
             }
             else

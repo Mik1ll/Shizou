@@ -36,6 +36,7 @@ namespace Shizou.Commands.AniDb
 
         public override async Task Process()
         {
+            Logger.LogInformation("Processing local file id: {localfileId}", CommandParams.LocalFileId);
             var localFile = _context.LocalFiles.Find(CommandParams.LocalFileId);
             if (localFile is null)
             {
@@ -45,9 +46,10 @@ namespace Shizou.Commands.AniDb
             }
 
             // Check if file was requested before and did not complete
-            var fileResultTempPath = Path.Combine(Program.ApplicationData, "Temp", CommandId + ".json");
+            var fileResultTempPath = Path.Combine(Program.TempFilePath, CommandId + ".json");
             AniDbFileResult? result = null;
-            if (File.Exists(fileResultTempPath))
+            var fileResult = new FileInfo(fileResultTempPath);
+            if (fileResult.Exists && fileResult.Length > 0)
                 using (var file = new FileStream(fileResultTempPath, FileMode.Open, FileAccess.Read))
                 {
                     result = await JsonSerializer.DeserializeAsync<AniDbFileResult>(file);
@@ -72,7 +74,8 @@ namespace Shizou.Commands.AniDb
                 result = fileReq.FileResult;
 
                 // Keep file result just in case command does not complete
-                Directory.CreateDirectory(Path.GetDirectoryName(fileResultTempPath)!);
+                if (!Directory.Exists(Program.TempFilePath))
+                    Directory.CreateDirectory(Program.TempFilePath);
                 using (var file = new FileStream(fileResultTempPath, FileMode.Create, FileAccess.Write))
                 {
                     await JsonSerializer.SerializeAsync(file, result);
@@ -144,7 +147,6 @@ namespace Shizou.Commands.AniDb
                 _context.Entry(aniDbFile).CurrentValues.SetValues(newAniDbFile);
 
             // Get the anime
-            // TODO: Get with AnimeRequest
             var aniDbAnime = _context.AniDbAnimes.Find(result.AnimeId);
             if (aniDbAnime is null)
                 aniDbAnime = _context.AniDbAnimes.Add(new AniDbAnime
@@ -158,6 +160,7 @@ namespace Shizou.Commands.AniDb
                 }).Entity;
 
             // Get the episode
+            using var animeTransaction = _context.Database.BeginTransaction();
             var aniDbEpisode = _context.AniDbEpisodes.Include(e => e.AniDbFiles).FirstOrDefault(e => e.Id == result.EpisodeId);
             if (aniDbEpisode is null)
                 aniDbEpisode = _context.AniDbEpisodes.Add(new AniDbEpisode
@@ -178,18 +181,19 @@ namespace Shizou.Commands.AniDb
                 aniDbEpisode.AniDbFiles.Add(aniDbFile);
 
             _context.SaveChanges();
+            animeTransaction.Commit();
 
             var newAnime = new List<int>();
             if (aniDbAnime.Updated is null)
                 newAnime.Add(aniDbAnime.Id);
 
             // Get other episodes
-            if (result.OtherEpisodes is not null)
+            if (result.OtherEpisodeIds is not null)
             {
                 // Associate episodes already in database
                 // TODO: test linq to sql
                 var foundOtherEpisodes = _context.AniDbEpisodes.Include(e => e.AniDbFiles)
-                    .Where(e => result.OtherEpisodes.Select(a => a.episodeId).Contains(e.Id)).ToList();
+                    .Where(e => result.OtherEpisodeIds.Contains(e.Id)).ToList();
                 foreach (var ep in foundOtherEpisodes)
                     if (!ep.AniDbFiles.Any(e => e.Id == aniDbFile.Id))
                         ep.AniDbFiles.Add(aniDbFile);
@@ -197,7 +201,7 @@ namespace Shizou.Commands.AniDb
 
                 // Get episodes not in database
                 // TODO: Test linq to sql
-                foreach (var eid in result.OtherEpisodes.Select(e => e.episodeId).Except(foundOtherEpisodes.Select(e => e.Id)))
+                foreach (var eid in result.OtherEpisodeIds.Except(foundOtherEpisodes.Select(e => e.Id)))
                 {
                     var episodeReq = new EpisodeRequest(Provider, eid);
                     await episodeReq.Process();
@@ -222,12 +226,16 @@ namespace Shizou.Commands.AniDb
                         AniDbFiles = new List<AniDbFile> {aniDbFile},
                         AniDbAnimeId = epResult.AnimeId
                     };
-                    _context.AniDbEpisodes.Add(newAniDbEpisode);
+                    using var episodeTransaction = _context.Database.BeginTransaction();
+                    if (_context.AniDbEpisodes.AsNoTracking().Any(e => e.Id == newAniDbEpisode.Id))
+                        _context.AniDbEpisodes.Update(newAniDbEpisode);
+                    else
+                        _context.AniDbEpisodes.Add(newAniDbEpisode);
+                    _context.SaveChanges();
+                    episodeTransaction.Commit();
                     var otherEpAnime = _context.AniDbAnimes.Find(epResult.AnimeId);
                     if (otherEpAnime is null || otherEpAnime.Updated is null)
                         newAnime.Add(epResult.AnimeId);
-                    // TODO: just make ep-anime relations nullable instead of partial entries
-                    _context.SaveChanges();
                 }
             }
 

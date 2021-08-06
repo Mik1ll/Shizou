@@ -52,11 +52,14 @@ namespace Shizou
             services.AddHostedService<StartupService>();
             services.AddDbContext<ShizouContext>();
             services.AddScoped<CommandManager>();
+            services.AddScoped<Importer>();
+
             services.AddSingleton<AniDbUdp>();
             services.AddSingleton<UdpRateLimiter>();
+
             services.AddSingleton<AniDbUdpProcessor>();
             services.AddSingleton<HashProcessor>();
-            services.AddScoped<Importer>();
+            services.AddSingleton<AniDbHttpProcessor>();
             services.AddSingleton<IHostedService>(p => p.GetRequiredService<AniDbUdpProcessor>());
             services.AddSingleton<IHostedService>(p => p.GetRequiredService<HashProcessor>());
             services.AddSingleton<IHostedService>(p => p.GetRequiredService<AniDbHttpProcessor>());

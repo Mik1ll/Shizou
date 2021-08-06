@@ -21,11 +21,17 @@ namespace Shizou.Enums
 
     public enum EpisodeType
     {
+        [XmlEnum("1")]
         Episode = 1,
+        [XmlEnum("2")]
         Credits = 2,
+        [XmlEnum("3")]
         Special = 3,
+        [XmlEnum("4")]
         Trailer = 4,
+        [XmlEnum("5")]
         Parody = 5,
+        [XmlEnum("6")]
         Other = 6
     }
 
