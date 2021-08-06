@@ -21,6 +21,7 @@ namespace Shizou.Commands.AniDb
     [Command(CommandType.GetFile, CommandPriority.Default, QueueType.AniDbUdp)]
     public class ProcessCommand : BaseCommand<ProcessParams>
     {
+        private readonly CommandManager _cmdMgr;
         private readonly ShizouContext _context;
 
         public ProcessCommand(IServiceProvider provider, ProcessParams commandParams)
@@ -28,6 +29,7 @@ namespace Shizou.Commands.AniDb
         {
             CommandId = $"{nameof(ProcessCommand)}_{commandParams.LocalFileId}";
             _context = provider.GetRequiredService<ShizouContext>();
+            _cmdMgr = provider.GetRequiredService<CommandManager>();
         }
 
         public override string CommandId { get; }
@@ -177,6 +179,10 @@ namespace Shizou.Commands.AniDb
 
             _context.SaveChanges();
 
+            var newAnime = new List<int>();
+            if (aniDbAnime.Updated is null)
+                newAnime.Add(aniDbAnime.Id);
+
             // Get other episodes
             if (result.OtherEpisodes is not null)
             {
@@ -197,7 +203,7 @@ namespace Shizou.Commands.AniDb
                     await episodeReq.Process();
                     if (episodeReq.EpisodeResult is null)
                     {
-                        Logger.LogWarning("Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, failed to get episode id: {episodeId}",
+                        Logger.LogWarning("Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, failed to get other episode id: {episodeId}",
                             localFile.Id, localFile.Ed2K, eid);
                         return;
                     }
@@ -216,11 +222,16 @@ namespace Shizou.Commands.AniDb
                         AniDbFiles = new List<AniDbFile> {aniDbFile},
                         AniDbAnimeId = epResult.AnimeId
                     };
-                    // TODO: Create anime relations
                     _context.AniDbEpisodes.Add(newAniDbEpisode);
+                    var otherEpAnime = _context.AniDbAnimes.Find(epResult.AnimeId);
+                    if (otherEpAnime is null || otherEpAnime.Updated is null)
+                        newAnime.Add(epResult.AnimeId);
+                    // TODO: just make ep-anime relations nullable instead of partial entries
                     _context.SaveChanges();
                 }
             }
+
+            _cmdMgr.DispatchRange(newAnime.Select(id => new HttpAnimeParams(id)));
 
             Completed = true;
             File.Delete(fileResultTempPath);

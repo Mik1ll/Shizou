@@ -14,8 +14,9 @@ using Shizou.Options;
 
 namespace Shizou.Commands.AniDb
 {
-    public record HttpAnimeParams(int AnimeId, bool ForceRefresh) : CommandParams;
+    public record HttpAnimeParams(int AnimeId, bool ForceRefresh = false) : CommandParams;
 
+    [Command(CommandType.HttpGetAnime, CommandPriority.Default, QueueType.AniDbHttp)]
     public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
     {
         public static readonly string HttpCachePath = Path.Combine(Program.ApplicationData, "HTTPAnime");

@@ -95,7 +95,8 @@ namespace Shizou.AniDbApi
                     TitleKanji = e.Title.FirstOrDefault(t =>
                         t.Lang.StartsWith(mainTitle.Lang switch {"x-jat" => "ja", "x-zht" => "zh-han", "x-kot" => "ko", _ => "none"},
                             StringComparison.OrdinalIgnoreCase))?.Text
-                }).ToList()
+                }).ToList(),
+                Updated = DateTime.UtcNow
             };
             return anime;
         }
