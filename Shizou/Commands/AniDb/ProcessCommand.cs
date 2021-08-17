@@ -124,7 +124,7 @@ namespace Shizou.Commands.AniDb
                     },
                 Audio = result.AudioCodecs!.Zip(result.AudioBitRates!, (codec, bitrate) => (codec, bitrate))
                     .Zip(result.DubLanguages!, (tup, lang) => (tup.codec, tup.bitrate, lang)).Select((tuple, i) =>
-                        new AniDbAudio {Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Number = i + 1}).ToList(),
+                        new AniDbAudio { Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Number = i + 1 }).ToList(),
                 // TODO: Either fix Id creation for owned type or remove Id property
                 Video = result.VideoCodec is null
                     ? null
@@ -136,7 +136,7 @@ namespace Shizou.Commands.AniDb
                         Height = int.Parse(result.VideoResolution!.Split('x')[1]),
                         Width = int.Parse(result.VideoResolution!.Split('x')[0])
                     },
-                Subtitles = result.SubLangugages!.Select((s, i) => new AniDbSubtitle {Language = s, Number = i + 1}).ToList(),
+                Subtitles = result.SubLangugages!.Select((s, i) => new AniDbSubtitle { Language = s, Number = i + 1 }).ToList(),
                 FileName = result.AniDbFileName!,
                 LocalFile = localFile
             };
@@ -160,28 +160,30 @@ namespace Shizou.Commands.AniDb
                 }).Entity;
 
             // Get the episode
-            using var animeTransaction = _context.Database.BeginTransaction();
-            var aniDbEpisode = _context.AniDbEpisodes.Include(e => e.AniDbFiles).FirstOrDefault(e => e.Id == result.EpisodeId);
-            if (aniDbEpisode is null)
-                aniDbEpisode = _context.AniDbEpisodes.Add(new AniDbEpisode
-                {
-                    Id = result.EpisodeId!.Value,
-                    TitleEnglish = result.EpisodeTitleEnglish!,
-                    TitleRomaji = result.EpisodeTitleRomaji,
-                    TitleKanji = result.EpisodeTitleKanji,
-                    Number = result.EpisodeNumber!.ParseEpisode().number,
-                    EpisodeType = result.EpisodeNumber!.ParseEpisode().type,
-                    AirDate = result.EpisodeAiredDate,
-                    AniDbFiles = new List<AniDbFile> {aniDbFile},
-                    AniDbAnime = aniDbAnime
-                }).Entity;
+            using (var animeTransaction = _context.Database.BeginTransaction())
+            {
+                var aniDbEpisode = _context.AniDbEpisodes.Include(e => e.AniDbFiles).FirstOrDefault(e => e.Id == result.EpisodeId);
+                if (aniDbEpisode is null)
+                    aniDbEpisode = _context.AniDbEpisodes.Add(new AniDbEpisode
+                    {
+                        Id = result.EpisodeId!.Value,
+                        TitleEnglish = result.EpisodeTitleEnglish!,
+                        TitleRomaji = result.EpisodeTitleRomaji,
+                        TitleKanji = result.EpisodeTitleKanji,
+                        Number = result.EpisodeNumber!.ParseEpisode().number,
+                        EpisodeType = result.EpisodeNumber!.ParseEpisode().type,
+                        AirDate = result.EpisodeAiredDate,
+                        AniDbFiles = new List<AniDbFile> { aniDbFile },
+                        AniDbAnime = aniDbAnime
+                    }).Entity;
 
-            // Add the file relation if not found
-            if (!aniDbEpisode.AniDbFiles.Any(e => e.Id == aniDbFile.Id))
-                aniDbEpisode.AniDbFiles.Add(aniDbFile);
+                // Add the file relation if not found
+                if (!aniDbEpisode.AniDbFiles.Any(e => e.Id == aniDbFile.Id))
+                    aniDbEpisode.AniDbFiles.Add(aniDbFile);
 
-            _context.SaveChanges();
-            animeTransaction.Commit();
+                _context.SaveChanges();
+                animeTransaction.Commit();
+            }
 
             var newAnime = new List<int>();
             if (aniDbAnime.Updated is null)
@@ -200,7 +202,6 @@ namespace Shizou.Commands.AniDb
                 _context.SaveChanges();
 
                 // Get episodes not in database
-                // TODO: Test linq to sql
                 foreach (var eid in result.OtherEpisodeIds.Except(foundOtherEpisodes.Select(e => e.Id)))
                 {
                     var episodeReq = new EpisodeRequest(Provider, eid);
@@ -223,16 +224,18 @@ namespace Shizou.Commands.AniDb
                         Duration = epResult.DurationMinutes is null ? null : TimeSpan.FromMinutes(epResult.DurationMinutes.Value),
                         AirDate = epResult.AiredDate,
                         Updated = DateTime.UtcNow,
-                        AniDbFiles = new List<AniDbFile> {aniDbFile},
+                        AniDbFiles = new List<AniDbFile> { aniDbFile },
                         AniDbAnimeId = epResult.AnimeId
                     };
-                    using var episodeTransaction = _context.Database.BeginTransaction();
-                    if (_context.AniDbEpisodes.AsNoTracking().Any(e => e.Id == newAniDbEpisode.Id))
-                        _context.AniDbEpisodes.Update(newAniDbEpisode);
-                    else
-                        _context.AniDbEpisodes.Add(newAniDbEpisode);
-                    _context.SaveChanges();
-                    episodeTransaction.Commit();
+                    using (var episodeTransaction = _context.Database.BeginTransaction())
+                    {
+                        if (_context.AniDbEpisodes.AsNoTracking().Any(e => e.Id == newAniDbEpisode.Id))
+                            _context.AniDbEpisodes.Update(newAniDbEpisode);
+                        else
+                            _context.AniDbEpisodes.Add(newAniDbEpisode);
+                        _context.SaveChanges();
+                        episodeTransaction.Commit();
+                    }
                     var otherEpAnime = _context.AniDbAnimes.Find(epResult.AnimeId);
                     if (otherEpAnime is null || otherEpAnime.Updated is null)
                         newAnime.Add(epResult.AnimeId);

@@ -73,24 +73,27 @@ namespace Shizou.Commands.AniDb
                 return;
             }
 
-            var aniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes).AsNoTracking().FirstOrDefault(e => e.Id == CommandParams.AnimeId);
-            var newAniDbAnime = animeResult.ToAniDbAnime();
-            if (aniDbAnime is null)
+            using (var trans = _context.Database.BeginTransaction())
             {
-                _context.AniDbAnimes.Add(newAniDbAnime);
-            }
-            else
-            {
-                _context.Update(newAniDbAnime);
-                foreach (var ep in newAniDbAnime.AniDbEpisodes)
+                var animeExists = _context.AniDbAnimes.Any(e => e.Id == CommandParams.AnimeId);
+                var newAniDbAnime = animeResult.ToAniDbAnime();
+                if (!animeExists)
                 {
-                    var oldEp = aniDbAnime.AniDbEpisodes.FirstOrDefault(e => e.Id == ep.Id);
-                    if (oldEp is null)
-                        _context.Entry(ep).State = EntityState.Added;
+                    _context.AniDbAnimes.Add(newAniDbAnime);
                 }
-            }
+                else
+                {
+                    _context.Update(newAniDbAnime);
+                    foreach (var ep in newAniDbAnime.AniDbEpisodes)
+                    {
+                        var epExists = _context.AniDbEpisodes.Any(e => e.Id == ep.Id);
+                        _context.Entry(ep).State = epExists ? EntityState.Modified : EntityState.Added;
+                    }
+                }
 
-            _context.SaveChanges();
+                _context.SaveChanges();
+                trans.Commit();
+            }
             Completed = true;
         }
 

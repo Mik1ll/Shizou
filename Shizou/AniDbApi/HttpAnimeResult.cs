@@ -5,6 +5,8 @@ using System.Xml.Serialization;
 using Shizou.Entities;
 using Shizou.Enums;
 
+#pragma warning disable 8618
+
 namespace Shizou.AniDbApi
 {
     [XmlRoot(ElementName = "anime")]
