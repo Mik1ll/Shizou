@@ -17,7 +17,7 @@ using Shizou.Options;
 
 namespace Shizou.Commands.AniDb
 {
-    public record HttpAnimeParams(int AnimeId, bool ForceRefresh = false) : CommandParams;
+    public record HttpAnimeParams(int AnimeId, bool ForceRefresh = false) : CommandParams($"{nameof(HttpAnimeCommand)}_{AnimeId}");
 
     [Command(CommandType.HttpGetAnime, CommandPriority.Default, QueueType.AniDbHttp)]
     public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
@@ -39,11 +39,8 @@ namespace Shizou.Commands.AniDb
             query["aid"] = commandParams.AnimeId.ToString();
             builder.Query = query.ToString();
             _url = builder.ToString();
-            CommandId = $"{nameof(HttpAnimeCommand)}_{commandParams.AnimeId}";
             _cacheFilePath = Path.Combine(Program.HttpCachePath, $"AnimeDoc_{CommandParams.AnimeId}.xml");
         }
-
-        public override string CommandId { get; }
 
         public override async Task Process()
         {

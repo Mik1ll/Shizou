@@ -14,7 +14,7 @@ using Shizou.Hashers;
 
 namespace Shizou.Commands
 {
-    public record HashParams(string Path) : CommandParams;
+    public record HashParams(string Path) : CommandParams($"{nameof(HashCommand)}_{Path}");
 
     [Command(CommandType.Hash, CommandPriority.Default, QueueType.Hash)]
     public class HashCommand : BaseCommand<HashParams>
@@ -26,12 +26,9 @@ namespace Shizou.Commands
         public HashCommand(IServiceProvider provider, HashParams commandParams) : base(provider, provider.GetRequiredService<ILogger<HashCommand>>(),
             commandParams)
         {
-            CommandId = $"{nameof(HashCommand)}_{commandParams.Path}";
             _context = provider.GetRequiredService<ShizouContext>();
             _cmdMgr = provider.GetRequiredService<CommandManager>();
         }
-
-        public override string CommandId { get; }
 
         public override async Task Process()
         {

@@ -16,7 +16,7 @@ using Shizou.Enums;
 
 namespace Shizou.Commands.AniDb
 {
-    public sealed record ProcessParams(int LocalFileId) : CommandParams;
+    public sealed record ProcessParams(int LocalFileId) : CommandParams($"{nameof(ProcessCommand)}_{LocalFileId}");
 
     [Command(CommandType.GetFile, CommandPriority.Default, QueueType.AniDbUdp)]
     public class ProcessCommand : BaseCommand<ProcessParams>
@@ -27,12 +27,9 @@ namespace Shizou.Commands.AniDb
         public ProcessCommand(IServiceProvider provider, ProcessParams commandParams)
             : base(provider, provider.GetRequiredService<ILogger<ProcessCommand>>(), commandParams)
         {
-            CommandId = $"{nameof(ProcessCommand)}_{commandParams.LocalFileId}";
             _context = provider.GetRequiredService<ShizouContext>();
             _cmdMgr = provider.GetRequiredService<CommandManager>();
         }
-
-        public override string CommandId { get; }
 
         public override async Task Process()
         {
@@ -46,7 +43,7 @@ namespace Shizou.Commands.AniDb
             }
 
             // Check if file was requested before and did not complete
-            var fileResultTempPath = Path.Combine(Program.TempFilePath, CommandId + ".json");
+            var fileResultTempPath = Path.Combine(Program.TempFilePath, CommandParams.CommandId + ".json");
             AniDbFileResult? result = null;
             var fileResult = new FileInfo(fileResultTempPath);
             if (fileResult.Exists && fileResult.Length > 0)

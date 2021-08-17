@@ -25,11 +25,12 @@ namespace Shizou.Commands
             Provider = provider;
             CommandParams = commandParams;
             Logger = logger;
+            CommandId = commandParams.CommandId;
         }
 
         protected T CommandParams { get; }
         public bool Completed { get; set; }
-        public abstract string CommandId { get; }
+        public string CommandId { get; }
 
         public CommandRequest CommandRequest
         {

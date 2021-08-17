@@ -6,7 +6,7 @@ using Shizou.CommandProcessors;
 
 namespace Shizou.Commands
 {
-    public sealed record NoopParams(int Testint) : CommandParams;
+    public sealed record NoopParams(int Testint) : CommandParams(nameof(NoopCommand) + Testint);
 
     [Command(CommandType.Noop, CommandPriority.Default, QueueType.AniDbUdp)]
     public sealed class NoopCommand : BaseCommand<NoopParams>
@@ -15,8 +15,6 @@ namespace Shizou.Commands
             : base(provider, provider.GetRequiredService<ILogger<NoopCommand>>(), commandParams)
         {
         }
-
-        public override string CommandId => nameof(NoopCommand) + CommandParams.Testint;
 
         public override async Task Process()
         {

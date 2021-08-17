@@ -13,7 +13,7 @@ namespace Shizou.Commands
     {
         public static readonly List<(CommandType cmdType, Type type, Type paramType, Func<IServiceProvider, CommandParams, ICommand> ctor)> Commands = Assembly
             .GetExecutingAssembly().GetTypes()
-            .Select(t => new {type = t, commandAttr = t.GetCustomAttribute<CommandAttribute>()})
+            .Select(t => new { type = t, commandAttr = t.GetCustomAttribute<CommandAttribute>() })
             .Where(x => x.commandAttr is not null)
             .Select(x =>
             {
@@ -40,8 +40,7 @@ namespace Shizou.Commands
             where TParams : CommandParams
         {
             var context = _serviceProvider.GetRequiredService<ShizouContext>();
-            var command = Commands.First(x => commandParams.GetType() == x.paramType);
-            var cmdRequest = command.ctor(_serviceProvider, commandParams).CommandRequest;
+            var cmdRequest = RequestFromParams(commandParams);
             using var transaction = context.Database.BeginTransaction();
             if (!context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
                 context.CommandRequests.Add(cmdRequest);
@@ -55,9 +54,7 @@ namespace Shizou.Commands
             var context = _serviceProvider.GetRequiredService<ShizouContext>();
             using var transaction = context.Database.BeginTransaction();
             context.CommandRequests.AddRange(
-                commandParamsEnumerable.Select(commandParams =>
-                        Commands.First(x => commandParams.GetType() == x.paramType)
-                            .ctor(_serviceProvider, commandParams).CommandRequest)
+                commandParamsEnumerable.Select(commandParams => RequestFromParams(commandParams))
                     // Throw away identical command ids
                     .GroupBy(cr => cr.CommandId)
                     .Select(crs => crs.First())
@@ -72,6 +69,21 @@ namespace Shizou.Commands
         {
             var command = Commands.First(x => commandRequest.Type == x.cmdType);
             return command.ctor(_serviceProvider, (CommandParams)JsonSerializer.Deserialize(commandRequest.CommandParams, command.paramType)!);
+        }
+
+        public CommandRequest RequestFromParams(CommandParams commandParams)
+        {
+            var paramType = commandParams.GetType();
+            var commandAttr = Commands.First(x => x.paramType == paramType).type.GetCustomAttribute<CommandAttribute>() ??
+                              throw new InvalidOperationException($"Could not load command attribute from {GetType().Name}");
+            return new CommandRequest
+            {
+                Type = commandAttr.Type,
+                Priority = commandAttr.Priority,
+                QueueType = commandAttr.QueueType,
+                CommandId = commandParams.CommandId,
+                CommandParams = JsonSerializer.Serialize(commandParams, paramType)
+            };
         }
     }
 }
