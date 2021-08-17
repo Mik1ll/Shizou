@@ -156,7 +156,7 @@ namespace Shizou.Commands.AniDb
                     EpisodeCount = result.TotalEpisodes!.Value,
                     HighestEpisode = result.HighestEpisodeNumber!.Value,
                     AnimeType = result.Type!.Value,
-                    RecordUpdated = result.DateAnimeRecordUpdated!.Value
+                    AniDbUpdated = result.DateAnimeRecordUpdated!.Value
                 }).Entity;
 
             // Get the episode

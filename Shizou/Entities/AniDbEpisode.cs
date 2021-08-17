@@ -8,6 +8,8 @@ namespace Shizou.Entities
 {
     public class AniDbEpisode : Entity
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public override int Id { get; set; }
         public string TitleEnglish { get; set; } = null!;
         public string? TitleRomaji { get; set; }
         public string? TitleKanji { get; set; }
@@ -16,6 +18,7 @@ namespace Shizou.Entities
         public TimeSpan? Duration { get; set; }
         public DateTime? AirDate { get; set; }
         public DateTime? Updated { get; set; }
+        
 
         public int AniDbAnimeId { get; set; }
         public AniDbAnime AniDbAnime { get; set; } = null!;

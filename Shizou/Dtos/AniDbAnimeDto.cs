@@ -16,7 +16,7 @@ namespace Shizou.Dtos
         public bool Restricted { get; set; }
         public string? ImagePath { get; set; }
         public DateTime? Updated { get; set; }
-        public DateTime RecordUpdated { get; set; }
+        public DateTime AniDbUpdated { get; set; }
 
         public override AniDbAnime ToEntity()
         {
@@ -33,7 +33,7 @@ namespace Shizou.Dtos
                 EpisodeCount = EpisodeCount,
                 HighestEpisode = HighestEpisode,
                 ImagePath = ImagePath,
-                RecordUpdated = RecordUpdated
+                AniDbUpdated = AniDbUpdated
             };
         }
     }

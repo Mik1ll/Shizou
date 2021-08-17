@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using Shizou.Dtos;
 using Shizou.Enums;
 
@@ -7,6 +8,8 @@ namespace Shizou.Entities
 {
     public class AniDbAnime : Entity
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public override int Id { get; set; }
         public string Title { get; set; } = null!;
         public AnimeType AnimeType { get; set; }
         public int EpisodeCount { get; set; }
@@ -17,7 +20,7 @@ namespace Shizou.Entities
         public bool Restricted { get; set; }
         public string? ImagePath { get; set; }
         public DateTime? Updated { get; set; }
-        public DateTime RecordUpdated { get; set; }
+        public DateTime AniDbUpdated { get; set; }
 
         public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
 
@@ -37,7 +40,7 @@ namespace Shizou.Entities
                 EpisodeCount = EpisodeCount,
                 HighestEpisode = HighestEpisode,
                 ImagePath = ImagePath,
-                RecordUpdated = RecordUpdated
+                AniDbUpdated = AniDbUpdated
             };
         }
     }

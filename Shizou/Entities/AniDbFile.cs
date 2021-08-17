@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Dtos;
@@ -9,6 +10,8 @@ namespace Shizou.Entities
     [Index(nameof(Ed2K), IsUnique = true)]
     public class AniDbFile : Entity
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public override int Id { get; set; }
         public string Ed2K { get; set; } = null!;
         public string? Crc { get; set; }
         public string? Md5 { get; set; }
