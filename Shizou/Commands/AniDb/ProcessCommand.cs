@@ -226,9 +226,10 @@ namespace Shizou.Commands.AniDb
                     };
                     using (var episodeTransaction = _context.Database.BeginTransaction())
                     {
-                        if (_context.AniDbEpisodes.AsNoTracking().Any(e => e.Id == newAniDbEpisode.Id))
+                        if (_context.AniDbEpisodes.Any(e => e.Id == newAniDbEpisode.Id))
                             _context.AniDbEpisodes.Update(newAniDbEpisode);
                         else
+                        // TODO: AnimeRequest before adding episode
                             _context.AniDbEpisodes.Add(newAniDbEpisode);
                         _context.SaveChanges();
                         episodeTransaction.Commit();
