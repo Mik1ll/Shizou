@@ -133,6 +133,10 @@ namespace Shizou.AniDbApi.Requests
             // Unused = 1 << 0,
         }
 
+        public const AMask DefaultAMask = AMask.DateRecordUpdated | AMask.TitleRomaji | AMask.TotalEpisodes | AMask.HighestEpisodeNumber | AMask.Type |
+                                          AMask.AirDate | AMask.EndDate | AMask.DateFlags | AMask.IsRestricted | AMask.PicName | AMask.TitleEnglish |
+                                          AMask.TitleKanji | AMask.AnimeId;
+
         public AnimeResult? AnimeResult;
 
         private readonly AMask _aMask;

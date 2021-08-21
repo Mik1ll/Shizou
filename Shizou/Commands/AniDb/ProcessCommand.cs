@@ -190,7 +190,6 @@ namespace Shizou.Commands.AniDb
             if (result.OtherEpisodeIds is not null)
             {
                 // Associate episodes already in database
-                // TODO: test linq to sql
                 var foundOtherEpisodes = _context.AniDbEpisodes.Include(e => e.AniDbFiles)
                     .Where(e => result.OtherEpisodeIds.Contains(e.Id)).ToList();
                 foreach (var ep in foundOtherEpisodes)
@@ -226,17 +225,25 @@ namespace Shizou.Commands.AniDb
                     };
                     using (var episodeTransaction = _context.Database.BeginTransaction())
                     {
+                        // TODO: Ensure file relation is created
                         if (_context.AniDbEpisodes.Any(e => e.Id == newAniDbEpisode.Id))
                             _context.AniDbEpisodes.Update(newAniDbEpisode);
                         else
-                        // TODO: AnimeRequest before adding episode
+                        {
+                            var otherEpAnime = _context.AniDbAnimes.Select(a => new { a.Id, a.Updated }).FirstOrDefault(a => a.Id == epResult.AnimeId);
+                            if (otherEpAnime?.Updated is null)
+                                newAnime.Add(epResult.AnimeId);
+                            if (otherEpAnime is null)
+                                _context.AniDbAnimes.Add(new AniDbAnime
+                                {
+                                    Id = epResult.AnimeId,
+                                    Title = "Placeholder"
+                                });
                             _context.AniDbEpisodes.Add(newAniDbEpisode);
+                        }
                         _context.SaveChanges();
                         episodeTransaction.Commit();
                     }
-                    var otherEpAnime = _context.AniDbAnimes.Find(epResult.AnimeId);
-                    if (otherEpAnime is null || otherEpAnime.Updated is null)
-                        newAnime.Add(epResult.AnimeId);
                 }
             }
 
