@@ -189,17 +189,20 @@ namespace Shizou.Commands.AniDb
             // Get other episodes
             if (result.OtherEpisodeIds is not null)
             {
-                // Associate episodes already in database
-                var foundOtherEpisodes = _context.AniDbEpisodes.Include(e => e.AniDbFiles)
-                    .Where(e => result.OtherEpisodeIds.Contains(e.Id)).ToList();
-                foreach (var ep in foundOtherEpisodes)
-                    if (!ep.AniDbFiles.Any(e => e.Id == aniDbFile.Id))
-                        ep.AniDbFiles.Add(aniDbFile);
-                _context.SaveChanges();
-
-                // Get episodes not in database
-                foreach (var eid in result.OtherEpisodeIds.Except(foundOtherEpisodes.Select(e => e.Id)))
+                // Get other episodes
+                foreach (var eid in result.OtherEpisodeIds)
                 {
+                    var existingEp = _context.AniDbEpisodes.Include(e => e.AniDbFiles).FirstOrDefault(e => e.Id == eid);
+                    if (existingEp is not null)
+                    {
+                        if (!existingEp.AniDbFiles.Contains(aniDbFile))
+                        {
+                            existingEp.AniDbFiles.Add(aniDbFile);
+                            _context.SaveChanges();
+                        }
+                        continue;
+                    }
+                    
                     var episodeReq = new EpisodeRequest(Provider, eid);
                     await episodeReq.Process();
                     if (episodeReq.EpisodeResult is null)
@@ -220,14 +223,17 @@ namespace Shizou.Commands.AniDb
                         Duration = epResult.DurationMinutes is null ? null : TimeSpan.FromMinutes(epResult.DurationMinutes.Value),
                         AirDate = epResult.AiredDate,
                         Updated = DateTime.UtcNow,
-                        AniDbFiles = new List<AniDbFile> { aniDbFile },
+                        AniDbFiles = new List<AniDbFile>(),
                         AniDbAnimeId = epResult.AnimeId
                     };
                     using (var episodeTransaction = _context.Database.BeginTransaction())
                     {
                         // TODO: Ensure file relation is created
-                        if (_context.AniDbEpisodes.Any(e => e.Id == newAniDbEpisode.Id))
+                        existingEp = _context.AniDbEpisodes.AsNoTracking().Include(e => e.AniDbFiles).FirstOrDefault(e => e.Id == eid);
+                        if (existingEp is not null)
+                        {
                             _context.AniDbEpisodes.Update(newAniDbEpisode);
+                        }
                         else
                         {
                             var otherEpAnime = _context.AniDbAnimes.Select(a => new { a.Id, a.Updated }).FirstOrDefault(a => a.Id == epResult.AnimeId);
@@ -241,6 +247,8 @@ namespace Shizou.Commands.AniDb
                                 });
                             _context.AniDbEpisodes.Add(newAniDbEpisode);
                         }
+                        if (existingEp is null || !existingEp.AniDbFiles.Contains(aniDbFile))
+                            newAniDbEpisode.AniDbFiles.Add(aniDbFile);
                         _context.SaveChanges();
                         episodeTransaction.Commit();
                     }
