@@ -35,6 +35,9 @@ namespace Shizou.Commands.AniDb
             _context = provider.GetRequiredService<ShizouContext>();
             var builder = new UriBuilder("http", options.Value.AniDb.ServerHost, options.Value.AniDb.HttpServerPort, "httpapi");
             var query = HttpUtility.ParseQueryString(builder.Query);
+            query["client"] = "shizouhttp";
+            query["clientver"] = "1";
+            query["protover"] = "1";
             query["request"] = "anime";
             query["aid"] = commandParams.AnimeId.ToString();
             builder.Query = query.ToString();
@@ -130,12 +133,10 @@ namespace Shizou.Commands.AniDb
                 }
                 else
                 {
-                    const string errStt = "<error>";
-                    const string errEnd = "</error>";
+                    const string errStt = "<error";
                     if (result.StartsWith(errStt))
                     {
-                        var errText = result.Substring(errStt.Length, result.Length - errEnd.Length - errStt.Length);
-                        if (errText == "Banned")
+                        if (result.Contains("Banned"))
                         {
                             _processor.Banned = true;
                             _processor.PauseReason = $"No http response, may be banned or no such anime {CommandParams.AnimeId}";
@@ -143,7 +144,7 @@ namespace Shizou.Commands.AniDb
                         }
                         else
                         {
-                            Logger.LogCritical("Unknown error http response, not requesting again: {errText}", errText);
+                            Logger.LogCritical("Unknown error http response, not requesting again: {errText}", result);
                             _processor.Paused = true;
                             _processor.PauseReason = "Unknown error http response, check log";
                             Completed = true;

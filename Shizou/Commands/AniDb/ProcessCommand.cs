@@ -243,7 +243,7 @@ namespace Shizou.Commands.AniDb
                                 _context.AniDbAnimes.Add(new AniDbAnime
                                 {
                                     Id = epResult.AnimeId,
-                                    Title = "Placeholder"
+                                    Title = "Missing Anime Info"
                                 });
                             _context.AniDbEpisodes.Add(newAniDbEpisode);
                         }

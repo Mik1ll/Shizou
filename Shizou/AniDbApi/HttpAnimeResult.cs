@@ -83,7 +83,7 @@ namespace Shizou.AniDbApi
                 EpisodeCount = Episodecount,
                 ImagePath = Picture,
                 Title = mainTitle.Text,
-                AniDbEpisodes = Episodes.Episode.Select(e => new AniDbEpisode
+                AniDbEpisodes = Episodes?.Episode.Select(e => new AniDbEpisode
                 {
                     Id = e.Id,
                     Duration = TimeSpan.FromMinutes(e.Length),
@@ -97,7 +97,7 @@ namespace Shizou.AniDbApi
                     TitleKanji = e.Title.FirstOrDefault(t =>
                         t.Lang.StartsWith(mainTitle.Lang switch {"x-jat" => "ja", "x-zht" => "zh-han", "x-kot" => "ko", _ => "none"},
                             StringComparison.OrdinalIgnoreCase))?.Text
-                }).ToList(),
+                }).ToList() ?? new List<AniDbEpisode>(),
                 Updated = DateTime.UtcNow
             };
             return anime;
