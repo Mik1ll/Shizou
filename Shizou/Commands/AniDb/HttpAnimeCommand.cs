@@ -1,12 +1,10 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Xml.Serialization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -73,21 +71,24 @@ namespace Shizou.Commands.AniDb
                 return;
             }
 
+            var newAniDbAnime = animeResult.ToAniDbAnime();
             using (var trans = _context.Database.BeginTransaction())
             {
-                var animeExists = _context.AniDbAnimes.Any(e => e.Id == CommandParams.AnimeId);
-                var newAniDbAnime = animeResult.ToAniDbAnime();
-                if (!animeExists)
+                var aniDbAnime = _context.AniDbAnimes.Find(CommandParams.AnimeId);
+                if (aniDbAnime is null)
                 {
                     _context.AniDbAnimes.Add(newAniDbAnime);
                 }
                 else
                 {
-                    _context.Update(newAniDbAnime);
-                    foreach (var ep in newAniDbAnime.AniDbEpisodes)
+                    _context.Entry(aniDbAnime).CurrentValues.SetValues(newAniDbAnime);
+                    foreach (var newEp in newAniDbAnime.AniDbEpisodes)
                     {
-                        var epExists = _context.AniDbEpisodes.Any(e => e.Id == ep.Id);
-                        _context.Entry(ep).State = epExists ? EntityState.Modified : EntityState.Added;
+                        var ep = _context.AniDbEpisodes.Find(newEp.Id);
+                        if (ep is null)
+                            _context.AniDbEpisodes.Add(newEp);
+                        else
+                            _context.Entry(ep).CurrentValues.SetValues(newEp);
                     }
                 }
 
