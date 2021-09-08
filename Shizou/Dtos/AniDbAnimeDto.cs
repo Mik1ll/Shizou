@@ -8,8 +8,8 @@ namespace Shizou.Dtos
     {
         public int EpisodeCount { get; set; }
         public int HighestEpisode { get; set; }
-        public DateTime? AirDate { get; set; }
-        public DateTime? EndDate { get; set; }
+        public string? AirDate { get; set; }
+        public string? EndDate { get; set; }
         public AnimeType AnimeType { get; set; }
         public string Title { get; set; } = null!;
         public string? Description { get; set; }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Xml.Serialization;
 using Shizou.Entities;
@@ -9,69 +10,77 @@ using Shizou.Enums;
 
 namespace Shizou.AniDbApi
 {
-    [XmlRoot(ElementName = "anime")]
+    [XmlRoot("anime")]
     public class HttpAnimeResult
     {
-        [XmlAttribute(AttributeName = "id")]
+        [XmlAttribute("id")]
         public int Id { get; set; }
 
-        [XmlElement(ElementName = "type")]
+        [XmlElement("type")]
         public AnimeType Type { get; set; }
 
-        [XmlElement(ElementName = "episodecount")]
+        [XmlElement("episodecount")]
         public int Episodecount { get; set; }
 
-        [XmlElement(ElementName = "startdate")]
-        public DateTime Startdate { get; set; }
+        [XmlElement("startdate")]
+        public string? Startdate { get; set; }
 
-        [XmlElement(ElementName = "enddate")]
-        public DateTime Enddate { get; set; }
+        [XmlElement("enddate")]
+        public string? Enddate { get; set; }
 
-        [XmlElement(ElementName = "titles")]
-        public AnimeTitles Titles { get; set; }
+        [XmlArray("titles")]
+        [XmlArrayItem("title")]
+        public List<AnimeTitle> Titles { get; set; }
 
-        [XmlElement(ElementName = "relatedanime")]
-        public Relatedanime Relatedanime { get; set; }
+        [XmlArray("relatedanime")]
+        [XmlArrayItem("anime")]
+        public List<RelatedAnime> Relatedanime { get; set; }
 
-        [XmlElement(ElementName = "similaranime")]
-        public Similaranime Similaranime { get; set; }
+        [XmlArray("similaranime")]
+        [XmlArrayItem("anime")]
+        public List<SimilarAnime> Similaranime { get; set; }
 
-        [XmlElement(ElementName = "recommendations")]
-        public Recommendations Recommendations { get; set; }
+        [XmlElement("recommendations")]
+        public Recommendations? Recommendations { get; set; }
 
-        [XmlElement(ElementName = "url")]
-        public string Url { get; set; }
+        [XmlElement("url")]
+        public string? Url { get; set; }
 
-        [XmlElement(ElementName = "creators")]
-        public Creators Creators { get; set; }
+        [XmlArray("creators")]
+        [XmlArrayItem("name")]
+        public List<CreatorName> Creators { get; set; }
 
-        [XmlElement(ElementName = "description")]
-        public string Description { get; set; }
+        [XmlElement("description")]
+        public string? Description { get; set; }
 
-        [XmlElement(ElementName = "ratings")]
-        public Ratings Ratings { get; set; }
+        [XmlElement("ratings")]
+        public Ratings? Ratings { get; set; }
 
-        [XmlElement(ElementName = "picture")]
-        public string Picture { get; set; }
+        [XmlElement("picture")]
+        public string? Picture { get; set; }
 
-        [XmlElement(ElementName = "resources")]
-        public Resources Resources { get; set; }
+        [XmlArray("resources")]
+        [XmlArrayItem("resource")]
+        public List<Resource> Resources { get; set; }
 
-        [XmlElement(ElementName = "tags")]
-        public Tags Tags { get; set; }
+        [XmlArray("tags")]
+        [XmlArrayItem("tag")]
+        public List<Tag> Tags { get; set; }
 
-        [XmlElement(ElementName = "characters")]
-        public Characters Characters { get; set; }
+        [XmlArray("characters")]
+        [XmlArrayItem("character")]
+        public List<Character> Characters { get; set; }
 
-        [XmlElement(ElementName = "episodes")]
-        public Episodes Episodes { get; set; }
+        [XmlArray("episodes")]
+        [XmlArrayItem("episode")]
+        public List<Episode> Episodes { get; set; }
 
-        [XmlAttribute(AttributeName = "restricted")]
+        [XmlAttribute("restricted")]
         public bool Restricted { get; set; }
 
         public AniDbAnime ToAniDbAnime()
         {
-            var mainTitle = Titles.Title.First(t => t.Type == "main");
+            var mainTitle = Titles.First(t => t.Type == "main");
             var anime = new AniDbAnime
             {
                 Id = Id,
@@ -83,7 +92,7 @@ namespace Shizou.AniDbApi
                 EpisodeCount = Episodecount,
                 ImagePath = Picture,
                 Title = mainTitle.Text,
-                AniDbEpisodes = Episodes?.Episode.Select(e => new AniDbEpisode
+                AniDbEpisodes = Episodes.Select(e => new AniDbEpisode
                 {
                     Id = e.Id,
                     Duration = TimeSpan.FromMinutes(e.Length),
@@ -97,332 +106,310 @@ namespace Shizou.AniDbApi
                     TitleKanji = e.Title.FirstOrDefault(t =>
                         t.Lang.StartsWith(mainTitle.Lang switch {"x-jat" => "ja", "x-zht" => "zh-han", "x-kot" => "ko", _ => "none"},
                             StringComparison.OrdinalIgnoreCase))?.Text
-                }).ToList() ?? new List<AniDbEpisode>(),
+                }).ToList(),
                 Updated = DateTime.UtcNow
             };
             return anime;
         }
     }
 
-    [XmlRoot(ElementName = "title")]
+    [XmlRoot("title")]
     public class AnimeTitle
     {
-        [XmlAttribute(AttributeName = "xml:lang", DataType = "language")]
+        [XmlAttribute("xml:lang", DataType = "language")]
         public string Lang { get; set; }
 
-        [XmlAttribute(AttributeName = "type")]
+        [XmlAttribute("type")]
         public string Type { get; set; }
 
         [XmlText]
         public string Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "title")]
+    [XmlRoot("title")]
     public class EpisodeTitle
     {
-        [XmlAttribute(AttributeName = "xml:lang", DataType = "language")]
+        [XmlAttribute("xml:lang", DataType = "language")]
         public string Lang { get; set; }
 
         [XmlText]
         public string Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "titles")]
-    public class AnimeTitles
+    [XmlRoot("anime")]
+    public class RelatedAnime
     {
-        [XmlElement(ElementName = "title")]
-        public List<AnimeTitle> Title { get; set; }
-    }
-
-    [XmlRoot(ElementName = "anime")]
-    public class RelatedAnimeEntry
-    {
-        [XmlAttribute(AttributeName = "id")]
+        [XmlAttribute("id")]
         public int Id { get; set; }
 
-        [XmlAttribute(AttributeName = "type")]
+        [XmlAttribute("type")]
         public string Type { get; set; }
 
         [XmlText]
         public string Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "anime")]
-    public class SimilarAnimeEntry
+    [XmlRoot("anime")]
+    public class SimilarAnime
     {
-        [XmlAttribute(AttributeName = "id")]
+        [XmlAttribute("id")]
         public int Id { get; set; }
 
-        [XmlAttribute(AttributeName = "approval")]
+        [XmlAttribute("approval")]
         public int Approval { get; set; }
 
-        [XmlAttribute(AttributeName = "total")]
+        [XmlAttribute("total")]
         public int Total { get; set; }
 
         [XmlText]
         public string Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "relatedanime")]
-    public class Relatedanime
-    {
-        [XmlElement(ElementName = "anime")]
-        public List<RelatedAnimeEntry> Anime { get; set; }
-    }
-
-    [XmlRoot(ElementName = "similaranime")]
-    public class Similaranime
-    {
-        [XmlElement(ElementName = "anime")]
-        public List<SimilarAnimeEntry> Anime { get; set; }
-    }
-
-    [XmlRoot(ElementName = "recommendation")]
+    [XmlRoot("recommendation")]
     public class Recommendation
     {
-        [XmlAttribute(AttributeName = "type")]
+        [XmlAttribute("type")]
         public string Type { get; set; }
 
-        [XmlAttribute(AttributeName = "uid")]
+        [XmlAttribute("uid")]
         public int Uid { get; set; }
 
         [XmlText]
         public string Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "recommendations")]
+    [XmlRoot("recommendations")]
     public class Recommendations
     {
-        [XmlElement(ElementName = "recommendation")]
+        [XmlElement("recommendation")]
         public List<Recommendation> Recommendation { get; set; }
 
-        [XmlAttribute(AttributeName = "total")]
+        [XmlAttribute("total")]
         public int Total { get; set; }
 
         [XmlText]
         public string Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "name")]
+    [XmlRoot("name")]
     public class CreatorName
     {
-        [XmlAttribute(AttributeName = "id")]
+        [XmlAttribute("id")]
         public int Id { get; set; }
 
-        [XmlAttribute(AttributeName = "type")]
+        [XmlAttribute("type")]
         public string Type { get; set; }
 
         [XmlText]
         public string Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "creators")]
-    public class Creators
-    {
-        [XmlElement(ElementName = "name")]
-        public List<CreatorName> Name { get; set; }
-    }
-
-    [XmlRoot(ElementName = "ratings")]
+    [XmlRoot("ratings")]
     public class Ratings
     {
-        [XmlElement(ElementName = "permanent")]
-        public Rating Permanent { get; set; }
+        [XmlElement("permanent")]
+        public AnimeRating? Permanent { get; set; }
 
-        [XmlElement(ElementName = "temporary")]
-        public Rating Temporary { get; set; }
+        [XmlElement("temporary")]
+        public AnimeRating? Temporary { get; set; }
 
-        [XmlElement(ElementName = "review")]
-        public Rating Review { get; set; }
+        [XmlElement("review")]
+        public AnimeRating? Review { get; set; }
     }
 
-    [XmlRoot(ElementName = "externalentity")]
+    [XmlRoot("externalentity")]
     public class Externalentity
     {
-        [XmlElement(ElementName = "identifier")]
+        [XmlElement("identifier")]
         public List<string> Identifier { get; set; }
 
-        [XmlElement(ElementName = "url")]
-        public string Url { get; set; }
+        [XmlElement("url")]
+        public string? Url { get; set; }
     }
 
-    [XmlRoot(ElementName = "resource")]
+    [XmlRoot("resource")]
     public class Resource
     {
-        [XmlElement(ElementName = "externalentity")]
+        [XmlElement("externalentity")]
         public Externalentity Externalentity { get; set; }
 
-        [XmlAttribute(AttributeName = "type")]
+        [XmlAttribute("type")]
         public int Type { get; set; }
     }
 
-    [XmlRoot(ElementName = "resources")]
-    public class Resources
-    {
-        [XmlElement(ElementName = "resource")]
-        public List<Resource> Resource { get; set; }
-    }
-
-    [XmlRoot(ElementName = "tag")]
+    [XmlRoot("tag")]
     public class Tag
     {
-        [XmlElement(ElementName = "name")]
+        [XmlElement("name")]
         public string Name { get; set; }
 
-        [XmlElement(ElementName = "description")]
-        public string Description { get; set; }
+        [XmlElement("description")]
+        public string? Description { get; set; }
 
-        [XmlElement(ElementName = "picurl")]
-        public string Picurl { get; set; }
+        [XmlElement("picurl")]
+        public string? Picurl { get; set; }
 
-        [XmlAttribute(AttributeName = "id")]
+        [XmlAttribute("id")]
         public int Id { get; set; }
 
-        [XmlAttribute(AttributeName = "parentid")]
+        [XmlAttribute("parentid")]
+        [MaybeNull]
         public int Parentid { get; set; }
 
-        [XmlAttribute(AttributeName = "weight")]
+        [XmlIgnore]
+        public bool ParentidSpecified { get; set; }
+
+        [XmlAttribute("weight")]
         public int Weight { get; set; }
 
-        [XmlAttribute(AttributeName = "localspoiler")]
+        [XmlAttribute("localspoiler")]
         public bool Localspoiler { get; set; }
 
-        [XmlAttribute(AttributeName = "globalspoiler")]
+        [XmlAttribute("globalspoiler")]
         public bool Globalspoiler { get; set; }
 
-        [XmlAttribute(AttributeName = "verified")]
+        [XmlAttribute("verified")]
         public bool Verified { get; set; }
 
-        [XmlAttribute(AttributeName = "update")]
+        [XmlAttribute("update")]
+        [MaybeNull]
         public DateTime Update { get; set; }
 
+        [XmlIgnore]
+        public bool UpdateSpecified { get; set; }
+        
         [XmlText]
         public string Text { get; set; }
 
-        [XmlAttribute(AttributeName = "infobox")]
+        [XmlAttribute("infobox")]
+        [MaybeNull]
         public bool Infobox { get; set; }
+
+        [XmlIgnore]
+        public bool InfoboxSpecified { get; set; }
     }
 
-    [XmlRoot(ElementName = "tags")]
-    public class Tags
+    public class AnimeRating
     {
-        [XmlElement(ElementName = "tag")]
-        public List<Tag> Tag { get; set; }
+        [XmlAttribute("count")]
+        public int Count { get; set; }
+
+        [XmlText]
+        public float Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "rating")]
+    [XmlRoot("rating")]
     public class Rating
     {
-        [XmlAttribute(AttributeName = "votes")]
+        [XmlAttribute("votes")]
         public int Votes { get; set; }
 
         [XmlText]
         public float Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "charactertype")]
+    [XmlRoot("charactertype")]
     public class Charactertype
     {
-        [XmlAttribute(AttributeName = "id")]
+        [XmlAttribute("id")]
         public int Id { get; set; }
 
         [XmlText]
         public string Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "seiyuu")]
+    [XmlRoot("seiyuu")]
     public class Seiyuu
     {
-        [XmlAttribute(AttributeName = "id")]
+        [XmlAttribute("id")]
         public int Id { get; set; }
 
-        [XmlAttribute(AttributeName = "picture")]
-        public string Picture { get; set; }
+        [XmlAttribute("picture")]
+        public string? Picture { get; set; }
 
         [XmlText]
         public string Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "character")]
+    [XmlRoot("character")]
     public class Character
     {
-        [XmlElement(ElementName = "rating")]
-        public Rating Rating { get; set; }
+        [XmlElement("rating")]
+        public Rating? Rating { get; set; }
 
-        [XmlElement(ElementName = "name")]
+        [XmlElement("name")]
         public string Name { get; set; }
 
-        [XmlElement(ElementName = "gender")]
+        [XmlElement("gender")]
         public string Gender { get; set; }
 
-        [XmlElement(ElementName = "charactertype")]
+        [XmlElement("charactertype")]
         public Charactertype Charactertype { get; set; }
 
-        [XmlElement(ElementName = "description")]
-        public string Description { get; set; }
+        [XmlElement("description")]
+        public string? Description { get; set; }
 
-        [XmlElement(ElementName = "picture")]
-        public string Picture { get; set; }
+        [XmlElement("picture")]
+        public string? Picture { get; set; }
 
-        [XmlElement(ElementName = "seiyuu")]
-        public Seiyuu Seiyuu { get; set; }
+        [XmlElement("seiyuu")]
+        public List<Seiyuu> Seiyuu { get; set; }
 
-        [XmlAttribute(AttributeName = "id")]
+        [XmlAttribute("id")]
         public int Id { get; set; }
 
-        [XmlAttribute(AttributeName = "type")]
+        [XmlAttribute("type")]
         public string Type { get; set; }
 
-        [XmlAttribute(AttributeName = "update")]
+        [XmlAttribute("update")]
         public DateTime Update { get; set; }
     }
 
-    [XmlRoot(ElementName = "characters")]
-    public class Characters
-    {
-        [XmlElement(ElementName = "character")]
-        public List<Character> Character { get; set; }
-    }
-
-    [XmlRoot(ElementName = "epno")]
+    [XmlRoot("epno")]
     public class Epno
     {
-        [XmlAttribute(AttributeName = "type")]
+        [XmlAttribute("type")]
         public EpisodeType Type { get; set; }
 
         [XmlText]
         public string Text { get; set; }
     }
 
-    [XmlRoot(ElementName = "episode")]
+    [XmlRoot("episode")]
     public class Episode
     {
-        [XmlElement(ElementName = "epno")]
+        [XmlElement("epno")]
         public Epno Epno { get; set; }
 
-        [XmlElement(ElementName = "length")]
+        [XmlElement("length")]
         public int Length { get; set; }
 
-        [XmlElement(ElementName = "airdate")]
-        public DateTime Airdate { get; set; }
+        [XmlElement("airdate")]
+        public DateTime? Airdate { get; set; }
 
-        [XmlElement(ElementName = "rating")]
-        public Rating Rating { get; set; }
+        [XmlElement("rating")]
+        public Rating? Rating { get; set; }
 
-        [XmlElement(ElementName = "title")]
+        [XmlElement("title")]
         public List<EpisodeTitle> Title { get; set; }
 
-        [XmlAttribute(AttributeName = "id")]
+        [XmlElement("summary")]
+        public string? Summary { get; set; }
+
+        [XmlArray("resources")]
+        [XmlArrayItem("resource")]
+        public List<Resource> Resources { get; set; }
+
+        [XmlAttribute("id")]
         public int Id { get; set; }
 
-        [XmlAttribute(AttributeName = "update")]
+        [XmlAttribute("update")]
         public DateTime Update { get; set; }
-    }
 
-    [XmlRoot(ElementName = "episodes")]
-    public class Episodes
-    {
-        [XmlElement(ElementName = "episode")]
-        public List<Episode> Episode { get; set; }
+        [XmlAttribute("recap")]
+        public bool Recap { get; set; }
+
+        [XmlIgnore]
+        public bool RecapSpecified { get; set; }
     }
 }
