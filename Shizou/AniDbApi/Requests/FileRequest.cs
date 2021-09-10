@@ -86,7 +86,7 @@ namespace Shizou.AniDbApi.Requests
 
         public string? GroupName { get; set; }
         public string? GroupNameShort { get; set; }
-        public DateTime? DateAnimeRecordUpdated { get; set; }
+        public DateTime? DateRecordUpdated { get; set; }
 
         #endregion AMask
     }
@@ -250,7 +250,7 @@ namespace Shizou.AniDbApi.Requests
         {
             if (ResponseText is null)
                 return;
-            var dataArr = ResponseText.Split('|');
+            var dataArr = ResponseText.TrimEnd().Split('|');
             var dataIdx = 0;
             FileResult = new AniDbFileResult(int.Parse(dataArr[dataIdx++]));
             foreach (var value in Enum.GetValues<FMask>().OrderByDescending(v => v))
@@ -400,7 +400,7 @@ namespace Shizou.AniDbApi.Requests
                             break;
                         case AMask.RelatedAnimeTypes:
                             FileResult.RelatedAnimeTypes =
-                                data.Split('\'').Select(x => Enum.Parse<RelatedAnimeType>(x.Replace(" ", string.Empty), true)).ToList();
+                                data.Split('\'').Select(x => Enum.Parse<RelatedAnimeType>(x)).ToList();
                             break;
                         case AMask.Categories:
                             FileResult.Categories = data.Split(',').ToList();
@@ -451,7 +451,7 @@ namespace Shizou.AniDbApi.Requests
                             FileResult.GroupNameShort = data;
                             break;
                         case AMask.DateAnimeRecordUpdated:
-                            FileResult.DateAnimeRecordUpdated = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
+                            FileResult.DateRecordUpdated = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
                             break;
                     }
                 }

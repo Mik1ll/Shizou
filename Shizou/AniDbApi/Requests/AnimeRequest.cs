@@ -24,8 +24,8 @@ namespace Shizou.AniDbApi.Requests
     {
         public int? AnimeId { get; set; }
         public DateFlags? DateFlags { get; set; }
-        public int? Year { get; set; }
-        public AnimeType Type { get; set; }
+        public string? Year { get; set; }
+        public AnimeType? Type { get; set; }
         public List<int>? RelatedAnimeIds { get; set; }
         public List<RelatedAnimeType>? RelatedAnimeTypes { get; set; }
         public string? TitleRomaji { get; set; }
@@ -134,8 +134,7 @@ namespace Shizou.AniDbApi.Requests
         }
 
         public const AMask DefaultAMask = AMask.DateRecordUpdated | AMask.TitleRomaji | AMask.TotalEpisodes | AMask.HighestEpisodeNumber | AMask.Type |
-                                          AMask.AirDate | AMask.EndDate | AMask.DateFlags | AMask.IsRestricted | AMask.PicName | AMask.TitleEnglish |
-                                          AMask.TitleKanji | AMask.AnimeId;
+                                          AMask.TitleEnglish | AMask.TitleKanji | AMask.AnimeId;
 
         public AnimeResult? AnimeResult;
 
@@ -162,6 +161,7 @@ namespace Shizou.AniDbApi.Requests
             switch (ResponseCode)
             {
                 case AniDbResponseCode.Anime:
+                    GetAnimeResult();
                     break;
                 case AniDbResponseCode.NoSuchAnime:
                     break;
@@ -172,7 +172,7 @@ namespace Shizou.AniDbApi.Requests
         {
             if (ResponseText is null)
                 return;
-            var dataArr = ResponseText.Split('|');
+            var dataArr = ResponseText.TrimEnd().Split('|');
             var dataIdx = 0;
             AnimeResult = new AnimeResult();
             foreach (var value in Enum.GetValues<AMask>().OrderByDescending(v => v))
@@ -192,7 +192,7 @@ namespace Shizou.AniDbApi.Requests
                             AnimeResult.DateFlags = Enum.Parse<DateFlags>(data);
                             break;
                         case AMask.Year:
-                            AnimeResult.Year = int.Parse(data);
+                            AnimeResult.Year = data;
                             break;
                         case AMask.Type:
                             AnimeResult.Type = Enum.Parse<AnimeType>(data.Replace(" ", string.Empty), true);
@@ -202,7 +202,7 @@ namespace Shizou.AniDbApi.Requests
                             break;
                         case AMask.RelatedAnimeTypes:
                             AnimeResult.RelatedAnimeTypes =
-                                data.Split('\'').Select(x => Enum.Parse<RelatedAnimeType>(x.Replace(" ", string.Empty), true)).ToList();
+                                data.Split('\'').Select(x => Enum.Parse<RelatedAnimeType>(x)).ToList();
                             break;
                         case AMask.TitleRomaji:
                             AnimeResult.TitleRomaji = data;
@@ -277,19 +277,19 @@ namespace Shizou.AniDbApi.Requests
                             AnimeResult.AnimeNfoId = data;
                             break;
                         case AMask.TagNames:
-                            AnimeResult.TagNames = data.Split('\'').ToList();
+                            AnimeResult.TagNames = data.Split(',').ToList();
                             break;
                         case AMask.TagIds:
-                            AnimeResult.TagIds = data.Split('\'').Select(x => int.Parse(x)).ToList();
+                            AnimeResult.TagIds = data.Split(',').Select(x => int.Parse(x)).ToList();
                             break;
                         case AMask.TagWeights:
-                            AnimeResult.TagWeights = data.Split('\'').Select(x => int.Parse(x)).ToList();
+                            AnimeResult.TagWeights = data.Split(',').Select(x => int.Parse(x)).ToList();
                             break;
                         case AMask.DateRecordUpdated:
                             AnimeResult.DateRecordUpdated = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
                             break;
                         case AMask.CharacterIds:
-                            AnimeResult.CharacterIds = data.Split('\'').Select(x => int.Parse(x)).ToList();
+                            AnimeResult.CharacterIds = data.Split(',').Select(x => int.Parse(x)).ToList();
                             break;
                         case AMask.SpecialsCount:
                             AnimeResult.SpecialsCount = int.Parse(data);

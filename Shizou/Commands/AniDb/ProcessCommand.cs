@@ -162,7 +162,7 @@ namespace Shizou.Commands.AniDb
             }
 
             var newAnime = new HashSet<int>();
-            
+
             // Get the anime
             using (var animeTransaction = _context.Database.BeginTransaction())
             {
@@ -175,7 +175,7 @@ namespace Shizou.Commands.AniDb
                         EpisodeCount = result.TotalEpisodes!.Value,
                         HighestEpisode = result.HighestEpisodeNumber!.Value,
                         AnimeType = result.Type!.Value,
-                        AniDbUpdated = result.DateAnimeRecordUpdated!.Value
+                        AniDbUpdated = result.DateRecordUpdated!.Value
                     }).Entity;
 
                 if (aniDbAnime.Updated is null)
@@ -260,11 +260,27 @@ namespace Shizou.Commands.AniDb
                             if (otherEpAnime?.Updated is null)
                                 newAnime.Add(epResult.AnimeId);
                             if (otherEpAnime is null)
-                                _context.AniDbAnimes.Add(new AniDbAnime
+                            {
+                                var animeReq = new AnimeRequest(Provider, newAniDbEpisode.AniDbAnimeId, AnimeRequest.DefaultAMask);
+                                await animeReq.Process();
+                                if (animeReq.AnimeResult is null)
                                 {
-                                    Id = epResult.AnimeId,
-                                    Title = "Missing Anime Info"
-                                });
+                                    Logger.LogWarning(
+                                        "Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, failed to get other anime id: {animeId}",
+                                        localFile.Id, localFile.Ed2K, epResult.AnimeId);
+                                    return;
+                                }
+                                var animeResult = animeReq.AnimeResult;
+                                var newAniDbAnime = _context.AniDbAnimes.Add(new AniDbAnime
+                                {
+                                    Id = animeResult.AnimeId!.Value,
+                                    Title = animeResult.TitleRomaji!,
+                                    EpisodeCount = animeResult.TotalEpisodes!.Value,
+                                    HighestEpisode = animeResult.HighestEpisodeNumber!.Value,
+                                    AnimeType = animeResult.Type!.Value,
+                                    AniDbUpdated = animeResult.DateRecordUpdated!.Value
+                                }).Entity;
+                            }
                             _context.AniDbEpisodes.Add(newAniDbEpisode);
                         }
                         _context.SaveChanges();
