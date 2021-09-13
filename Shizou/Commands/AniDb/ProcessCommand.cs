@@ -23,12 +23,14 @@ namespace Shizou.Commands.AniDb
     {
         private readonly CommandManager _cmdMgr;
         private readonly ShizouContext _context;
+        private readonly string fileCachePath;
 
         public ProcessCommand(IServiceProvider provider, ProcessParams commandParams)
             : base(provider, provider.GetRequiredService<ILogger<ProcessCommand>>(), commandParams)
         {
             _context = provider.GetRequiredService<ShizouContext>();
             _cmdMgr = provider.GetRequiredService<CommandManager>();
+            fileCachePath = Path.Combine(Program.TempFilePath, CommandParams.CommandId + ".json");
         }
 
         public override async Task Process()
@@ -43,14 +45,7 @@ namespace Shizou.Commands.AniDb
             }
 
             // Check if file was requested before and did not complete
-            var fileResultTempPath = Path.Combine(Program.TempFilePath, CommandParams.CommandId + ".json");
-            AniDbFileResult? result = null;
-            var fileResult = new FileInfo(fileResultTempPath);
-            if (fileResult.Exists && fileResult.Length > 0)
-                using (var file = new FileStream(fileResultTempPath, FileMode.Open, FileAccess.Read))
-                {
-                    result = await JsonSerializer.DeserializeAsync<AniDbFileResult>(file);
-                }
+            var result = await GetFromFileCache();
 
             if (result is null)
             {
@@ -71,12 +66,7 @@ namespace Shizou.Commands.AniDb
                 result = fileReq.FileResult;
 
                 // Keep file result just in case command does not complete
-                if (!Directory.Exists(Program.TempFilePath))
-                    Directory.CreateDirectory(Program.TempFilePath);
-                using (var file = new FileStream(fileResultTempPath, FileMode.Create, FileAccess.Write))
-                {
-                    await JsonSerializer.SerializeAsync(file, result);
-                }
+                await SaveToFileCache(result);
             }
 
             // Get the group
@@ -292,7 +282,29 @@ namespace Shizou.Commands.AniDb
             _cmdMgr.DispatchRange(newAnime.Select(id => new HttpAnimeParams(id)));
 
             Completed = true;
-            File.Delete(fileResultTempPath);
+            File.Delete(fileCachePath);
+        }
+
+        private async Task SaveToFileCache(AniDbFileResult? result)
+        {
+            if (!Directory.Exists(Program.TempFilePath))
+                Directory.CreateDirectory(Program.TempFilePath);
+            using (var file = new FileStream(fileCachePath, FileMode.Create, FileAccess.Write))
+            {
+                await JsonSerializer.SerializeAsync(file, result);
+            }
+        }
+
+        private async Task<AniDbFileResult?> GetFromFileCache()
+        {
+            AniDbFileResult? result = null;
+            var fileResult = new FileInfo(fileCachePath);
+            if (fileResult.Exists && fileResult.Length > 0)
+                using (var file = new FileStream(fileCachePath, FileMode.Open, FileAccess.Read))
+                {
+                    result = await JsonSerializer.DeserializeAsync<AniDbFileResult>(file);
+                }
+            return result;
         }
     }
 }
