@@ -200,34 +200,34 @@ namespace Shizou.AniDbApi.Requests
         {
             _fMask = fMask;
             _aMask = aMask;
-            Params.Add(("fmask", ((ulong)fMask).ToString("X10")));
-            Params.Add(("amask", aMask.ToString("X")));
+            Params["fmask"] = ((ulong)fMask).ToString("X10");
+            Params["amask"] = aMask.ToString("X");
         }
 
         public FileRequest(IServiceProvider provider, int fileId, FMask fMask, AMask aMask) : this(provider, fMask, aMask)
         {
-            Params.Add(("fid", fileId.ToString()));
+            Params["fid"] = fileId.ToString();
         }
 
         public FileRequest(IServiceProvider provider, long fileSize, string ed2K, FMask fMask, AMask aMask) : this(provider, fMask, aMask)
         {
-            Params.Add(("size", fileSize.ToString()));
-            Params.Add(("ed2k", ed2K));
+            Params["size"] = fileSize.ToString();
+            Params["ed2k"] = ed2K;
         }
 
         // TODO: Test if epno can take special episode string
         public FileRequest(IServiceProvider provider, int animeId, int groupId, int episodeNumber, FMask fMask, AMask aMask) : this(provider, fMask, aMask)
         {
-            Params.Add(("aid", animeId.ToString()));
-            Params.Add(("gid", groupId.ToString()));
-            Params.Add(("epno", episodeNumber.ToString()));
+            Params["aid"] = animeId.ToString();
+            Params["gid"] = groupId.ToString();
+            Params["epno"] = episodeNumber.ToString();
         }
 
         public AniDbFileResult? FileResult { get; private set; }
         public List<int>? MultipleFilesResult { get; private set; }
 
         public override string Command { get; } = "FILE";
-        public override List<(string name, string value)> Params { get; } = new();
+        public override Dictionary<string, string> Params { get; } = new();
 
         public override async Task Process()
         {
@@ -248,8 +248,11 @@ namespace Shizou.AniDbApi.Requests
 
         private void GetFileResult()
         {
-            if (ResponseText is null)
+            if (string.IsNullOrWhiteSpace(ResponseText))
+            {
+                Errored = true;
                 return;
+            }
             var dataArr = ResponseText.TrimEnd().Split('|');
             var dataIdx = 0;
             FileResult = new AniDbFileResult(int.Parse(dataArr[dataIdx++]));

@@ -13,7 +13,7 @@ namespace Shizou.AniDbApi.Requests
         }
 
         public override string Command { get; } = "LOGOUT";
-        public override List<(string name, string value)> Params { get; } = new();
+        public override Dictionary<string, string> Params { get; } = new();
 
         public override async Task Process()
         {

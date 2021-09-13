@@ -22,7 +22,7 @@ namespace Shizou.AniDbApi.Requests
         }
 
         public abstract string Command { get; }
-        public abstract List<(string name, string value)> Params { get; }
+        public abstract Dictionary<string, string> Params { get; }
 
         public string? RequestText { get; private set; }
 
@@ -44,7 +44,16 @@ namespace Shizou.AniDbApi.Requests
             await BuildAndSendRequest();
             if (!Errored)
                 await ReceiveResponse();
-            HandleSharedErrors();
+            if (HandleSharedErrors())
+            {
+                Errored = false;
+                ResponseCode = null;
+                ResponseText = null;
+                ResponseCodeString = null;
+                await BuildAndSendRequest();
+                if (!Errored)
+                    await ReceiveResponse();
+            }
         }
 
         private async Task BuildAndSendRequest()
@@ -60,7 +69,7 @@ namespace Shizou.AniDbApi.Requests
                 }
                 if (!string.IsNullOrWhiteSpace(AniDbUdp.SessionKey))
                 {
-                    Params.Add(("s", AniDbUdp.SessionKey));
+                    Params["s"] = AniDbUdp.SessionKey;
                 }
                 else
                 {
@@ -151,12 +160,12 @@ namespace Shizou.AniDbApi.Requests
                     Logger.LogWarning("Invalid session, reauth");
                     AniDbUdp.LoggedIn = false;
                     Errored = true;
-                    break;
+                    return true;
                 case AniDbResponseCode.LoginFirst:
                     Logger.LogWarning("Not logged in, reauth");
                     AniDbUdp.LoggedIn = false;
                     Errored = true;
-                    break;
+                    return true;
                 case AniDbResponseCode.AccessDenied:
                     Logger.LogError("Access denied");
                     AniDbUdp.Pause("Access was denied", TimeSpan.MaxValue);

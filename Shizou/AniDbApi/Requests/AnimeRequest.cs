@@ -148,12 +148,12 @@ namespace Shizou.AniDbApi.Requests
         public AnimeRequest(IServiceProvider provider, int animeId, AMask aMask) : this(provider)
         {
             _aMask = aMask;
-            Params.Add(("aid", animeId.ToString()));
-            Params.Add(("amask", ((ulong)aMask).ToString("X14")));
+            Params["aid"] = animeId.ToString();
+            Params["amask"] = ((ulong)aMask).ToString("X14");
         }
 
         public override string Command { get; } = "ANIME";
-        public override List<(string name, string value)> Params { get; } = new();
+        public override Dictionary<string, string> Params { get; } = new();
 
         public override async Task Process()
         {
@@ -170,8 +170,11 @@ namespace Shizou.AniDbApi.Requests
 
         private void GetAnimeResult()
         {
-            if (ResponseText is null)
+            if (string.IsNullOrWhiteSpace(ResponseText))
+            {
+                Errored = true;
                 return;
+            }
             var dataArr = ResponseText.TrimEnd().Split('|');
             var dataIdx = 0;
             AnimeResult = new AnimeResult();

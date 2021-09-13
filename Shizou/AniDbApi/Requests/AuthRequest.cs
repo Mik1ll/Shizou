@@ -26,22 +26,22 @@ namespace Shizou.AniDbApi.Requests
         public AuthRequest(IServiceProvider provider) : base(provider.GetRequiredService<ILogger<AuthRequest>>(), provider.GetRequiredService<AniDbUdp>())
         {
             var opts = provider.GetRequiredService<IOptionsMonitor<ShizouOptions>>().CurrentValue;
-            Params.Add(("user", opts.AniDb.Username));
-            Params.Add(("pass", opts.AniDb.Password));
-            Params.Add(("enc", Encoding.BodyName));
+            Params["user"] = opts.AniDb.Username;
+            Params["pass"] = opts.AniDb.Password;
+            Params["enc"] = Encoding.BodyName;
         }
 
         public override string Command { get; } = "AUTH";
 
-        public override List<(string name, string value)> Params { get; } = new()
+        public override Dictionary<string, string> Params { get; } = new()
         {
-            ("protover", "3"),
-            ("client", "shizouudp"),
-            ("clientver", "1"),
-            ("comp", "1"),
-            ("mtu", "1400"),
-            ("imgserver", "1"),
-            ("nat", "1")
+            { "protover", "3" },
+            { "client", "shizouudp" },
+            { "clientver", "1" },
+            { "comp", "1" },
+            { "mtu", "1400" },
+            { "imgserver", "1" },
+            { "nat", "1" }
         };
 
         public override async Task Process()

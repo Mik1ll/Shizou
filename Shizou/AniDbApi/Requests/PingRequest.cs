@@ -11,7 +11,7 @@ namespace Shizou.AniDbApi.Requests
         }
 
         public override string Command { get; } = "PING";
-        public override List<(string name, string value)> Params { get; } = new() {("nat", "1")};
+        public override Dictionary<string, string> Params { get; } = new() { { "nat", "1" } };
 
         public override async Task Process()
         {
