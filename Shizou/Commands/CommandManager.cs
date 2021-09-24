@@ -11,7 +11,8 @@ namespace Shizou.Commands
 {
     public class CommandManager
     {
-        public static readonly List<(CommandType cmdType, Type type, Type paramType, Func<IServiceProvider, CommandParams, ICommand> ctor)> Commands = Assembly
+        public static readonly List<(CommandAttribute cmdAttr, Type type, Type paramType, Func<IServiceProvider, CommandParams, ICommand> ctor)> Commands =
+            Assembly
             .GetExecutingAssembly().GetTypes()
             .Select(t => new { type = t, commandAttr = t.GetCustomAttribute<CommandAttribute>() })
             .Where(x => x.commandAttr is not null)
@@ -21,7 +22,7 @@ namespace Shizou.Commands
                 Func<IServiceProvider, CommandParams, ICommand> ctor = (provider, cmdParams) =>
                     (ICommand)Activator.CreateInstance(x.type, provider, cmdParams)!;
                 return (
-                    x.commandAttr!.Type,
+                    x.commandAttr!,
                     x.type,
                     paramType,
                     ctor
@@ -67,15 +68,14 @@ namespace Shizou.Commands
 
         public ICommand CommandFromRequest(CommandRequest commandRequest)
         {
-            var command = Commands.First(x => commandRequest.Type == x.cmdType);
+            var command = Commands.Single(x => commandRequest.Type == x.cmdAttr.Type);
             return command.ctor(_serviceProvider, (CommandParams)JsonSerializer.Deserialize(commandRequest.CommandParams, command.paramType)!);
         }
 
         public CommandRequest RequestFromParams(CommandParams commandParams)
         {
             var paramType = commandParams.GetType();
-            var commandAttr = Commands.First(x => x.paramType == paramType).type.GetCustomAttribute<CommandAttribute>() ??
-                              throw new InvalidOperationException($"Could not load command attribute from {GetType().Name}");
+            var commandAttr = Commands.Single(x => x.paramType == paramType).cmdAttr;
             return new CommandRequest
             {
                 Type = commandAttr.Type,
