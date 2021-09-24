@@ -79,7 +79,7 @@ namespace Shizou.Commands
                         ImportFolder = importFolder,
                         PathTail = pathTail,
                         Updated = DateTime.UtcNow,
-                        AniDbFile = _context.AniDbFiles.GetByEd2K(hashes[RHasher.HashIds.Ed2K])
+                        AniDbFileId = _context.AniDbFiles.Where(f => f.Ed2K == hashes[RHasher.HashIds.Ed2K]).Select(f => f.Id).FirstOrDefault()
                     };
                     _context.LocalFiles.Add(localFile);
                 }
@@ -92,12 +92,12 @@ namespace Shizou.Commands
                     localFile.Updated = DateTime.UtcNow;
                     localFile.ImportFolder = importFolder;
                     localFile.PathTail = pathTail;
-                    localFile.AniDbFile = _context.AniDbFiles.GetByEd2K(hashes[RHasher.HashIds.Ed2K]);
+                    localFile.AniDbFileId = _context.AniDbFiles.Where(f => f.Ed2K == hashes[RHasher.HashIds.Ed2K]).Select(f => f.Id).FirstOrDefault();
                 }
                 Logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasher.HashIds.Ed2K], hashes[RHasher.HashIds.Crc32]);
             }
             _context.SaveChanges();
-            if (localFile.AniDbFile is null)
+            if (localFile.AniDbFileId is null)
                 _cmdMgr.Dispatch(new ProcessParams(localFile.Id));
             Completed = true;
         }
