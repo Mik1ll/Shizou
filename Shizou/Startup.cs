@@ -49,7 +49,6 @@ namespace Shizou
                 options.ExampleFilters();
             });
             services.AddSwaggerExamplesFromAssemblyOf<JsonPatchExample>();
-            services.AddHostedService<StartupService>();
             services.AddDbContext<ShizouContext>();
             services.AddScoped<CommandManager>();
             services.AddScoped<Importer>();
