@@ -45,7 +45,7 @@ namespace Shizou.Controllers
                 mimeType = "application/octet-stream";
             var fileStream = new FileStream(localFile.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 19, FileOptions.Asynchronous);
 
-            return File(fileStream, mimeType, true);
+            return File(fileStream, mimeType, localFile.Name, true);
         }
     }
 }
