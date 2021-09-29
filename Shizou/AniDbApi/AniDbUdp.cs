@@ -84,7 +84,6 @@ namespace Shizou.AniDbApi
         public string? ImageServerUrl { get; set; }
 
         public bool Paused { get; private set; }
-
         public string? PauseReason { get; private set; }
 
         public bool LoggedIn
