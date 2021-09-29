@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -49,6 +50,7 @@ namespace Shizou
                 options.ExampleFilters();
             });
             services.AddSwaggerExamplesFromAssemblyOf<JsonPatchExample>();
+            services.AddHostedService<StartupService>();
             services.AddDbContext<ShizouContext>();
             services.AddScoped<CommandManager>();
             services.AddScoped<Importer>();
@@ -65,8 +67,9 @@ namespace Shizou
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ShizouContext context)
         {
+            context.Database.Migrate();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
