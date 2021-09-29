@@ -56,12 +56,12 @@ namespace Shizou
             services.AddSingleton<AniDbUdp>();
             services.AddSingleton<UdpRateLimiter>();
 
-            services.AddSingleton<AniDbUdpProcessor>();
-            services.AddSingleton<HashProcessor>();
-            services.AddSingleton<AniDbHttpProcessor>();
-            services.AddSingleton<IHostedService>(p => p.GetRequiredService<AniDbUdpProcessor>());
-            services.AddSingleton<IHostedService>(p => p.GetRequiredService<HashProcessor>());
-            services.AddSingleton<IHostedService>(p => p.GetRequiredService<AniDbHttpProcessor>());
+            services.AddSingleton<CommandProcessor, AniDbUdpProcessor>();
+            services.AddSingleton<CommandProcessor, HashProcessor>();
+            services.AddSingleton<CommandProcessor, AniDbHttpProcessor>();
+            services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
+            services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
+            services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
