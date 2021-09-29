@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shizou.Hashers
+namespace Shizou.Services.Hasher
 {
     public class RHasher
     {
@@ -175,7 +175,7 @@ namespace Shizou.Hashers
 
         private static class Bindings
         {
-            private const string LibRHash = "Hashers/librhash.dll";
+            private const string LibRHash = "librhash.dll";
 
             static Bindings()
             {

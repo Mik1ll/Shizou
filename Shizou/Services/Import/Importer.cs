@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Shizou.Commands;
 using Shizou.Database;
 
-namespace Shizou.Import
+namespace Shizou.Services.Import
 {
     public class Importer
     {
@@ -17,6 +17,14 @@ namespace Shizou.Import
             _logger = logger;
             _context = context;
             _cmdMgr = cmdMgr;
+        }
+
+
+        public void Import()
+        {
+            var folders = _context.ImportFolders.Where(f => f.ScanOnImport);
+            foreach (var folder in folders)
+                ScanImportFolder(folder.Id);
         }
 
 
@@ -50,7 +58,6 @@ namespace Shizou.Import
                 .Select(e => e.FileInfo);
 
             _cmdMgr.DispatchRange(filesToHash.Select(e => new HashParams(e.FullName)));
-            // TODO: finish this function
         }
 
         /// <summary>

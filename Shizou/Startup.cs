@@ -16,8 +16,8 @@ using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
 using Shizou.Database;
-using Shizou.Import;
 using Shizou.Options;
+using Shizou.Services.Import;
 using Shizou.SwaggerFilters;
 using Swashbuckle.AspNetCore.Filters;
 

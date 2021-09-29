@@ -8,7 +8,7 @@ using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
 using Shizou.Database;
-using Shizou.Import;
+using Shizou.Services.Import;
 
 namespace Shizou
 {
