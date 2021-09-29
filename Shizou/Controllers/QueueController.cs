@@ -29,7 +29,10 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Get(QueueType queueType)
         {
-            return Ok(_queues.Single(q => q.QueueType == queueType));
+            var result = _queues.FirstOrDefault(q => q.QueueType == queueType);
+            if (result is not null)
+                return Ok(result);
+            return NotFound();
         }
     }
 }
