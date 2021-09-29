@@ -10,7 +10,7 @@ using Shizou.Commands.AniDb;
 using Shizou.Database;
 using Shizou.Entities;
 using Shizou.Extensions;
-using Shizou.Hashers;
+using Shizou.Services.Hasher;
 
 namespace Shizou.Commands
 {
@@ -67,33 +67,21 @@ namespace Shizou.Commands
                 else
                     Logger.LogInformation("Hashing new file: \"{Path}\"", file.FullName);
                 var hashes = await RHasher.GetFileHashesAsync(file, RHasher.HashIds.Ed2K | RHasher.HashIds.Crc32);
+                int? existingAniDbFileId =
+                    _context.AniDbFiles.Where(f => f.Ed2K == hashes[RHasher.HashIds.Ed2K]).Select(f => f.Id).FirstOrDefault() is var fileId
+                    && fileId != 0
+                        ? fileId
+                        : null;
                 if (localFile is null)
-                {
-                    localFile = new LocalFile
-                    {
-                        Signature = signature,
-                        Crc = hashes[RHasher.HashIds.Crc32],
-                        Ed2K = hashes[RHasher.HashIds.Ed2K],
-                        FileSize = file.Length,
-                        Ignored = false,
-                        ImportFolder = importFolder,
-                        PathTail = pathTail,
-                        Updated = DateTime.UtcNow,
-                        AniDbFileId = _context.AniDbFiles.Where(f => f.Ed2K == hashes[RHasher.HashIds.Ed2K]).Select(f => f.Id).FirstOrDefault()
-                    };
-                    _context.LocalFiles.Add(localFile);
-                }
-                else
-                {
-                    localFile.Signature = signature;
-                    localFile.Crc = hashes[RHasher.HashIds.Crc32];
-                    localFile.Ed2K = hashes[RHasher.HashIds.Ed2K];
-                    localFile.FileSize = file.Length;
-                    localFile.Updated = DateTime.UtcNow;
-                    localFile.ImportFolder = importFolder;
-                    localFile.PathTail = pathTail;
-                    localFile.AniDbFileId = _context.AniDbFiles.Where(f => f.Ed2K == hashes[RHasher.HashIds.Ed2K]).Select(f => f.Id).FirstOrDefault();
-                }
+                    localFile = _context.LocalFiles.Add(new LocalFile()).Entity;
+                localFile.Signature = signature;
+                localFile.Crc = hashes[RHasher.HashIds.Crc32];
+                localFile.Ed2K = hashes[RHasher.HashIds.Ed2K];
+                localFile.FileSize = file.Length;
+                localFile.Updated = DateTime.UtcNow;
+                localFile.ImportFolder = importFolder;
+                localFile.PathTail = pathTail;
+                localFile.AniDbFileId = existingAniDbFileId;
                 Logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasher.HashIds.Ed2K], hashes[RHasher.HashIds.Crc32]);
             }
             _context.SaveChanges();
