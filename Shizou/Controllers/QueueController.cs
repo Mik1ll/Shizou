@@ -29,10 +29,22 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Get(QueueType queueType)
         {
-            var result = _queues.FirstOrDefault(q => q.QueueType == queueType);
-            if (result is not null)
-                return Ok(result);
-            return NotFound();
+            var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
+            return queue is not null ? Ok(queue) : NotFound();
+        }
+
+        [HttpPut("{queueType}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public ActionResult Pause(QueueType queueType, bool paused)
+        {
+            var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
+            if (queue is null) return NotFound();
+            queue.Paused = paused;
+            if (queue.Paused && !paused)
+                return Conflict($"Pause state locked: {queue.PauseReason}");
+            return Ok();
         }
     }
 }

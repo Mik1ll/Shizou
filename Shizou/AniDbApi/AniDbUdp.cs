@@ -72,6 +72,7 @@ namespace Shizou.AniDbApi
         }
 
         public DateTime? PauseEndTime { get; private set; }
+        public DateTime? BanEndTime { get; private set; }
 
         public TimeSpan BanPeriod { get; } = new(12, 0, 0);
         public TimeSpan LogoutPeriod { get; } = new(0, 30, 0);
@@ -110,10 +111,12 @@ namespace Shizou.AniDbApi
                 {
                     _bannedTimer.Stop();
                     _bannedTimer.Start();
+                    BanEndTime = DateTime.UtcNow + BanPeriod;
                 }
                 else
                 {
                     BanReason = null;
+                    BanEndTime = null;
                 }
             }
         }
@@ -146,6 +149,7 @@ namespace Shizou.AniDbApi
         {
             Paused = false;
             PauseReason = null;
+            PauseEndTime = null;
         }
 
         private void PausedElapsed(object sender, ElapsedEventArgs e)
