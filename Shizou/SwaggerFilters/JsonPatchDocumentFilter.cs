@@ -24,10 +24,10 @@ namespace Shizou.SwaggerFilters
                 Type = "object",
                 Properties = new Dictionary<string, OpenApiSchema>
                 {
-                    {"op", new OpenApiSchema {Type = "string"}},
-                    {"from", new OpenApiSchema {Type = "string", Nullable = true}},
-                    {"path", new OpenApiSchema {Type = "string"}},
-                    {"value", new OpenApiSchema {Type = "object", Nullable = true}}
+                    { "op", new OpenApiSchema { Type = "string" } },
+                    { "from", new OpenApiSchema { Type = "string", Nullable = true } },
+                    { "path", new OpenApiSchema { Type = "string" } },
+                    { "value", new OpenApiSchema { Type = "object", Nullable = true } }
                 }
             });
 
@@ -36,7 +36,7 @@ namespace Shizou.SwaggerFilters
                 Type = "array",
                 Items = new OpenApiSchema
                 {
-                    Reference = new OpenApiReference {Id = nameof(JsonPatchOperation), Type = ReferenceType.Schema}
+                    Reference = new OpenApiReference { Id = nameof(JsonPatchOperation), Type = ReferenceType.Schema }
                 }
             });
 
@@ -49,7 +49,7 @@ namespace Shizou.SwaggerFilters
                 var response = path.Value.RequestBody.Content.Single(c => c.Key == "application/json-patch+json");
                 response.Value.Schema = new OpenApiSchema
                 {
-                    Reference = new OpenApiReference {Type = ReferenceType.Schema, Id = "JsonPatchDocument"}
+                    Reference = new OpenApiReference { Type = ReferenceType.Schema, Id = "JsonPatchDocument" }
                 };
             }
         }
@@ -66,21 +66,27 @@ namespace Shizou.SwaggerFilters
         public object? Value { get; set; }
     }
 
-    public class JsonPatchExample : IMultipleExamplesProvider<JsonPatchOperation>
+    public class JsonPatchExample : IMultipleExamplesProvider<List<JsonPatchOperation>>
     {
-        public IEnumerable<SwaggerExample<JsonPatchOperation>> GetExamples()
+        public IEnumerable<SwaggerExample<List<JsonPatchOperation>>> GetExamples()
         {
-            yield return SwaggerExample.Create("replace", new JsonPatchOperation
+            yield return SwaggerExample.Create("replace", new List<JsonPatchOperation>
             {
-                Op = "replace",
-                Path = "AniDB/ServerPort",
-                Value = 8000
+                new()
+                {
+                    Op = "replace",
+                    Path = "AniDB/ServerPort",
+                    Value = 8000
+                }
             });
-            yield return SwaggerExample.Create("add", new JsonPatchOperation
+            yield return SwaggerExample.Create("add", new List<JsonPatchOperation>
             {
-                Op = "add",
-                Path = "AniDB/Username",
-                Value = "Testuser"
+                new()
+                {
+                    Op = "add",
+                    Path = "AniDB/Username",
+                    Value = "Testuser"
+                }
             });
         }
     }

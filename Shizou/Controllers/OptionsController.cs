@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -48,10 +49,16 @@ namespace Shizou.Controllers
         /// <param name="patch"></param>
         /// <returns></returns>
         [HttpPatch]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [SwaggerRequestExample(typeof(JsonPatchOperation), typeof(JsonPatchExample))]
         public ActionResult Patch([FromBody] JsonPatchDocument<ShizouOptions> patch)
         {
             patch.ApplyTo(_options, ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(from state in ModelState.Values
+                    from error in state.Errors
+                    select error.ErrorMessage);
             ShizouOptions.SaveSettingsToFile(_options);
             return Ok();
         }
