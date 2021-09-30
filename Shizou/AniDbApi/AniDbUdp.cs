@@ -24,6 +24,7 @@ namespace Shizou.AniDbApi
         private bool _loggedIn;
         private Mapping? _mapping;
         private INatDevice? _router;
+        private bool _paused;
 
         public AniDbUdp(IOptionsMonitor<ShizouOptions> options,
             ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter, IServiceProvider provider
@@ -34,22 +35,25 @@ namespace Shizou.AniDbApi
             UdpClient = new UdpClient(options.CurrentValue.AniDb.ClientPort, AddressFamily.InterNetwork);
             UdpClient.Connect(options.CurrentValue.AniDb.ServerHost, options.CurrentValue.AniDb.UdpServerPort);
             _options = options;
-            _options.OnChange(OnOptionsChanged);
             _logger = logger;
 
             _bannedTimer = new Timer(BanPeriod.TotalMilliseconds);
-            _bannedTimer.Elapsed += BanTimerElapsed;
+            _bannedTimer.Elapsed += (_, _) =>
+            {
+                _logger.LogInformation("Udp ban timer has elapsed: {BanPeriod}", BanPeriod);
+                Banned = false;
+            };
             _bannedTimer.AutoReset = false;
 
             _logoutTimer = new Timer(LogoutPeriod.TotalMilliseconds);
-            _logoutTimer.Elapsed += LogoutElapsed;
+            _logoutTimer.Elapsed += (_, _) => { Logout().Wait(); };
             _logoutTimer.AutoReset = false;
 
             _pauseTimer = new Timer();
-            _pauseTimer.Elapsed += PausedElapsed;
+            _pauseTimer.Elapsed += (_, _) => Paused = false;
             _pauseTimer.AutoReset = false;
 
-            NatUtility.DeviceFound += FoundRouter;
+            NatUtility.DeviceFound += (_, e) => _router = _router?.NatProtocol == NatProtocol.Pmp ? _router : e.Device;
             NatUtility.StartDiscovery();
             Task.Delay(2000).Wait();
             NatUtility.StopDiscovery();
@@ -60,19 +64,23 @@ namespace Shizou.AniDbApi
             }
             else
             {
+                _logger.LogInformation($"Creating port mapping on port {_options.CurrentValue.AniDb.ClientPort}");
                 _mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, _options.CurrentValue.AniDb.ClientPort, _options.CurrentValue.AniDb.ClientPort));
                 if (_mapping.Lifetime > 0)
                 {
                     _mappingTimer = new Timer(TimeSpan.FromSeconds(_mapping.Lifetime - 60).TotalMilliseconds);
-                    _mappingTimer.Elapsed += MappingElapsed;
+                    _mappingTimer.Elapsed += (_, _) =>
+                    {
+                        _logger.LogInformation($"Recreating port mapping on port {_options.CurrentValue.AniDb.ClientPort}");
+                        _mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, _options.CurrentValue.AniDb.ClientPort,
+                            _options.CurrentValue.AniDb.ClientPort));
+                    };
                     _mappingTimer.AutoReset = true;
                     _mappingTimer.Start();
                 }
             }
         }
 
-        public DateTime? PauseEndTime { get; private set; }
-        public DateTime? BanEndTime { get; private set; }
 
         public TimeSpan BanPeriod { get; } = new(12, 0, 0);
         public TimeSpan LogoutPeriod { get; } = new(0, 30, 0);
@@ -82,9 +90,6 @@ namespace Shizou.AniDbApi
         public string? SessionKey { get; set; }
 
         public string? ImageServerUrl { get; set; }
-
-        public bool Paused { get; private set; }
-        public string? PauseReason { get; private set; }
 
         public bool LoggedIn
         {
@@ -99,6 +104,23 @@ namespace Shizou.AniDbApi
                 }
             }
         }
+
+        public bool Paused
+        {
+            get => _paused;
+            private set
+            {
+                _paused = value;
+                if (!value)
+                {
+                    PauseReason = null;
+                    PauseEndTime = null;
+                }
+            }
+        }
+
+        public string? PauseReason { get; private set; }
+        public DateTime? PauseEndTime { get; private set; }
 
         public bool Banned
         {
@@ -121,6 +143,7 @@ namespace Shizou.AniDbApi
         }
 
         public string? BanReason { get; set; }
+        public DateTime? BanEndTime { get; private set; }
 
         public void Dispose()
         {
@@ -136,50 +159,13 @@ namespace Shizou.AniDbApi
             Paused = true;
             PauseReason = reason;
             _logger.LogWarning("Paused for {pauseDuration}: {pauseReason}", duration.ToString("c"), reason);
-            if (PauseEndTime > DateTime.UtcNow + duration)
+            var newEndTime = DateTime.UtcNow + duration;
+            if (PauseEndTime > newEndTime)
                 return;
-            PauseEndTime = DateTime.UtcNow + duration;
+            PauseEndTime = newEndTime;
             _pauseTimer.Interval = duration.TotalMilliseconds;
             _pauseTimer.Stop();
             _pauseTimer.Start();
-        }
-
-        public void Unpause()
-        {
-            Paused = false;
-            PauseReason = null;
-            PauseEndTime = null;
-        }
-
-        private void PausedElapsed(object sender, ElapsedEventArgs e)
-        {
-            Unpause();
-        }
-
-        private void OnOptionsChanged(ShizouOptions options)
-        {
-        }
-
-        private void MappingElapsed(object sender, ElapsedEventArgs e)
-        {
-            _mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, _options.CurrentValue.AniDb.ClientPort, _options.CurrentValue.AniDb.ClientPort));
-        }
-
-        private void BanTimerElapsed(object sender, ElapsedEventArgs e)
-        {
-            _logger.LogInformation("Udp ban timer has elapsed: {BanPeriod}", BanPeriod);
-            Banned = false;
-            BanReason = null;
-        }
-
-        private async void LogoutElapsed(object sender, ElapsedEventArgs e)
-        {
-            await Logout();
-        }
-
-        private void FoundRouter(object? sender, DeviceEventArgs e)
-        {
-            _router = _router?.NatProtocol == NatProtocol.Pmp ? _router : e.Device;
         }
 
         public async Task<bool> Login()
