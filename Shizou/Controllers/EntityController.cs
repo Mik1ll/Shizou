@@ -37,7 +37,7 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public virtual ActionResult<IQueryable<TDto>> List()
         {
-            return Ok(_dbSet.DtoInclude().Select(e => e.ToDto()));
+            return Ok(_dbSet.DtoInclude().Select(e => (TDto)e.ToDto()));
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Shizou.Controllers
         public virtual ActionResult<TDto> Get(int id)
         {
             var result = _dbSet.DtoInclude().Where(e => e.Id == id).SingleOrDefault();
-            return result is null ? NotFound() : Ok(result.ToDto());
+            return result is null ? NotFound() : Ok((TDto)result.ToDto());
         }
 
         /// <summary>
