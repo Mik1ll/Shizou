@@ -3,6 +3,8 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shizou.CommandProcessors;
+using Shizou.Database;
+using Shizou.Dtos;
 
 namespace Shizou.Controllers
 {
@@ -11,10 +13,12 @@ namespace Shizou.Controllers
     public class QueueController : ControllerBase
     {
         private readonly IEnumerable<CommandProcessor> _queues;
+        private readonly ShizouContext _context;
 
-        public QueueController(IEnumerable<CommandProcessor> queues)
+        public QueueController(IEnumerable<CommandProcessor> queues, ShizouContext context)
         {
             _queues = queues;
+            _context = context;
         }
 
         [HttpGet]
@@ -45,6 +49,27 @@ namespace Shizou.Controllers
             if (queue.Paused && !paused)
                 return Conflict($"Pause state locked: {queue.PauseReason}");
             return Ok();
+        }
+
+        [HttpGet("{queueType}/current")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public ActionResult<CommandRequestDto?> GetCurrentCommand(QueueType queueType)
+        {
+            var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
+            if (queue is null) return NotFound("Queue not found");
+            return Ok(queue.CurrentCommand?.ToDto());
+        }
+
+        [HttpGet("{queueType}/queued")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<IEnumerable<CommandRequestDto>> GetQueuedCommands(QueueType queueType)
+        {
+            var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
+            if (queue is null) return NotFound("Queue not found");
+            return Ok(_context.CommandRequests.Where(cr => cr.QueueType == queueType));
         }
     }
 }
