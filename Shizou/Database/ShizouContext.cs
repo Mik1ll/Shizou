@@ -40,5 +40,14 @@ namespace Shizou.Database
                 .EnableSensitiveDataLogging(false)
                 ;
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<AniDbEpisode>()
+                .HasMany(e => e.ManualLinkLocalFiles)
+                .WithOne(e => e.ManualLinkEpisode!)
+                .OnDelete(DeleteBehavior.SetNull);
+        }
     }
 }
