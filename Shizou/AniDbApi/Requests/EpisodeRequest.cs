@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Shizou.CommandProcessors;
 using Shizou.Enums;
 
 namespace Shizou.AniDbApi.Requests
@@ -22,7 +23,8 @@ namespace Shizou.AniDbApi.Requests
     public sealed class EpisodeRequest : AniDbUdpRequest
     {
         private EpisodeRequest(IServiceProvider provider) : base(provider.GetRequiredService<ILogger<EpisodeRequest>>(),
-            provider.GetRequiredService<AniDbUdp>())
+            provider.GetRequiredService<AniDbUdp>(),
+            provider.GetRequiredService<AniDbUdpProcessor>())
         {
         }
 

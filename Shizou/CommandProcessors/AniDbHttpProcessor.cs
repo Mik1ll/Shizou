@@ -40,13 +40,13 @@ namespace Shizou.CommandProcessors
         public override bool Paused
         {
             get => _paused || Banned;
-            set => _paused = value;
+            protected set => _paused = value;
         }
 
         public override string? PauseReason
         {
             get => Banned ? "HTTP banned" : _pauseReason;
-            set => _pauseReason = value;
+            protected set => _pauseReason = value;
         }
 
         private void BanTimerElapsed(object sender, ElapsedEventArgs e)

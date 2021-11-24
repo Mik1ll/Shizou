@@ -31,8 +31,21 @@ namespace Shizou.CommandProcessors
 
         public CommandRequest? CurrentCommand { get; protected set; }
 
-        public virtual bool Paused { get; set; } = true;
-        public virtual string? PauseReason { get; set; }
+        public virtual bool Paused { get; protected set; } = true;
+        public virtual string? PauseReason { get; protected set; }
+
+        public void Pause(string? pauseReason = null)
+        {
+            Paused = true;
+            PauseReason = pauseReason;
+        }
+
+        public void Unpause()
+        {
+            Paused = false;
+            if (!Paused)
+                PauseReason = null;
+        }
 
         public Queue<string> LastThreeCommands { get; set; } = new(3);
 
@@ -82,8 +95,7 @@ namespace Shizou.CommandProcessors
                     Logger.LogWarning("Not deleting uncompleted command: {commandId}", command.CommandId);
                     if (LastThreeCommands.Count >= 3 && LastThreeCommands.Distinct().Count() == 1)
                     {
-                        Paused = true;
-                        PauseReason = $"Failed to complete command: {command.CommandId} after three attempts";
+                        Pause($"Failed to complete command: {command.CommandId} after three attempts");
                         Logger.LogWarning("Queue paused after failing to complete command three times: {commandId}", command.CommandId);
                     }
                 }

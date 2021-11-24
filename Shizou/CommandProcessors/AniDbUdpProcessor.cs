@@ -20,16 +20,14 @@ namespace Shizou.CommandProcessors
 
         public override bool Paused
         {
-            get => _paused || _udpApi.Banned || _udpApi.Paused;
-            set => _paused = value;
+            get => _paused || _udpApi.Banned;
+            protected set => _paused = value;
         }
 
         public override string? PauseReason
         {
-            get => _udpApi.Banned && _udpApi.BanReason is not null ? _udpApi.BanReason :
-                _udpApi.Paused && _udpApi.PauseReason is not null ? _udpApi.PauseReason :
-                _pauseReason;
-            set => _pauseReason = value;
+            get => _udpApi.Banned && _udpApi.BanReason is not null ? _udpApi.BanReason : _pauseReason;
+            protected set => _pauseReason = value;
         }
 
         public override void Shutdown()

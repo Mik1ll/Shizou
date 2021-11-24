@@ -129,8 +129,7 @@ namespace Shizou.Commands.AniDb
                 if (string.IsNullOrWhiteSpace(result))
                 {
                     Logger.LogWarning("No http response, may be banned or no such anime {animeId}", CommandParams.AnimeId);
-                    _processor.Paused = true;
-                    _processor.PauseReason = $"No http response, may be banned or no such anime {CommandParams.AnimeId}";
+                    _processor.Pause($"No http response, may be banned or no such anime {CommandParams.AnimeId}");
                     result = null;
                 }
                 else
@@ -141,14 +140,13 @@ namespace Shizou.Commands.AniDb
                         if (result.Contains("Banned"))
                         {
                             _processor.Banned = true;
-                            _processor.PauseReason = $"No http response, may be banned or no such anime {CommandParams.AnimeId}";
+                            _processor.Pause($"HTTP Banned, wait {_processor.BanPeriod}");
                             Logger.LogWarning("HTTP Banned! waiting {banPeriod}", _processor.BanPeriod);
                         }
                         else
                         {
                             Logger.LogCritical("Unknown error http response, not requesting again: {errText}", result);
-                            _processor.Paused = true;
-                            _processor.PauseReason = "Unknown error http response, check log";
+                            _processor.Pause("Unknown error http response, check log");
                             Completed = true;
                         }
                         result = null;

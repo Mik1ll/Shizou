@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Shizou.CommandProcessors;
 
 namespace Shizou.AniDbApi.Requests
 {
     public class LogoutRequest : AniDbUdpRequest
     {
-        public LogoutRequest(IServiceProvider provider) : base(provider.GetRequiredService<ILogger<LogoutRequest>>(), provider.GetRequiredService<AniDbUdp>())
+        public LogoutRequest(IServiceProvider provider) : base(
+            provider.GetRequiredService<ILogger<LogoutRequest>>(),
+            provider.GetRequiredService<AniDbUdp>(),
+            provider.GetRequiredService<AniDbUdpProcessor>())
         {
         }
 

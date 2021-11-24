@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Shizou.CommandProcessors;
 using Shizou.Enums;
 
 namespace Shizou.AniDbApi.Requests
@@ -196,7 +197,8 @@ namespace Shizou.AniDbApi.Requests
         private readonly FMask _fMask;
 
         private FileRequest(IServiceProvider provider, FMask fMask, AMask aMask) : base(provider.GetRequiredService<ILogger<FileRequest>>(),
-            provider.GetRequiredService<AniDbUdp>())
+            provider.GetRequiredService<AniDbUdp>(),
+            provider.GetRequiredService<AniDbUdpProcessor>())
         {
             _fMask = fMask;
             _aMask = aMask;

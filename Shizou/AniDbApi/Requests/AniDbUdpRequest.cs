@@ -7,18 +7,21 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using Shizou.CommandProcessors;
 
 namespace Shizou.AniDbApi.Requests
 {
     public abstract class AniDbUdpRequest
     {
         protected readonly AniDbUdp AniDbUdp;
+        protected readonly AniDbUdpProcessor UdpProcessor;
         protected readonly ILogger<AniDbUdpRequest> Logger;
 
-        protected AniDbUdpRequest(ILogger<AniDbUdpRequest> logger, AniDbUdp aniDbUdp)
+        protected AniDbUdpRequest(ILogger<AniDbUdpRequest> logger, AniDbUdp aniDbUdp, AniDbUdpProcessor udpProcessor)
         {
             Logger = logger;
             AniDbUdp = aniDbUdp;
+            UdpProcessor = udpProcessor;
         }
 
         public abstract string Command { get; }
@@ -135,18 +138,18 @@ namespace Shizou.AniDbApi.Requests
             {
                 case null:
                     Logger.LogWarning("Can't handle possible error, no error response code");
-                    AniDbUdp.Pause("No response code from AniDB", TimeSpan.MaxValue);
+                    UdpProcessor.Pause("No response code from AniDB");
                     Errored = true;
                     break;
 
                 case AniDbResponseCode.OutOfService:
                     Logger.LogWarning("AniDB out of service or in maintenance");
-                    AniDbUdp.Pause("AniDB out of service/maintenance", TimeSpan.FromMinutes(30));
+                    UdpProcessor.Pause("AniDB out of service/maintenance");
                     Errored = true;
                     break;
                 case AniDbResponseCode.ServerBusy:
                     Logger.LogWarning("Server busy, try again later");
-                    AniDbUdp.Pause("Server busy, try again later", TimeSpan.MaxValue);
+                    UdpProcessor.Pause("Server busy, try again later");
                     Errored = true;
                     break;
                 case AniDbResponseCode.Banned:
@@ -168,22 +171,22 @@ namespace Shizou.AniDbApi.Requests
                     return true;
                 case AniDbResponseCode.AccessDenied:
                     Logger.LogError("Access denied");
-                    AniDbUdp.Pause("Access was denied", TimeSpan.MaxValue);
+                    UdpProcessor.Pause("Access was denied");
                     Errored = true;
                     break;
                 case AniDbResponseCode.InternalServerError or (> AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700):
                     Logger.LogCritical("AniDB Server CRITICAL ERROR {errorCode} : {errorCodeStr}", ResponseCode, ResponseCodeString);
-                    AniDbUdp.Pause($"Critical error with server {ResponseCode} {ResponseCodeString}", TimeSpan.MaxValue);
+                    UdpProcessor.Pause($"Critical error with server {ResponseCode} {ResponseCodeString}");
                     Errored = true;
                     break;
                 case AniDbResponseCode.UnknownCommand:
                     Logger.LogError("Uknown command, {Command}, {RequestText}", Command, RequestText);
-                    AniDbUdp.Pause($"Unknown AniDB command, investigate {Command}", TimeSpan.MaxValue);
+                    UdpProcessor.Pause($"Unknown AniDB command, investigate {Command}");
                     Errored = true;
                     break;
                 case AniDbResponseCode.IllegalInputOrAccessDenied:
                     Logger.LogError("Illegal input or access is denied, {Command}, {RequestText}", Command, RequestText);
-                    AniDbUdp.Pause($"Illegal AniDB input, investigate {Command}", TimeSpan.MaxValue);
+                    UdpProcessor.Pause($"Illegal AniDB input, investigate {Command}");
                     Errored = true;
                     break;
                 default:
@@ -191,7 +194,7 @@ namespace Shizou.AniDbApi.Requests
                     {
                         Logger.LogError("Response Code {ResponseCode} not found in enumeration: Code string: {codeString}", ResponseCode,
                             ResponseCodeString);
-                        AniDbUdp.Pause($"Unknown response code: {ResponseCode}", TimeSpan.MaxValue);
+                        UdpProcessor.Pause($"Unknown response code: {ResponseCode}");
                         Errored = true;
                     }
                     break;

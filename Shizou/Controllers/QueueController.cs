@@ -45,7 +45,10 @@ namespace Shizou.Controllers
         {
             var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
             if (queue is null) return NotFound();
-            queue.Paused = paused;
+            if (paused)
+                queue.Pause();
+            else
+                queue.Unpause();
             if (queue.Paused && !paused)
                 return Conflict($"Pause state locked: {queue.PauseReason}");
             return Ok();

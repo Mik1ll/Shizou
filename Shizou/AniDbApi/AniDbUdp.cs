@@ -18,13 +18,11 @@ namespace Shizou.AniDbApi
         private readonly Timer _logoutTimer;
         private readonly Timer? _mappingTimer;
         private readonly IOptionsMonitor<ShizouOptions> _options;
-        private readonly Timer _pauseTimer;
         private readonly IServiceProvider _provider;
         private bool _banned;
         private bool _loggedIn;
         private Mapping? _mapping;
         private INatDevice? _router;
-        private bool _paused;
 
         public AniDbUdp(IOptionsMonitor<ShizouOptions> options,
             ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter, IServiceProvider provider
@@ -48,10 +46,6 @@ namespace Shizou.AniDbApi
             _logoutTimer = new Timer(LogoutPeriod.TotalMilliseconds);
             _logoutTimer.Elapsed += (_, _) => { Logout().Wait(); };
             _logoutTimer.AutoReset = false;
-
-            _pauseTimer = new Timer();
-            _pauseTimer.Elapsed += (_, _) => Paused = false;
-            _pauseTimer.AutoReset = false;
 
             NatUtility.DeviceFound += (_, e) => _router = _router?.NatProtocol == NatProtocol.Pmp ? _router : e.Device;
             NatUtility.StartDiscovery();
@@ -105,23 +99,6 @@ namespace Shizou.AniDbApi
             }
         }
 
-        public bool Paused
-        {
-            get => _paused;
-            private set
-            {
-                _paused = value;
-                if (!value)
-                {
-                    PauseReason = null;
-                    PauseEndTime = null;
-                }
-            }
-        }
-
-        public string? PauseReason { get; private set; }
-        public DateTime? PauseEndTime { get; private set; }
-
         public bool Banned
         {
             get => _banned;
@@ -152,20 +129,6 @@ namespace Shizou.AniDbApi
             _logoutTimer.Dispose();
             UdpClient.Dispose();
             _mappingTimer?.Dispose();
-        }
-
-        public void Pause(string reason, TimeSpan duration)
-        {
-            Paused = true;
-            PauseReason = reason;
-            _logger.LogWarning("Paused for {pauseDuration}: {pauseReason}", duration.ToString("c"), reason);
-            var newEndTime = DateTime.UtcNow + duration;
-            if (PauseEndTime > newEndTime)
-                return;
-            PauseEndTime = newEndTime;
-            _pauseTimer.Interval = duration.TotalMilliseconds;
-            _pauseTimer.Stop();
-            _pauseTimer.Start();
         }
 
         public async Task<bool> Login()

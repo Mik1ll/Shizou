@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Shizou.CommandProcessors;
 using Shizou.Enums;
 
 namespace Shizou.AniDbApi.Requests
@@ -141,7 +142,8 @@ namespace Shizou.AniDbApi.Requests
         private readonly AMask _aMask;
 
         private AnimeRequest(IServiceProvider provider) : base(provider.GetRequiredService<ILogger<AnimeRequest>>(),
-            provider.GetRequiredService<AniDbUdp>())
+            provider.GetRequiredService<AniDbUdp>(),
+            provider.GetRequiredService<AniDbUdpProcessor>())
         {
         }
 

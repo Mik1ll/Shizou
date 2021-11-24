@@ -4,26 +4,17 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shizou.CommandProcessors;
 using Shizou.Options;
 
 namespace Shizou.AniDbApi.Requests
 {
     public sealed class AuthRequest : AniDbUdpRequest
     {
-        private static int _failedLoginAttempts;
-
-        private static readonly List<TimeSpan> FailedLoginPauseTimes = new()
-        {
-            TimeSpan.FromSeconds(30),
-            TimeSpan.FromMinutes(2),
-            TimeSpan.FromMinutes(5),
-            TimeSpan.FromMinutes(10),
-            TimeSpan.FromMinutes(30),
-            TimeSpan.FromHours(1),
-            TimeSpan.FromHours(2)
-        };
-
-        public AuthRequest(IServiceProvider provider) : base(provider.GetRequiredService<ILogger<AuthRequest>>(), provider.GetRequiredService<AniDbUdp>())
+        public AuthRequest(IServiceProvider provider) : base(
+            provider.GetRequiredService<ILogger<AuthRequest>>(),
+            provider.GetRequiredService<AniDbUdp>(),
+            provider.GetRequiredService<AniDbUdpProcessor>())
         {
             var opts = provider.GetRequiredService<IOptionsMonitor<ShizouOptions>>().CurrentValue;
             Params["user"] = opts.AniDb.Username;
@@ -51,7 +42,6 @@ namespace Shizou.AniDbApi.Requests
             switch (ResponseCode)
             {
                 case AniDbResponseCode.LoginAccepted or AniDbResponseCode.LoginAcceptedNewVersion:
-                    _failedLoginAttempts = 0;
                     var split = ResponseCodeString?.Split(" ");
                     AniDbUdp.SessionKey = split?[0];
                     var ipEndpoint = split?[1];
@@ -60,21 +50,19 @@ namespace Shizou.AniDbApi.Requests
                     break;
                 case AniDbResponseCode.LoginFailed:
                     Errored = true;
-                    AniDbUdp.Pause("Login failed, change credentials", TimeSpan.MaxValue);
+                    UdpProcessor.Pause("Login failed, change credentials");
                     break;
                 case AniDbResponseCode.ClientOutdated:
                     Errored = true;
-                    AniDbUdp.Pause("Login failed, client outdated", TimeSpan.MaxValue);
+                    UdpProcessor.Pause("Login failed, client outdated");
                     break;
                 case AniDbResponseCode.ClientBanned:
                     Errored = true;
-                    AniDbUdp.Pause("Login failed, client banned", TimeSpan.MaxValue);
+                    UdpProcessor.Pause("Login failed, client banned");
                     break;
                 case null:
                     Errored = true;
-                    _failedLoginAttempts = Math.Min(_failedLoginAttempts + 1, FailedLoginPauseTimes.Count - 1);
-                    var pauseTime = FailedLoginPauseTimes[_failedLoginAttempts];
-                    AniDbUdp.Pause($"No auth response, pausing for {pauseTime}", pauseTime);
+                    UdpProcessor.Pause("No auth response");
                     break;
             }
         }
