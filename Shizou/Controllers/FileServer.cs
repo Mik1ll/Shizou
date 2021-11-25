@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -46,6 +48,22 @@ namespace Shizou.Controllers
             var fileStream = new FileStream(localFile.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 19, FileOptions.Asynchronous);
 
             return File(fileStream, mimeType, localFile.Name, true);
+        }
+
+        [HttpGet("{localFileId:int}/play")]
+        [Produces("text/html")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult BrowserPlay(int localFileId)
+        {
+            var localDbFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
+            if (localDbFile is null)
+                return NotFound();
+            return Content(@$"<!DOCTYPE html><html><body>
+<video controls
+src=""{HttpContext.Request.GetEncodedUrl().Remove(HttpContext.Request.GetEncodedUrl().IndexOf("/play", StringComparison.Ordinal))}""></video>
+</body></html>
+", "text/html");
         }
     }
 }
