@@ -9,6 +9,7 @@ namespace Shizou.Commands
         GetFile = 1,
         Hash = 2,
         HttpGetAnime = 3,
+        HttpGetMyList = 4,
         Noop = 99
     }
 }
