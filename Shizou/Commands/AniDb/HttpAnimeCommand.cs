@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,7 +29,7 @@ namespace Shizou.Commands.AniDb
             provider.GetRequiredService<ILogger<HttpAnimeCommand>>(), commandParams)
         {
             var options = provider.GetRequiredService<IOptions<ShizouOptions>>();
-            _processor = (AniDbHttpProcessor)provider.GetServices<CommandProcessor>().First(p => p.QueueType == QueueType.AniDbHttp);
+            _processor = provider.GetRequiredService<AniDbHttpProcessor>();
             _context = provider.GetRequiredService<ShizouContext>();
             var builder = new UriBuilder("http", options.Value.AniDb.ServerHost, options.Value.AniDb.HttpServerPort, "httpapi");
             var query = HttpUtility.ParseQueryString(builder.Query);
