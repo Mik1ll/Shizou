@@ -40,7 +40,7 @@ namespace Shizou.Commands.AniDb
             query["aid"] = commandParams.AnimeId.ToString();
             builder.Query = query.ToString();
             _url = builder.ToString();
-            _cacheFilePath = Path.Combine(Program.HttpCachePath, $"AnimeDoc_{CommandParams.AnimeId}.xml");
+            _cacheFilePath = Path.Combine(Constants.HttpCachePath, $"AnimeDoc_{CommandParams.AnimeId}.xml");
         }
 
         public override async Task Process()
@@ -156,8 +156,8 @@ namespace Shizou.Commands.AniDb
             {
                 if (!File.Exists(_cacheFilePath))
                 {
-                    if (!Directory.Exists(Program.HttpCachePath))
-                        Directory.CreateDirectory(Program.HttpCachePath);
+                    if (!Directory.Exists(Constants.HttpCachePath))
+                        Directory.CreateDirectory(Constants.HttpCachePath);
                     File.Create(_cacheFilePath).Dispose();
                 }
                 File.SetLastWriteTime(_cacheFilePath, DateTime.UtcNow);

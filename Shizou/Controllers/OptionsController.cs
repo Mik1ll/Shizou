@@ -1,11 +1,7 @@
-﻿using System.Linq;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.JsonPatch;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Shizou.Options;
-using Shizou.SwaggerFilters;
-using Swashbuckle.AspNetCore.Filters;
 
 namespace Shizou.Controllers
 {
@@ -26,6 +22,7 @@ namespace Shizou.Controllers
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
         public ActionResult<ShizouOptions> Get()
         {
             return Ok(_options);
@@ -39,27 +36,7 @@ namespace Shizou.Controllers
         [HttpPut]
         public ActionResult Save([FromBody] ShizouOptions options)
         {
-            ShizouOptions.SaveSettingsToFile(options);
-            return Ok();
-        }
-
-        /// <summary>
-        ///     Change settings individually
-        /// </summary>
-        /// <param name="patch"></param>
-        /// <returns></returns>
-        [HttpPatch]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [SwaggerRequestExample(typeof(JsonPatchOperation), typeof(JsonPatchExample))]
-        public ActionResult Patch([FromBody] JsonPatchDocument<ShizouOptions> patch)
-        {
-            patch.ApplyTo(_options, ModelState);
-            if (!ModelState.IsValid)
-                return BadRequest(from state in ModelState.Values
-                    from error in state.Errors
-                    select error.ErrorMessage);
-            ShizouOptions.SaveSettingsToFile(_options);
+            ShizouOptions.SaveToFile(options);
             return Ok();
         }
     }

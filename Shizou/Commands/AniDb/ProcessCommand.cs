@@ -30,7 +30,7 @@ namespace Shizou.Commands.AniDb
         {
             _context = provider.GetRequiredService<ShizouContext>();
             _cmdMgr = provider.GetRequiredService<CommandManager>();
-            _fileCachePath = Path.Combine(Program.TempFilePath, CommandParams.CommandId + ".json");
+            _fileCachePath = Path.Combine(Constants.TempFilePath, CommandParams.CommandId + ".json");
         }
 
         public override async Task Process()
@@ -311,8 +311,8 @@ namespace Shizou.Commands.AniDb
 
         private async Task SaveToFileCache(AniDbFileResult? result)
         {
-            if (!Directory.Exists(Program.TempFilePath))
-                Directory.CreateDirectory(Program.TempFilePath);
+            if (!Directory.Exists(Constants.TempFilePath))
+                Directory.CreateDirectory(Constants.TempFilePath);
             using (var file = new FileStream(_fileCachePath, FileMode.Create, FileAccess.Write))
             {
                 await JsonSerializer.SerializeAsync(file, result);

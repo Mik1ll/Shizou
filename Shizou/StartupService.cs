@@ -31,9 +31,9 @@ namespace Shizou
             var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
             var aniDbUdp = scope.ServiceProvider.GetRequiredService<AniDbUdp>();
             var processors = scope.ServiceProvider.GetServices<CommandProcessor>();
-            foreach (var processor in processors) processor.Paused = false;
+            // foreach (var processor in processors) processor.Paused = false;
             var importer = scope.ServiceProvider.GetRequiredService<Importer>();
-            await Task.Delay(20000);
+            var test = scope.ServiceProvider.GetRequiredService<AniDbUdpProcessor>();
             log.LogInformation("Startup service finished");
         }
     }

@@ -37,7 +37,7 @@ namespace Shizou.Commands.AniDb
             query["pass"] = options.Value.AniDb.Password;
             builder.Query = query.ToString();
             _url = builder.ToString();
-            _mylistPath = Path.Combine(Program.ApplicationData, "AniDbMyList.xml");
+            _mylistPath = Path.Combine(Constants.ApplicationData, "AniDbMyList.xml");
         }
 
         public override async Task Process()
@@ -82,8 +82,8 @@ namespace Shizou.Commands.AniDb
             {
                 if (!File.Exists(_mylistPath))
                 {
-                    if (!Directory.Exists(Program.HttpCachePath))
-                        Directory.CreateDirectory(Program.HttpCachePath);
+                    if (!Directory.Exists(Constants.HttpCachePath))
+                        Directory.CreateDirectory(Constants.HttpCachePath);
                     File.Create(_mylistPath).Dispose();
                 }
             }

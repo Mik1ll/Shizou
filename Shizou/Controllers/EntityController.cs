@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +34,7 @@ namespace Shizou.Controllers
         /// <response code="200">Success</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
         public virtual ActionResult<IQueryable<TDto>> List()
         {
             return Ok(_dbSet.DtoInclude().Select(e => (TDto)e.ToDto()));
@@ -50,6 +50,7 @@ namespace Shizou.Controllers
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Produces("application/json")]
         public virtual ActionResult<TDto> Get(int id)
         {
             var result = _dbSet.DtoInclude().Where(e => e.Id == id).SingleOrDefault();
@@ -66,20 +67,21 @@ namespace Shizou.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [Produces("application/json")]
         public virtual ActionResult<TDto> Create([FromBody] TDto entity)
         {
             try
             {
-                _dbSet.Add((TEntity)entity.ToEntity());
+                var newEntity = (TEntity)entity.ToEntity();
+                _dbSet.Add(newEntity);
                 Context.SaveChanges();
+                return CreatedAtAction(nameof(Get), new { id = newEntity.Id }, newEntity.ToDto());
             }
             catch (DbUpdateException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
                 return Conflict(ModelState);
             }
-            var path = new Uri(@$"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}/{entity.Id}");
-            return Created(path, entity);
         }
 
         /// <summary>
