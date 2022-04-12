@@ -44,6 +44,7 @@ namespace Shizou.Commands.AniDb
         {
             string? result;
             Logger.LogInformation("HTTP Getting MyList from AniDb");
+            // TODO: Use HttpCLient like in HttpAnimeCommand.cs
             HttpWebRequest request = WebRequest.CreateHttp(_url);
             request.AutomaticDecompression = DecompressionMethods.GZip;
             using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())

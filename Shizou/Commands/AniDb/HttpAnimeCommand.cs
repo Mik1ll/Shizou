@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -23,6 +23,7 @@ namespace Shizou.Commands.AniDb
         private readonly string _cacheFilePath;
         private readonly ShizouContext _context;
         private readonly AniDbHttpProcessor _processor;
+        private readonly HttpClient _httpClient;
         private readonly string _url;
 
         public HttpAnimeCommand(IServiceProvider provider, HttpAnimeParams commandParams) : base(provider,
@@ -31,6 +32,7 @@ namespace Shizou.Commands.AniDb
             var options = provider.GetRequiredService<IOptions<ShizouOptions>>();
             _processor = provider.GetRequiredService<AniDbHttpProcessor>();
             _context = provider.GetRequiredService<ShizouContext>();
+            _httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("gzip");
             var builder = new UriBuilder("http", options.Value.AniDb.ServerHost, options.Value.AniDb.HttpServerPort, "httpapi");
             var query = HttpUtility.ParseQueryString(builder.Query);
             query["client"] = "shizouhttp";
@@ -116,15 +118,11 @@ namespace Shizou.Commands.AniDb
 
         private async Task<string?> GetAnimeHttp()
         {
-            string? result;
+            string? result = null;
             Logger.LogInformation("HTTP Getting anime id {animeId}", CommandParams.AnimeId);
-            HttpWebRequest request = WebRequest.CreateHttp(_url);
-            request.AutomaticDecompression = DecompressionMethods.GZip;
-            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new(stream))
+            try
             {
-                result = await reader.ReadToEndAsync();
+                result = await _httpClient.GetStringAsync(_url);
                 if (string.IsNullOrWhiteSpace(result))
                 {
                     Logger.LogWarning("No http response, may be banned or no such anime {animeId}", CommandParams.AnimeId);
@@ -151,6 +149,10 @@ namespace Shizou.Commands.AniDb
                         result = null;
                     }
                 }
+            }
+            catch (HttpRequestException ex)
+            {
+                Logger.LogWarning("Http anime request failed: {Message}", ex.Message);
             }
             if (result is null)
             {
