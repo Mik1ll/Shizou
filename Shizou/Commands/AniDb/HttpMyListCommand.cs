@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -20,6 +20,7 @@ namespace Shizou.Commands.AniDb
         private readonly AniDbHttpProcessor _processor;
         private readonly string _url;
         private readonly string _mylistPath;
+        private readonly HttpClient _httpClient;
 
 
         public HttpMyListCommand(IServiceProvider provider, HttpMyListParams commandParams) : base(provider,
@@ -27,6 +28,7 @@ namespace Shizou.Commands.AniDb
         {
             var options = provider.GetRequiredService<IOptions<ShizouOptions>>();
             _processor = provider.GetRequiredService<AniDbHttpProcessor>();
+            _httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("gzip");
             var builder = new UriBuilder("http", options.Value.AniDb.ServerHost, options.Value.AniDb.HttpServerPort, "httpapi");
             var query = HttpUtility.ParseQueryString(builder.Query);
             query["client"] = "shizouhttp";
@@ -43,56 +45,41 @@ namespace Shizou.Commands.AniDb
         public override async Task Process()
         {
             string? result;
-            Logger.LogInformation("HTTP Getting MyList from AniDb");
-            // TODO: Use HttpCLient like in HttpAnimeCommand.cs
-            HttpWebRequest request = WebRequest.CreateHttp(_url);
-            request.AutomaticDecompression = DecompressionMethods.GZip;
-            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new(stream))
+            var retry = false;
+            Logger.LogInformation("HTTP Getting mylist from AniDb");
+            try
             {
-                result = await reader.ReadToEndAsync();
+                result = await _httpClient.GetStringAsync(_url);
                 if (string.IsNullOrWhiteSpace(result))
                 {
                     Logger.LogWarning("No http response, may be banned");
                     _processor.Pause("No http response, may be banned");
-                    result = null;
+                    retry = true;
+                }
+                else if (!result.StartsWith("<error"))
+                {
+                    await File.WriteAllTextAsync(_mylistPath, result, Encoding.UTF8);
+                    Logger.LogInformation("HTTP Get mylist succeeded");
+                }
+                else if (result.Contains("Banned"))
+                {
+                    _processor.Banned = true;
+                    _processor.Pause($"HTTP Banned, wait {_processor.BanPeriod}");
+                    Logger.LogWarning("HTTP Banned! waiting {banPeriod}", _processor.BanPeriod);
+                    retry = true;
                 }
                 else
                 {
-                    const string errStt = "<error";
-                    if (result.StartsWith(errStt))
-                    {
-                        if (result.Contains("Banned"))
-                        {
-                            _processor.Banned = true;
-                            _processor.Pause($"HTTP Banned, wait {_processor.BanPeriod}");
-                            Logger.LogWarning("HTTP Banned! waiting {banPeriod}", _processor.BanPeriod);
-                        }
-                        else
-                        {
-                            Logger.LogCritical("Unknown error http response, not requesting again: {errText}", result);
-                            _processor.Pause("Unknown error http response, check log");
-                            Completed = true;
-                        }
-                        result = null;
-                    }
+                    Logger.LogCritical("Unknown error http response, not requesting again: {errText}", result);
+                    _processor.Pause("Unknown error http response, check log");
                 }
             }
-            if (result is null)
+            catch (HttpRequestException ex)
             {
-                if (!File.Exists(_mylistPath))
-                {
-                    if (!Directory.Exists(Constants.HttpCachePath))
-                        Directory.CreateDirectory(Constants.HttpCachePath);
-                    File.Create(_mylistPath).Dispose();
-                }
+                Logger.LogWarning("Http mylist request failed: {Message}", ex.Message);
             }
-            else
-            {
-                await File.WriteAllTextAsync(_mylistPath, result, Encoding.UTF8);
-            }
-            Completed = true;
+            if (!retry)
+                Completed = true;
         }
     }
 }
