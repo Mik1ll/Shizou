@@ -6,6 +6,8 @@ using System.Xml.Serialization;
 using Shizou.Entities;
 using Shizou.Enums;
 
+// ReSharper disable RedundantNullableFlowAttribute
+
 #pragma warning disable 8618
 
 namespace Shizou.AniDbApi

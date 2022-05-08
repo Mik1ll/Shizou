@@ -17,11 +17,9 @@ namespace Shizou.AniDbApi
         private readonly ILogger<AniDbUdp> _logger;
         private readonly Timer _logoutTimer;
         private readonly Timer? _mappingTimer;
-        private readonly IOptionsMonitor<ShizouOptions> _options;
         private readonly IServiceProvider _provider;
         private bool _banned;
         private bool _loggedIn;
-        private Mapping? _mapping;
         private INatDevice? _router;
 
         public AniDbUdp(IOptionsMonitor<ShizouOptions> options,
@@ -32,7 +30,6 @@ namespace Shizou.AniDbApi
             RateLimiter = rateLimiter;
             UdpClient = new UdpClient(options.CurrentValue.AniDb.ClientPort, AddressFamily.InterNetwork);
             UdpClient.Connect(options.CurrentValue.AniDb.ServerHost, options.CurrentValue.AniDb.UdpServerPort);
-            _options = options;
             _logger = logger;
 
             _bannedTimer = new Timer(BanPeriod.TotalMilliseconds);
@@ -58,16 +55,16 @@ namespace Shizou.AniDbApi
             }
             else
             {
-                _logger.LogInformation($"Creating port mapping on port {_options.CurrentValue.AniDb.ClientPort}");
-                _mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, _options.CurrentValue.AniDb.ClientPort, _options.CurrentValue.AniDb.ClientPort));
-                if (_mapping.Lifetime > 0)
+                _logger.LogInformation($"Creating port mapping on port {options.CurrentValue.AniDb.ClientPort}");
+                var mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, options.CurrentValue.AniDb.ClientPort, options.CurrentValue.AniDb.ClientPort));
+                if (mapping.Lifetime > 0)
                 {
-                    _mappingTimer = new Timer(TimeSpan.FromSeconds(_mapping.Lifetime - 60).TotalMilliseconds);
+                    _mappingTimer = new Timer(TimeSpan.FromSeconds(mapping.Lifetime - 60).TotalMilliseconds);
                     _mappingTimer.Elapsed += (_, _) =>
                     {
-                        _logger.LogInformation($"Recreating port mapping on port {_options.CurrentValue.AniDb.ClientPort}");
-                        _mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, _options.CurrentValue.AniDb.ClientPort,
-                            _options.CurrentValue.AniDb.ClientPort));
+                        _logger.LogInformation($"Recreating port mapping on port {options.CurrentValue.AniDb.ClientPort}");
+                        mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, options.CurrentValue.AniDb.ClientPort,
+                            options.CurrentValue.AniDb.ClientPort));
                     };
                     _mappingTimer.AutoReset = true;
                     _mappingTimer.Start();
@@ -140,9 +137,14 @@ namespace Shizou.AniDbApi
                 return true;
             }
             var req = new AuthRequest(_provider);
+            _logger.LogInformation("Attempting to log into AniDB");
             await req.Process();
             if (LoggedIn)
+            {
+                _logger.LogInformation("Logged into AniDB");
                 return true;
+            }
+            _logger.LogWarning("Failed to log into AniDB");
             return false;
         }
 

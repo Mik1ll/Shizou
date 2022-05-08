@@ -56,6 +56,7 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult BrowserPlay(int localFileId)
         {
+            _logger.LogInformation("Playing file {localFileId} in browser", localFileId);
             var localDbFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
             if (localDbFile is null)
                 return NotFound();

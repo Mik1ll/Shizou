@@ -16,9 +16,10 @@ namespace Shizou.Commands
         {
         }
 
-        public override async Task Process()
+        public override Task Process()
         {
             Completed = true;
+            return Task.CompletedTask;
         }
     }
 }

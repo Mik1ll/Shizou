@@ -129,7 +129,7 @@ namespace Shizou.Commands.AniDb
                                     return true;
                                 }
                                 var animeResult = animeReq.AnimeResult;
-                                var newAniDbAnime = _context.AniDbAnimes.Add(new AniDbAnime
+                                _context.AniDbAnimes.Add(new AniDbAnime
                                 {
                                     Id = animeResult.AnimeId!.Value,
                                     Title = animeResult.TitleRomaji!,
@@ -137,7 +137,7 @@ namespace Shizou.Commands.AniDb
                                     HighestEpisode = animeResult.HighestEpisodeNumber!.Value,
                                     AnimeType = animeResult.Type!.Value,
                                     AniDbUpdated = animeResult.DateRecordUpdated!.Value
-                                }).Entity;
+                                });
                             }
                             _context.AniDbEpisodes.Add(newAniDbEpisode);
                         }

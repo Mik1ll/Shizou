@@ -49,7 +49,7 @@ namespace Shizou.CommandProcessors
             protected set => _pauseReason = value;
         }
 
-        private void BanTimerElapsed(object sender, ElapsedEventArgs e)
+        private void BanTimerElapsed(object? sender, ElapsedEventArgs e)
         {
             Banned = false;
         }

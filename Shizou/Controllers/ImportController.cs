@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Shizou.Services.Import;
 
 namespace Shizou.Controllers
@@ -9,12 +8,10 @@ namespace Shizou.Controllers
     [Route("[controller]")]
     public class ImportController : ControllerBase
     {
-        private readonly ILogger<ImportController> _logger;
         private readonly Importer _importer;
 
-        public ImportController(ILogger<ImportController> logger, Importer importer)
+        public ImportController(Importer importer)
         {
-            _logger = logger;
             _importer = importer;
         }
 

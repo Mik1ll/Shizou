@@ -77,7 +77,7 @@ namespace Shizou.AniDbApi.Requests
                         Errored = true;
                         return;
                     }
-                    if (Params["edit"] == "0" && Params.TryGetValue("fid", out var fid))
+                    if (Params["edit"] == "0" && Params.TryGetValue("fid", out _))
                         MyListResult = MyListResult! with { ListId = int.Parse(ResponseText) };
                     break;
                 case AniDbResponseCode.MyListEdited:

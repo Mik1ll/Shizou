@@ -44,6 +44,7 @@ namespace Shizou.AniDbApi.Requests
                 case AniDbResponseCode.LoginAccepted or AniDbResponseCode.LoginAcceptedNewVersion:
                     var split = ResponseCodeString?.Split(" ");
                     AniDbUdp.SessionKey = split?[0];
+                    // ReSharper disable once UnusedVariable
                     var ipEndpoint = split?[1];
                     AniDbUdp.ImageServerUrl = ResponseText?.Trim();
                     AniDbUdp.LoggedIn = true;

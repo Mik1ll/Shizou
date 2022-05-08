@@ -10,6 +10,8 @@ using Shizou.Commands;
 using Shizou.Database;
 using Shizou.Services.Import;
 
+// ReSharper disable UnusedVariable
+
 namespace Shizou
 {
     public sealed class StartupService : BackgroundService
@@ -24,16 +26,17 @@ namespace Shizou
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             await Task.Yield();
-            using IServiceScope scope = _serviceProvider.CreateScope();
+            using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
             var log = scope.ServiceProvider.GetRequiredService<ILogger<StartupService>>();
             log.LogInformation("Started startup service");
             var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
             var aniDbUdp = scope.ServiceProvider.GetRequiredService<AniDbUdp>();
             var processors = scope.ServiceProvider.GetServices<CommandProcessor>();
-            // foreach (var processor in processors) processor.Paused = false;
+            foreach (var processor in processors) processor.Unpause();
             var importer = scope.ServiceProvider.GetRequiredService<Importer>();
             var test = scope.ServiceProvider.GetRequiredService<AniDbUdpProcessor>();
+            //cmdMgr.Dispatch(new HttpAnimeParams(14314));
             log.LogInformation("Startup service finished");
         }
     }

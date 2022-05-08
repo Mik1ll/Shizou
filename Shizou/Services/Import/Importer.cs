@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Shizou.Commands;
@@ -22,6 +23,7 @@ namespace Shizou.Services.Import
 
         public void Import()
         {
+            _logger.LogInformation("Beginning import");
             var folders = _context.ImportFolders.Where(f => f.ScanOnImport);
             foreach (var folder in folders)
                 ScanImportFolder(folder.Id);
@@ -36,6 +38,8 @@ namespace Shizou.Services.Import
         public void ScanImportFolder(int importFolderId, bool forceRescan = false)
         {
             var importFolder = _context.ImportFolders.Find(importFolderId);
+            if (importFolder is null)
+                throw new InvalidOperationException("import folder id not found");
             var dir = new DirectoryInfo(importFolder.Path);
             var allFiles = dir.GetFiles("*", SearchOption.AllDirectories);
             var filesToHash = allFiles
