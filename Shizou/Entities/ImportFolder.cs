@@ -13,8 +13,6 @@ namespace Shizou.Entities
 
         public bool ScanOnImport { get; set; }
 
-        public int? DestinationId { get; set; }
-        public ImportFolder? Destination { get; set; }
         public List<LocalFile> LocalFiles { get; set; } = null!;
 
 
@@ -25,8 +23,7 @@ namespace Shizou.Entities
                 Id = Id,
                 Name = Name,
                 Path = Path,
-                ScanOnImport = ScanOnImport,
-                DestinationId = DestinationId
+                ScanOnImport = ScanOnImport
             };
         }
     }

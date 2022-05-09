@@ -8,8 +8,6 @@ namespace Shizou.Dtos
         public string Path { get; set; } = null!;
         public bool ScanOnImport { get; set; }
 
-        public int? DestinationId { get; set; }
-
 
         public override ImportFolder ToEntity()
         {
@@ -18,8 +16,7 @@ namespace Shizou.Dtos
                 Id = Id,
                 Name = Name,
                 Path = Path,
-                ScanOnImport = ScanOnImport,
-                DestinationId = DestinationId
+                ScanOnImport = ScanOnImport
             };
         }
     }

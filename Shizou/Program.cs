@@ -80,6 +80,8 @@ try
 }
 catch (Exception ex)
 {
+    var type = ex.GetType().Name;
+    if (type.Equals("StopTheHostException", StringComparison.Ordinal)) throw;
     Log.Fatal(ex, "Unhandled exception");
 }
 finally
