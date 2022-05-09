@@ -39,7 +39,8 @@ namespace Shizou.Services.Import
         {
             var importFolder = _context.ImportFolders.Find(importFolderId);
             if (importFolder is null)
-                throw new InvalidOperationException("import folder id not found");
+                throw new InvalidOperationException($"import folder id {importFolderId} not found");
+            _logger.LogInformation("Beginning scan on import folder {importFolderPath}", importFolder.Path);
             var dir = new DirectoryInfo(importFolder.Path);
             var allFiles = dir.GetFiles("*", SearchOption.AllDirectories);
             var filesToHash = allFiles
@@ -57,7 +58,7 @@ namespace Shizou.Services.Import
                             }),
                     e => e.FullName,
                     e => e.Path,
-                    (info, dbLocals) => new {FileInfo = info, LocalFile = dbLocals.FirstOrDefault()})
+                    (info, dbLocals) => new { FileInfo = info, LocalFile = dbLocals.FirstOrDefault() })
                 .Where(e => !(e.LocalFile?.Ignored ?? false) && (e.FileInfo.Length != e.LocalFile?.FileSize || forceRescan))
                 .Select(e => e.FileInfo);
 
@@ -70,13 +71,15 @@ namespace Shizou.Services.Import
         public void PopulateLocalFileAniDbRelations()
         {
             var newRelations = _context.LocalFiles.Where(e => e.AniDbFileId == null)
-                .Join(_context.AniDbFiles.Select(e => new {e.Id, e.Ed2K}),
+                .Join(_context.AniDbFiles.Select(e => new { e.Id, e.Ed2K }),
                     e => e.Ed2K,
                     e => e.Ed2K,
-                    (localFile, aniDbFile) => new {localFile, aniDbFile.Id})
+                    (localFile, aniDbFile) => new { localFile, aniDbFile.Id })
                 .ToList();
             foreach (var relation in newRelations)
             {
+                _logger.LogInformation("Found new file relation, linking local file {localFileId} to AniDB file {anidbFileId}", relation.localFile.Id,
+                    relation.Id);
                 relation.localFile.AniDbFileId = relation.Id;
                 relation.localFile.ManualLinkEpisodeId = null;
             }
