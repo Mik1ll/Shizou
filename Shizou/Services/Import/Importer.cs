@@ -40,7 +40,7 @@ namespace Shizou.Services.Import
             var importFolder = _context.ImportFolders.Find(importFolderId);
             if (importFolder is null)
                 throw new InvalidOperationException($"import folder id {importFolderId} not found");
-            _logger.LogInformation("Beginning scan on import folder {importFolderPath}", importFolder.Path);
+            _logger.LogInformation("Beginning scan on import folder \"{importFolderPath}\"", importFolder.Path);
             var dir = new DirectoryInfo(importFolder.Path);
             var allFiles = dir.GetFiles("*", SearchOption.AllDirectories);
             var filesToHash = allFiles
@@ -84,6 +84,13 @@ namespace Shizou.Services.Import
                 relation.localFile.ManualLinkEpisodeId = null;
             }
             _context.SaveChanges();
+        }
+
+        public void CheckForMissingFiles()
+        {
+            var files = _context.LocalFiles.Join(_context.ImportFolders, e => e.ImportFolderId, e => e.Id,
+                    (file, folder) => new { Path = Path.GetFullPath(Path.Combine(folder.Path, file.PathTail)), LocalFile = file })
+                .Where(e => !new FileInfo(e.Path).Exists).Select(e => e.LocalFile);
         }
     }
 }
