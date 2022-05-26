@@ -29,7 +29,7 @@ try
         ShizouOptions.SaveToFile(new ShizouOptions());
 
     var builder = WebApplication.CreateBuilder();
-    builder.Host.ConfigureAppConfiguration(config => config.AddJsonFile(ShizouOptions.OptionsPath, false, true));
+    builder.Configuration.AddJsonFile(ShizouOptions.OptionsPath, false, true);
     builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration)
         .WriteTo.File(Path.Combine(Constants.ApplicationData, "logs", ".log"),
             outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}",
