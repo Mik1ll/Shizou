@@ -218,11 +218,11 @@ namespace Shizou.AniDbApi.Requests
         }
 
         // TODO: Test if epno can take special episode string
-        public FileRequest(IServiceProvider provider, int animeId, int groupId, int episodeNumber, FMask fMask, AMask aMask) : this(provider, fMask, aMask)
+        public FileRequest(IServiceProvider provider, int animeId, int groupId, string episodeNumber, FMask fMask, AMask aMask) : this(provider, fMask, aMask)
         {
             Params["aid"] = animeId.ToString();
             Params["gid"] = groupId.ToString();
-            Params["epno"] = episodeNumber.ToString();
+            Params["epno"] = episodeNumber;
         }
 
         public AniDbFileResult? FileResult { get; private set; }

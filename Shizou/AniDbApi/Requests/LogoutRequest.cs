@@ -23,11 +23,18 @@ namespace Shizou.AniDbApi.Requests
         {
             Logger.LogInformation("Attempting to log out of AniDB");
             await SendRequest();
-
-            if (ResponseCode is AniDbResponseCode.LoggedOut or AniDbResponseCode.NotLoggedIn)
+            switch (ResponseCode)
             {
-                AniDbUdp.SessionKey = null;
-                AniDbUdp.LoggedIn = false;
+                case AniDbResponseCode.LoggedOut:
+                    Logger.LogInformation("Sucessfully logged out of AniDB");
+                    AniDbUdp.SessionKey = null;
+                    AniDbUdp.LoggedIn = false;
+                    break;
+                case AniDbResponseCode.NotLoggedIn:
+                    Logger.LogInformation("Already logged out of AniDB");
+                    AniDbUdp.SessionKey = null;
+                    AniDbUdp.LoggedIn = false;
+                    break;
             }
         }
     }

@@ -33,10 +33,15 @@ namespace Shizou
             var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
             var aniDbUdp = scope.ServiceProvider.GetRequiredService<AniDbUdp>();
             var processors = scope.ServiceProvider.GetServices<CommandProcessor>();
-            foreach (var processor in processors) processor.Unpause();
+            //foreach (var processor in processors) processor.Unpause();
             var importer = scope.ServiceProvider.GetRequiredService<Importer>();
             var test = scope.ServiceProvider.GetRequiredService<AniDbUdpProcessor>();
             //cmdMgr.Dispatch(new HttpAnimeParams(14314));
+
+            // var filereq = new FileRequest(_serviceProvider, 335857, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+            // await filereq.Process();
+            // var result = filereq.FileResult;
+            
             log.LogInformation("Startup service finished");
         }
     }
