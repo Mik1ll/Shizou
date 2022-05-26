@@ -18,7 +18,7 @@ using Shizou.Options;
 using Shizou.Services.Import;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
+    .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}")
     .CreateBootstrapLogger();
 
 try
@@ -31,10 +31,12 @@ try
     var builder = WebApplication.CreateBuilder();
     builder.Configuration.AddJsonFile(ShizouOptions.OptionsPath, false, true);
     builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration)
+        .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}")
         .WriteTo.File(Path.Combine(Constants.ApplicationData, "logs", ".log"),
             outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}",
             rollingInterval: RollingInterval.Day)
-        .WriteTo.Seq("http://localhost:5341"));
+        .WriteTo.Seq("http://localhost:5341")
+        .Enrich.FromLogContext());
 
     builder.Services.Configure<ShizouOptions>(builder.Configuration.GetSection(ShizouOptions.Shizou));
     builder.Services.AddControllers();
