@@ -227,7 +227,7 @@ namespace Shizou.Commands.AniDb
                 Chaptered = result.State!.Value.HasFlag(FileState.Chaptered),
                 Deprecated = result.IsDeprecated!.Value,
                 FileSize = result.Size!.Value,
-                Duration = result.LengthInSeconds is null ? null : TimeSpan.FromSeconds(result.LengthInSeconds.Value),
+                Duration = result.LengthInSeconds,
                 Source = result.Source,
                 FileVersion = result.State!.Value.FileVersion(),
                 Updated = DateTime.UtcNow,
