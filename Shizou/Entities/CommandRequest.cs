@@ -17,7 +17,7 @@ namespace Shizou.Entities
 
         public override CommandRequestDto ToDto()
         {
-            return new()
+            return new CommandRequestDto
             {
                 Id = Id,
                 Priority = Priority,

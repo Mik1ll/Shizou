@@ -10,7 +10,7 @@ using Shizou.Commands.AniDb;
 using Shizou.Database;
 using Shizou.Entities;
 using Shizou.Extensions;
-using Shizou.Services.Hasher;
+using Shizou.Services;
 
 namespace Shizou.Commands
 {

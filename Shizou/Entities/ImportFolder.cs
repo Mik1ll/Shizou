@@ -18,7 +18,7 @@ namespace Shizou.Entities
 
         public override ImportFolderDto ToDto()
         {
-            return new()
+            return new ImportFolderDto
             {
                 Id = Id,
                 Name = Name,

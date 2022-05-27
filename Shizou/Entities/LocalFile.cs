@@ -28,7 +28,7 @@ namespace Shizou.Entities
 
         public override LocalFileDto ToDto()
         {
-            return new()
+            return new LocalFileDto
             {
                 Id = Id,
                 Crc = Crc,

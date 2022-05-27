@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shizou.Services.Hasher
+namespace Shizou.Services
 {
     public class RHasher
     {

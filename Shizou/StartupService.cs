@@ -8,7 +8,7 @@ using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
 using Shizou.Database;
-using Shizou.Services.Import;
+using Shizou.Services;
 
 // ReSharper disable UnusedVariable
 

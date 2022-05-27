@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Shizou.Commands;
 using Shizou.Database;
 
-namespace Shizou.Services.Import
+namespace Shizou.Services
 {
     public class Importer
     {

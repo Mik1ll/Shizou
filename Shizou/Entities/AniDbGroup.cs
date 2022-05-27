@@ -17,7 +17,7 @@ namespace Shizou.Entities
 
         public override AniDbGroupDto ToDto()
         {
-            return new()
+            return new AniDbGroupDto
             {
                 Id = Id,
                 Name = Name,

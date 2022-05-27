@@ -27,7 +27,7 @@ namespace Shizou.Entities
 
         public override AniDbAnimeDto ToDto()
         {
-            return new()
+            return new AniDbAnimeDto
             {
                 Id = Id,
                 Description = Description,

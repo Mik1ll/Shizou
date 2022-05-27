@@ -15,7 +15,7 @@ namespace Shizou.Entities
 
         public override AniDbAudioDto ToDto()
         {
-            return new()
+            return new AniDbAudioDto
             {
                 Bitrate = Bitrate,
                 Codec = Codec,

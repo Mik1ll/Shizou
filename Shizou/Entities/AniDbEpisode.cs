@@ -29,7 +29,7 @@ namespace Shizou.Entities
 
         public override AniDbEpisodeDto ToDto()
         {
-            return new()
+            return new AniDbEpisodeDto
             {
                 TitleEnglish = TitleEnglish,
                 TitleRomaji = TitleRomaji,

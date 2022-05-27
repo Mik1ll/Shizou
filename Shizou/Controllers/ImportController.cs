@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shizou.Services.Import;
+using Shizou.Services;
 
 namespace Shizou.Controllers
 {

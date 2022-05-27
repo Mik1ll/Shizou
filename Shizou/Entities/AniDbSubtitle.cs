@@ -12,7 +12,7 @@ namespace Shizou.Entities
 
         public override AniDbSubtitleDto ToDto()
         {
-            return new()
+            return new AniDbSubtitleDto
             {
                 Id = Id,
                 Language = Language,

@@ -40,7 +40,7 @@ namespace Shizou.Entities
 
         public override AniDbFileDto ToDto()
         {
-            return new()
+            return new AniDbFileDto
             {
                 Audio = Audio.Select(a => a.ToDto()).ToList(),
                 Censored = Censored,
