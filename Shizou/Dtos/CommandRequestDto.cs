@@ -1,6 +1,5 @@
 ﻿using Shizou.CommandProcessors;
 using Shizou.Commands;
-using Shizou.Entities;
 
 namespace Shizou.Dtos
 {
@@ -11,19 +10,5 @@ namespace Shizou.Dtos
         public QueueType QueueType { get; set; }
         public string CommandId { get; set; } = string.Empty;
         public string CommandParams { get; set; } = string.Empty;
-
-
-        public override CommandRequest ToEntity()
-        {
-            return new()
-            {
-                Id = Id,
-                Priority = Priority,
-                Type = Type,
-                CommandId = CommandId,
-                CommandParams = CommandParams,
-                QueueType = QueueType
-            };
-        }
     }
 }

@@ -1,6 +1,4 @@
-﻿using Shizou.Entities;
-
-namespace Shizou.Dtos
+﻿namespace Shizou.Dtos
 {
     public class LocalFileDto : EntityDto
     {
@@ -14,23 +12,5 @@ namespace Shizou.Dtos
         public int ImportFolderId { get; set; }
         public int? ManualLinkEpisodeId { get; set; }
         public int? AniDbFileId { get; set; }
-
-
-        public override LocalFile ToEntity()
-        {
-            return new()
-            {
-                Id = Id,
-                Crc = Crc,
-                Ignored = Ignored,
-                Signature = Signature,
-                Ed2K = Ed2K,
-                FileSize = FileSize,
-                PathTail = PathTail,
-                ImportFolderId = ImportFolderId,
-                ManualLinkEpisodeId = ManualLinkEpisodeId,
-                AniDbFileId = AniDbFileId
-            };
-        }
     }
 }

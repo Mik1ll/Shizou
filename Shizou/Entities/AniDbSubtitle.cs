@@ -1,6 +1,4 @@
-﻿using Shizou.Dtos;
-
-namespace Shizou.Entities
+﻿namespace Shizou.Entities
 {
     public class AniDbSubtitle : Entity
     {
@@ -9,15 +7,5 @@ namespace Shizou.Entities
 
         public int AniDbFileId { get; set; }
         public AniDbFile AniDbFile { get; set; } = null!;
-
-        public override AniDbSubtitleDto ToDto()
-        {
-            return new AniDbSubtitleDto
-            {
-                Id = Id,
-                Language = Language,
-                Number = Number
-            };
-        }
     }
 }

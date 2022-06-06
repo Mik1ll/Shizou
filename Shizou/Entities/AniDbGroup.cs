@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using Shizou.Dtos;
 
 namespace Shizou.Entities
 {
@@ -13,17 +12,5 @@ namespace Shizou.Entities
         public string? Url { get; set; }
 
         public List<AniDbFile> AniDbFiles { get; set; } = null!;
-
-
-        public override AniDbGroupDto ToDto()
-        {
-            return new AniDbGroupDto
-            {
-                Id = Id,
-                Name = Name,
-                Url = Url,
-                ShortName = ShortName
-            };
-        }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
-using Shizou.Dtos;
 
 namespace Shizou.Entities
 {
@@ -24,23 +23,5 @@ namespace Shizou.Entities
         public AniDbEpisode? ManualLinkEpisode { get; set; }
         public int? AniDbFileId { get; set; }
         public AniDbFile? AniDbFile { get; set; }
-
-
-        public override LocalFileDto ToDto()
-        {
-            return new LocalFileDto
-            {
-                Id = Id,
-                Crc = Crc,
-                Ignored = Ignored,
-                Signature = Signature,
-                Ed2K = Ed2K,
-                FileSize = FileSize,
-                PathTail = PathTail,
-                ImportFolderId = ImportFolderId,
-                ManualLinkEpisodeId = ManualLinkEpisodeId,
-                AniDbFileId = AniDbFileId
-            };
-        }
     }
 }

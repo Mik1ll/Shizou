@@ -1,4 +1,6 @@
 ﻿using System.Linq;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Shizou.Database;
 using Shizou.Dtos;
 using Shizou.Entities;
-using Shizou.Extensions;
 
 namespace Shizou.Controllers
 {
@@ -18,12 +19,14 @@ namespace Shizou.Controllers
     {
         private readonly DbSet<TEntity> _dbSet;
         protected readonly ShizouContext Context;
+        protected readonly IMapper _mapper;
         protected readonly ILogger<EntityController<TDto, TEntity>> Logger;
 
-        public EntityController(ILogger<EntityController<TDto, TEntity>> logger, ShizouContext context)
+        public EntityController(ILogger<EntityController<TDto, TEntity>> logger, ShizouContext context, IMapper mapper)
         {
             Logger = logger;
             Context = context;
+            _mapper = mapper;
             _dbSet = Context.Set<TEntity>();
         }
 
@@ -37,7 +40,7 @@ namespace Shizou.Controllers
         [Produces("application/json")]
         public virtual ActionResult<IQueryable<TDto>> List()
         {
-            return Ok(_dbSet.DtoInclude().Select(e => (TDto)e.ToDto()));
+            return Ok(_dbSet.AsNoTracking().ProjectTo<TDto>(_mapper.ConfigurationProvider));
         }
 
         /// <summary>
@@ -53,8 +56,8 @@ namespace Shizou.Controllers
         [Produces("application/json")]
         public virtual ActionResult<TDto> Get(int id)
         {
-            var result = _dbSet.DtoInclude().Where(e => e.Id == id).SingleOrDefault();
-            return result is null ? NotFound() : Ok((TDto)result.ToDto());
+            var result = _dbSet.AsNoTracking().Where(e => e.Id == id).ProjectTo<TDto>(_mapper.ConfigurationProvider).SingleOrDefault();
+            return result is null ? NotFound() : Ok(result);
         }
 
         /// <summary>
@@ -72,10 +75,10 @@ namespace Shizou.Controllers
         {
             try
             {
-                var newEntity = (TEntity)entity.ToEntity();
+                var newEntity = _mapper.Map<TEntity>(entity);
                 _dbSet.Add(newEntity);
                 Context.SaveChanges();
-                return CreatedAtAction(nameof(Get), new { id = newEntity.Id }, newEntity.ToDto());
+                return CreatedAtAction(nameof(Get), new { id = newEntity.Id }, _mapper.Map<TDto>(newEntity));
             }
             catch (DbUpdateException ex)
             {
@@ -102,7 +105,7 @@ namespace Shizou.Controllers
             {
                 if (!_dbSet.Any(e => e.Id == entity.Id))
                     return NotFound();
-                _dbSet.Update((TEntity)entity.ToEntity());
+                _dbSet.Update(_mapper.Map<TEntity>(entity));
                 Context.SaveChanges();
             }
             catch (DbUpdateException ex)

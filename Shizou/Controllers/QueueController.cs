@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shizou.CommandProcessors;
@@ -14,11 +15,13 @@ namespace Shizou.Controllers
     {
         private readonly IEnumerable<CommandProcessor> _queues;
         private readonly ShizouContext _context;
+        private readonly IMapper _mapper;
 
-        public QueueController(IEnumerable<CommandProcessor> queues, ShizouContext context)
+        public QueueController(IEnumerable<CommandProcessor> queues, ShizouContext context, IMapper mapper)
         {
             _queues = queues;
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -62,7 +65,7 @@ namespace Shizou.Controllers
         {
             var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
             if (queue is null) return NotFound("Queue not found");
-            return Ok(queue.CurrentCommand?.ToDto());
+            return Ok(queue.CurrentCommand is null ? null : _mapper.Map<CommandRequestDto>(queue.CurrentCommand));
         }
 
         [HttpGet("{queueType}/queued")]

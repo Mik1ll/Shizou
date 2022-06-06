@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using Shizou.Dtos;
 using Shizou.Enums;
 
 namespace Shizou.Entities
@@ -23,25 +22,5 @@ namespace Shizou.Entities
         public DateTime AniDbUpdated { get; set; }
 
         public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
-
-
-        public override AniDbAnimeDto ToDto()
-        {
-            return new AniDbAnimeDto
-            {
-                Id = Id,
-                Description = Description,
-                Restricted = Restricted,
-                Title = Title,
-                Updated = Updated,
-                AirDate = AirDate,
-                AnimeType = AnimeType,
-                EndDate = EndDate,
-                EpisodeCount = EpisodeCount,
-                HighestEpisode = HighestEpisode,
-                ImagePath = ImagePath,
-                AniDbUpdated = AniDbUpdated
-            };
-        }
     }
 }

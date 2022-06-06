@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Shizou.Dtos;
 
 namespace Shizou.Entities
 {
@@ -14,17 +13,5 @@ namespace Shizou.Entities
         public bool ScanOnImport { get; set; }
 
         public List<LocalFile> LocalFiles { get; set; } = null!;
-
-
-        public override ImportFolderDto ToDto()
-        {
-            return new ImportFolderDto
-            {
-                Id = Id,
-                Name = Name,
-                Path = Path,
-                ScanOnImport = ScanOnImport
-            };
-        }
     }
 }

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Shizou.Dtos;
 
 namespace Shizou.Entities
 {
@@ -36,33 +34,5 @@ namespace Shizou.Entities
         public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
 
         public LocalFile? LocalFile { get; set; }
-
-
-        public override AniDbFileDto ToDto()
-        {
-            return new AniDbFileDto
-            {
-                Audio = Audio.Select(a => a.ToDto()).ToList(),
-                Censored = Censored,
-                Chaptered = Chaptered,
-                Crc = Crc,
-                Deprecated = Deprecated,
-                Duration = Duration,
-                Id = Id,
-                Md5 = Md5,
-                Sha1 = Sha1,
-                Source = Source,
-                Subtitles = Subtitles.Select(s => s.ToDto()).ToList(),
-                Updated = Updated,
-                Video = Video,
-                Ed2K = Ed2K,
-                FileSize = FileSize,
-                FileVersion = FileVersion,
-                FileName = FileName,
-                AniDbGroupId = AniDbGroupId,
-                LocalFileId = LocalFile?.Id,
-                MyListEntry = MyListEntry
-            };
-        }
     }
 }

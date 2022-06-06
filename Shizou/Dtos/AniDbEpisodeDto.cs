@@ -1,5 +1,4 @@
 ﻿using System;
-using Shizou.Entities;
 using Shizou.Enums;
 
 namespace Shizou.Dtos
@@ -16,23 +15,5 @@ namespace Shizou.Dtos
         public DateTime? Updated { get; set; }
 
         public int AniDbAnimeId { get; set; }
-
-
-        public override AniDbEpisode ToEntity()
-        {
-            return new()
-            {
-                TitleEnglish = TitleEnglish,
-                TitleRomaji = TitleRomaji,
-                TitleKanji = TitleKanji,
-                Duration = Duration,
-                Id = Id,
-                Number = Number,
-                Updated = Updated,
-                AirDate = AirDate,
-                EpisodeType = EpisodeType,
-                AniDbAnimeId = AniDbAnimeId
-            };
-        }
     }
 }

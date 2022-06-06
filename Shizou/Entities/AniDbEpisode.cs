@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using Shizou.Dtos;
 using Shizou.Enums;
 
 namespace Shizou.Entities
@@ -26,22 +25,5 @@ namespace Shizou.Entities
 
         [ForeignKey(nameof(LocalFile.ManualLinkEpisodeId))]
         public List<LocalFile> ManualLinkLocalFiles { get; set; } = null!;
-
-        public override AniDbEpisodeDto ToDto()
-        {
-            return new AniDbEpisodeDto
-            {
-                TitleEnglish = TitleEnglish,
-                TitleRomaji = TitleRomaji,
-                TitleKanji = TitleKanji,
-                Duration = Duration,
-                Id = Id,
-                Number = Number,
-                Updated = Updated,
-                AirDate = AirDate,
-                EpisodeType = EpisodeType,
-                AniDbAnimeId = AniDbAnimeId
-            };
-        }
     }
 }

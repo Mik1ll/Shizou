@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Shizou.Entities;
 
 namespace Shizou.Dtos
@@ -29,32 +28,5 @@ namespace Shizou.Dtos
         public List<AniDbSubtitleDto> Subtitles { get; set; } = null!;
 
         public int? LocalFileId { get; set; }
-
-
-        public override AniDbFile ToEntity()
-        {
-            return new()
-            {
-                Audio = Audio.Select(a => a.ToEntity()).ToList(),
-                Censored = Censored,
-                Chaptered = Chaptered,
-                Crc = Crc,
-                Deprecated = Deprecated,
-                Duration = Duration,
-                Id = Id,
-                Md5 = Md5,
-                Sha1 = Sha1,
-                Source = Source,
-                Subtitles = Subtitles.Select(s => s.ToEntity()).ToList(),
-                Updated = Updated,
-                Video = Video,
-                Ed2K = Ed2K,
-                FileSize = FileSize,
-                FileVersion = FileVersion,
-                FileName = FileName,
-                AniDbGroupId = AniDbGroupId,
-                MyListEntry = MyListEntry
-            };
-        }
     }
 }

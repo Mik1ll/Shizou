@@ -1,6 +1,4 @@
-﻿using Shizou.Entities;
-
-namespace Shizou.Dtos
+﻿namespace Shizou.Dtos
 {
     public class AniDbAudioDto : EntityDto
     {
@@ -8,18 +6,5 @@ namespace Shizou.Dtos
         public string Language { get; set; } = null!;
         public string Codec { get; set; } = null!;
         public int Bitrate { get; set; }
-
-
-        public override AniDbAudio ToEntity()
-        {
-            return new()
-            {
-                Bitrate = Bitrate,
-                Codec = Codec,
-                Id = Id,
-                Language = Language,
-                Number = Number
-            };
-        }
     }
 }
