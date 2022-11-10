@@ -23,6 +23,7 @@ namespace Shizou.CommandProcessors
             Logger = logger;
             Provider = provider;
             QueueType = queueType;
+            PollInterval = BasePollInterval;
         }
 
         protected ILogger<CommandProcessor> Logger { get; }
@@ -49,7 +50,8 @@ namespace Shizou.CommandProcessors
 
         public Queue<string> LastThreeCommands { get; set; } = new(3);
 
-        protected int PollInterval { get; set; } = 1000;
+        protected int BasePollInterval { get; set; } = 1000;
+        protected int PollInterval { get; set; }
 
         public virtual void Shutdown()
         {
@@ -66,8 +68,10 @@ namespace Shizou.CommandProcessors
                 if (Paused || (CurrentCommand = context.CommandRequests.GetNextRequest(QueueType)) is null)
                 {
                     await Task.Delay(PollInterval);
+                    if (!Paused) PollInterval = Math.Min((int)(PollInterval * Math.Pow(10, 1f / 4)), 10000);
                     continue;
                 }
+                PollInterval = BasePollInterval;
                 ICommand command = commandManager.CommandFromRequest(CurrentCommand);
                 try
                 {
