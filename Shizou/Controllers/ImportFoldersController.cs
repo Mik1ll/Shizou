@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Shizou.Database;
-using Shizou.Dtos;
 using Shizou.Extensions;
 using Shizou.Models;
 
@@ -22,7 +21,7 @@ namespace Shizou.Controllers
         [HttpGet("path/{path}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<ImportFolderDto> GetByPath(string path)
+        public ActionResult<ImportFolder> GetByPath(string path)
         {
             var importFolder = Context.ImportFolders.GetByPath(path);
             if (importFolder is null)

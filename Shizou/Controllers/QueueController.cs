@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shizou.CommandProcessors;
 using Shizou.Database;
-using Shizou.Dtos;
+using Shizou.Models;
 
 namespace Shizou.Controllers
 {
@@ -15,13 +14,11 @@ namespace Shizou.Controllers
     {
         private readonly IEnumerable<CommandProcessor> _queues;
         private readonly ShizouContext _context;
-        private readonly IMapper _mapper;
 
-        public QueueController(IEnumerable<CommandProcessor> queues, ShizouContext context, IMapper mapper)
+        public QueueController(IEnumerable<CommandProcessor> queues, ShizouContext context)
         {
             _queues = queues;
             _context = context;
-            _mapper = mapper;
         }
 
         [HttpGet]
@@ -61,17 +58,17 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public ActionResult<CommandRequestDto?> GetCurrentCommand(QueueType queueType)
+        public ActionResult<CommandRequest?> GetCurrentCommand(QueueType queueType)
         {
             var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
             if (queue is null) return NotFound("Queue not found");
-            return Ok(queue.CurrentCommand is null ? null : _mapper.Map<CommandRequestDto>(queue.CurrentCommand));
+            return Ok(queue.CurrentCommand is null ? null : queue.CurrentCommand);
         }
 
         [HttpGet("{queueType}/queued")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IEnumerable<CommandRequestDto>> GetQueuedCommands(QueueType queueType)
+        public ActionResult<IEnumerable<CommandRequest>> GetQueuedCommands(QueueType queueType)
         {
             var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
             if (queue is null) return NotFound("Queue not found");
