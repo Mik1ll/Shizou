@@ -1,7 +1,8 @@
-﻿namespace Shizou.Entities
+﻿namespace Shizou.Models
 {
-    public class AniDbAudio : Entity
+    public sealed class AniDbAudio : IEntity
     {
+        public int Id { get; set; }
         public int Number { get; set; }
         public string Language { get; set; } = null!;
         public string Codec { get; set; } = null!;

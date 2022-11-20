@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Shizou.Entities;
+using Shizou.Models;
 
 namespace Shizou.Commands
 {

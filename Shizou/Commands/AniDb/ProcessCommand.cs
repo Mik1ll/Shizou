@@ -11,8 +11,8 @@ using Shizou.AniDbApi;
 using Shizou.AniDbApi.Requests;
 using Shizou.CommandProcessors;
 using Shizou.Database;
-using Shizou.Entities;
 using Shizou.Enums;
+using Shizou.Models;
 
 namespace Shizou.Commands.AniDb
 {

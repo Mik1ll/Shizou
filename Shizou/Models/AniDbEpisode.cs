@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Shizou.Enums;
 
-namespace Shizou.Entities
+namespace Shizou.Models
 {
-    public class AniDbEpisode : Entity
+    public sealed class AniDbEpisode : IEntity
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public override int Id { get; set; }
+        public int Id { get; set; }
+
         public string TitleEnglish { get; set; } = null!;
         public string? TitleRomaji { get; set; }
         public string? TitleKanji { get; set; }
@@ -17,7 +18,7 @@ namespace Shizou.Entities
         public TimeSpan? Duration { get; set; }
         public DateTime? AirDate { get; set; }
         public DateTime? Updated { get; set; }
-        
+
 
         public int AniDbAnimeId { get; set; }
         public AniDbAnime AniDbAnime { get; set; } = null!;

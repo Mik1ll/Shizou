@@ -1,32 +1,30 @@
 ﻿using System.Linq;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Formatter;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Results;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Database;
-using Shizou.Dtos;
-using Shizou.Entities;
+using Shizou.Models;
 
 namespace Shizou.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class EntityController<TDto, TEntity> : ControllerBase
-        where TDto : EntityDto, new()
-        where TEntity : Entity, new()
+    public class EntityController<TEntity> : ODataController
+        where TEntity : class, IEntity
     {
         private readonly DbSet<TEntity> _dbSet;
         protected readonly ShizouContext Context;
-        protected readonly IMapper _mapper;
-        protected readonly ILogger<EntityController<TDto, TEntity>> Logger;
+        protected readonly ILogger<EntityController<TEntity>> Logger;
 
-        public EntityController(ILogger<EntityController<TDto, TEntity>> logger, ShizouContext context, IMapper mapper)
+        public EntityController(ILogger<EntityController<TEntity>> logger, ShizouContext context)
         {
             Logger = logger;
             Context = context;
-            _mapper = mapper;
             _dbSet = Context.Set<TEntity>();
         }
 
@@ -36,28 +34,25 @@ namespace Shizou.Controllers
         /// <returns></returns>
         /// <response code="200">Success</response>
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [Produces("application/json")]
-        public virtual ActionResult<IQueryable<TDto>> List()
+        [EnableQuery]
+        public virtual ActionResult<IQueryable<TEntity>> Get()
         {
-            return Ok(_dbSet.AsNoTracking().ProjectTo<TDto>(_mapper.ConfigurationProvider));
+            return Ok(_dbSet);
         }
 
         /// <summary>
         ///     Get entity
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="key"></param>
         /// <returns></returns>
         /// <response code="404">Entity is not found</response>
         /// <response code="200">Entity found</response>
-        [HttpGet("{id:int}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Produces("application/json")]
-        public virtual ActionResult<TDto> Get(int id)
+        [HttpGet("{key}")]
+        [EnableQuery]
+        public virtual ActionResult<SingleResult<TEntity>> Get([FromODataUri] int key)
         {
-            var result = _dbSet.AsNoTracking().Where(e => e.Id == id).ProjectTo<TDto>(_mapper.ConfigurationProvider).SingleOrDefault();
-            return result is null ? NotFound() : Ok(result);
+            var result = _dbSet.Where(e => e.Id == key);
+            return Ok(SingleResult.Create(result));
         }
 
         /// <summary>
@@ -68,48 +63,51 @@ namespace Shizou.Controllers
         /// <response code="201">Entity created</response>
         /// <response code="409">Conflict when trying to add in database</response>
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [Produces("application/json")]
-        public virtual ActionResult<TDto> Create([FromBody] TDto entity)
+        [EnableQuery]
+        public virtual async Task<ActionResult<TEntity>> Post([FromBody] TEntity entity)
         {
+            // TODO: Test adding already exiting record
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             try
             {
-                var newEntity = _mapper.Map<TEntity>(entity);
-                _dbSet.Add(newEntity);
-                Context.SaveChanges();
-                return CreatedAtAction(nameof(Get), new { id = newEntity.Id }, _mapper.Map<TDto>(newEntity));
+                _dbSet.Add(entity);
+                await Context.SaveChangesAsync();
             }
             catch (DbUpdateException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
                 return Conflict(ModelState);
             }
+            return CreatedAtAction(nameof(Get), new { id = entity.Id }, entity);
         }
 
         /// <summary>
         ///     Updates existing entity
         /// </summary>
+        /// <param name="key"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
         /// <response code="204">Entity updated</response>
         /// <response code="404">Entity does not exist</response>
         /// <response code="409">Conflict when trying to update in database</response>
-        [HttpPut]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public virtual ActionResult Update([FromBody] TDto entity)
+        [HttpPut("{key}")]
+        [EnableQuery]
+        public virtual async Task<ActionResult> Put([FromODataUri] int key, [FromBody] TEntity entity)
         {
+            if (key != entity.Id)
+                return BadRequest();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            Context.Entry(entity).State = EntityState.Modified;
             try
             {
-                if (!_dbSet.Any(e => e.Id == entity.Id))
-                    return NotFound();
-                _dbSet.Update(_mapper.Map<TEntity>(entity));
-                Context.SaveChanges();
+                await Context.SaveChangesAsync();
             }
             catch (DbUpdateException ex)
             {
+                if (!Exists(key))
+                    return NotFound();
                 ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
                 return Conflict(ModelState);
             }
@@ -119,28 +117,33 @@ namespace Shizou.Controllers
         /// <summary>
         ///     Deletes entity if it exists.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="key"></param>
         /// <returns></returns>
         /// <response code="204">Entity deleted</response>
         /// <response code="409">Conflict when trying to delete in database</response>
-        [HttpDelete]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public virtual ActionResult Delete(int id)
+        [HttpDelete("{key}")]
+        [EnableQuery]
+        public virtual async Task<ActionResult> Delete([FromODataUri] int key)
         {
-            var entity = _dbSet.Find(id);
-            if (entity is not null)
-                try
-                {
-                    _dbSet.Remove(entity);
-                    Context.SaveChanges();
-                }
-                catch (DbUpdateException ex)
-                {
-                    ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
-                    return Conflict(ModelState);
-                }
+            var entity = await _dbSet.FindAsync(key);
+            if (entity is null)
+                return NotFound();
+            try
+            {
+                _dbSet.Remove(entity);
+                await Context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
+                return Conflict(ModelState);
+            }
             return NoContent();
+        }
+
+        protected bool Exists(int key)
+        {
+            return _dbSet.Any(e => e.Id == key);
         }
     }
 }

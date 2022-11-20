@@ -2,11 +2,12 @@
 using Shizou.CommandProcessors;
 using Shizou.Commands;
 
-namespace Shizou.Entities
+namespace Shizou.Models
 {
     [Index(nameof(CommandId), IsUnique = true)]
-    public class CommandRequest : Entity
+    public sealed class CommandRequest : IEntity
     {
+        public int Id { get; set; }
         public CommandType Type { get; set; }
         public CommandPriority Priority { get; set; }
         public QueueType QueueType { get; set; }

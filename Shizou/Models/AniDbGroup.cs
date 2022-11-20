@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Shizou.Entities
+namespace Shizou.Models
 {
-    public class AniDbGroup : Entity
+    public sealed class AniDbGroup : IEntity
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public override int Id { get; set; }
+        public int Id { get; set; }
+
         public string Name { get; set; } = null!;
         public string ShortName { get; set; } = null!;
         public string? Url { get; set; }

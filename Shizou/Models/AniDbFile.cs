@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Shizou.Entities
+namespace Shizou.Models
 {
     [Index(nameof(Ed2K), IsUnique = true)]
-    public class AniDbFile : Entity
+    public sealed class AniDbFile : IEntity
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public override int Id { get; set; }
+        public int Id { get; set; }
+
         public string Ed2K { get; set; } = null!;
         public string? Crc { get; set; }
         public string? Md5 { get; set; }

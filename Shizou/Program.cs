@@ -5,17 +5,22 @@ using System.Net;
 using System.Net.Http;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OData.Edm;
+using Microsoft.OData.ModelBuilder;
 using Serilog;
 using Shizou;
 using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
+using Shizou.Controllers;
 using Shizou.Database;
 using Shizou.MapperProfiles;
+using Shizou.Models;
 using Shizou.Options;
 using Shizou.Services;
 
@@ -41,9 +46,10 @@ try
         .Enrich.FromLogContext());
 
     builder.Services.AddAutoMapper(typeof(ShizouProfile));
-    
+
     builder.Services.Configure<ShizouOptions>(builder.Configuration.GetSection(ShizouOptions.Shizou));
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddOData(options => options.EnableQueryFeatures().AddRouteComponents("odata", GetEdmModel()).Select().Filter().OrderBy().Expand().Count());
     builder.Services.AddSwaggerGen();
     builder.Services.AddHostedService<StartupService>();
     builder.Services.AddDbContext<ShizouContext>();
@@ -73,7 +79,7 @@ try
 
     app.UseSerilogRequestLogging();
 
-    // app.UseHttpsRedirection();
+    app.UseHttpsRedirection();
     app.UseAuthorization();
     app.MapControllers();
 
@@ -101,4 +107,14 @@ finally
 {
     Log.Information("Shut down complete");
     Log.CloseAndFlush();
+}
+
+
+static IEdmModel GetEdmModel()
+{
+    var builder = new ODataConventionModelBuilder();
+    builder.EnableLowerCamelCase();
+    builder.EntitySet<ImportFolder>(nameof(ImportFoldersController)[..^10]);
+    builder.EntitySet<AniDbFile>(nameof(AniDbFilesController)[..^10]);
+    return builder.GetEdmModel();
 }

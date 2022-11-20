@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Xml.Serialization;
-using Shizou.Entities;
 using Shizou.Enums;
+using Shizou.Models;
 
 // ReSharper disable RedundantNullableFlowAttribute
 

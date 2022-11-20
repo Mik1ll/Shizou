@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Shizou.Enums;
 
-namespace Shizou.Entities
+namespace Shizou.Models
 {
-    public class AniDbAnime : Entity
+    public sealed class AniDbAnime : IEntity
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public override int Id { get; set; }
+        public int Id { get; set; }
+
         public string Title { get; set; } = null!;
         public AnimeType AnimeType { get; set; }
         public int EpisodeCount { get; set; }

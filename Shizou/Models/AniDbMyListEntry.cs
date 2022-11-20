@@ -2,10 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Shizou.Enums;
 
-namespace Shizou.Entities
+namespace Shizou.Models
 {
     [Owned]
-    public class AniDbMyListEntry
+    public sealed class AniDbMyListEntry
     {
         public int Id { get; set; }
         public bool Watched { get; set; }

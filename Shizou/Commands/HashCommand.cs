@@ -8,8 +8,8 @@ using Microsoft.Extensions.Logging;
 using Shizou.CommandProcessors;
 using Shizou.Commands.AniDb;
 using Shizou.Database;
-using Shizou.Entities;
 using Shizou.Extensions;
+using Shizou.Models;
 using Shizou.Services;
 
 namespace Shizou.Commands

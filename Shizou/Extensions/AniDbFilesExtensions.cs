@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using Shizou.Entities;
+using Shizou.Models;
 
 namespace Shizou.Extensions
 {

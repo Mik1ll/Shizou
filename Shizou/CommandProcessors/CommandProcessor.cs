@@ -8,8 +8,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shizou.Commands;
 using Shizou.Database;
-using Shizou.Entities;
 using Shizou.Extensions;
+using Shizou.Models;
 
 namespace Shizou.CommandProcessors
 {

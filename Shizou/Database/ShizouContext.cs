@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using Microsoft.EntityFrameworkCore;
-using Shizou.Entities;
+using Shizou.Models;
 
 namespace Shizou.Database
 {

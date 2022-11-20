@@ -35,7 +35,8 @@ namespace Shizou
             var processors = scope.ServiceProvider.GetServices<CommandProcessor>();
             //foreach (var processor in processors) processor.Unpause();
             var importer = scope.ServiceProvider.GetRequiredService<Importer>();
-            var test = scope.ServiceProvider.GetRequiredService<AniDbUdpProcessor>();
+            var test = scope.ServiceProvider.GetRequiredService<AniDbHttpProcessor>();
+            test.Unpause();
             //cmdMgr.Dispatch(new HttpAnimeParams(14314));
 
             // var filereq = new FileRequest(_serviceProvider, 335857, FileRequest.DefaultFMask, FileRequest.DefaultAMask);

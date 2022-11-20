@@ -1,13 +1,14 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 
-namespace Shizou.Entities
+namespace Shizou.Models
 {
     [Index(nameof(Ed2K), IsUnique = true)]
     [Index(nameof(Signature), IsUnique = true)]
     [Index(nameof(ImportFolderId), nameof(PathTail), IsUnique = true)]
-    public class LocalFile : Entity
+    public sealed class LocalFile : IEntity
     {
+        public int Id { get; set; }
         public string Ed2K { get; set; } = null!;
         public string Crc { get; set; } = null!;
         public long FileSize { get; set; }
