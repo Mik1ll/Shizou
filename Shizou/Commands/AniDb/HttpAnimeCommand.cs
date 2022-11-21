@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -66,7 +67,7 @@ namespace Shizou.Commands.AniDb
                 return;
             }
             XmlSerializer serializer = new(typeof(HttpAnimeResult));
-            var animeResult = serializer.Deserialize(new StringReader(result)) as HttpAnimeResult;
+            var animeResult = serializer.Deserialize(XmlReader.Create(new StringReader(result))) as HttpAnimeResult;
             if (animeResult is null)
             {
                 Completed = true;
@@ -122,7 +123,7 @@ namespace Shizou.Commands.AniDb
             Logger.LogInformation("HTTP Getting anime id {animeId}", CommandParams.AnimeId);
             try
             {
-                result = await _httpClient.GetStringAsync(_url);
+                result = HttpUtility.HtmlDecode(await _httpClient.GetStringAsync(_url));
                 if (string.IsNullOrWhiteSpace(result))
                 {
                     Logger.LogWarning("No http response, may be banned or no such anime {animeId}", CommandParams.AnimeId);
