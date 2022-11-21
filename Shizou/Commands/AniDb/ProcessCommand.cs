@@ -63,7 +63,7 @@ namespace Shizou.Commands.AniDb
             File.Delete(_fileCachePath);
         }
 
-        private async Task<bool> ProcessOtherEpisodes(AniDbFileResult result, AniDbFile aniDbFile, LocalFile localFile, HashSet<int> newAnimes)
+        private async Task<bool> ProcessOtherEpisodes(FileRequest.AniDbFileResult result, AniDbFile aniDbFile, LocalFile localFile, HashSet<int> newAnimes)
         {
             if (result.OtherEpisodeIds is not null)
             {
@@ -150,7 +150,7 @@ namespace Shizou.Commands.AniDb
             return false;
         }
 
-        private void AddAnimeAndEpisode(AniDbFileResult result, HashSet<int> newAnimes, AniDbFile aniDbFile)
+        private void AddAnimeAndEpisode(FileRequest.AniDbFileResult result, HashSet<int> newAnimes, AniDbFile aniDbFile)
         {
             using (var animeTransaction = _context.Database.BeginTransaction())
             {
@@ -201,7 +201,7 @@ namespace Shizou.Commands.AniDb
         /// <param name="result"></param>
         /// <param name="localFile"></param>
         /// <returns>AniDb file that is tracked by the context</returns>
-        private AniDbFile ProcessFileResult(AniDbFileResult result, LocalFile localFile)
+        private AniDbFile ProcessFileResult(FileRequest.AniDbFileResult result, LocalFile localFile)
         {
             // Get the group
             var newGroup = new AniDbGroup
@@ -282,7 +282,7 @@ namespace Shizou.Commands.AniDb
             return existingFile ?? newFile;
         }
 
-        private async Task<AniDbFileResult?> GetFileResult(LocalFile localFile)
+        private async Task<FileRequest.AniDbFileResult?> GetFileResult(LocalFile localFile)
         {
             // Check if file was requested before and did not complete
             var result = await GetFromFileCache();
@@ -310,7 +310,7 @@ namespace Shizou.Commands.AniDb
             return result;
         }
 
-        private async Task SaveToFileCache(AniDbFileResult? result)
+        private async Task SaveToFileCache(FileRequest.AniDbFileResult? result)
         {
             if (!Directory.Exists(Constants.TempFilePath))
                 Directory.CreateDirectory(Constants.TempFilePath);
@@ -320,14 +320,14 @@ namespace Shizou.Commands.AniDb
             }
         }
 
-        private async Task<AniDbFileResult?> GetFromFileCache()
+        private async Task<FileRequest.AniDbFileResult?> GetFromFileCache()
         {
-            AniDbFileResult? result = null;
+            FileRequest.AniDbFileResult? result = null;
             var fileResult = new FileInfo(_fileCachePath);
             if (fileResult.Exists && fileResult.Length > 0)
                 using (var file = new FileStream(_fileCachePath, FileMode.Open, FileAccess.Read))
                 {
-                    result = await JsonSerializer.DeserializeAsync<AniDbFileResult>(file);
+                    result = await JsonSerializer.DeserializeAsync<FileRequest.AniDbFileResult>(file);
                 }
             return result;
         }
