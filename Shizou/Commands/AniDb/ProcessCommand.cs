@@ -179,8 +179,9 @@ namespace Shizou.Commands.AniDb
                 aniDbEpisode.TitleEnglish = result.EpisodeTitleEnglish!;
                 aniDbEpisode.TitleRomaji = result.EpisodeTitleRomaji;
                 aniDbEpisode.TitleKanji = result.EpisodeTitleKanji;
-                aniDbEpisode.Number = result.EpisodeNumber!.ParseEpisode().number;
-                aniDbEpisode.EpisodeType = result.EpisodeNumber!.ParseEpisode().type;
+                // Can't use episode number to create episode, it is range of all eps related to file
+                // aniDbEpisode.Number = result.EpisodeNumber!.ParseEpisode().number;
+                // aniDbEpisode.EpisodeType = result.EpisodeNumber!.ParseEpisode().type;
                 aniDbEpisode.AirDate = result.EpisodeAiredDate;
                 aniDbEpisode.AniDbAnime = aniDbAnime;
 
