@@ -1,9 +1,11 @@
-﻿namespace Shizou.Models
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace Shizou.Models
 {
+    [Owned]
     public sealed class AniDbSubtitle : IEntity
     {
         public int Id { get; set; }
-        public int Number { get; set; }
         public string Language { get; set; } = null!;
 
         public int AniDbFileId { get; set; }

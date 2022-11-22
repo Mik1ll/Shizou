@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Models;
 
@@ -43,11 +45,28 @@ namespace Shizou.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder
-                .Entity<AniDbEpisode>()
+            modelBuilder.Entity<AniDbEpisode>()
                 .HasMany(e => e.ManualLinkLocalFiles)
                 .WithOne(e => e.ManualLinkEpisode!)
                 .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<AniDbFile>()
+                .OwnsMany(f => f.Audio)
+                .WithOwner(a => a.AniDbFile);
+            modelBuilder.Entity<AniDbFile>()
+                .OwnsMany(f => f.Subtitles)
+                .WithOwner(s => s.AniDbFile);
+        }
+
+        public void ReplaceNavigationCollection<T>(ICollection<T> newCollection, ICollection<T> oldCollection) where T : IEntity
+        {
+            foreach (var item in newCollection)
+                if (oldCollection.FirstOrDefault(a => a.Id == item.Id) is var eAudio && eAudio is null)
+                    oldCollection.Add(item);
+                else
+                    Entry(eAudio).CurrentValues.SetValues(item);
+            foreach (var item in newCollection)
+                if (!newCollection.Any(a => a.Id == item.Id))
+                    Remove(item);
         }
     }
 }

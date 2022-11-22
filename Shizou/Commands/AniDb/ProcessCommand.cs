@@ -11,7 +11,6 @@ using Shizou.AniDbApi;
 using Shizou.AniDbApi.Requests;
 using Shizou.CommandProcessors;
 using Shizou.Database;
-using Shizou.Enums;
 using Shizou.Models;
 
 namespace Shizou.Commands.AniDb
@@ -48,7 +47,7 @@ namespace Shizou.Commands.AniDb
             if (result is null)
                 return;
 
-            var aniDbFile = ProcessFileResult(result, localFile);
+            var aniDbFile = ProcessFileResult(result);
 
             var newAnimes = new HashSet<int>();
 
@@ -199,9 +198,8 @@ namespace Shizou.Commands.AniDb
         ///     Processes file result, adding file and group data to DB. Also deletes any file-episode relations to the file.
         /// </summary>
         /// <param name="result"></param>
-        /// <param name="localFile"></param>
         /// <returns>AniDb file that is tracked by the context</returns>
-        private AniDbFile ProcessFileResult(FileRequest.AniDbFileResult result, LocalFile localFile)
+        private AniDbFile ProcessFileResult(FileRequest.AniDbFileResult result)
         {
             // Get the group
             var newGroup = new AniDbGroup(result);
@@ -214,22 +212,16 @@ namespace Shizou.Commands.AniDb
             // Get the file
             var newFile = new AniDbFile(result);
             var existingFile = _context.AniDbFiles
-                .Include(f => f.Audio)
-                .Include(f => f.Subtitles)
                 .Include(f => f.AniDbEpisodes)
                 .FirstOrDefault(f => f.Id == result.FileId);
             if (existingFile is null)
-            {
                 _context.AniDbFiles.Add(newFile);
-            }
             else
             {
                 _context.Entry(existingFile).CurrentValues.SetValues(newFile);
-                existingFile.Audio.Clear();
-                existingFile.Audio.AddRange(newFile.Audio);
-                existingFile.Subtitles.Clear();
-                existingFile.Subtitles.AddRange(newFile.Subtitles);
-                existingFile.AniDbEpisodes.Clear();
+                _context.ReplaceNavigationCollection(newFile.Audio, existingFile.Audio);
+                _context.ReplaceNavigationCollection(newFile.Subtitles, existingFile.Subtitles);
+                _context.ReplaceNavigationCollection(newFile.AniDbEpisodes, existingFile.AniDbEpisodes);
             }
             _context.SaveChanges();
             return existingFile ?? newFile;
