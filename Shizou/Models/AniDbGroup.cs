@@ -1,10 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using Shizou.AniDbApi.Requests;
 
 namespace Shizou.Models
 {
     public sealed class AniDbGroup : IEntity
     {
+        public AniDbGroup()
+        {
+        }
+
+        public AniDbGroup(FileRequest.AniDbFileResult result)
+        {
+            Id = result.GroupId!.Value;
+            Name = result.GroupName!;
+            ShortName = result.GroupNameShort!;
+        }
+
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
 
