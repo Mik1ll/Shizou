@@ -83,7 +83,5 @@ namespace Shizou.Models
         public List<AniDbAudio> Audio { get; set; } = null!;
         public List<AniDbSubtitle> Subtitles { get; set; } = null!;
         public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
-
-        public LocalFile? LocalFile { get; set; }
     }
 }

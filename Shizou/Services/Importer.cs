@@ -65,27 +65,6 @@ namespace Shizou.Services
             _cmdMgr.DispatchRange(filesToHash.Select(e => new HashParams(e.FullName)));
         }
 
-        /// <summary>
-        ///     Replaces manual links with AniDbFile references
-        /// </summary>
-        public void PopulateLocalFileAniDbRelations()
-        {
-            var newRelations = _context.LocalFiles.Where(e => e.AniDbFileId == null)
-                .Join(_context.AniDbFiles.Select(e => new { e.Id, e.Ed2K }),
-                    e => e.Ed2K,
-                    e => e.Ed2K,
-                    (localFile, aniDbFile) => new { localFile, aniDbFile.Id })
-                .ToList();
-            foreach (var relation in newRelations)
-            {
-                _logger.LogInformation("Found new file relation, linking local file {localFileId} to AniDB file {anidbFileId}", relation.localFile.Id,
-                    relation.Id);
-                relation.localFile.AniDbFileId = relation.Id;
-                relation.localFile.ManualLinkEpisodeId = null;
-            }
-            _context.SaveChanges();
-        }
-
         public void CheckForMissingFiles()
         {
             var files = _context.LocalFiles.Join(_context.ImportFolders, e => e.ImportFolderId, e => e.Id,

@@ -22,7 +22,5 @@ namespace Shizou.Models
         public ImportFolder ImportFolder { get; set; } = null!;
         public int? ManualLinkEpisodeId { get; set; }
         public AniDbEpisode? ManualLinkEpisode { get; set; }
-        public int? AniDbFileId { get; set; }
-        public AniDbFile? AniDbFile { get; set; }
     }
 }
