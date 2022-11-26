@@ -87,20 +87,7 @@ namespace Shizou.Commands.AniDb
                         return true;
                     }
                     var epResult = episodeReq.EpisodeResult;
-                    var newAniDbEpisode = new AniDbEpisode
-                    {
-                        Id = epResult.EpisodeId,
-                        TitleEnglish = epResult.TitleEnglish,
-                        TitleRomaji = epResult.TitleRomaji,
-                        TitleKanji = epResult.TitleKanji,
-                        Number = epResult.EpisodeNumber,
-                        EpisodeType = epResult.Type,
-                        Duration = epResult.DurationMinutes is null ? null : TimeSpan.FromMinutes(epResult.DurationMinutes.Value),
-                        AirDate = epResult.AiredDate,
-                        Updated = DateTime.UtcNow,
-                        AniDbFiles = new List<AniDbFile>(),
-                        AniDbAnimeId = epResult.AnimeId
-                    };
+                    var newAniDbEpisode = new AniDbEpisode(epResult);
                     using (var episodeTransaction = _context.Database.BeginTransaction())
                     {
                         // TODO: Ensure file relation is created

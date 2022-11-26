@@ -8,14 +8,14 @@ using Shizou.Enums;
 
 namespace Shizou.AniDbApi.Requests
 {
-    public record AniDbMyListAddResult(int? ListId,
-        MyListState? State,
-        bool? Watched,
-        DateTime? WatchedDate,
-        MyListFileState? FileState);
-
     public sealed class MyListAddRequest : AniDbUdpRequest
     {
+        public record AniDbMyListAddResult(int? ListId,
+            MyListState? State,
+            bool? Watched,
+            DateTime? WatchedDate,
+            MyListFileState? FileState);
+
         public AniDbMyListAddResult? MyListResult { get; private set; }
 
         private MyListAddRequest(IServiceProvider provider, bool edit, bool? watched, MyListState? state = null, MyListFileState? fileState = null)

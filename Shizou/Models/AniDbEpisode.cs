@@ -1,12 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using Shizou.AniDbApi.Requests;
 using Shizou.Enums;
 
 namespace Shizou.Models
 {
     public sealed class AniDbEpisode : IEntity
     {
+        public AniDbEpisode()
+        {
+        }
+
+        public AniDbEpisode(EpisodeRequest.AniDbEpisodeResult epResult)
+        {
+            Id = epResult.EpisodeId;
+            TitleEnglish = epResult.TitleEnglish;
+            TitleRomaji = epResult.TitleRomaji;
+            TitleKanji = epResult.TitleKanji;
+            Number = epResult.EpisodeNumber;
+            EpisodeType = epResult.Type;
+            Duration = epResult.DurationMinutes is null ? null : TimeSpan.FromMinutes(epResult.DurationMinutes.Value);
+            AirDate = epResult.AiredDate;
+            Updated = DateTime.UtcNow;
+            AniDbFiles = new List<AniDbFile>();
+            AniDbAnimeId = epResult.AnimeId;
+        }
+
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
 
