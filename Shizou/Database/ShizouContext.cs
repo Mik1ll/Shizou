@@ -60,10 +60,10 @@ namespace Shizou.Database
         public void ReplaceNavigationCollection<T>(ICollection<T> newCollection, ICollection<T> oldCollection) where T : IEntity
         {
             foreach (var item in newCollection)
-                if (oldCollection.FirstOrDefault(a => a.Id == item.Id) is var eAudio && eAudio is null)
+                if (oldCollection.FirstOrDefault(a => a.Id == item.Id) is var eItem && eItem is null)
                     oldCollection.Add(item);
                 else
-                    Entry(eAudio).CurrentValues.SetValues(item);
+                    Entry(eItem).CurrentValues.SetValues(item);
             foreach (var item in newCollection)
                 if (!newCollection.Any(a => a.Id == item.Id))
                     Remove(item);

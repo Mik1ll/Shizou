@@ -35,7 +35,7 @@ namespace Shizou.AniDbApi.Requests
         public string? ResponseCodeString { get; protected set; }
         public Encoding Encoding { get; } = Encoding.UTF8;
 
-        protected static string DataUnescape(string data)
+        public static string DataUnescape(string data)
         {
             return Regex.Replace(data, @"<br\s*/>", "\n").Replace('`', '\'').Replace('/', '|');
         }

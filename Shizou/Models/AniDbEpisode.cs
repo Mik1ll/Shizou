@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using Shizou.AniDbApi.Requests;
+using System.Linq;
+using Shizou.AniDbApi.Results;
+using Shizou.AniDbApi.Results.HttpAnimeSubTypes;
 using Shizou.Enums;
 
 namespace Shizou.Models
@@ -12,19 +14,44 @@ namespace Shizou.Models
         {
         }
 
-        public AniDbEpisode(EpisodeRequest.AniDbEpisodeResult epResult)
+        public AniDbEpisode(AniDbEpisodeResult result)
         {
-            Id = epResult.EpisodeId;
-            TitleEnglish = epResult.TitleEnglish;
-            TitleRomaji = epResult.TitleRomaji;
-            TitleKanji = epResult.TitleKanji;
-            Number = epResult.EpisodeNumber;
-            EpisodeType = epResult.Type;
-            Duration = epResult.DurationMinutes is null ? null : TimeSpan.FromMinutes(epResult.DurationMinutes.Value);
-            AirDate = epResult.AiredDate;
+            Id = result.EpisodeId;
+            TitleEnglish = result.TitleEnglish;
+            TitleRomaji = result.TitleRomaji;
+            TitleKanji = result.TitleKanji;
+            Number = result.EpisodeNumber;
+            EpisodeType = result.Type;
+            Duration = result.DurationMinutes is null ? null : TimeSpan.FromMinutes(result.DurationMinutes.Value);
+            AirDate = result.AiredDate;
             Updated = DateTime.UtcNow;
             AniDbFiles = new List<AniDbFile>();
-            AniDbAnimeId = epResult.AnimeId;
+            AniDbAnimeId = result.AnimeId;
+        }
+
+        public AniDbEpisode(AniDbFileResult result)
+        {
+            Id = result.EpisodeId!.Value;
+            TitleEnglish = result.EpisodeTitleEnglish!;
+            TitleRomaji = result.EpisodeTitleRomaji;
+            TitleKanji = result.EpisodeTitleKanji;
+            AirDate = result.EpisodeAiredDate;
+        }
+
+        public AniDbEpisode(Episode episode, string animeLang)
+        {
+            Id = episode.Id;
+            Duration = TimeSpan.FromMinutes(episode.Length);
+            Number = episode.Epno.Text.ParseEpisode().number;
+            EpisodeType = episode.Epno.Type;
+            AirDate = episode.Airdate;
+            Updated = DateTime.UtcNow;
+            AniDbAnimeId = Id;
+            TitleEnglish = episode.Title.First(t => t.Lang == "en").Text;
+            TitleRomaji = episode.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == animeLang)?.Text;
+            TitleKanji = episode.Title.FirstOrDefault(t =>
+                t.Lang.StartsWith(animeLang switch { "x-jat" => "ja", "x-zht" => "zh-han", "x-kot" => "ko", _ => "none" },
+                    StringComparison.OrdinalIgnoreCase))?.Text;
         }
 
         [DatabaseGenerated(DatabaseGeneratedOption.None)]

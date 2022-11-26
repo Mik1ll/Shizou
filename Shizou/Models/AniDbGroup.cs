@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using Shizou.AniDbApi.Requests;
+using Shizou.AniDbApi.Results;
 
 namespace Shizou.Models
 {
@@ -10,7 +10,7 @@ namespace Shizou.Models
         {
         }
 
-        public AniDbGroup(FileRequest.AniDbFileResult result)
+        public AniDbGroup(AniDbFileResult result)
         {
             Id = result.GroupId!.Value;
             Name = result.GroupName!;

@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi;
 using Shizou.AniDbApi.Requests;
+using Shizou.AniDbApi.Results;
 using Shizou.CommandProcessors;
 using Shizou.Database;
 using Shizou.Models;
@@ -62,7 +63,7 @@ namespace Shizou.Commands.AniDb
             File.Delete(_fileCachePath);
         }
 
-        private async Task<bool> ProcessOtherEpisodes(FileRequest.AniDbFileResult result, AniDbFile aniDbFile, LocalFile localFile, HashSet<int> newAnimes)
+        private async Task<bool> ProcessOtherEpisodes(AniDbFileResult result, AniDbFile aniDbFile, LocalFile localFile, HashSet<int> newAnimes)
         {
             if (result.OtherEpisodeIds is not null)
             {
@@ -115,15 +116,7 @@ namespace Shizou.Commands.AniDb
                                     return true;
                                 }
                                 var animeResult = animeReq.AnimeResult;
-                                _context.AniDbAnimes.Add(new AniDbAnime
-                                {
-                                    Id = animeResult.AnimeId!.Value,
-                                    Title = animeResult.TitleRomaji!,
-                                    EpisodeCount = animeResult.TotalEpisodes!.Value,
-                                    HighestEpisode = animeResult.HighestEpisodeNumber!.Value,
-                                    AnimeType = animeResult.Type!.Value,
-                                    AniDbUpdated = animeResult.DateRecordUpdated!.Value
-                                });
+                                _context.AniDbAnimes.Add(new AniDbAnime(animeResult));
                             }
                             _context.AniDbEpisodes.Add(newAniDbEpisode);
                         }
@@ -136,43 +129,36 @@ namespace Shizou.Commands.AniDb
             return false;
         }
 
-        private void AddAnimeAndEpisode(FileRequest.AniDbFileResult result, HashSet<int> newAnimes, AniDbFile aniDbFile)
+        private void AddAnimeAndEpisode(AniDbFileResult result, HashSet<int> newAnimes, AniDbFile aniDbFile)
         {
             using (var animeTransaction = _context.Database.BeginTransaction())
             {
                 var aniDbAnime = _context.AniDbAnimes.Find(result.AnimeId);
-                if (aniDbAnime is null)
-                    aniDbAnime = _context.AniDbAnimes.Add(new AniDbAnime()).Entity;
-                aniDbAnime.Id = result.AnimeId!.Value;
-                aniDbAnime.Title = result.TitleRomaji!;
-                aniDbAnime.EpisodeCount = result.TotalEpisodes!.Value;
-                aniDbAnime.HighestEpisode = result.HighestEpisodeNumber!.Value;
-                aniDbAnime.AnimeType = result.Type!.Value;
-                aniDbAnime.AniDbUpdated = result.DateRecordUpdated!.Value;
-
+                {
+                    var newAniDbAnime = new AniDbAnime(result);
+                    if (aniDbAnime is null)
+                        aniDbAnime = _context.AniDbAnimes.Add(newAniDbAnime).Entity;
+                    else
+                        _context.Entry(aniDbAnime).CurrentValues.SetValues(newAniDbAnime);
+                }
                 if (aniDbAnime.Updated is null)
                     newAnimes.Add(aniDbAnime.Id);
 
 
                 // Get the episode
-                var aniDbEpisode = _context.AniDbEpisodes.Include(e => e.AniDbFiles).FirstOrDefault(e => e.Id == result.EpisodeId);
-                if (aniDbEpisode is null)
-                    aniDbEpisode = _context.AniDbEpisodes.Add(new AniDbEpisode
-                    {
-                        AniDbFiles = new List<AniDbFile> { aniDbFile }
-                    }).Entity;
-                aniDbEpisode.Id = result.EpisodeId!.Value;
-                aniDbEpisode.TitleEnglish = result.EpisodeTitleEnglish!;
-                aniDbEpisode.TitleRomaji = result.EpisodeTitleRomaji;
-                aniDbEpisode.TitleKanji = result.EpisodeTitleKanji;
-                // Can't use episode number to create episode, it is range of all eps related to file
-                // aniDbEpisode.Number = result.EpisodeNumber!.ParseEpisode().number;
-                // aniDbEpisode.EpisodeType = result.EpisodeNumber!.ParseEpisode().type;
-                aniDbEpisode.AirDate = result.EpisodeAiredDate;
+                var aniDbEpisode = _context.AniDbEpisodes.Include(e => e.AniDbFiles)
+                    .FirstOrDefault(e => e.Id == result.EpisodeId);
+                {
+                    var newAniDbEpisode = new AniDbEpisode(result);
+                    if (aniDbEpisode is null)
+                        aniDbEpisode = _context.AniDbEpisodes.Add(newAniDbEpisode).Entity;
+                    else
+                        _context.Entry(aniDbEpisode).CurrentValues.SetValues(newAniDbEpisode);
+                }
                 aniDbEpisode.AniDbAnime = aniDbAnime;
 
                 // Add the file relation if not found
-                if (!aniDbEpisode.AniDbFiles.Contains(aniDbFile))
+                if (!aniDbEpisode.AniDbFiles.Any(f => f.Id == aniDbFile.Id))
                     aniDbEpisode.AniDbFiles.Add(aniDbFile);
 
                 _context.SaveChanges();
@@ -186,7 +172,7 @@ namespace Shizou.Commands.AniDb
         /// </summary>
         /// <param name="result"></param>
         /// <returns>AniDb file that is tracked by the context</returns>
-        private AniDbFile ProcessFileResult(FileRequest.AniDbFileResult result)
+        private AniDbFile ProcessFileResult(AniDbFileResult result)
         {
             // Get the group
             var newGroup = new AniDbGroup(result);
@@ -214,7 +200,7 @@ namespace Shizou.Commands.AniDb
             return existingFile ?? newFile;
         }
 
-        private async Task<FileRequest.AniDbFileResult?> GetFileResult(LocalFile localFile)
+        private async Task<AniDbFileResult?> GetFileResult(LocalFile localFile)
         {
             // Check if file was requested before and did not complete
             var result = await GetFromFileCache();
@@ -242,7 +228,7 @@ namespace Shizou.Commands.AniDb
             return result;
         }
 
-        private async Task SaveToFileCache(FileRequest.AniDbFileResult? result)
+        private async Task SaveToFileCache(AniDbFileResult? result)
         {
             if (!Directory.Exists(Constants.TempFilePath))
                 Directory.CreateDirectory(Constants.TempFilePath);
@@ -252,14 +238,14 @@ namespace Shizou.Commands.AniDb
             }
         }
 
-        private async Task<FileRequest.AniDbFileResult?> GetFromFileCache()
+        private async Task<AniDbFileResult?> GetFromFileCache()
         {
-            FileRequest.AniDbFileResult? result = null;
+            AniDbFileResult? result = null;
             var fileResult = new FileInfo(_fileCachePath);
             if (fileResult.Exists && fileResult.Length > 0)
                 using (var file = new FileStream(_fileCachePath, FileMode.Open, FileAccess.Read))
                 {
-                    result = await JsonSerializer.DeserializeAsync<FileRequest.AniDbFileResult>(file);
+                    result = await JsonSerializer.DeserializeAsync<AniDbFileResult>(file);
                 }
             return result;
         }

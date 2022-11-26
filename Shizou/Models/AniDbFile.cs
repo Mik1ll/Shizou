@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Shizou.AniDbApi.Requests;
+using Shizou.AniDbApi.Results;
 using Shizou.Enums;
 
 namespace Shizou.Models
@@ -15,7 +15,7 @@ namespace Shizou.Models
         {
         }
 
-        public AniDbFile(FileRequest.AniDbFileResult result)
+        public AniDbFile(AniDbFileResult result)
         {
             Id = result.FileId;
             Ed2K = result.Ed2K!;

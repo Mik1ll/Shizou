@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Shizou.AniDbApi.Results;
 using Shizou.CommandProcessors;
 using Shizou.Enums;
 
@@ -10,12 +11,6 @@ namespace Shizou.AniDbApi.Requests
 {
     public sealed class MyListAddRequest : AniDbUdpRequest
     {
-        public record AniDbMyListAddResult(int? ListId,
-            MyListState? State,
-            bool? Watched,
-            DateTime? WatchedDate,
-            MyListFileState? FileState);
-
         public AniDbMyListAddResult? MyListResult { get; private set; }
 
         private MyListAddRequest(IServiceProvider provider, bool edit, bool? watched, MyListState? state = null, MyListFileState? fileState = null)
