@@ -95,8 +95,10 @@ namespace Shizou.Controllers
         [EnableQuery]
         public virtual async Task<ActionResult> Put([FromODataUri] int key, [FromBody] TEntity entity)
         {
-            if (key != entity.Id)
-                return BadRequest();
+            if (entity.Id == 0)
+                entity.Id = key;
+            if (key == 0 || key != entity.Id)
+                return BadRequest("Url key cannot be 0 or mismatch entity id");
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             Context.Entry(entity).State = EntityState.Modified;
