@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Formatter;
 using Microsoft.AspNetCore.OData.Query;
@@ -34,6 +35,8 @@ namespace Shizou.Controllers
         /// <returns></returns>
         /// <response code="200">Success</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
         [EnableQuery]
         public virtual ActionResult<IQueryable<TEntity>> Get()
         {
@@ -48,6 +51,9 @@ namespace Shizou.Controllers
         /// <response code="404">Entity is not found</response>
         /// <response code="200">Entity found</response>
         [HttpGet("{key}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Produces("application/json")]
         [EnableQuery]
         public virtual ActionResult<SingleResult<TEntity>> Get([FromODataUri] int key)
         {
@@ -61,8 +67,14 @@ namespace Shizou.Controllers
         /// <param name="entity"></param>
         /// <returns></returns>
         /// <response code="201">Entity created</response>
+        /// <response code="400">Bad Request</response>
         /// <response code="409">Conflict when trying to add in database</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [Produces("application/json")]
+        [Consumes("application/json")]
         [EnableQuery]
         public virtual async Task<ActionResult<TEntity>> Post([FromBody] TEntity entity)
         {
@@ -92,6 +104,10 @@ namespace Shizou.Controllers
         /// <response code="404">Entity does not exist</response>
         /// <response code="409">Conflict when trying to update in database</response>
         [HttpPut("{key}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [Consumes("application/json")]
         [EnableQuery]
         public virtual async Task<ActionResult> Put([FromODataUri] int key, [FromBody] TEntity entity)
         {
@@ -104,6 +120,7 @@ namespace Shizou.Controllers
             Context.Entry(entity).State = EntityState.Modified;
             try
             {
+                // TODO: Test changing navigation id fields
                 await Context.SaveChangesAsync();
             }
             catch (DbUpdateException ex)
@@ -122,8 +139,13 @@ namespace Shizou.Controllers
         /// <param name="key"></param>
         /// <returns></returns>
         /// <response code="204">Entity deleted</response>
+        /// <response code="404">Not Found</response>
         /// <response code="409">Conflict when trying to delete in database</response>
         [HttpDelete("{key}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [Produces("application/json")]
         [EnableQuery]
         public virtual async Task<ActionResult> Delete([FromODataUri] int key)
         {

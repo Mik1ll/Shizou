@@ -35,6 +35,7 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status416RangeNotSatisfiable)]
         [ProducesResponseType(StatusCodes.Status206PartialContent)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/octet-stream", Type = typeof(FileStreamResult))]
         public ActionResult Get(int localFileId)
         {
             var localDbFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
