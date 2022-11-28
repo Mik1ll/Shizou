@@ -31,7 +31,7 @@ namespace Shizou.Models
             FileVersion = result.State!.Value.FileVersion();
             Updated = DateTime.UtcNow;
             AniDbGroupId = result.GroupId;
-            MyListEntry = result.MyListId is null
+            AniDbMyListEntry = result.MyListId is null
                 ? null
                 : new AniDbMyListEntry
                 {
@@ -75,8 +75,8 @@ namespace Shizou.Models
         public bool Deprecated { get; set; }
         public bool Chaptered { get; set; }
 
-        public AniDbMyListEntry? MyListEntry { get; set; }
-
+        public int? AniDbMyListEntryId { get; set; }
+        public AniDbMyListEntry? AniDbMyListEntry { get; set; }
         public int? AniDbGroupId { get; set; }
         public AniDbGroup? AniDbGroup { get; set; }
         public AniDbVideo? Video { get; set; }
