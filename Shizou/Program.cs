@@ -4,21 +4,16 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OData.Edm;
-using Microsoft.OData.ModelBuilder;
 using Serilog;
 using Shizou;
 using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
-using Shizou.Controllers;
 using Shizou.Database;
-using Shizou.Models;
 using Shizou.Options;
 using Shizou.Services;
 
@@ -44,9 +39,12 @@ try
         .Enrich.FromLogContext());
 
     builder.Services.Configure<ShizouOptions>(builder.Configuration.GetSection(ShizouOptions.Shizou));
-    builder.Services.AddControllers()
-        .AddOData(options => options.EnableQueryFeatures().AddRouteComponents("odata", GetEdmModel()).Select().Filter().OrderBy().Expand().Count());
-    builder.Services.AddSwaggerGen();
+    builder.Services.AddControllers();
+    builder.Services.AddSwaggerGen(opt =>
+    {
+        opt.SchemaGeneratorOptions.UseInlineDefinitionsForEnums = true;
+        opt.SchemaGeneratorOptions.SupportNonNullableReferenceTypes = true;
+    });
     builder.Services.AddHostedService<StartupService>();
     builder.Services.AddDbContext<ShizouContext>();
     builder.Services.AddScoped<CommandManager>();
@@ -55,15 +53,7 @@ try
     builder.Services.AddSingleton<AniDbUdp>();
     builder.Services.AddSingleton<UdpRateLimiter>();
 
-    builder.Services.AddSingleton<CommandProcessor, AniDbUdpProcessor>();
-    builder.Services.AddSingleton<CommandProcessor, HashProcessor>();
-    builder.Services.AddSingleton<CommandProcessor, AniDbHttpProcessor>();
-    builder.Services.AddSingleton(p => (AniDbUdpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
-    builder.Services.AddSingleton(p => (HashProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
-    builder.Services.AddSingleton(p => (AniDbHttpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
-    builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
-    builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
-    builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
+    AddProcessors(builder);
 
     builder.Services.AddHttpClient("gzip")
         .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip });
@@ -102,12 +92,15 @@ finally
     Log.CloseAndFlush();
 }
 
-
-static IEdmModel GetEdmModel()
+void AddProcessors(WebApplicationBuilder webApplicationBuilder)
 {
-    var builder = new ODataConventionModelBuilder();
-    builder.EnableLowerCamelCase();
-    builder.EntitySet<ImportFolder>(nameof(ImportFoldersController)[..^10]);
-    builder.EntitySet<AniDbFile>(nameof(AniDbFilesController)[..^10]);
-    return builder.GetEdmModel();
+    webApplicationBuilder.Services.AddSingleton<CommandProcessor, AniDbUdpProcessor>();
+    webApplicationBuilder.Services.AddSingleton<CommandProcessor, HashProcessor>();
+    webApplicationBuilder.Services.AddSingleton<CommandProcessor, AniDbHttpProcessor>();
+    webApplicationBuilder.Services.AddSingleton(p => (AniDbUdpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
+    webApplicationBuilder.Services.AddSingleton(p => (HashProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
+    webApplicationBuilder.Services.AddSingleton(p => (AniDbHttpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
+    webApplicationBuilder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
+    webApplicationBuilder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
+    webApplicationBuilder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
 }

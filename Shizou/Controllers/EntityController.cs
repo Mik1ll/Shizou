@@ -1,11 +1,7 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Formatter;
-using Microsoft.AspNetCore.OData.Query;
-using Microsoft.AspNetCore.OData.Results;
-using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Database;
@@ -15,7 +11,7 @@ namespace Shizou.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class EntityController<TEntity> : ODataController
+    public class EntityController<TEntity> : ControllerBase
         where TEntity : class, IEntity
     {
         private readonly DbSet<TEntity> _dbSet;
@@ -37,28 +33,28 @@ namespace Shizou.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Produces("application/json")]
-        [EnableQuery]
-        public virtual ActionResult<IQueryable<TEntity>> Get()
+        public virtual ActionResult<IEnumerable<TEntity>> Get()
         {
-            return Ok(_dbSet);
+            return _dbSet.ToList();
         }
 
         /// <summary>
         ///     Get entity
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
         /// <response code="404">Entity is not found</response>
         /// <response code="200">Entity found</response>
-        [HttpGet("{key}")]
+        [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Produces("application/json")]
-        [EnableQuery]
-        public virtual ActionResult<SingleResult<TEntity>> Get([FromODataUri] int key)
+        public virtual ActionResult<TEntity> Get(int id)
         {
-            var result = _dbSet.Where(e => e.Id == key);
-            return Ok(SingleResult.Create(result));
+            var result = _dbSet.Find(id);
+            if (result is null)
+                return NotFound();
+            return result;
         }
 
         /// <summary>
@@ -75,21 +71,19 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [Produces("application/json")]
         [Consumes("application/json")]
-        [EnableQuery]
-        public virtual async Task<ActionResult<TEntity>> Post([FromBody] TEntity entity)
+        public virtual ActionResult<TEntity> Post([FromBody] TEntity entity)
         {
             // TODO: Test adding already exiting record
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            _dbSet.Add(entity);
             try
             {
-                _dbSet.Add(entity);
-                await Context.SaveChangesAsync();
+                Context.SaveChanges();
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateException)
             {
-                ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
-                return Conflict(ModelState);
+                if (Exists(entity.Id))
+                    return Conflict();
+                throw;
             }
             return CreatedAtAction(nameof(Get), new { id = entity.Id }, entity);
         }
@@ -97,38 +91,34 @@ namespace Shizou.Controllers
         /// <summary>
         ///     Updates existing entity
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="id"></param>
         /// <param name="entity"></param>
         /// <returns></returns>
         /// <response code="204">Entity updated</response>
         /// <response code="404">Entity does not exist</response>
         /// <response code="409">Conflict when trying to update in database</response>
-        [HttpPut("{key}")]
+        [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [Consumes("application/json")]
-        [EnableQuery]
-        public virtual async Task<ActionResult> Put([FromODataUri] int key, [FromBody] TEntity entity)
+        public virtual ActionResult Put(int id, [FromBody] TEntity entity)
         {
             if (entity.Id == 0)
-                entity.Id = key;
-            if (key == 0 || key != entity.Id)
-                return BadRequest("Url key cannot be 0 or mismatch entity id");
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                entity.Id = id;
+            if (id == 0 || id != entity.Id)
+                return BadRequest("Url id cannot be 0 or mismatch entity id");
             Context.Entry(entity).State = EntityState.Modified;
             try
             {
                 // TODO: Test changing navigation id fields
-                await Context.SaveChangesAsync();
+                Context.SaveChanges();
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateException)
             {
-                if (!Exists(key))
+                if (!Exists(id))
                     return NotFound();
-                ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
-                return Conflict(ModelState);
+                throw;
             }
             return NoContent();
         }
@@ -136,38 +126,29 @@ namespace Shizou.Controllers
         /// <summary>
         ///     Deletes entity if it exists.
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
         /// <response code="204">Entity deleted</response>
         /// <response code="404">Not Found</response>
         /// <response code="409">Conflict when trying to delete in database</response>
-        [HttpDelete("{key}")]
+        [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [Produces("application/json")]
-        [EnableQuery]
-        public virtual async Task<ActionResult> Delete([FromODataUri] int key)
+        public virtual ActionResult Delete(int id)
         {
-            var entity = await _dbSet.FindAsync(key);
+            var entity = _dbSet.Find(id);
             if (entity is null)
                 return NotFound();
-            try
-            {
-                _dbSet.Remove(entity);
-                await Context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.InnerException?.Message ?? ex.Message);
-                return Conflict(ModelState);
-            }
+            _dbSet.Remove(entity);
+            Context.SaveChanges();
             return NoContent();
         }
 
-        protected bool Exists(int key)
+        protected bool Exists(int id)
         {
-            return _dbSet.Any(e => e.Id == key);
+            return _dbSet.Any(e => e.Id == id);
         }
     }
 }
