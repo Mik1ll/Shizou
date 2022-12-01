@@ -73,5 +73,8 @@ namespace Shizou.Models
 
         [ForeignKey(nameof(LocalFile.ManualLinkEpisodeId))]
         public List<LocalFile> ManualLinkLocalFiles { get; set; } = null!;
+
+        public int? GenericMyListEntryId { get; set; }
+        public AniDbMyListEntry? GenericMyListEntry { get; set; }
     }
 }
