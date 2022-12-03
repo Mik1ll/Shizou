@@ -26,12 +26,12 @@ namespace Shizou.Models
             Chaptered = result.State!.Value.HasFlag(FileState.Chaptered);
             Deprecated = result.IsDeprecated!.Value;
             FileSize = result.Size!.Value;
-            Duration = result.LengthInSeconds;
+            DurationSeconds = result.LengthInSeconds;
             Source = result.Source;
             FileVersion = result.State!.Value.FileVersion();
             Updated = DateTime.UtcNow;
             AniDbGroupId = result.GroupId;
-            AniDbMyListEntry = result.MyListId is null
+            MyListEntry = result.MyListId is null
                 ? null
                 : new AniDbMyListEntry
                 {
@@ -66,7 +66,7 @@ namespace Shizou.Models
         public string? Md5 { get; set; }
         public string? Sha1 { get; set; }
         public long FileSize { get; set; }
-        public int? Duration { get; set; }
+        public int? DurationSeconds { get; set; }
         public string? Source { get; set; }
         public DateTime? Updated { get; set; }
         public int FileVersion { get; set; }
@@ -75,8 +75,8 @@ namespace Shizou.Models
         public bool Deprecated { get; set; }
         public bool Chaptered { get; set; }
 
-        public int? AniDbMyListEntryId { get; set; }
-        public AniDbMyListEntry? AniDbMyListEntry { get; set; }
+        public int? MyListEntryId { get; set; }
+        public AniDbMyListEntry? MyListEntry { get; set; }
         public int? AniDbGroupId { get; set; }
         public AniDbGroup? AniDbGroup { get; set; }
         public AniDbVideo? Video { get; set; }

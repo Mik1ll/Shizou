@@ -186,7 +186,7 @@ namespace Shizou.Commands.AniDb
             var newFile = new AniDbFile(result);
             var existingFile = _context.AniDbFiles
                 .Include(f => f.AniDbEpisodes)
-                .Include(f => f.AniDbMyListEntry)
+                .Include(f => f.MyListEntry)
                 .FirstOrDefault(f => f.Id == result.FileId);
             if (existingFile is null)
                 _context.AniDbFiles.Add(newFile);

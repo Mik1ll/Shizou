@@ -22,10 +22,9 @@ namespace Shizou.Models
             TitleKanji = result.TitleKanji;
             Number = result.EpisodeNumber;
             EpisodeType = result.Type;
-            Duration = result.DurationMinutes is null ? null : TimeSpan.FromMinutes(result.DurationMinutes.Value);
+            DurationMinutes = result.DurationMinutes is null ? null : result.DurationMinutes.Value;
             AirDate = result.AiredDate;
             Updated = DateTime.UtcNow;
-            AniDbFiles = new List<AniDbFile>();
             AniDbAnimeId = result.AnimeId;
         }
 
@@ -41,7 +40,7 @@ namespace Shizou.Models
         public AniDbEpisode(Episode episode, string animeLang)
         {
             Id = episode.Id;
-            Duration = TimeSpan.FromMinutes(episode.Length);
+            DurationMinutes = episode.Length;
             Number = episode.Epno.Text.ParseEpisode().number;
             EpisodeType = episode.Epno.Type;
             AirDate = episode.Airdate;
@@ -62,7 +61,7 @@ namespace Shizou.Models
         public string? TitleKanji { get; set; }
         public int Number { get; set; }
         public EpisodeType EpisodeType { get; set; }
-        public TimeSpan? Duration { get; set; }
+        public int? DurationMinutes { get; set; }
         public DateTime? AirDate { get; set; }
         public DateTime? Updated { get; set; }
 

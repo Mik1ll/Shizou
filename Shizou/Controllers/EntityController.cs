@@ -1,27 +1,32 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Database;
+using Shizou.Dtos;
 using Shizou.Models;
 
 namespace Shizou.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class EntityController<TEntity> : ControllerBase
+    public class EntityController<TEntity, TDto> : ControllerBase
         where TEntity : class, IEntity
+        where TDto : class, IEntityDto
     {
         private readonly DbSet<TEntity> _dbSet;
         protected readonly ShizouContext Context;
-        protected readonly ILogger<EntityController<TEntity>> Logger;
+        protected readonly IMapper Mapper;
+        protected readonly ILogger<EntityController<TEntity, TDto>> Logger;
 
-        public EntityController(ILogger<EntityController<TEntity>> logger, ShizouContext context)
+        public EntityController(ILogger<EntityController<TEntity, TDto>> logger, ShizouContext context, IMapper mapper)
         {
             Logger = logger;
             Context = context;
+            Mapper = mapper;
             _dbSet = Context.Set<TEntity>();
         }
 
@@ -33,9 +38,9 @@ namespace Shizou.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Produces("application/json")]
-        public virtual ActionResult<IEnumerable<TEntity>> Get()
+        public virtual ActionResult<List<TDto>> Get()
         {
-            return _dbSet.ToList();
+            return Mapper.Map<List<TDto>>(_dbSet.AsNoTracking());
         }
 
         /// <summary>
@@ -49,12 +54,12 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Produces("application/json")]
-        public virtual ActionResult<TEntity> Get(int id)
+        public virtual ActionResult<TDto> Get(int id)
         {
             var result = _dbSet.Find(id);
             if (result is null)
                 return NotFound();
-            return result;
+            return Mapper.Map<TDto>(result);
         }
 
         /// <summary>
@@ -71,10 +76,11 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [Produces("application/json")]
         [Consumes("application/json")]
-        public virtual ActionResult<TEntity> Post([FromBody] TEntity entity)
+        public virtual ActionResult<TDto> Post([FromBody] TDto entity)
         {
-            // TODO: Test adding already exiting record
-            _dbSet.Add(entity);
+            // TODO: Test adding already existing record
+            // TODO: Test adding with child navigation id already existing
+            var newEntity = _dbSet.Add(Mapper.Map<TEntity>(entity)).Entity;
             try
             {
                 Context.SaveChanges();
@@ -85,7 +91,7 @@ namespace Shizou.Controllers
                     return Conflict();
                 throw;
             }
-            return CreatedAtAction(nameof(Get), new { id = entity.Id }, entity);
+            return CreatedAtAction(nameof(Get), new { id = newEntity.Id }, Mapper.Map<TDto>(entity));
         }
 
         /// <summary>
@@ -102,13 +108,13 @@ namespace Shizou.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [Consumes("application/json")]
-        public virtual ActionResult Put(int id, [FromBody] TEntity entity)
+        public virtual ActionResult Put(int id, [FromBody] TDto entity)
         {
             if (entity.Id == 0)
                 entity.Id = id;
             if (id == 0 || id != entity.Id)
                 return BadRequest("Url id cannot be 0 or mismatch entity id");
-            Context.Entry(entity).State = EntityState.Modified;
+            Context.Entry(Mapper.Map<TEntity>(entity)).State = EntityState.Modified;
             try
             {
                 // TODO: Test changing navigation id fields

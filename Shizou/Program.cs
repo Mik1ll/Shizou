@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,6 +15,7 @@ using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
 using Shizou.Commands;
 using Shizou.Database;
+using Shizou.MapperProfiles;
 using Shizou.Options;
 using Shizou.Services;
 
@@ -37,6 +39,8 @@ try
             rollingInterval: RollingInterval.Day)
         .WriteTo.Seq("http://localhost:5341")
         .Enrich.FromLogContext());
+
+    builder.Services.AddAutoMapper(typeof(ShizouProfile));
 
     builder.Services.Configure<ShizouOptions>(builder.Configuration.GetSection(ShizouOptions.Shizou));
     builder.Services.AddControllers();
@@ -76,6 +80,9 @@ try
 
         var context = services.GetRequiredService<ShizouContext>();
         context.Database.Migrate();
+
+        var mapper = services.GetRequiredService<IMapper>();
+        mapper.ConfigurationProvider.AssertConfigurationIsValid();
     }
 
     app.Run();
