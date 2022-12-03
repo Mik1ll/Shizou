@@ -34,6 +34,17 @@ namespace Shizou.Database
 
         public DbSet<LocalFile> LocalFiles { get; set; } = null!;
 
+        public DbSet<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; set; } = null!;
+
+        public IQueryable<AniDbEpisode> GetEpisodesFromFile(int fileId)
+        {
+            return AniDbEpisodes.Where(e => AniDbEpisodeFileXrefs.Any(r => r.AniDbFileId == fileId && r.AniDbEpisodeId == e.Id));
+        }
+
+        public IQueryable<AniDbFile> GetFilesFromEpisode(int episodeId)
+        {
+            return AniDbFiles.Where(f => AniDbEpisodeFileXrefs.Any(r => r.AniDbFileId == f.Id && r.AniDbEpisodeId == episodeId));
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -55,18 +66,18 @@ namespace Shizou.Database
             modelBuilder.Entity<AniDbFile>()
                 .OwnsMany(f => f.Subtitles)
                 .WithOwner(s => s.AniDbFile);
+            modelBuilder.Entity<AniDbEpisodeFileXref>()
+                .HasKey(r => new { r.AniDbEpisodeId, r.AniDbFileId });
         }
 
-        public void ReplaceNavigationCollection<T>(ICollection<T> newCollection, ICollection<T> oldCollection) where T : IEntity
+        public void ReplaceNavigationList<T>(List<T> source, List<T> destination) where T : IEntity
         {
-            foreach (var item in newCollection)
-                if (oldCollection.FirstOrDefault(a => a.Id == item.Id) is var eItem && eItem is null)
-                    oldCollection.Add(item);
+            foreach (var item in source)
+                if (destination.FirstOrDefault(a => a.Id == item.Id) is var eItem && eItem is null)
+                    destination.Add(item);
                 else
                     Entry(eItem).CurrentValues.SetValues(item);
-            foreach (var item in newCollection)
-                if (!newCollection.Any(a => a.Id == item.Id))
-                    Remove(item);
+            destination.RemoveAll(x => !source.Any(a => a.Id == x.Id));
         }
     }
 }

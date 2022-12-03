@@ -82,6 +82,5 @@ namespace Shizou.Models
         public AniDbVideo? Video { get; set; }
         public List<AniDbAudio> Audio { get; set; } = null!;
         public List<AniDbSubtitle> Subtitles { get; set; } = null!;
-        public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
     }
 }

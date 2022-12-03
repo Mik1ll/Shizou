@@ -87,7 +87,7 @@ namespace Shizou.Commands.AniDb
                 else
                 {
                     _context.Entry(aniDbAnime).CurrentValues.SetValues(newAniDbAnime);
-                    _context.ReplaceNavigationCollection(newAniDbAnime.AniDbEpisodes, aniDbAnime.AniDbEpisodes);
+                    _context.ReplaceNavigationList(newAniDbAnime.AniDbEpisodes, aniDbAnime.AniDbEpisodes);
                 }
 
                 _context.SaveChanges();

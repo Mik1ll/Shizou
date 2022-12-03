@@ -48,131 +48,15 @@ namespace Shizou.Commands.AniDb
             if (result is null)
                 return;
 
-            var aniDbFile = ProcessFileResult(result);
+            UpdateDatabase(result);
 
-            var newAnimes = new HashSet<int>();
-
-            AddAnimeAndEpisode(result, newAnimes, aniDbFile);
-
-            // Get other episodes
-            if (await ProcessOtherEpisodes(result, aniDbFile, localFile, newAnimes)) return;
-
-            _cmdMgr.DispatchRange(newAnimes.Select(id => new HttpAnimeParams(id)));
+            _cmdMgr.Dispatch(new HttpAnimeParams(result.AnimeId!.Value));
 
             Completed = true;
             File.Delete(_fileCachePath);
         }
 
-        private async Task<bool> ProcessOtherEpisodes(AniDbFileResult result, AniDbFile aniDbFile, LocalFile localFile, HashSet<int> newAnimes)
-        {
-            if (result.OtherEpisodeIds is not null)
-            {
-                foreach (var eid in result.OtherEpisodeIds)
-                {
-                    var existingEp = _context.AniDbEpisodes.Include(e => e.AniDbFiles).FirstOrDefault(e => e.Id == eid);
-                    if (existingEp is not null)
-                    {
-                        if (!existingEp.AniDbFiles.Contains(aniDbFile))
-                        {
-                            existingEp.AniDbFiles.Add(aniDbFile);
-                        }
-                        continue;
-                    }
-
-                    var episodeReq = new EpisodeRequest(Provider, eid);
-                    await episodeReq.Process();
-                    if (episodeReq.EpisodeResult is null)
-                    {
-                        Logger.LogWarning("Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, failed to get other episode id: {episodeId}",
-                            localFile.Id, localFile.Ed2K, eid);
-                        return true;
-                    }
-                    var epResult = episodeReq.EpisodeResult;
-                    var newAniDbEpisode = new AniDbEpisode(epResult);
-                    using (var episodeTransaction = _context.Database.BeginTransaction())
-                    {
-                        // TODO: Ensure file relation is created
-                        existingEp = _context.AniDbEpisodes.Include(e => e.AniDbFiles).FirstOrDefault(e => e.Id == eid);
-                        if (existingEp is not null)
-                        {
-                            _context.Entry(existingEp).CurrentValues.SetValues(newAniDbEpisode);
-                            if (!existingEp.AniDbFiles.Contains(aniDbFile))
-                                existingEp.AniDbFiles.Add(aniDbFile);
-                        }
-                        else
-                        {
-                            var otherEpAnime = _context.AniDbAnimes.Select(a => new { a.Id, a.Updated }).FirstOrDefault(a => a.Id == epResult.AnimeId);
-                            if (otherEpAnime?.Updated is null)
-                                newAnimes.Add(epResult.AnimeId);
-                            if (otherEpAnime is null)
-                            {
-                                var animeReq = new AnimeRequest(Provider, newAniDbEpisode.AniDbAnimeId, AnimeRequest.DefaultAMask);
-                                await animeReq.Process();
-                                if (animeReq.AnimeResult is null)
-                                {
-                                    Logger.LogWarning(
-                                        "Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, failed to get other anime id: {animeId}",
-                                        localFile.Id, localFile.Ed2K, epResult.AnimeId);
-                                    return true;
-                                }
-                                var animeResult = animeReq.AnimeResult;
-                                _context.AniDbAnimes.Add(new AniDbAnime(animeResult));
-                            }
-                            _context.AniDbEpisodes.Add(newAniDbEpisode);
-                        }
-                        _context.SaveChanges();
-                        episodeTransaction.Commit();
-                    }
-                }
-                _context.SaveChanges();
-            }
-            return false;
-        }
-
-        private void AddAnimeAndEpisode(AniDbFileResult result, HashSet<int> newAnimes, AniDbFile aniDbFile)
-        {
-            using (var animeTransaction = _context.Database.BeginTransaction())
-            {
-                var aniDbAnime = _context.AniDbAnimes.Find(result.AnimeId);
-                {
-                    var newAniDbAnime = new AniDbAnime(result);
-                    if (aniDbAnime is null)
-                        aniDbAnime = _context.AniDbAnimes.Add(newAniDbAnime).Entity;
-                    else
-                        _context.Entry(aniDbAnime).CurrentValues.SetValues(newAniDbAnime);
-                }
-                if (aniDbAnime.Updated is null)
-                    newAnimes.Add(aniDbAnime.Id);
-
-
-                // Get the episode
-                var aniDbEpisode = _context.AniDbEpisodes.Include(e => e.AniDbFiles)
-                    .FirstOrDefault(e => e.Id == result.EpisodeId);
-                {
-                    var newAniDbEpisode = new AniDbEpisode(result);
-                    if (aniDbEpisode is null)
-                        aniDbEpisode = _context.AniDbEpisodes.Add(newAniDbEpisode).Entity;
-                    else
-                        _context.Entry(aniDbEpisode).CurrentValues.SetValues(newAniDbEpisode);
-                }
-                aniDbEpisode.AniDbAnime = aniDbAnime;
-
-                // Add the file relation if not found
-                if (!aniDbEpisode.AniDbFiles.Any(f => f.Id == aniDbFile.Id))
-                    aniDbEpisode.AniDbFiles.Add(aniDbFile);
-
-                _context.SaveChanges();
-                animeTransaction.Commit();
-            }
-        }
-
-
-        /// <summary>
-        ///     Processes file result, adding file and group data to DB. Also deletes any file-episode relations to the file.
-        /// </summary>
-        /// <param name="result"></param>
-        /// <returns>AniDb file that is tracked by the context</returns>
-        private AniDbFile ProcessFileResult(AniDbFileResult result)
+        private void UpdateDatabase(AniDbFileResult result)
         {
             // Get the group
             var newGroup = new AniDbGroup(result);
@@ -183,22 +67,35 @@ namespace Shizou.Commands.AniDb
                 _context.Entry(existingGroup).CurrentValues.SetValues(newGroup);
 
             // Get the file
-            var newFile = new AniDbFile(result);
-            var existingFile = _context.AniDbFiles
-                .Include(f => f.AniDbEpisodes)
+            var file = _context.AniDbFiles
                 .Include(f => f.MyListEntry)
                 .FirstOrDefault(f => f.Id == result.FileId);
-            if (existingFile is null)
+            var newFile = new AniDbFile(result);
+            if (file is null)
+            {
                 _context.AniDbFiles.Add(newFile);
+            }
             else
             {
-                _context.Entry(existingFile).CurrentValues.SetValues(newFile);
-                _context.ReplaceNavigationCollection(newFile.Audio, existingFile.Audio);
-                _context.ReplaceNavigationCollection(newFile.Subtitles, existingFile.Subtitles);
-                _context.ReplaceNavigationCollection(newFile.AniDbEpisodes, existingFile.AniDbEpisodes);
+                _context.Entry(file).CurrentValues.SetValues(newFile);
+                _context.ReplaceNavigationList(newFile.Audio, file.Audio);
+                _context.ReplaceNavigationList(newFile.Subtitles, file.Subtitles);
             }
             _context.SaveChanges();
-            return existingFile ?? newFile;
+            UpdateEpRelations(result);
+            _context.SaveChanges();
+        }
+
+        private void UpdateEpRelations(AniDbFileResult result)
+        {
+            var epIds = new List<int> { result.EpisodeId!.Value };
+            epIds.AddRange(result.OtherEpisodeIds!);
+            var rels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId);
+            var deleteRels = rels.Where(x => !epIds.Contains(x.AniDbEpisodeId));
+            _context.RemoveRange(deleteRels);
+            var addRels = epIds.AsQueryable().Where(id => !rels.Any(r => r.AniDbEpisodeId == id))
+                .Select(x => new AniDbEpisodeFileXref { AniDbEpisodeId = x, AniDbFileId = result.FileId });
+            _context.AddRange(addRels);
         }
 
         private async Task<AniDbFileResult?> GetFileResult(LocalFile localFile)
