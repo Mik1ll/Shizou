@@ -2,37 +2,36 @@
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi;
 
-namespace Shizou.CommandProcessors
+namespace Shizou.CommandProcessors;
+
+public class AniDbUdpProcessor : CommandProcessor
 {
-    public class AniDbUdpProcessor : CommandProcessor
+    private readonly AniDbUdp _udpApi;
+
+    private bool _paused = true;
+
+    private string? _pauseReason;
+
+    public AniDbUdpProcessor(ILogger<AniDbUdpProcessor> logger, IServiceProvider provider, AniDbUdp udpApi)
+        : base(logger, provider, QueueType.AniDbUdp)
     {
-        private readonly AniDbUdp _udpApi;
+        _udpApi = udpApi;
+    }
 
-        private bool _paused = true;
+    public override bool Paused
+    {
+        get => _paused || _udpApi.Banned;
+        protected set => _paused = value;
+    }
 
-        private string? _pauseReason;
+    public override string? PauseReason
+    {
+        get => _udpApi.Banned && _udpApi.BanReason is not null ? _udpApi.BanReason : _pauseReason;
+        protected set => _pauseReason = value;
+    }
 
-        public AniDbUdpProcessor(ILogger<AniDbUdpProcessor> logger, IServiceProvider provider, AniDbUdp udpApi)
-            : base(logger, provider, QueueType.AniDbUdp)
-        {
-            _udpApi = udpApi;
-        }
-
-        public override bool Paused
-        {
-            get => _paused || _udpApi.Banned;
-            protected set => _paused = value;
-        }
-
-        public override string? PauseReason
-        {
-            get => _udpApi.Banned && _udpApi.BanReason is not null ? _udpApi.BanReason : _pauseReason;
-            protected set => _pauseReason = value;
-        }
-
-        public override void Shutdown()
-        {
-            _udpApi.Logout().Wait();
-        }
+    public override void Shutdown()
+    {
+        _udpApi.Logout().Wait();
     }
 }

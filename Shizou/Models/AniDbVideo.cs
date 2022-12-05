@@ -1,14 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Shizou.Models
+namespace Shizou.Models;
+
+[Owned]
+public sealed class AniDbVideo
 {
-    [Owned]
-    public sealed class AniDbVideo
-    {
-        public string Codec { get; set; } = null!;
-        public int BitRate { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
-        public int ColorDepth { get; set; }
-    }
+    public string Codec { get; set; } = null!;
+    public int BitRate { get; set; }
+    public int Width { get; set; }
+    public int Height { get; set; }
+    public int ColorDepth { get; set; }
 }

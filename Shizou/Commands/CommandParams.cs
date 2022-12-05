@@ -1,10 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Shizou.Commands
+namespace Shizou.Commands;
+
+public abstract record CommandParams(string CommandId)
 {
-    public abstract record CommandParams(string CommandId)
-    {
-        [JsonIgnore]
-        public string CommandId { get; } = CommandId;
-    }
+    [JsonIgnore]
+    public string CommandId { get; } = CommandId;
 }

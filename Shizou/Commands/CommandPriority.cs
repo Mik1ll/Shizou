@@ -1,9 +1,8 @@
-﻿namespace Shizou.Commands
+﻿namespace Shizou.Commands;
+
+public enum CommandPriority
 {
-    public enum CommandPriority
-    {
-        Invalid = 0,
-        Highest = 1,
-        Default = 99
-    }
+    Invalid = 0,
+    Highest = 1,
+    Default = 99
 }

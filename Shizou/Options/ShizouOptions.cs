@@ -2,41 +2,40 @@
 using System.IO;
 using System.Text.Json;
 
-namespace Shizou.Options
+namespace Shizou.Options;
+
+public class ShizouOptions
 {
-    public class ShizouOptions
+    public const string Shizou = "Shizou";
+    public static readonly string OptionsPath = Path.Combine(Constants.ApplicationData, "shizou-settings.json");
+
+    public ImportOptions Import { get; set; } = new();
+
+    public AniDbOptions AniDb { get; set; } = new();
+
+    public static void SaveToFile(ShizouOptions options)
     {
-        public const string Shizou = "Shizou";
-        public static readonly string OptionsPath = Path.Combine(Constants.ApplicationData, "shizou-settings.json");
+        Dictionary<string, object> json = new() { { Shizou, options } };
+        var jsonSettings = JsonSerializer.Serialize(json, new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true });
+        File.WriteAllText(OptionsPath, jsonSettings);
+    }
 
-        public ImportOptions Import { get; set; } = new();
+    public class ImportOptions
+    {
+    }
 
-        public AniDbOptions AniDb { get; set; } = new();
+    public class AniDbOptions
+    {
+        public string Username { get; set; } = string.Empty;
 
-        public static void SaveToFile(ShizouOptions options)
-        {
-            Dictionary<string, object> json = new() { { Shizou, options } };
-            var jsonSettings = JsonSerializer.Serialize(json, new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true });
-            File.WriteAllText(OptionsPath, jsonSettings);
-        }
+        public string Password { get; set; } = string.Empty;
 
-        public class ImportOptions
-        {
-        }
+        public string ServerHost { get; set; } = "api.anidb.net";
 
-        public class AniDbOptions
-        {
-            public string Username { get; set; } = string.Empty;
+        public ushort UdpServerPort { get; set; } = 9000;
 
-            public string Password { get; set; } = string.Empty;
+        public ushort HttpServerPort { get; set; } = 9001;
 
-            public string ServerHost { get; set; } = "api.anidb.net";
-
-            public ushort UdpServerPort { get; set; } = 9000;
-
-            public ushort HttpServerPort { get; set; } = 9001;
-
-            public ushort ClientPort { get; set; } = 4556;
-        }
+        public ushort ClientPort { get; set; } = 4556;
     }
 }
