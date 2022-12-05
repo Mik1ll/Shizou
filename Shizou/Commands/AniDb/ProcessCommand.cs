@@ -59,12 +59,12 @@ public class ProcessCommand : BaseCommand<ProcessParams>
     private void UpdateDatabase(AniDbFileResult result)
     {
         // Get the group
+        var group = _context.AniDbGroups.Find(result.GroupId);
         var newGroup = new AniDbGroup(result);
-        var existingGroup = _context.AniDbGroups.Find(result.GroupId);
-        if (existingGroup is null)
+        if (group is null)
             _context.AniDbGroups.Add(newGroup);
         else
-            _context.Entry(existingGroup).CurrentValues.SetValues(newGroup);
+            _context.Entry(group).CurrentValues.SetValues(newGroup);
 
         // Get the file
         var file = _context.AniDbFiles
@@ -72,9 +72,7 @@ public class ProcessCommand : BaseCommand<ProcessParams>
             .FirstOrDefault(f => f.Id == result.FileId);
         var newFile = new AniDbFile(result);
         if (file is null)
-        {
             _context.AniDbFiles.Add(newFile);
-        }
         else
         {
             _context.Entry(file).CurrentValues.SetValues(newFile);
@@ -83,19 +81,17 @@ public class ProcessCommand : BaseCommand<ProcessParams>
         }
         _context.SaveChanges();
         UpdateEpRelations(result);
-        _context.SaveChanges();
     }
 
     private void UpdateEpRelations(AniDbFileResult result)
     {
         var epIds = new List<int> { result.EpisodeId!.Value };
         epIds.AddRange(result.OtherEpisodeIds!);
-        var rels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId);
-        var deleteRels = rels.Where(x => !epIds.Contains(x.AniDbEpisodeId));
+        var deleteRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId);
         _context.RemoveRange(deleteRels);
-        var addRels = epIds.AsQueryable().Where(id => !rels.Any(r => r.AniDbEpisodeId == id))
-            .Select(x => new AniDbEpisodeFileXref { AniDbEpisodeId = x, AniDbFileId = result.FileId });
+        var addRels = epIds.Select(x => new AniDbEpisodeFileXref { AniDbEpisodeId = x, AniDbFileId = result.FileId });
         _context.AddRange(addRels);
+        _context.SaveChanges();
     }
 
     private async Task<AniDbFileResult?> GetFileResult(LocalFile localFile)
