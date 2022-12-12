@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -58,39 +57,52 @@ public class ProcessCommand : BaseCommand<ProcessParams>
 
     private void UpdateDatabase(AniDbFileResult result)
     {
-        // Get the group
-        var group = _context.AniDbGroups.Find(result.GroupId);
-        var newGroup = new AniDbGroup(result);
-        if (group is null)
-            _context.AniDbGroups.Add(newGroup);
-        else
-            _context.Entry(group).CurrentValues.SetValues(newGroup);
-
-        // Get the file
         var file = _context.AniDbFiles
+            .Include(f => f.AniDbGroup)
             .Include(f => f.MyListEntry)
-            .FirstOrDefault(f => f.Id == result.FileId);
+            .SingleOrDefault(f => f.Id == result.FileId);
         var newFile = new AniDbFile(result);
         if (file is null)
-            _context.AniDbFiles.Add(newFile);
+            _context.Entry(file = newFile).State = EntityState.Added;
         else
         {
+            _context.ReplaceList(newFile.Audio, file.Audio, a => a.Id);
+            _context.ReplaceList(newFile.Subtitles, file.Subtitles, s => s.Id);
             _context.Entry(file).CurrentValues.SetValues(newFile);
-            _context.ReplaceNavigationList(newFile.Audio, file.Audio);
-            _context.ReplaceNavigationList(newFile.Subtitles, file.Subtitles);
         }
+
+        if (file.MyListEntry is null)
+        {
+            file.MyListEntry = newFile.MyListEntry;
+        }
+        else if (newFile.MyListEntry is not null && file.MyListEntry.Id == newFile.MyListEntry.Id)
+        {
+            _context.Entry(file.MyListEntry).CurrentValues.SetValues(newFile.MyListEntry);
+        }
+        else
+        {
+            _context.Remove(file.MyListEntry);
+            file.MyListEntry = newFile.MyListEntry;
+        }
+
+        file.AniDbGroup = _context.AniDbGroups.Find(newFile.AniDbGroupId);
+        if (file.AniDbGroup is not null && newFile.AniDbGroup is not null)
+            _context.Entry(file.AniDbGroup).CurrentValues.SetValues(newFile.AniDbGroup);
+        else
+            file.AniDbGroup = newFile.AniDbGroup;
+
         _context.SaveChanges();
+
         UpdateEpRelations(result);
     }
 
     private void UpdateEpRelations(AniDbFileResult result)
     {
-        var epIds = new List<int> { result.EpisodeId!.Value };
-        epIds.AddRange(result.OtherEpisodeIds!);
-        var deleteRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId);
-        _context.RemoveRange(deleteRels);
-        var addRels = epIds.Select(x => new AniDbEpisodeFileXref { AniDbEpisodeId = x, AniDbFileId = result.FileId });
-        _context.AddRange(addRels);
+        var resultRels = result.OtherEpisodeIds!.Append(result.EpisodeId!.Value)
+            .Select(x => new AniDbEpisodeFileXref { AniDbEpisodeId = x, AniDbFileId = result.FileId }).ToList();
+        var dbRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
+        _context.ReplaceList(resultRels, dbRels, r => r.AniDbEpisodeId);
+
         _context.SaveChanges();
     }
 

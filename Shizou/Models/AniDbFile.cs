@@ -31,6 +31,7 @@ public sealed class AniDbFile : IEntity
         FileVersion = result.State!.Value.FileVersion();
         Updated = DateTime.UtcNow;
         AniDbGroupId = result.GroupId;
+        MyListEntryId = result.MyListId;
         MyListEntry = result.MyListId is null
             ? null
             : new AniDbMyListEntry
@@ -43,7 +44,7 @@ public sealed class AniDbFile : IEntity
             };
         Audio = result.AudioCodecs!.Zip(result.AudioBitRates!, (codec, bitrate) => (codec, bitrate))
             .Zip(result.DubLanguages!, (tup, lang) => (tup.codec, tup.bitrate, lang)).Select((tuple, i) =>
-                new AniDbAudio { Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Id = i + 1 }).ToList();
+                new AniDbAudio { Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Id = i + 1, AniDbFileId = result.FileId }).ToList();
         Video = result.VideoCodec is null
             ? null
             : new AniDbVideo
@@ -54,8 +55,18 @@ public sealed class AniDbFile : IEntity
                 Height = int.Parse(result.VideoResolution!.Split('x')[1]),
                 Width = int.Parse(result.VideoResolution!.Split('x')[0])
             };
-        Subtitles = result.SubLangugages!.Select((s, i) => new AniDbSubtitle { Language = s, Id = i + 1 }).ToList();
+        Subtitles = result.SubLangugages!.Select((s, i) => new AniDbSubtitle { Language = s, Id = i + 1, AniDbFileId = result.FileId }).ToList();
         FileName = result.AniDbFileName!;
+        AniDbGroupId = result.GroupId;
+        AniDbGroup = result.GroupId is null
+            ? null
+            : new AniDbGroup
+            {
+                Id = result.GroupId!.Value,
+                Name = result.GroupName!,
+                ShortName = result.GroupNameShort!,
+                Url = null
+            };
     }
 
     [DatabaseGenerated(DatabaseGeneratedOption.None)]

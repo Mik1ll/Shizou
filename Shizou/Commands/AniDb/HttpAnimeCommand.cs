@@ -89,7 +89,7 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
             else
             {
                 _context.Entry(aniDbAnime).CurrentValues.SetValues(newAniDbAnime);
-                _context.ReplaceNavigationList(newAniDbAnime.AniDbEpisodes, aniDbAnime.AniDbEpisodes);
+                _context.ReplaceList(newAniDbAnime.AniDbEpisodes, aniDbAnime.AniDbEpisodes, e => e.Id);
             }
 
             _context.SaveChanges();
