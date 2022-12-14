@@ -87,10 +87,12 @@ try
 
     app.Run();
 }
+catch (HostAbortedException)
+{
+    throw;
+}
 catch (Exception ex)
 {
-    var type = ex.GetType().Name;
-    if (type.Equals("StopTheHostException", StringComparison.Ordinal)) throw;
     Log.Fatal(ex, "Unhandled exception");
 }
 finally
