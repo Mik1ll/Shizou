@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Shizou.AniDbApi.Results;
@@ -68,9 +67,6 @@ public sealed class AniDbEpisode : IEntity
 
     public int AniDbAnimeId { get; set; }
     public AniDbAnime AniDbAnime { get; set; } = null!;
-
-    [ForeignKey(nameof(LocalFile.ManualLinkEpisodeId))]
-    public List<LocalFile> ManualLinkLocalFiles { get; set; } = null!;
 
     public int? GenericMyListEntryId { get; set; }
     public AniDbMyListEntry? GenericMyListEntry { get; set; }

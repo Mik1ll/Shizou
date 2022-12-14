@@ -27,20 +27,21 @@ public sealed class ShizouContext : DbContext
     public DbSet<AniDbSubtitle> AniDbSubtitles { get; set; } = null!;
     public DbSet<LocalFile> LocalFiles { get; set; } = null!;
     public DbSet<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; set; } = null!;
+    public DbSet<AniDbEpisodeManualLinkXref> AniDbEpisodeManualLinkXrefs { get; set; } = null!;
     public DbSet<AniDbMyListEntry> AniDbMyListEntries { get; set; } = null!;
 
     public IQueryable<AniDbEpisode> GetEpisodesFromFile(int fileId)
     {
         return from e in AniDbEpisodes
             join r in AniDbEpisodeFileXrefs on e.Id equals r.AniDbEpisodeId
-            where r.AniDbFileId == fileId
+            where r.OtherId == fileId
             select e;
     }
 
     public IQueryable<AniDbFile> GetFilesFromEpisode(int episodeId)
     {
         return from f in AniDbFiles
-            join r in AniDbEpisodeFileXrefs on f.Id equals r.AniDbFileId
+            join r in AniDbEpisodeFileXrefs on f.Id equals r.OtherId
             where r.AniDbEpisodeId == episodeId
             select f;
     }
@@ -54,18 +55,15 @@ public sealed class ShizouContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<AniDbEpisode>()
-            .HasMany(e => e.ManualLinkLocalFiles)
-            .WithOne(e => e.ManualLinkEpisode!)
-            .OnDelete(DeleteBehavior.SetNull);
         modelBuilder.Entity<AniDbFile>()
             .OwnsMany(f => f.Audio)
             .WithOwner(a => a.AniDbFile);
         modelBuilder.Entity<AniDbFile>()
             .OwnsMany(f => f.Subtitles)
             .WithOwner(s => s.AniDbFile);
-        modelBuilder.Entity<AniDbEpisodeFileXref>()
-            .HasKey(r => new { r.AniDbEpisodeId, r.AniDbFileId });
+        modelBuilder.Entity<AniDbEpisodeXref>()
+            .ToTable("AniDbEpisodeXrefs")
+            .HasKey(r => new { r.AniDbEpisodeId, r.OtherId });
     }
 
     public void ReplaceList<T, TKey>(List<T> source, List<T> destination, Func<T, TKey> keySelector)

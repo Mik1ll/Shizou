@@ -19,6 +19,4 @@ public sealed class LocalFile : IEntity
 
     public int ImportFolderId { get; set; }
     public ImportFolder ImportFolder { get; set; } = null!;
-    public int? ManualLinkEpisodeId { get; set; }
-    public AniDbEpisode? ManualLinkEpisode { get; set; }
 }

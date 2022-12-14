@@ -99,8 +99,8 @@ public class ProcessCommand : BaseCommand<ProcessParams>
     private void UpdateEpRelations(AniDbFileResult result)
     {
         var resultRels = result.OtherEpisodeIds!.Append(result.EpisodeId!.Value)
-            .Select(x => new AniDbEpisodeFileXref { AniDbEpisodeId = x, AniDbFileId = result.FileId }).ToList();
-        var dbRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
+            .Select(x => new AniDbEpisodeFileXref { AniDbEpisodeId = x, OtherId = result.FileId }).ToList();
+        var dbRels = _context.AniDbEpisodeFileXrefs.Where(x => x.OtherId == result.FileId).ToList();
         _context.ReplaceList(resultRels, dbRels, r => r.AniDbEpisodeId);
 
         _context.SaveChanges();

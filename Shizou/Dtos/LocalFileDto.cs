@@ -14,5 +14,4 @@ public class LocalFileDto : IEntityDto
     public DateTime? Updated { get; set; }
 
     public int ImportFolderId { get; set; }
-    public int? ManualLinkEpisodeId { get; set; }
 }
