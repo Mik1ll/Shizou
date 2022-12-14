@@ -62,8 +62,10 @@ public sealed class ShizouContext : DbContext
             .OwnsMany(f => f.Subtitles)
             .WithOwner(s => s.AniDbFile);
         modelBuilder.Entity<AniDbEpisodeXref>()
+            .HasDiscriminator<string>("XrefType");
+        modelBuilder.Entity<AniDbEpisodeXref>()
             .ToTable("AniDbEpisodeXrefs")
-            .HasKey(r => new { r.AniDbEpisodeId, r.OtherId });
+            .HasKey(nameof(AniDbEpisodeXref.AniDbEpisodeId), nameof(AniDbEpisodeXref.OtherId), "XrefType");
     }
 
     public void ReplaceList<T, TKey>(List<T> source, List<T> destination, Func<T, TKey> keySelector)
