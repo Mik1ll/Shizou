@@ -30,20 +30,30 @@ public sealed class ShizouContext : DbContext
     public DbSet<AniDbEpisodeManualLinkXref> AniDbEpisodeManualLinkXrefs { get; set; } = null!;
     public DbSet<AniDbMyListEntry> AniDbMyListEntries { get; set; } = null!;
 
-    public IQueryable<AniDbEpisode> GetEpisodesFromFile(int fileId)
+    public IQueryable<AniDbEpisode> GetEpisodesFromOther<T>(int otherId) where T : class, IEntity
     {
         return from e in AniDbEpisodes
-            join r in AniDbEpisodeFileXrefs on e.Id equals r.AniDbEpisodeId
-            where r.OtherId == fileId
+            join r in GetXrefDbSet<T>() on e.Id equals r.AniDbEpisodeId
+            where r.OtherId == otherId
             select e;
     }
 
-    public IQueryable<AniDbFile> GetFilesFromEpisode(int episodeId)
+    public IQueryable<T> GetOtherFromEpisode<T>(int episodeId) where T : class, IEntity
     {
-        return from f in AniDbFiles
-            join r in AniDbEpisodeFileXrefs on f.Id equals r.OtherId
+        return from f in Set<T>()
+            join r in GetXrefDbSet<T>() on f.Id equals r.OtherId
             where r.AniDbEpisodeId == episodeId
             select f;
+    }
+
+    private IQueryable<AniDbEpisodeXref> GetXrefDbSet<T>() where T : class, IEntity
+    {
+        return typeof(T) switch
+        {
+            { } t when t == typeof(AniDbEpisodeFileXref) => AniDbEpisodeFileXrefs,
+            { } t when t == typeof(AniDbEpisodeManualLinkXref) => AniDbEpisodeManualLinkXrefs,
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
