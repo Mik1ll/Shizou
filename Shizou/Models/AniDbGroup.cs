@@ -4,7 +4,7 @@ using Shizou.AniDbApi.Results;
 
 namespace Shizou.Models;
 
-public sealed class AniDbGroup : IEntity
+public class AniDbGroup : IEntity
 {
     public AniDbGroup()
     {

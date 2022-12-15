@@ -4,7 +4,7 @@ using Shizou.Enums;
 
 namespace Shizou.Models;
 
-public sealed class AniDbMyListEntry : IEntity
+public class AniDbMyListEntry : IEntity
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public int Id { get; set; }

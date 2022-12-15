@@ -3,7 +3,7 @@
 namespace Shizou.Models;
 
 [Owned]
-public sealed class AniDbSubtitle : IEntity
+public class AniDbSubtitle : IEntity
 {
     public int Id { get; set; }
     public string Language { get; set; } = null!;

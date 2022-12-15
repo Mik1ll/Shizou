@@ -7,7 +7,7 @@ using Shizou.Enums;
 
 namespace Shizou.Models;
 
-public sealed class AniDbAnime : IEntity
+public class AniDbAnime : IEntity
 {
     public AniDbAnime()
     {

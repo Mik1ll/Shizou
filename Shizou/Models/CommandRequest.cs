@@ -5,7 +5,7 @@ using Shizou.Commands;
 namespace Shizou.Models;
 
 [Index(nameof(CommandId), IsUnique = true)]
-public sealed class CommandRequest : IEntity
+public class CommandRequest : IEntity
 {
     public int Id { get; set; }
     public CommandType Type { get; set; }

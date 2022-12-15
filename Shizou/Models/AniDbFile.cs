@@ -9,7 +9,7 @@ using Shizou.Enums;
 namespace Shizou.Models;
 
 [Index(nameof(Ed2K), IsUnique = true)]
-public sealed class AniDbFile : IEntity
+public class AniDbFile : IEntity
 {
     public AniDbFile()
     {

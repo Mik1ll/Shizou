@@ -3,7 +3,7 @@
 namespace Shizou.Models;
 
 [Owned]
-public sealed class AniDbVideo
+public class AniDbVideo
 {
     public string Codec { get; set; } = null!;
     public int BitRate { get; set; }
