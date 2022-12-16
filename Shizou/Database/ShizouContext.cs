@@ -27,33 +27,22 @@ public sealed class ShizouContext : DbContext
     public DbSet<AniDbSubtitle> AniDbSubtitles { get; set; } = null!;
     public DbSet<LocalFile> LocalFiles { get; set; } = null!;
     public DbSet<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; set; } = null!;
-    public DbSet<AniDbEpisodeManualLinkXref> AniDbEpisodeManualLinkXrefs { get; set; } = null!;
     public DbSet<AniDbMyListEntry> AniDbMyListEntries { get; set; } = null!;
 
-    public IQueryable<AniDbEpisode> GetEpisodesFromOther<T>(int otherId) where T : class, IEntity
+    public IQueryable<AniDbEpisode> AniDbEpisodesFromFile(int aniDbFileId)
     {
         return from e in AniDbEpisodes
-            join r in GetXrefDbSet<T>() on e.Id equals r.AniDbEpisodeId
-            where r.OtherId == otherId
+            join r in AniDbEpisodeFileXrefs on e.Id equals r.AniDbEpisodeId
+            where r.AniDbFileId == aniDbFileId
             select e;
     }
 
-    public IQueryable<T> GetOtherFromEpisode<T>(int episodeId) where T : class, IEntity
+    public IQueryable<AniDbFile> FilesFromAniDbEpisode(int episodeId)
     {
-        return from f in Set<T>()
-            join r in GetXrefDbSet<T>() on f.Id equals r.OtherId
+        return from f in AniDbFiles
+            join r in AniDbEpisodeFileXrefs on f.Id equals r.AniDbFileId
             where r.AniDbEpisodeId == episodeId
             select f;
-    }
-
-    private IQueryable<AniDbEpisodeXref> GetXrefDbSet<T>() where T : class, IEntity
-    {
-        return typeof(T) switch
-        {
-            { } t when t == typeof(AniDbEpisodeFileXref) => AniDbEpisodeFileXrefs,
-            { } t when t == typeof(AniDbEpisodeManualLinkXref) => AniDbEpisodeManualLinkXrefs,
-            _ => throw new ArgumentOutOfRangeException()
-        };
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -71,11 +60,10 @@ public sealed class ShizouContext : DbContext
         modelBuilder.Entity<AniDbFile>()
             .OwnsMany(f => f.Subtitles)
             .WithOwner(s => s.AniDbFile);
-        modelBuilder.Entity<AniDbEpisodeXref>()
-            .HasDiscriminator<string>("XrefType");
-        modelBuilder.Entity<AniDbEpisodeXref>()
-            .ToTable("AniDbEpisodeXrefs")
-            .HasKey(nameof(AniDbEpisodeXref.AniDbEpisodeId), nameof(AniDbEpisodeXref.OtherId), "XrefType");
+        modelBuilder.Entity<AniDbEpisode>()
+            .HasMany(e => e.ManualLinkLocalFiles)
+            .WithMany(e => e.ManualLinkEpisodes)
+            .UsingEntity(j => j.ToTable("ManualLinkXrefs"));
     }
 
     public void ReplaceList<T, TKey>(List<T> source, List<T> destination, Func<T, TKey> keySelector)

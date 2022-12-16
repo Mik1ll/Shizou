@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Shizou.AniDbApi.Results;
@@ -70,4 +71,6 @@ public class AniDbEpisode : IEntity
 
     public int? GenericMyListEntryId { get; set; }
     public AniDbMyListEntry? GenericMyListEntry { get; set; }
+
+    public List<LocalFile> ManualLinkLocalFiles { get; set; } = null!;
 }

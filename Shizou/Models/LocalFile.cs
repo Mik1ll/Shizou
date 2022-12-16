@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Models;
@@ -19,4 +20,6 @@ public class LocalFile : IEntity
 
     public int ImportFolderId { get; set; }
     public ImportFolder ImportFolder { get; set; } = null!;
+
+    public List<AniDbEpisode> ManualLinkEpisodes { get; set; } = null!;
 }
