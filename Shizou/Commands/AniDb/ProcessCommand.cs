@@ -62,6 +62,31 @@ public class ProcessCommand : BaseCommand<ProcessParams>
             .Include(f => f.MyListEntry)
             .SingleOrDefault(f => f.Id == result.FileId);
         var newFile = new AniDbFile(result);
+
+        if (newFile.MyListEntry is not null)
+        {
+            var eMyListEntry = _context.AniDbMyListEntries.Find(newFile.MyListEntryId);
+            if (eMyListEntry is not null)
+                _context.Entry(eMyListEntry).CurrentValues.SetValues(newFile.MyListEntry);
+            else
+                _context.AniDbMyListEntries.Add(newFile.MyListEntry);
+        }
+        if (file?.MyListEntry is not null && file.MyListEntryId != newFile.MyListEntryId)
+            _context.AniDbMyListEntries.Remove(file.MyListEntry);
+
+        _context.SaveChanges();
+
+        if (newFile.AniDbGroup is not null)
+        {
+            var eAniDbGroup = _context.AniDbGroups.Find(newFile.AniDbGroupId);
+            if (eAniDbGroup is not null)
+                _context.Entry(eAniDbGroup).CurrentValues.SetValues(newFile.AniDbGroup);
+            else
+                _context.AniDbGroups.Add(newFile.AniDbGroup);
+        }
+        _context.SaveChanges();
+
+
         if (file is null)
             _context.Entry(file = newFile).State = EntityState.Added;
         else
@@ -71,25 +96,7 @@ public class ProcessCommand : BaseCommand<ProcessParams>
             _context.Entry(file).CurrentValues.SetValues(newFile);
         }
 
-        if (file.MyListEntry is null)
-        {
-            file.MyListEntry = newFile.MyListEntry;
-        }
-        else if (newFile.MyListEntry is not null && file.MyListEntry.Id == newFile.MyListEntry.Id)
-        {
-            _context.Entry(file.MyListEntry).CurrentValues.SetValues(newFile.MyListEntry);
-        }
-        else
-        {
-            _context.Remove(file.MyListEntry);
-            file.MyListEntry = newFile.MyListEntry;
-        }
 
-        file.AniDbGroup = _context.AniDbGroups.Find(newFile.AniDbGroupId);
-        if (file.AniDbGroup is not null && newFile.AniDbGroup is not null)
-            _context.Entry(file.AniDbGroup).CurrentValues.SetValues(newFile.AniDbGroup);
-        else
-            file.AniDbGroup = newFile.AniDbGroup;
 
         _context.SaveChanges();
 
