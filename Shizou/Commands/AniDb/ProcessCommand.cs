@@ -66,23 +66,22 @@ public class ProcessCommand : BaseCommand<ProcessParams>
         if (newFile.MyListEntry is not null)
         {
             var eMyListEntry = _context.AniDbMyListEntries.Find(newFile.MyListEntryId);
-            if (eMyListEntry is not null)
-                _context.Entry(eMyListEntry).CurrentValues.SetValues(newFile.MyListEntry);
-            else
+            if (eMyListEntry is null)
                 _context.AniDbMyListEntries.Add(newFile.MyListEntry);
+            else
+                _context.Entry(eMyListEntry).CurrentValues.SetValues(newFile.MyListEntry);
         }
         if (file?.MyListEntry is not null && file.MyListEntryId != newFile.MyListEntryId)
             _context.AniDbMyListEntries.Remove(file.MyListEntry);
-
         _context.SaveChanges();
 
         if (newFile.AniDbGroup is not null)
         {
             var eAniDbGroup = _context.AniDbGroups.Find(newFile.AniDbGroupId);
-            if (eAniDbGroup is not null)
-                _context.Entry(eAniDbGroup).CurrentValues.SetValues(newFile.AniDbGroup);
-            else
+            if (eAniDbGroup is null)
                 _context.AniDbGroups.Add(newFile.AniDbGroup);
+            else
+                _context.Entry(eAniDbGroup).CurrentValues.SetValues(newFile.AniDbGroup);
         }
         _context.SaveChanges();
 
@@ -95,9 +94,6 @@ public class ProcessCommand : BaseCommand<ProcessParams>
             _context.ReplaceList(newFile.Subtitles, file.Subtitles, s => s.Id);
             _context.Entry(file).CurrentValues.SetValues(newFile);
         }
-
-
-
         _context.SaveChanges();
 
         UpdateEpRelations(result);

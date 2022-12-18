@@ -77,24 +77,20 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
             return;
         }
 
-        using (var trans = _context.Database.BeginTransaction())
+        var aniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes)
+            .FirstOrDefault(a => a.Id == CommandParams.AnimeId);
+        var newAniDbAnime = new AniDbAnime(animeResult);
+        if (aniDbAnime is null)
         {
-            var aniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes)
-                .FirstOrDefault(a => a.Id == CommandParams.AnimeId);
-            var newAniDbAnime = new AniDbAnime(animeResult);
-            if (aniDbAnime is null)
-            {
-                _context.AniDbAnimes.Add(newAniDbAnime);
-            }
-            else
-            {
-                _context.Entry(aniDbAnime).CurrentValues.SetValues(newAniDbAnime);
-                _context.ReplaceList(newAniDbAnime.AniDbEpisodes, aniDbAnime.AniDbEpisodes, e => e.Id);
-            }
-
-            _context.SaveChanges();
-            trans.Commit();
+            _context.AniDbAnimes.Add(newAniDbAnime);
         }
+        else
+        {
+            _context.Entry(aniDbAnime).CurrentValues.SetValues(newAniDbAnime);
+            _context.ReplaceList(newAniDbAnime.AniDbEpisodes, aniDbAnime.AniDbEpisodes, e => e.Id);
+        }
+
+        _context.SaveChanges();
         Completed = true;
     }
 
