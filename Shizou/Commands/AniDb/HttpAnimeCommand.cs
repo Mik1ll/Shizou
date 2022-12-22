@@ -30,8 +30,7 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
     private readonly HttpClient _httpClient;
     private readonly string _url;
 
-    public HttpAnimeCommand(IServiceProvider provider, HttpAnimeParams commandParams) : base(provider,
-        provider.GetRequiredService<ILogger<HttpAnimeCommand>>(), commandParams)
+    public HttpAnimeCommand(IServiceProvider provider, HttpAnimeParams commandParams) : base(provider, commandParams)
     {
         var options = provider.GetRequiredService<IOptions<ShizouOptions>>();
         _processor = provider.GetRequiredService<AniDbHttpProcessor>();

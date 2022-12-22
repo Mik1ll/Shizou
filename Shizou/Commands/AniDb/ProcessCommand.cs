@@ -25,7 +25,7 @@ public class ProcessCommand : BaseCommand<ProcessParams>
     private readonly string _fileCachePath;
 
     public ProcessCommand(IServiceProvider provider, ProcessParams commandParams)
-        : base(provider, provider.GetRequiredService<ILogger<ProcessCommand>>(), commandParams)
+        : base(provider, commandParams)
     {
         _context = provider.GetRequiredService<ShizouContext>();
         _cmdMgr = provider.GetRequiredService<CommandManager>();
@@ -87,7 +87,7 @@ public class ProcessCommand : BaseCommand<ProcessParams>
 
 
         if (file is null)
-            _context.Entry(file = newFile).State = EntityState.Added;
+            _context.Entry(newFile).State = EntityState.Added;
         else
         {
             _context.ReplaceList(newFile.Audio, file.Audio, a => a.Id);

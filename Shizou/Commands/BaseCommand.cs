@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Models;
 
@@ -20,11 +21,11 @@ public abstract class BaseCommand<T> : ICommand where T : CommandParams
     protected readonly ILogger<BaseCommand<T>> Logger;
     protected readonly IServiceProvider Provider;
 
-    protected BaseCommand(IServiceProvider provider, ILogger<BaseCommand<T>> logger, T commandParams)
+    protected BaseCommand(IServiceProvider provider, T commandParams)
     {
         Provider = provider;
         CommandParams = commandParams;
-        Logger = logger;
+        Logger = provider.GetRequiredService<ILogger<BaseCommand<T>>>();
         CommandId = commandParams.CommandId;
     }
 

@@ -23,8 +23,7 @@ public class HashCommand : BaseCommand<HashParams>
     private readonly ShizouContext _context;
 
 
-    public HashCommand(IServiceProvider provider, HashParams commandParams) : base(provider, provider.GetRequiredService<ILogger<HashCommand>>(),
-        commandParams)
+    public HashCommand(IServiceProvider provider, HashParams commandParams) : base(provider, commandParams)
     {
         _context = provider.GetRequiredService<ShizouContext>();
         _cmdMgr = provider.GetRequiredService<CommandManager>();

@@ -23,8 +23,7 @@ public class HttpMyListCommand : BaseCommand<HttpMyListParams>
     private readonly HttpClient _httpClient;
 
 
-    public HttpMyListCommand(IServiceProvider provider, HttpMyListParams commandParams) : base(provider,
-        provider.GetRequiredService<ILogger<HttpMyListCommand>>(), commandParams)
+    public HttpMyListCommand(IServiceProvider provider, HttpMyListParams commandParams) : base(provider, commandParams)
     {
         var options = provider.GetRequiredService<IOptions<ShizouOptions>>();
         _processor = provider.GetRequiredService<AniDbHttpProcessor>();

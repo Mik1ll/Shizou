@@ -10,5 +10,6 @@ public enum CommandType
     Hash = 2,
     HttpGetAnime = 3,
     HttpGetMyList = 4,
+    SyncMyList = 5,
     Noop = 99
 }
