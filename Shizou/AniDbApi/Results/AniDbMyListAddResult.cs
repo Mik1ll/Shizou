@@ -6,5 +6,5 @@ namespace Shizou.AniDbApi.Results;
 public record AniDbMyListAddResult(int? ListId,
     MyListState? State,
     bool? Watched,
-    DateTime? WatchedDate,
+    DateTimeOffset? WatchedDate,
     MyListFileState? FileState);

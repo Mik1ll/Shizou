@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.CommandProcessors;
 
@@ -17,11 +18,11 @@ public abstract class AniDbUdpRequest
     protected readonly AniDbUdpProcessor UdpProcessor;
     protected readonly ILogger<AniDbUdpRequest> Logger;
 
-    protected AniDbUdpRequest(ILogger<AniDbUdpRequest> logger, AniDbUdp aniDbUdp, AniDbUdpProcessor udpProcessor)
+    protected AniDbUdpRequest(IServiceProvider provider)
     {
-        Logger = logger;
-        AniDbUdp = aniDbUdp;
-        UdpProcessor = udpProcessor;
+        Logger = (ILogger<AniDbUdpRequest>)provider.GetRequiredService<ILoggerFactory>().CreateLogger(GetType());
+        AniDbUdp = provider.GetRequiredService<AniDbUdp>();
+        UdpProcessor = provider.GetRequiredService<AniDbUdpProcessor>();
     }
 
     public abstract string Command { get; }

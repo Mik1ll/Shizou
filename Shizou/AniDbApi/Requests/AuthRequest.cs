@@ -4,17 +4,13 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shizou.CommandProcessors;
 using Shizou.Options;
 
 namespace Shizou.AniDbApi.Requests;
 
 public sealed class AuthRequest : AniDbUdpRequest
 {
-    public AuthRequest(IServiceProvider provider) : base(
-        provider.GetRequiredService<ILogger<AuthRequest>>(),
-        provider.GetRequiredService<AniDbUdp>(),
-        provider.GetRequiredService<AniDbUdpProcessor>())
+    public AuthRequest(IServiceProvider provider) : base(provider)
     {
         var opts = provider.GetRequiredService<IOptionsMonitor<ShizouOptions>>().CurrentValue;
         Params["user"] = opts.AniDb.Username;

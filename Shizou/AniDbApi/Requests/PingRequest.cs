@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Shizou.CommandProcessors;
 
 namespace Shizou.AniDbApi.Requests;
 
 public sealed class PingRequest : AniDbUdpRequest
 {
-    public PingRequest(IServiceProvider provider) : base(
-        provider.GetRequiredService<ILogger<PingRequest>>(),
-        provider.GetRequiredService<AniDbUdp>(),
-        provider.GetRequiredService<AniDbUdpProcessor>())
+    public PingRequest(IServiceProvider provider) : base(provider)
     {
     }
 

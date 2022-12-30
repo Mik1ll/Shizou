@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi.Results;
-using Shizou.CommandProcessors;
 
 namespace Shizou.AniDbApi.Requests;
 
@@ -96,9 +93,7 @@ public sealed class AnimeRequest : AniDbUdpRequest
 
     private readonly AMask _aMask;
 
-    private AnimeRequest(IServiceProvider provider) : base(provider.GetRequiredService<ILogger<AnimeRequest>>(),
-        provider.GetRequiredService<AniDbUdp>(),
-        provider.GetRequiredService<AniDbUdpProcessor>())
+    private AnimeRequest(IServiceProvider provider) : base(provider)
     {
     }
 

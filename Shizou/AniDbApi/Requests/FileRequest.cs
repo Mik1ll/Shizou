@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi.Results;
-using Shizou.CommandProcessors;
 
 namespace Shizou.AniDbApi.Requests;
 
@@ -113,9 +110,7 @@ public sealed class FileRequest : AniDbUdpRequest
     private readonly AMask _aMask;
     private readonly FMask _fMask;
 
-    private FileRequest(IServiceProvider provider, FMask fMask, AMask aMask) : base(provider.GetRequiredService<ILogger<FileRequest>>(),
-        provider.GetRequiredService<AniDbUdp>(),
-        provider.GetRequiredService<AniDbUdpProcessor>())
+    private FileRequest(IServiceProvider provider, FMask fMask, AMask aMask) : base(provider)
     {
         _fMask = fMask;
         _aMask = aMask;

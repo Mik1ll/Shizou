@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi.Results;
-using Shizou.CommandProcessors;
 using Shizou.Enums;
 
 namespace Shizou.AniDbApi.Requests;
@@ -13,45 +10,36 @@ public sealed class MyListAddRequest : AniDbUdpRequest
 {
     public AniDbMyListAddResult? MyListResult { get; private set; }
 
-    private MyListAddRequest(IServiceProvider provider, bool edit, bool? watched, MyListState? state = null, MyListFileState? fileState = null)
-        : base(provider.GetRequiredService<ILogger<MyListAddRequest>>(),
-            provider.GetRequiredService<AniDbUdp>(),
-            provider.GetRequiredService<AniDbUdpProcessor>())
+    private MyListAddRequest(IServiceProvider provider, bool edit, bool? watched, DateTimeOffset? watchedDate, MyListState? state, MyListFileState? fileState)
+        : base(provider)
     {
         Params["edit"] = edit ? "1" : "0";
+        if (watched is not null)
+            Params["viewed"] = watched.Value ? "1" : "0";
+        if (watchedDate is not null)
+            Params["viewdate"] = watchedDate.Value.ToUnixTimeSeconds().ToString();
         if (state is not null)
             Params["state"] = ((int)state).ToString();
-        DateTimeOffset? watchedDate = null;
-        if (watched is not null)
-        {
-            Params["viewed"] = watched.Value ? "1" : "0";
-            if (watched.Value)
-            {
-                watchedDate = DateTimeOffset.UtcNow;
-                Params["viewdate"] = watchedDate.Value.ToUnixTimeSeconds().ToString();
-            }
-        }
         if (fileState is not null)
             Params["filestate"] = ((int)fileState).ToString();
 
-        MyListResult = new AniDbMyListAddResult(null, state, watched, watchedDate?.UtcDateTime, fileState);
+        MyListResult = new AniDbMyListAddResult(null, state, watched, watchedDate, fileState);
     }
 
-    public MyListAddRequest(IServiceProvider provider, int fid, bool edit, bool? watched, MyListState? state = null)
-        : this(provider, edit, watched, state, MyListFileState.Normal)
+    public MyListAddRequest(IServiceProvider provider, int fid, bool edit, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null,
+        MyListFileState? fileState = null) : this(provider, edit, watched, watchedDate, state, fileState)
     {
         Params["fid"] = fid.ToString();
     }
 
-    public MyListAddRequest(IServiceProvider provider, int lid, bool? watched, MyListState? state = null, MyListFileState? fileState = null)
-        : this(provider, true, watched, state, fileState)
+    public MyListAddRequest(IServiceProvider provider, int lid, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null,
+        MyListFileState? fileState = null) : this(provider, true, watched, watchedDate, state, fileState)
     {
         Params["lid"] = lid.ToString();
     }
 
-    public MyListAddRequest(IServiceProvider provider, int aid, string epno, bool edit, bool? watched, MyListState? state = null,
-        MyListFileState? fileState = null)
-        : this(provider, edit, watched, state, fileState)
+    public MyListAddRequest(IServiceProvider provider, int aid, string epno, bool edit, bool? watched = null, DateTimeOffset? watchedDate = null,
+        MyListState? state = null, MyListFileState? fileState = null) : this(provider, edit, watched, watchedDate, state, fileState)
     {
         Params["aid"] = aid.ToString();
         Params["epno"] = epno;
@@ -86,7 +74,7 @@ public sealed class MyListAddRequest : AniDbUdpRequest
                     return;
                 }
                 var dataArr = ResponseText.Split('|');
-                DateTime? watchedDate = dataArr[7] != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[7])).UtcDateTime : null;
+                DateTimeOffset? watchedDate = dataArr[7] != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[7])).UtcDateTime : null;
                 MyListResult = new AniDbMyListAddResult(int.Parse(dataArr[0]),
                     Enum.Parse<MyListState>(dataArr[6]),
                     watchedDate is null ? false : true,
