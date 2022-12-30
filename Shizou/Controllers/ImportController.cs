@@ -8,11 +8,11 @@ namespace Shizou.Controllers;
 [Route("[controller]")]
 public class ImportController : ControllerBase
 {
-    private readonly Importer _importer;
+    private readonly ImportService _importService;
 
-    public ImportController(Importer importer)
+    public ImportController(ImportService importService)
     {
-        _importer = importer;
+        _importService = importService;
     }
 
     /// <summary>
@@ -23,7 +23,7 @@ public class ImportController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult StartImport()
     {
-        _importer.Import();
+        _importService.Import();
         return Ok();
     }
 
@@ -36,7 +36,7 @@ public class ImportController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult ScanFolder(int folderId)
     {
-        _importer.ScanImportFolder(folderId);
+        _importService.ScanImportFolder(folderId);
         return Ok();
     }
 }

@@ -34,8 +34,8 @@ public sealed class StartupService : BackgroundService
         var aniDbUdp = scope.ServiceProvider.GetRequiredService<AniDbUdp>();
         var processors = scope.ServiceProvider.GetServices<CommandProcessor>();
         foreach (var processor in processors) processor.Unpause();
-        var importer = scope.ServiceProvider.GetRequiredService<Importer>();
-        //cmdMgr.Dispatch(new HttpAnimeParams(16947));
+        var importer = scope.ServiceProvider.GetRequiredService<ImportService>();
+        // cmdMgr.Dispatch(new HttpAnimeParams(13950));
 
         //var filereq = new FileRequest(_serviceProvider, 1021450, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
         //await filereq.Process();

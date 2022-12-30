@@ -39,7 +39,7 @@ public class HashCommand : BaseCommand<HashParams>
             return;
         }
         var pathTail = file.FullName.Substring(importFolder.Path.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        var signature = RHasher.GetFileSignature(file.FullName);
+        var signature = RHasherService.GetFileSignature(file.FullName);
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder)
             .FirstOrDefault(l => l.Signature == signature
                                  || (l.ImportFolderId == importFolder.Id && l.PathTail == pathTail));
@@ -65,17 +65,18 @@ public class HashCommand : BaseCommand<HashParams>
                 Logger.LogInformation("Found local file with mismatched signature, rehashing: \"{Path}\"", file.FullName);
             else
                 Logger.LogInformation("Hashing new file: \"{Path}\"", file.FullName);
-            var hashes = await RHasher.GetFileHashesAsync(file, RHasher.HashIds.Ed2K | RHasher.HashIds.Crc32);
+            var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2K | RHasherService.HashIds.Crc32);
             if (localFile is null)
                 localFile = _context.LocalFiles.Add(new LocalFile()).Entity;
             localFile.Signature = signature;
-            localFile.Crc = hashes[RHasher.HashIds.Crc32];
-            localFile.Ed2K = hashes[RHasher.HashIds.Ed2K];
+            localFile.Crc = hashes[RHasherService.HashIds.Crc32];
+            localFile.Ed2K = hashes[RHasherService.HashIds.Ed2K];
             localFile.FileSize = file.Length;
             localFile.Updated = DateTime.UtcNow;
             localFile.ImportFolder = importFolder;
             localFile.PathTail = pathTail;
-            Logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasher.HashIds.Ed2K], hashes[RHasher.HashIds.Crc32]);
+            Logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasherService.HashIds.Ed2K],
+                hashes[RHasherService.HashIds.Crc32]);
         }
         _context.SaveChanges();
         if (_context.AniDbFiles.GetByEd2K(localFile.Ed2K) is null)

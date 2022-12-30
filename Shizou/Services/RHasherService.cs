@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Shizou.Services;
 
-public class RHasher
+public class RHasherService
 {
     [Flags]
     public enum HashIds : uint
@@ -49,9 +49,9 @@ public class RHasher
     private readonly HashIds _hashIds;
 
     /* Pointer to the native structure. */
-    private readonly IntPtr _ptr;
+    private readonly nint _ptr;
 
-    public RHasher(HashIds hashtype)
+    public RHasherService(HashIds hashtype)
     {
         _hashIds = hashtype;
         _ptr = Bindings.rhash_init(_hashIds);
@@ -59,7 +59,7 @@ public class RHasher
 
     public static Dictionary<HashIds, string> GetFileHashes(FileInfo file, HashIds ids)
     {
-        var hasher = new RHasher(ids);
+        var hasher = new RHasherService(ids);
         hasher.UpdateFile(file);
         hasher.Finish();
         return Enum.GetValues(typeof(HashIds)).Cast<HashIds>().Where(id => ids.HasFlag(id))
@@ -68,7 +68,7 @@ public class RHasher
 
     public static async Task<Dictionary<HashIds, string>> GetFileHashesAsync(FileInfo file, HashIds ids)
     {
-        var hasher = new RHasher(ids);
+        var hasher = new RHasherService(ids);
         await hasher.UpdateFileAsync(file);
         hasher.Finish();
         return Enum.GetValues(typeof(HashIds)).Cast<HashIds>().Where(id => ids.HasFlag(id))
@@ -77,7 +77,7 @@ public class RHasher
 
     public static string GetMsgHash(byte[] buf, HashIds id)
     {
-        return new RHasher(id).Update(buf).Finish().ToString();
+        return new RHasherService(id).Update(buf).Finish().ToString();
     }
 
     public static string GetFileSignature(string filePath)
@@ -87,7 +87,7 @@ public class RHasher
             return string.Empty;
         var bufSize = 1 << 20;
         var seekLen = Math.Max(file.Length / 30 - bufSize, 0);
-        var hasher = new RHasher(HashIds.Sha1);
+        var hasher = new RHasherService(HashIds.Sha1);
         using var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
         var buf = new byte[bufSize];
         int len;
@@ -99,20 +99,20 @@ public class RHasher
         return hasher.Finish().ToString();
     }
 
-    ~RHasher()
+    ~RHasherService()
     {
-        if (_ptr == IntPtr.Zero) return;
+        if (_ptr == nint.Zero) return;
         Bindings.rhash_free(_ptr);
     }
 
-    public RHasher Update(byte[] buf)
+    public RHasherService Update(byte[] buf)
     {
         if (Bindings.rhash_update(_ptr, buf, buf.Length) < 0)
             throw new ExternalException($"{nameof(Bindings.rhash_update)} failed");
         return this;
     }
 
-    public RHasher Update(byte[] buf, int len)
+    public RHasherService Update(byte[] buf, int len)
     {
         if (len < 0 || len > buf.Length) throw new IndexOutOfRangeException();
         if (Bindings.rhash_update(_ptr, buf, len) < 0)
@@ -120,7 +120,7 @@ public class RHasher
         return this;
     }
 
-    public RHasher UpdateFile(FileInfo file)
+    public RHasherService UpdateFile(FileInfo file)
     {
         const int bufSize = 1 << 25;
         using FileStream stream = new(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufSize, FileOptions.SequentialScan);
@@ -132,7 +132,7 @@ public class RHasher
         return this;
     }
 
-    public async Task<RHasher> UpdateFileAsync(FileInfo file)
+    public async Task<RHasherService> UpdateFileAsync(FileInfo file)
     {
         const int bufSize = 1 << 25;
         using FileStream stream = new(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufSize, FileOptions.SequentialScan);
@@ -144,7 +144,7 @@ public class RHasher
         return this;
     }
 
-    public RHasher Finish()
+    public RHasherService Finish()
     {
         if (Bindings.rhash_final(_ptr, null) < 0)
             throw new ExternalException($"{nameof(Bindings.rhash_final)} failed");
@@ -186,22 +186,22 @@ public class RHasher
         private static extern void rhash_library_init();
 
         [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr rhash_init(HashIds hashIds);
+        public static extern nint rhash_init(HashIds hashIds);
 
         [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int rhash_update(IntPtr ctx, byte[] message, int length);
+        public static extern int rhash_update(nint ctx, byte[] message, int length);
 
         [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int rhash_final(IntPtr ctx, StringBuilder? firstResult);
+        public static extern int rhash_final(nint ctx, StringBuilder? firstResult);
 
         [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void rhash_reset(IntPtr ctx);
+        public static extern void rhash_reset(nint ctx);
 
         [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void rhash_free(IntPtr ctx);
+        public static extern void rhash_free(nint ctx);
 
         [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
-        public static extern nuint rhash_print(StringBuilder output, IntPtr ctx, HashIds hashId, PrintFlags flags);
+        public static extern nuint rhash_print(StringBuilder output, nint ctx, HashIds hashId, PrintFlags flags);
     }
 
     [Flags]

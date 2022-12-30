@@ -7,13 +7,13 @@ using Shizou.Database;
 
 namespace Shizou.Services;
 
-public class Importer
+public class ImportService
 {
     private readonly CommandManager _cmdMgr;
     private readonly ShizouContext _context;
-    private readonly ILogger<Importer> _logger;
+    private readonly ILogger<ImportService> _logger;
 
-    public Importer(ILogger<Importer> logger, ShizouContext context, CommandManager cmdMgr)
+    public ImportService(ILogger<ImportService> logger, ShizouContext context, CommandManager cmdMgr)
     {
         _logger = logger;
         _context = context;

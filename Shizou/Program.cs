@@ -52,7 +52,7 @@ try
     builder.Services.AddHostedService<StartupService>();
     builder.Services.AddDbContext<ShizouContext>();
     builder.Services.AddScoped<CommandManager>();
-    builder.Services.AddScoped<Importer>();
+    builder.Services.AddScoped<ImportService>();
 
     builder.Services.AddSingleton<AniDbUdp>();
     builder.Services.AddSingleton<UdpRateLimiter>();
