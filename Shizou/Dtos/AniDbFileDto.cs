@@ -20,6 +20,8 @@ public class AniDbFileDto : IEntityDto
     public bool? Censored { get; set; }
     public bool Deprecated { get; set; }
     public bool Chaptered { get; set; }
+    public bool Watched { get; set; }
+    public DateTime? WatchedDate { get; set; }
 
     public AniDbMyListEntry? MyListEntry { get; set; }
 
