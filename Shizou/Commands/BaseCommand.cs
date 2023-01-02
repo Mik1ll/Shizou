@@ -29,7 +29,7 @@ public abstract class BaseCommand<T> : ICommand where T : CommandParams
         CommandId = commandParams.CommandId;
     }
 
-    protected T CommandParams { get; }
+    protected T CommandParams { get; set; }
     public bool Completed { get; set; }
     public string CommandId { get; }
 
