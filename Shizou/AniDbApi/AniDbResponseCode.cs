@@ -49,7 +49,7 @@ public enum AniDbResponseCode
 
     // File
     File = 220,
-    MulitipleFilesFound = 322,
+    MultipleFilesFound = 322,
     NoSuchFile = 320,
 
     // Group

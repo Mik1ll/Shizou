@@ -60,12 +60,12 @@ public sealed class MyListAddRequest : AniDbUdpRequest
                     Errored = true;
                     return;
                 }
-                if (Params["edit"] == "0" && Params.TryGetValue("fid", out _))
+                if (Params["edit"] == "0" && Params.ContainsKey("fid"))
                     MyListResult = MyListResult! with { ListId = int.Parse(ResponseText) };
                 break;
             case AniDbResponseCode.MyListEdited:
                 break;
-            case AniDbResponseCode.MulitipleFilesFound:
+            case AniDbResponseCode.MultipleFilesFound:
                 break;
             case AniDbResponseCode.FileInMyList:
                 if (string.IsNullOrWhiteSpace(ResponseText))

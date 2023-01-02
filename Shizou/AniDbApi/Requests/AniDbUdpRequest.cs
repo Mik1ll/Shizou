@@ -20,7 +20,7 @@ public abstract class AniDbUdpRequest
 
     protected AniDbUdpRequest(IServiceProvider provider)
     {
-        Logger = (ILogger<AniDbUdpRequest>)provider.GetRequiredService<ILoggerFactory>().CreateLogger(GetType());
+        Logger = (ILogger<AniDbUdpRequest>)provider.GetRequiredService(typeof(ILogger<>).MakeGenericType(GetType()));
         AniDbUdp = provider.GetRequiredService<AniDbUdp>();
         UdpProcessor = provider.GetRequiredService<AniDbUdpProcessor>();
     }

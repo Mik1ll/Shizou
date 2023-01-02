@@ -154,7 +154,7 @@ public sealed class FileRequest : AniDbUdpRequest
                 else
                     FileResult = new AniDbFileResult(ResponseText, _fMask, _aMask);
                 break;
-            case AniDbResponseCode.MulitipleFilesFound:
+            case AniDbResponseCode.MultipleFilesFound:
                 if (ResponseText is not null)
                     MultipleFilesResult = ResponseText.Split('|').Select(fid => int.Parse(fid)).ToList();
                 break;
