@@ -65,6 +65,8 @@ public class AniDbEpisode : IEntity
     public DateTime? AirDate { get; set; }
     public bool Watched { get; set; }
     public DateTime? WatchedDate { get; set; }
+    public int? GenericFileId { get; set; }
+    
     public DateTime? Updated { get; set; }
 
 
