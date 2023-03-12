@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Shizou.Commands;
 using Shizou.Database;
 using Shizou.Extensions;
 using Shizou.Models;
+using Shizou.Services;
 
 namespace Shizou.CommandProcessors;
 
@@ -63,7 +63,7 @@ public abstract class CommandProcessor : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             using var scope = Provider.CreateScope();
-            var commandManager = scope.ServiceProvider.GetRequiredService<CommandManager>();
+            var commandManager = scope.ServiceProvider.GetRequiredService<CommandService>();
             var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
             if (Paused || (CurrentCommand = context.CommandRequests.GetNextRequest(QueueType)) is null)
             {

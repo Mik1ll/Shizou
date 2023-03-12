@@ -9,15 +9,15 @@ namespace Shizou.Services;
 
 public class ImportService
 {
-    private readonly CommandManager _cmdMgr;
+    private readonly CommandService _commandService;
     private readonly ShizouContext _context;
     private readonly ILogger<ImportService> _logger;
 
-    public ImportService(ILogger<ImportService> logger, ShizouContext context, CommandManager cmdMgr)
+    public ImportService(ILogger<ImportService> logger, ShizouContext context, CommandService commandService)
     {
         _logger = logger;
         _context = context;
-        _cmdMgr = cmdMgr;
+        _commandService = commandService;
     }
 
 
@@ -62,7 +62,7 @@ public class ImportService
             .Where(e => !(e.LocalFile?.Ignored ?? false) && (e.FileInfo.Length != e.LocalFile?.FileSize || forceRescan))
             .Select(e => e.FileInfo);
 
-        _cmdMgr.DispatchRange(filesToHash.Select(e => new HashParams(e.FullName)));
+        _commandService.DispatchRange(filesToHash.Select(e => new HashParams(e.FullName)));
     }
 
     public void CheckForMissingFiles()

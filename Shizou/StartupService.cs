@@ -6,8 +6,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
-using Shizou.Commands;
+using Shizou.Commands.AniDb;
 using Shizou.Database;
+using Shizou.Enums;
 using Shizou.Services;
 
 // ReSharper disable UnusedVariable
@@ -30,7 +31,7 @@ public sealed class StartupService : BackgroundService
         var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
         var log = scope.ServiceProvider.GetRequiredService<ILogger<StartupService>>();
         log.LogInformation("Started startup service");
-        var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandManager>();
+        var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandService>();
         var aniDbUdp = scope.ServiceProvider.GetRequiredService<AniDbUdp>();
         var processors = scope.ServiceProvider.GetServices<CommandProcessor>();
         foreach (var processor in processors) processor.Unpause();

@@ -19,14 +19,14 @@ public record HashParams(string Path) : CommandParams($"{nameof(HashCommand)}_{P
 [Command(CommandType.Hash, CommandPriority.Default, QueueType.Hash)]
 public class HashCommand : BaseCommand<HashParams>
 {
-    private readonly CommandManager _cmdMgr;
+    private readonly CommandService _commandService;
     private readonly ShizouContext _context;
 
 
     public HashCommand(IServiceProvider provider, HashParams commandParams) : base(provider, commandParams)
     {
         _context = provider.GetRequiredService<ShizouContext>();
-        _cmdMgr = provider.GetRequiredService<CommandManager>();
+        _commandService = provider.GetRequiredService<CommandService>();
     }
 
     public override async Task Process()
@@ -80,7 +80,7 @@ public class HashCommand : BaseCommand<HashParams>
         }
         _context.SaveChanges();
         if (_context.AniDbFiles.GetByEd2K(localFile.Ed2K) is null)
-            _cmdMgr.Dispatch(new ProcessParams(localFile.Id));
+            _commandService.Dispatch(new ProcessParams(localFile.Id));
         Completed = true;
     }
 }

@@ -13,7 +13,6 @@ using Serilog;
 using Shizou;
 using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
-using Shizou.Commands;
 using Shizou.Database;
 using Shizou.MapperProfiles;
 using Shizou.Options;
@@ -51,7 +50,7 @@ try
     });
     builder.Services.AddHostedService<StartupService>();
     builder.Services.AddDbContext<ShizouContext>();
-    builder.Services.AddScoped<CommandManager>();
+    builder.Services.AddScoped<CommandService>();
     builder.Services.AddScoped<ImportService>();
 
     builder.Services.AddSingleton<AniDbUdp>();

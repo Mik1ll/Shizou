@@ -12,6 +12,7 @@ using Shizou.AniDbApi.Results;
 using Shizou.CommandProcessors;
 using Shizou.Database;
 using Shizou.Models;
+using Shizou.Services;
 
 namespace Shizou.Commands.AniDb;
 
@@ -20,7 +21,7 @@ public sealed record ProcessParams(int LocalFileId) : CommandParams($"{nameof(Pr
 [Command(CommandType.GetFile, CommandPriority.Default, QueueType.AniDbUdp)]
 public class ProcessCommand : BaseCommand<ProcessParams>
 {
-    private readonly CommandManager _cmdMgr;
+    private readonly CommandService _commandService;
     private readonly ShizouContext _context;
     private readonly string _fileCachePath;
 
@@ -28,7 +29,7 @@ public class ProcessCommand : BaseCommand<ProcessParams>
         : base(provider, commandParams)
     {
         _context = provider.GetRequiredService<ShizouContext>();
-        _cmdMgr = provider.GetRequiredService<CommandManager>();
+        _commandService = provider.GetRequiredService<CommandService>();
         _fileCachePath = Path.Combine(Constants.TempFilePath, CommandParams.CommandId + ".json");
     }
 
@@ -49,7 +50,7 @@ public class ProcessCommand : BaseCommand<ProcessParams>
 
         UpdateDatabase(result);
 
-        _cmdMgr.Dispatch(new HttpAnimeParams(result.AnimeId!.Value));
+        _commandService.Dispatch(new HttpAnimeParams(result.AnimeId!.Value));
 
         Completed = true;
         File.Delete(_fileCachePath);

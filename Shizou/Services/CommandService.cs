@@ -4,12 +4,13 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Shizou.Commands;
 using Shizou.Database;
 using Shizou.Models;
 
-namespace Shizou.Commands;
+namespace Shizou.Services;
 
-public class CommandManager
+public class CommandService
 {
     public static readonly List<(CommandAttribute cmdAttr, Type type, Type paramType, Func<IServiceProvider, CommandParams, ICommand> ctor)> Commands =
         Assembly
@@ -32,7 +33,7 @@ public class CommandManager
 
     private readonly IServiceProvider _serviceProvider;
 
-    public CommandManager(IServiceProvider serviceProvider)
+    public CommandService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
