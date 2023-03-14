@@ -6,32 +6,32 @@ namespace Shizou.CommandProcessors;
 
 public class AniDbUdpProcessor : CommandProcessor
 {
-    private readonly AniDbUdp _udpApi;
+    private readonly AniDbUdpState _aniDbUdpState;
 
     private bool _paused = true;
 
     private string? _pauseReason;
 
-    public AniDbUdpProcessor(ILogger<AniDbUdpProcessor> logger, IServiceProvider provider, AniDbUdp udpApi)
+    public AniDbUdpProcessor(ILogger<AniDbUdpProcessor> logger, IServiceProvider provider, AniDbUdpState aniDbUdpState)
         : base(logger, provider, QueueType.AniDbUdp)
     {
-        _udpApi = udpApi;
+        _aniDbUdpState = aniDbUdpState;
     }
 
     public override bool Paused
     {
-        get => _paused || _udpApi.Banned;
+        get => _paused || _aniDbUdpState.Banned;
         protected set => _paused = value;
     }
 
     public override string? PauseReason
     {
-        get => _udpApi.Banned && _udpApi.BanReason is not null ? _udpApi.BanReason : _pauseReason;
+        get => _aniDbUdpState.Banned && _aniDbUdpState.BanReason is not null ? _aniDbUdpState.BanReason : _pauseReason;
         protected set => _pauseReason = value;
     }
 
     public override void Shutdown()
     {
-        _udpApi.Logout().Wait();
+        _aniDbUdpState.Logout().Wait();
     }
 }

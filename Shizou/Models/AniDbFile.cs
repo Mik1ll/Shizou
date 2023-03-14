@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Shizou.AniDbApi.Results;
+using Shizou.AniDbApi.Requests.Results;
 using Shizou.Enums;
 
 namespace Shizou.Models;

@@ -39,11 +39,11 @@ public sealed class AuthRequest : AniDbUdpRequest
         {
             case AniDbResponseCode.LoginAccepted or AniDbResponseCode.LoginAcceptedNewVersion:
                 var split = ResponseCodeString?.Split(" ");
-                AniDbUdp.SessionKey = split?[0];
+                AniDbUdpState.SessionKey = split?[0];
                 // ReSharper disable once UnusedVariable
                 var ipEndpoint = split?[1];
-                AniDbUdp.ImageServerUrl = ResponseText?.Trim();
-                AniDbUdp.LoggedIn = true;
+                AniDbUdpState.ImageServerUrl = ResponseText?.Trim();
+                AniDbUdpState.LoggedIn = true;
                 break;
             case AniDbResponseCode.LoginFailed:
                 Errored = true;

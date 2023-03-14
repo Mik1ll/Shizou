@@ -5,16 +5,16 @@ using System.Timers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
+using Shizou.AniDbApi.RateLimiters;
 using Shizou.AniDbApi.Requests;
-using Shizou.CommandProcessors;
 using Shizou.Options;
 
 namespace Shizou.AniDbApi;
 
-public sealed class AniDbUdp : IDisposable
+public sealed class AniDbUdpState : IDisposable
 {
     private readonly Timer _bannedTimer;
-    private readonly ILogger<AniDbUdp> _logger;
+    private readonly ILogger<AniDbUdpState> _logger;
     private readonly Timer _logoutTimer;
     private readonly Timer? _mappingTimer;
     private readonly IServiceProvider _provider;
@@ -22,8 +22,8 @@ public sealed class AniDbUdp : IDisposable
     private bool _loggedIn;
     private INatDevice? _router;
 
-    public AniDbUdp(IOptionsMonitor<ShizouOptions> options,
-        ILogger<AniDbUdp> logger, UdpRateLimiter rateLimiter, IServiceProvider provider
+    public AniDbUdpState(IOptionsMonitor<ShizouOptions> options,
+        ILogger<AniDbUdpState> logger, UdpRateLimiter rateLimiter, IServiceProvider provider
     )
     {
         _provider = provider;

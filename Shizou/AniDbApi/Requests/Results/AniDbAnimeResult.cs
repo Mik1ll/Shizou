@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Shizou.AniDbApi.Requests;
 using Shizou.Enums;
 
-namespace Shizou.AniDbApi.Results;
+namespace Shizou.AniDbApi.Requests.Results;
 
 public sealed record AniDbAnimeResult
 {

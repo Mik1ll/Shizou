@@ -1,7 +1,7 @@
 ﻿using System;
 using Shizou.Enums;
 
-namespace Shizou.AniDbApi.Results;
+namespace Shizou.AniDbApi.Requests.Results;
 
 public sealed record AniDbEpisodeResult
 {

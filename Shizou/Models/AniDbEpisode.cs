@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
-using Shizou.AniDbApi.Results;
-using Shizou.AniDbApi.Results.HttpAnimeSubTypes;
+using Shizou.AniDbApi.Requests.Results;
+using Shizou.AniDbApi.Requests.Results.HttpAnimeSubTypes;
 using Shizou.Enums;
 
 namespace Shizou.Models;

@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 
-namespace Shizou.CommandProcessors;
+namespace Shizou.AniDbApi.RateLimiters;
 
 public sealed class HttpRateLimiter : RateLimiter
 {

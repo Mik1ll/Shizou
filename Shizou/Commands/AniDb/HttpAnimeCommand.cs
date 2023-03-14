@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shizou.AniDbApi.Results;
+using Shizou.AniDbApi.Requests.Results;
 using Shizou.CommandProcessors;
 using Shizou.Database;
 using Shizou.Models;

@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Shizou;
 using Shizou.AniDbApi;
+using Shizou.AniDbApi.RateLimiters;
 using Shizou.CommandProcessors;
 using Shizou.Database;
 using Shizou.MapperProfiles;
@@ -53,7 +54,7 @@ try
     builder.Services.AddScoped<CommandService>();
     builder.Services.AddScoped<ImportService>();
 
-    builder.Services.AddSingleton<AniDbUdp>();
+    builder.Services.AddSingleton<AniDbUdpState>();
     builder.Services.AddSingleton<UdpRateLimiter>();
 
     AddProcessors(builder);

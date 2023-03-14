@@ -4,12 +4,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Shizou.AniDbApi;
 using Shizou.CommandProcessors;
-using Shizou.Commands.AniDb;
 using Shizou.Database;
-using Shizou.Enums;
-using Shizou.Services;
 
 // ReSharper disable UnusedVariable
 
@@ -31,17 +27,10 @@ public sealed class StartupService : BackgroundService
         var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
         var log = scope.ServiceProvider.GetRequiredService<ILogger<StartupService>>();
         log.LogInformation("Started startup service");
-        var cmdMgr = scope.ServiceProvider.GetRequiredService<CommandService>();
-        var aniDbUdp = scope.ServiceProvider.GetRequiredService<AniDbUdp>();
+        
         var processors = scope.ServiceProvider.GetServices<CommandProcessor>();
         foreach (var processor in processors) processor.Unpause();
-        var importer = scope.ServiceProvider.GetRequiredService<ImportService>();
-        // cmdMgr.Dispatch(new HttpAnimeParams(13950));
-
-        //var filereq = new FileRequest(_serviceProvider, 1021450, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
-        //await filereq.Process();
-        // var result = filereq.FileResult;
-
+        
         log.LogInformation("Startup service finished");
     }
 }

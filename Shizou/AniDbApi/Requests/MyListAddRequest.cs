@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Shizou.AniDbApi.Results;
+using Shizou.AniDbApi.Requests.Results;
 using Shizou.Enums;
 
 namespace Shizou.AniDbApi.Requests;

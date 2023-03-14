@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi;
 using Shizou.AniDbApi.Requests;
-using Shizou.AniDbApi.Results;
+using Shizou.AniDbApi.Requests.Results;
 using Shizou.CommandProcessors;
 using Shizou.Database;
 using Shizou.Models;

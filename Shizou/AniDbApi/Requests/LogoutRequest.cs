@@ -22,13 +22,13 @@ public class LogoutRequest : AniDbUdpRequest
         {
             case AniDbResponseCode.LoggedOut:
                 Logger.LogInformation("Sucessfully logged out of AniDB");
-                AniDbUdp.SessionKey = null;
-                AniDbUdp.LoggedIn = false;
+                AniDbUdpState.SessionKey = null;
+                AniDbUdpState.LoggedIn = false;
                 break;
             case AniDbResponseCode.NotLoggedIn:
                 Logger.LogInformation("Already logged out of AniDB");
-                AniDbUdp.SessionKey = null;
-                AniDbUdp.LoggedIn = false;
+                AniDbUdpState.SessionKey = null;
+                AniDbUdpState.LoggedIn = false;
                 break;
         }
     }

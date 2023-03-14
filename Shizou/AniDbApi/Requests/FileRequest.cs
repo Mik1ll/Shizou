@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Shizou.AniDbApi.Results;
+using Shizou.AniDbApi.Requests.Results;
 
 namespace Shizou.AniDbApi.Requests;
 

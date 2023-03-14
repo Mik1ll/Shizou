@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
-using Shizou.AniDbApi.Results.HttpAnimeSubTypes;
+using Shizou.AniDbApi.Requests.Results.HttpAnimeSubTypes;
 using Shizou.Enums;
 
 // ReSharper disable RedundantNullableFlowAttribute
 
 #pragma warning disable 8618
 
-namespace Shizou.AniDbApi.Results
+namespace Shizou.AniDbApi.Requests.Results
 {
     [XmlRoot("anime")]
     public class HttpAnimeResult

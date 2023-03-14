@@ -14,14 +14,14 @@ namespace Shizou.AniDbApi.Requests;
 
 public abstract class AniDbUdpRequest
 {
-    protected readonly AniDbUdp AniDbUdp;
+    protected readonly AniDbUdpState AniDbUdpState;
     protected readonly AniDbUdpProcessor UdpProcessor;
     protected readonly ILogger<AniDbUdpRequest> Logger;
 
     protected AniDbUdpRequest(IServiceProvider provider)
     {
         Logger = (ILogger<AniDbUdpRequest>)provider.GetRequiredService(typeof(ILogger<>).MakeGenericType(GetType()));
-        AniDbUdp = provider.GetRequiredService<AniDbUdp>();
+        AniDbUdpState = provider.GetRequiredService<AniDbUdpState>();
         UdpProcessor = provider.GetRequiredService<AniDbUdpProcessor>();
     }
 
@@ -65,15 +65,15 @@ public abstract class AniDbUdpRequest
         var requestBuilder = new StringBuilder(Command + " ");
         if (!new List<string> { "PING", "ENCRYPT", "AUTH", "VERSION" }.Contains(Command))
         {
-            if (!await AniDbUdp.Login())
+            if (!await AniDbUdpState.Login())
             {
                 Errored = true;
                 ResponseCode = AniDbResponseCode.LoginFailed;
                 return;
             }
-            if (!string.IsNullOrWhiteSpace(AniDbUdp.SessionKey))
+            if (!string.IsNullOrWhiteSpace(AniDbUdpState.SessionKey))
             {
-                Params["s"] = AniDbUdp.SessionKey;
+                Params["s"] = AniDbUdpState.SessionKey;
             }
             else
             {
@@ -88,11 +88,11 @@ public abstract class AniDbUdpRequest
         requestBuilder.Length--;
         RequestText = requestBuilder.ToString();
         var dgramBytes = Encoding.GetBytes(RequestText);
-        await AniDbUdp.RateLimiter.EnsureRate();
+        await AniDbUdpState.RateLimiter.EnsureRate();
         Logger.LogInformation("Sending AniDb UDP text: {requestText}", RequestText);
         try
         {
-            await AniDbUdp.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
+            await AniDbUdpState.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
         }
         catch (Exception ex)
         {
@@ -105,7 +105,7 @@ public abstract class AniDbUdpRequest
     {
         try
         {
-            var receivedBytes = (await AniDbUdp.UdpClient.ReceiveAsync()).Buffer;
+            var receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync()).Buffer;
             Stream memStream;
             if (receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0)
                 // Two null bytes and two bytes of Zlib header, seems to ignore trailer automatically
@@ -154,20 +154,20 @@ public abstract class AniDbUdpRequest
                 Errored = true;
                 break;
             case AniDbResponseCode.Banned:
-                AniDbUdp.Banned = true;
-                AniDbUdp.BanReason = ResponseText;
-                Logger.LogWarning("Banned: {banReason}, waiting {hours}hr {minutes}min ({unbanTime})", AniDbUdp.BanReason, AniDbUdp.BanPeriod.Hours,
-                    AniDbUdp.BanPeriod.Minutes, DateTime.Now + AniDbUdp.BanPeriod);
+                AniDbUdpState.Banned = true;
+                AniDbUdpState.BanReason = ResponseText;
+                Logger.LogWarning("Banned: {banReason}, waiting {hours}hr {minutes}min ({unbanTime})", AniDbUdpState.BanReason, AniDbUdpState.BanPeriod.Hours,
+                    AniDbUdpState.BanPeriod.Minutes, DateTime.Now + AniDbUdpState.BanPeriod);
                 Errored = true;
                 break;
             case AniDbResponseCode.InvalidSession:
                 Logger.LogWarning("Invalid session, reauth");
-                AniDbUdp.LoggedIn = false;
+                AniDbUdpState.LoggedIn = false;
                 Errored = true;
                 return true;
             case AniDbResponseCode.LoginFirst:
                 Logger.LogWarning("Not logged in, reauth");
-                AniDbUdp.LoggedIn = false;
+                AniDbUdpState.LoggedIn = false;
                 Errored = true;
                 return true;
             case AniDbResponseCode.AccessDenied:
