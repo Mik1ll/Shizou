@@ -376,6 +376,7 @@ namespace Shizou.AniDbApi.Requests.Results
             public DateTime Update { get; set; }
 
             [XmlAttribute("recap")]
+            [MaybeNull]
             public bool Recap { get; set; }
 
             [XmlIgnore]
