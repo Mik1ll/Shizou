@@ -19,7 +19,6 @@ public class HttpMyListCommand : BaseCommand<HttpMyListParams>
 {
     private readonly AniDbHttpProcessor _processor;
     private readonly string _url;
-    private readonly string _mylistPath;
     private readonly HttpClient _httpClient;
 
 
@@ -38,7 +37,6 @@ public class HttpMyListCommand : BaseCommand<HttpMyListParams>
         query["pass"] = options.Value.AniDb.Password;
         builder.Query = query.ToString();
         _url = builder.ToString();
-        _mylistPath = Path.Combine(Constants.ApplicationData, "AniDbMyList.xml");
     }
 
     public override async Task Process()
@@ -57,7 +55,7 @@ public class HttpMyListCommand : BaseCommand<HttpMyListParams>
             }
             else if (!result.StartsWith("<error"))
             {
-                await File.WriteAllTextAsync(_mylistPath, result, Encoding.UTF8);
+                await File.WriteAllTextAsync(Constants.MyListPath, result, Encoding.UTF8);
                 Logger.LogInformation("HTTP Get mylist succeeded");
             }
             else if (result.Contains("Banned"))

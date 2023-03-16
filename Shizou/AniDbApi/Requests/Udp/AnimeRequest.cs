@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Shizou.AniDbApi.Requests.Results;
+using Shizou.AniDbApi.Requests.Udp.Results;
 
-namespace Shizou.AniDbApi.Requests;
+namespace Shizou.AniDbApi.Requests.Udp;
 
-public sealed class AnimeRequest : AniDbUdpRequest
+public class AnimeRequest : AniDbUdpRequest
 {
     [Flags]
     public enum DateFlags
@@ -93,7 +92,7 @@ public sealed class AnimeRequest : AniDbUdpRequest
 
     private readonly AMask _aMask;
 
-    private AnimeRequest(IServiceProvider provider) : base(provider)
+    private AnimeRequest(IServiceProvider provider) : base(provider, "ANIME")
     {
     }
 
@@ -103,9 +102,6 @@ public sealed class AnimeRequest : AniDbUdpRequest
         Params["aid"] = animeId.ToString();
         Params["amask"] = ((ulong)aMask).ToString("X14");
     }
-
-    public override string Command { get; } = "ANIME";
-    public override Dictionary<string, string> Params { get; } = new();
 
     public override async Task Process()
     {

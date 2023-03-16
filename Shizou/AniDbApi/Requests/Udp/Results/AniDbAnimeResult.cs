@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Shizou.Enums;
 
-namespace Shizou.AniDbApi.Requests.Results;
+namespace Shizou.AniDbApi.Requests.Udp.Results;
 
 public sealed record AniDbAnimeResult
 {

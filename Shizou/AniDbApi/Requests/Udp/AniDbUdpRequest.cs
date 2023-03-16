@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.CommandProcessors;
 
-namespace Shizou.AniDbApi.Requests;
+namespace Shizou.AniDbApi.Requests.Udp;
 
 public abstract class AniDbUdpRequest
 {
@@ -18,15 +18,16 @@ public abstract class AniDbUdpRequest
     protected readonly AniDbUdpProcessor UdpProcessor;
     protected readonly ILogger<AniDbUdpRequest> Logger;
 
-    protected AniDbUdpRequest(IServiceProvider provider)
+    protected AniDbUdpRequest(IServiceProvider provider, string command)
     {
+        Command = command;
         Logger = (ILogger<AniDbUdpRequest>)provider.GetRequiredService(typeof(ILogger<>).MakeGenericType(GetType()));
         AniDbUdpState = provider.GetRequiredService<AniDbUdpState>();
         UdpProcessor = provider.GetRequiredService<AniDbUdpProcessor>();
     }
 
-    public abstract string Command { get; }
-    public abstract Dictionary<string, string> Params { get; }
+    public string Command { get; }
+    public Dictionary<string, string> Params { get; } = new();
 
     public string? RequestText { get; private set; }
 

@@ -1,4 +1,4 @@
-namespace Shizou.AniDbApi;
+namespace Shizou.AniDbApi.Requests.Udp;
 
 public enum AniDbResponseCode
 {

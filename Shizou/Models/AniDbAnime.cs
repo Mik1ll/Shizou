@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
-using Shizou.AniDbApi.Requests.Results;
+using Shizou.AniDbApi.Requests.Http.Results;
+using Shizou.AniDbApi.Requests.Udp.Results;
 using Shizou.Enums;
 
 namespace Shizou.Models;

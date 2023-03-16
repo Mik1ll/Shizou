@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Shizou.AniDbApi.Requests.Results;
+using Shizou.AniDbApi.Requests.Udp.Results;
 using Shizou.Enums;
 
-namespace Shizou.AniDbApi.Requests;
+namespace Shizou.AniDbApi.Requests.Udp;
 
-public sealed class MyListAddRequest : AniDbUdpRequest
+public class MyListAddRequest : AniDbUdpRequest
 {
     public AniDbMyListAddResult? MyListResult { get; private set; }
 
     private MyListAddRequest(IServiceProvider provider, bool edit, bool? watched, DateTimeOffset? watchedDate, MyListState? state, MyListFileState? fileState)
-        : base(provider)
+        : base(provider, "MYLISTADD")
     {
         Params["edit"] = edit ? "1" : "0";
         if (watched is not null)
@@ -45,10 +44,7 @@ public sealed class MyListAddRequest : AniDbUdpRequest
         Params["epno"] = epno;
         Params["generic"] = "1";
     }
-
-    public override string Command { get; } = "MYLISTADD";
-    public override Dictionary<string, string> Params { get; } = new();
-
+    
     public override async Task Process()
     {
         await SendRequest();

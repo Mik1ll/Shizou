@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
 using Shizou.AniDbApi.RateLimiters;
-using Shizou.AniDbApi.Requests;
+using Shizou.AniDbApi.Requests.Udp;
 using Shizou.Options;
 
 namespace Shizou.AniDbApi;

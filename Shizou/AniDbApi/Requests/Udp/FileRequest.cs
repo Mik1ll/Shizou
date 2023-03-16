@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Shizou.AniDbApi.Requests.Results;
+using Shizou.AniDbApi.Requests.Udp.Results;
 
-namespace Shizou.AniDbApi.Requests;
+namespace Shizou.AniDbApi.Requests.Udp;
 
-public sealed class FileRequest : AniDbUdpRequest
+public class FileRequest : AniDbUdpRequest
 {
     [Flags]
     public enum FMask : ulong
@@ -110,7 +110,7 @@ public sealed class FileRequest : AniDbUdpRequest
     private readonly AMask _aMask;
     private readonly FMask _fMask;
 
-    private FileRequest(IServiceProvider provider, FMask fMask, AMask aMask) : base(provider)
+    private FileRequest(IServiceProvider provider, FMask fMask, AMask aMask) : base(provider, "FILE")
     {
         _fMask = fMask;
         _aMask = aMask;
@@ -139,9 +139,6 @@ public sealed class FileRequest : AniDbUdpRequest
 
     public AniDbFileResult? FileResult { get; private set; }
     public List<int>? MultipleFilesResult { get; private set; }
-
-    public override string Command { get; } = "FILE";
-    public override Dictionary<string, string> Params { get; } = new();
 
     public override async Task Process()
     {

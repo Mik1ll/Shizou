@@ -1,7 +1,7 @@
 ﻿using System;
 using Shizou.Enums;
 
-namespace Shizou.AniDbApi.Requests.Results;
+namespace Shizou.AniDbApi.Requests.Udp.Results;
 
 public record AniDbMyListAddResult(int? ListId,
     MyListState? State,

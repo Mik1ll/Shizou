@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Shizou.AniDbApi.Requests.Results;
+using Shizou.AniDbApi.Requests.Udp.Results;
 
-namespace Shizou.AniDbApi.Requests;
+namespace Shizou.AniDbApi.Requests.Udp;
 
-public sealed class EpisodeRequest : AniDbUdpRequest
+public class EpisodeRequest : AniDbUdpRequest
 {
-    private EpisodeRequest(IServiceProvider provider) : base(provider)
+    private EpisodeRequest(IServiceProvider provider) : base(provider, "EPISODE")
     {
     }
 
@@ -22,10 +21,7 @@ public sealed class EpisodeRequest : AniDbUdpRequest
         Params["aid"] = animeId.ToString();
         Params["epno"] = episodeNumber;
     }
-
-    public override string Command { get; } = "EPISODE";
-    public override Dictionary<string, string> Params { get; } = new();
-
+    
     public AniDbEpisodeResult? EpisodeResult { get; private set; }
 
     public override async Task Process()

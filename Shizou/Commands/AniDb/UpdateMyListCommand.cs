@@ -2,8 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Shizou.AniDbApi;
-using Shizou.AniDbApi.Requests;
+using Shizou.AniDbApi.Requests.Udp;
 using Shizou.CommandProcessors;
 using Shizou.Database;
 using Shizou.Enums;

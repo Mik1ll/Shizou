@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using Shizou.AniDbApi.Requests.Results;
+using Shizou.AniDbApi.Requests.Udp.Results;
 
 namespace Shizou.Models;
 

@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Shizou.AniDbApi.Requests;
+namespace Shizou.AniDbApi.Requests.Udp;
 
-public sealed class MyListDeleteRequest : AniDbUdpRequest
+public class MyListDeleteRequest : AniDbUdpRequest
 {
     public enum IdType
     {
@@ -12,7 +11,11 @@ public sealed class MyListDeleteRequest : AniDbUdpRequest
         FileId
     }
 
-    public MyListDeleteRequest(IServiceProvider provider, IdType idType, int id) : base(provider)
+    private MyListDeleteRequest(IServiceProvider provider) : base(provider, "MYLISTDEL")
+    {
+    }
+
+    public MyListDeleteRequest(IServiceProvider provider, IdType idType, int id) : this(provider)
     {
         switch (idType)
         {
@@ -25,14 +28,11 @@ public sealed class MyListDeleteRequest : AniDbUdpRequest
         }
     }
 
-    public MyListDeleteRequest(IServiceProvider provider, int aid, string epno) : base(provider)
+    public MyListDeleteRequest(IServiceProvider provider, int aid, string epno) : this(provider)
     {
         Params["aid"] = aid.ToString();
         Params["epno"] = epno;
     }
-
-    public override string Command { get; } = "MYLISTDEL";
-    public override Dictionary<string, string> Params { get; } = new();
 
     public override async Task Process()
     {

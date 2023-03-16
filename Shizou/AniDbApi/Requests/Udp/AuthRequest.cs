@@ -1,35 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Options;
 
-namespace Shizou.AniDbApi.Requests;
+namespace Shizou.AniDbApi.Requests.Udp;
 
-public sealed class AuthRequest : AniDbUdpRequest
+public class AuthRequest : AniDbUdpRequest
 {
-    public AuthRequest(IServiceProvider provider) : base(provider)
+    public AuthRequest(IServiceProvider provider) : base(provider, "AUTH")
     {
         var opts = provider.GetRequiredService<IOptionsMonitor<ShizouOptions>>().CurrentValue;
         Params["user"] = opts.AniDb.Username;
         Params["pass"] = opts.AniDb.Password;
+        Params["protover"] = "3";
+        Params["client"] = "shizouudp";
+        Params["clientver"] = "1";
+        Params["comp"] = "1";
         Params["enc"] = Encoding.BodyName;
+        Params["mtu"] = "1400";
+        Params["imgserver"] = "1";
+        Params["nat"] = "1";
     }
-
-    public override string Command { get; } = "AUTH";
-
-    public override Dictionary<string, string> Params { get; } = new()
-    {
-        { "protover", "3" },
-        { "client", "shizouudp" },
-        { "clientver", "1" },
-        { "comp", "1" },
-        { "mtu", "1400" },
-        { "imgserver", "1" },
-        { "nat", "1" }
-    };
 
     public override async Task Process()
     {
