@@ -25,17 +25,17 @@ public abstract class HttpRequest
 
     public HttpRequest(IServiceProvider provider)
     {
-        var options = provider.GetRequiredService<IOptions<ShizouOptions>>();
+        var options = provider.GetRequiredService<IOptionsSnapshot<ShizouOptions>>().Value;
         _processor = provider.GetRequiredService<AniDbHttpProcessor>();
         _httpState = provider.GetRequiredService<AniDbHttpState>();
         _httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("gzip");
-        _builder = new UriBuilder("http", options.Value.AniDb.ServerHost, options.Value.AniDb.HttpServerPort, "httpapi");
+        _builder = new UriBuilder("http", options.AniDb.ServerHost, options.AniDb.HttpServerPort, "httpapi");
         Logger = provider.GetRequiredService<ILogger<HttpRequest>>();
         Params["client"] = "shizouhttp";
         Params["clientver"] = "1";
         Params["protover"] = "1";
-        Params["user"] = options.Value.AniDb.Username;
-        Params["pass"] = options.Value.AniDb.Password;
+        Params["user"] = options.AniDb.Username;
+        Params["pass"] = options.AniDb.Password;
     }
 
     public abstract Task Process();

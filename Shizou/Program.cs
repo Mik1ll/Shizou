@@ -27,14 +27,14 @@ try
 {
     if (!Directory.Exists(Constants.ApplicationData))
         Directory.CreateDirectory(Constants.ApplicationData);
-    if (!File.Exists(ShizouOptions.OptionsPath) || string.IsNullOrWhiteSpace(File.ReadAllText(ShizouOptions.OptionsPath)))
+    if (!File.Exists(Constants.OptionsPath) || string.IsNullOrWhiteSpace(File.ReadAllText(Constants.OptionsPath)))
         ShizouOptions.SaveToFile(new ShizouOptions());
 
     var builder = WebApplication.CreateBuilder();
-    builder.Configuration.AddJsonFile(ShizouOptions.OptionsPath, false, true);
+    builder.Configuration.AddJsonFile(Constants.OptionsPath, false, true);
     builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration)
         .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}")
-        .WriteTo.File(Path.Combine(Constants.ApplicationData, "logs", ".log"),
+        .WriteTo.File(Path.Combine(Constants.LogsPath, ".log"),
             outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}",
             rollingInterval: RollingInterval.Day)
         .WriteTo.Seq("http://localhost:5341")

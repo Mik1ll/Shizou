@@ -11,7 +11,7 @@ public class AuthRequest : AniDbUdpRequest
 {
     public AuthRequest(IServiceProvider provider) : base(provider, "AUTH")
     {
-        var opts = provider.GetRequiredService<IOptionsMonitor<ShizouOptions>>().CurrentValue;
+        var opts = provider.GetRequiredService<IOptionsSnapshot<ShizouOptions>>().Value;
         Params["user"] = opts.AniDb.Username;
         Params["pass"] = opts.AniDb.Password;
         Params["protover"] = "3";
