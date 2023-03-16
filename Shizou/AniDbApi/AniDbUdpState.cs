@@ -23,8 +23,7 @@ public sealed class AniDbUdpState : IDisposable
     private INatDevice? _router;
 
     public AniDbUdpState(IOptionsMonitor<ShizouOptions> options,
-        ILogger<AniDbUdpState> logger, UdpRateLimiter rateLimiter, IServiceProvider provider
-    )
+        ILogger<AniDbUdpState> logger, UdpRateLimiter rateLimiter, IServiceProvider provider)
     {
         _provider = provider;
         RateLimiter = rateLimiter;

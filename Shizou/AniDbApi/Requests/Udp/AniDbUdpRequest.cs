@@ -48,16 +48,18 @@ public abstract class AniDbUdpRequest
     {
         await BuildAndSendRequest();
         if (!Errored)
-            await ReceiveResponse();
-        if (HandleSharedErrors())
         {
-            Errored = false;
-            ResponseCode = null;
-            ResponseText = null;
-            ResponseCodeString = null;
-            await BuildAndSendRequest();
-            if (!Errored)
-                await ReceiveResponse();
+            await ReceiveResponse();
+            if (HandleSharedErrors())
+            {
+                Errored = false;
+                ResponseCode = null;
+                ResponseText = null;
+                ResponseCodeString = null;
+                await BuildAndSendRequest();
+                if (!Errored)
+                    await ReceiveResponse();
+            }
         }
     }
 
@@ -90,6 +92,12 @@ public abstract class AniDbUdpRequest
         RequestText = requestBuilder.ToString();
         var dgramBytes = Encoding.GetBytes(RequestText);
         await AniDbUdpState.RateLimiter.EnsureRate();
+        if (AniDbUdpState.Banned)
+        {
+            Logger.LogWarning("Banned, aborting UDP request: {requestText}", RequestText);
+            Errored = true;
+            return;
+        }
         Logger.LogInformation("Sending AniDb UDP text: {requestText}", RequestText);
         try
         {

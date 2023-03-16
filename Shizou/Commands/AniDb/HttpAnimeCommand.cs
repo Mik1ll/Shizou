@@ -10,12 +10,11 @@ using System.Xml.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Shizou.AniDbApi.Requests.Http;
 using Shizou.AniDbApi.Requests.Http.Results;
 using Shizou.CommandProcessors;
 using Shizou.Database;
 using Shizou.Models;
-using Shizou.Options;
 
 namespace Shizou.Commands.AniDb;
 
@@ -24,27 +23,14 @@ public record HttpAnimeParams(int AnimeId, bool ForceRefresh = false) : CommandP
 [Command(CommandType.HttpGetAnime, CommandPriority.Default, QueueType.AniDbHttp)]
 public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
 {
+    private readonly IServiceProvider _provider;
     private readonly string _cacheFilePath;
     private readonly ShizouContext _context;
-    private readonly AniDbHttpProcessor _processor;
-    private readonly HttpClient _httpClient;
-    private readonly string _url;
 
     public HttpAnimeCommand(IServiceProvider provider, HttpAnimeParams commandParams) : base(provider, commandParams)
     {
-        var options = provider.GetRequiredService<IOptions<ShizouOptions>>();
-        _processor = provider.GetRequiredService<AniDbHttpProcessor>();
+        _provider = provider;
         _context = provider.GetRequiredService<ShizouContext>();
-        _httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("gzip");
-        var builder = new UriBuilder("http", options.Value.AniDb.ServerHost, options.Value.AniDb.HttpServerPort, "httpapi");
-        var query = HttpUtility.ParseQueryString(builder.Query);
-        query["client"] = "shizouhttp";
-        query["clientver"] = "1";
-        query["protover"] = "1";
-        query["request"] = "anime";
-        query["aid"] = commandParams.AnimeId.ToString();
-        builder.Query = query.ToString();
-        _url = builder.ToString();
         _cacheFilePath = Path.Combine(Constants.HttpCachePath, $"AnimeDoc_{CommandParams.AnimeId}.xml");
     }
 
@@ -111,37 +97,14 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
 
     private async Task<string?> GetAnimeHttp()
     {
+        var request = new AnimeRequest(_provider, CommandParams.AnimeId);
         string? result = null;
         Logger.LogInformation("HTTP Getting anime id {animeId}", CommandParams.AnimeId);
         try
         {
-            result = HttpUtility.HtmlDecode(await _httpClient.GetStringAsync(_url));
-            if (string.IsNullOrWhiteSpace(result))
-            {
-                Logger.LogWarning("No http response, may be banned or no such anime {animeId}", CommandParams.AnimeId);
-                _processor.Pause($"No http response, may be banned or no such anime {CommandParams.AnimeId}");
-                result = null;
-            }
-            else
-            {
-                const string errStt = "<error";
-                if (result.StartsWith(errStt))
-                {
-                    if (result.Contains("Banned"))
-                    {
-                        _processor.Banned = true;
-                        _processor.Pause($"HTTP Banned, wait {_processor.BanPeriod}");
-                        Logger.LogWarning("HTTP Banned! waiting {banPeriod}", _processor.BanPeriod);
-                    }
-                    else
-                    {
-                        Logger.LogCritical("Unknown error http response, not requesting again: {errText}", result);
-                        _processor.Pause("Unknown error http response, check log");
-                        Completed = true;
-                    }
-                    result = null;
-                }
-            }
+            await request.Process();
+            if (request.Errored) return null;
+            result = HttpUtility.HtmlDecode(request.ResponseText);
         }
         catch (HttpRequestException ex)
         {

@@ -79,9 +79,11 @@ public abstract class CommandProcessor : BackgroundService
                 LastThreeCommands.Enqueue(command.CommandId);
                 if (LastThreeCommands.Count > 3)
                     LastThreeCommands.Dequeue();
+                ProcessingCommand = true;
                 var task = command.Process();
                 while (!stoppingToken.IsCancellationRequested && !task.IsCompleted)
                     await Task.Delay(500);
+                ProcessingCommand = false;
             }
             catch (Exception ex)
             {

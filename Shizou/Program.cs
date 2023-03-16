@@ -56,6 +56,8 @@ try
 
     builder.Services.AddSingleton<AniDbUdpState>();
     builder.Services.AddSingleton<UdpRateLimiter>();
+    builder.Services.AddSingleton<AniDbHttpState>();
+    builder.Services.AddSingleton<HttpRateLimiter>();
 
     AddProcessors(builder);
 
