@@ -40,13 +40,20 @@ public abstract class CommandProcessor : BackgroundService
     {
         Paused = true;
         PauseReason = pauseReason;
+        if (pauseReason is null)
+            Logger.LogInformation("Processor paused");
+        else
+            Logger.LogInformation("Processor paused with reason: {pauseReason}", pauseReason);
     }
 
     public void Unpause()
     {
         Paused = false;
         if (!Paused)
+        {
             PauseReason = null;
+            Logger.LogInformation("Processor unpaused");
+        }
     }
 
     public Queue<string> LastThreeCommands { get; set; } = new(3);
