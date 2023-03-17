@@ -100,7 +100,8 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
         try
         {
             await request.Process();
-            if (request.Errored) return null;
+            if (string.IsNullOrEmpty(request.ResponseText))
+                return null;
             result = request.AnimeResult;
         }
         catch (HttpRequestException ex)

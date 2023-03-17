@@ -26,7 +26,7 @@ public class HttpMyListCommand : BaseCommand<HttpMyListParams>
         // TODO: Use cache first every 24 hours
         var request = new MyListRequest(_provider);
         await request.Process();
-        if (request.Errored)
+        if (string.IsNullOrEmpty(request.ResponseText))
             return;
 
         var result = request.MyListResult;

@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shizou.Database;
+using Shizou.Exceptions;
 using Shizou.Extensions;
 using Shizou.Models;
 using Shizou.Services;
@@ -83,11 +84,18 @@ public abstract class CommandProcessor : BackgroundService
                 var task = command.Process();
                 while (!stoppingToken.IsCancellationRequested && !task.IsCompleted)
                     await Task.Delay(500);
-                ProcessingCommand = false;
+            }
+            catch (ProcessorPauseException ex)
+            {
+                Pause(ex.Message);
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Error while processing command: {ExMessage}", ex.Message);
+            }
+            finally
+            {
+                ProcessingCommand = false;
             }
 
             if (command.Completed)

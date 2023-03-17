@@ -27,8 +27,6 @@ public class MyListRequest : HttpRequest
             using var strReader = new StringReader(ResponseText);
             using var xmlReader = XmlReader.Create(strReader);
             MyListResult = serializer.Deserialize(xmlReader) as HttpMyListResult;
-            if (MyListResult is null)
-                Errored = true;
         }
     }
 }

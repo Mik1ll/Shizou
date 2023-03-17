@@ -30,7 +30,6 @@ public class AnimeRequest : HttpRequest
             using var strReader = new StringReader(ResponseText);
             using var xmlReader = XmlReader.Create(strReader);
             AnimeResult = serializer.Deserialize(xmlReader) as HttpAnimeResult;
-            if (AnimeResult is null) Errored = true;
         }
     }
 }
