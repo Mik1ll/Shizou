@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shizou.Exceptions;
 using Shizou.Options;
 
 namespace Shizou.AniDbApi.Requests.Udp;
@@ -40,20 +41,16 @@ public class AuthRequest : AniDbUdpRequest
                 break;
             case AniDbResponseCode.LoginFailed:
                 Errored = true;
-                UdpProcessor.Pause("Login failed, change credentials");
-                break;
+                throw new ProcessorPauseException("Login failed, change credentials");
             case AniDbResponseCode.ClientOutdated:
                 Errored = true;
-                UdpProcessor.Pause("Login failed, client outdated");
-                break;
+                throw new ProcessorPauseException("Login failed, client outdated");
             case AniDbResponseCode.ClientBanned:
                 Errored = true;
-                UdpProcessor.Pause("Login failed, client banned");
-                break;
+                throw new ProcessorPauseException("Login failed, client banned");
             case null:
                 Errored = true;
-                UdpProcessor.Pause("No auth response");
-                break;
+                throw new ProcessorPauseException("No auth response");
         }
     }
 }

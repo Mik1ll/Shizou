@@ -8,14 +8,13 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Shizou.CommandProcessors;
+using Shizou.Exceptions;
 
 namespace Shizou.AniDbApi.Requests.Udp;
 
 public abstract class AniDbUdpRequest
 {
     protected readonly AniDbUdpState AniDbUdpState;
-    protected readonly AniDbUdpProcessor UdpProcessor;
     protected readonly ILogger<AniDbUdpRequest> Logger;
 
     protected AniDbUdpRequest(IServiceProvider provider, string command)
@@ -23,7 +22,6 @@ public abstract class AniDbUdpRequest
         Command = command;
         Logger = (ILogger<AniDbUdpRequest>)provider.GetRequiredService(typeof(ILogger<>).MakeGenericType(GetType()));
         AniDbUdpState = provider.GetRequiredService<AniDbUdpState>();
-        UdpProcessor = provider.GetRequiredService<AniDbUdpProcessor>();
     }
 
     public string Command { get; }
@@ -115,12 +113,10 @@ public abstract class AniDbUdpRequest
         try
         {
             var receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync()).Buffer;
-            Stream memStream;
-            if (receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0)
-                // Two null bytes and two bytes of Zlib header, seems to ignore trailer automatically
-                memStream = new DeflateStream(new MemoryStream(receivedBytes, 4, receivedBytes.Length - 4), CompressionMode.Decompress);
-            else
-                memStream = new MemoryStream(receivedBytes);
+            // Two null bytes and two bytes of Zlib header, seems to ignore trailer automatically
+            using Stream memStream = receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0
+                ? new DeflateStream(new MemoryStream(receivedBytes, 4, receivedBytes.Length - 4), CompressionMode.Decompress)
+                : new MemoryStream(receivedBytes);
             using var reader = new StreamReader(memStream, Encoding);
             var codeLine = reader.ReadLine();
             ResponseText = reader.ReadToEnd();
@@ -148,20 +144,16 @@ public abstract class AniDbUdpRequest
         {
             case null:
                 Logger.LogWarning("Can't handle possible error, no error response code");
-                UdpProcessor.Pause("No response code from AniDB");
                 Errored = true;
-                break;
-
+                throw new ProcessorPauseException("No response code from AniDB");
             case AniDbResponseCode.OutOfService:
                 Logger.LogWarning("AniDB out of service or in maintenance");
-                UdpProcessor.Pause("AniDB out of service/maintenance");
                 Errored = true;
-                break;
+                throw new ProcessorPauseException("AniDB out of service/maintenance");
             case AniDbResponseCode.ServerBusy:
                 Logger.LogWarning("Server busy, try again later");
-                UdpProcessor.Pause("Server busy, try again later");
                 Errored = true;
-                break;
+                throw new ProcessorPauseException("Server busy, try again later");
             case AniDbResponseCode.Banned:
                 AniDbUdpState.Banned = true;
                 AniDbUdpState.BanReason = ResponseText;
@@ -181,31 +173,27 @@ public abstract class AniDbUdpRequest
                 return true;
             case AniDbResponseCode.AccessDenied:
                 Logger.LogError("Access denied");
-                UdpProcessor.Pause("Access was denied");
                 Errored = true;
-                break;
+                throw new ProcessorPauseException("Access was denied");
             case AniDbResponseCode.InternalServerError or (> AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700):
                 Logger.LogCritical("AniDB Server CRITICAL ERROR {errorCode} : {errorCodeStr}", ResponseCode, ResponseCodeString);
-                UdpProcessor.Pause($"Critical error with server {ResponseCode} {ResponseCodeString}");
                 Errored = true;
-                break;
+                throw new ProcessorPauseException($"Critical error with server {ResponseCode} {ResponseCodeString}");
             case AniDbResponseCode.UnknownCommand:
                 Logger.LogError("Uknown command, {Command}, {RequestText}", Command, RequestText);
-                UdpProcessor.Pause($"Unknown AniDB command, investigate {Command}");
                 Errored = true;
-                break;
+                throw new ProcessorPauseException($"Unknown AniDB command, investigate {Command}");
             case AniDbResponseCode.IllegalInputOrAccessDenied:
                 Logger.LogError("Illegal input or access is denied, {Command}, {RequestText}", Command, RequestText);
-                UdpProcessor.Pause($"Illegal AniDB input, investigate {Command}");
                 Errored = true;
-                break;
+                throw new ProcessorPauseException($"Illegal AniDB input, investigate {Command}");
             default:
                 if (!Enum.IsDefined(typeof(AniDbResponseCode), ResponseCode))
                 {
                     Logger.LogError("Response Code {ResponseCode} not found in enumeration: Code string: {codeString}", ResponseCode,
                         ResponseCodeString);
-                    UdpProcessor.Pause($"Unknown response code: {ResponseCode}");
                     Errored = true;
+                    throw new ProcessorPauseException($"Unknown response code: {ResponseCode}");
                 }
                 break;
         }
