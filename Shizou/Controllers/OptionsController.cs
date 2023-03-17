@@ -36,7 +36,7 @@ public class OptionsController : ControllerBase
     [HttpPut]
     public ActionResult Save([FromBody] ShizouOptions options)
     {
-        ShizouOptions.SaveToFile(options);
+        options.SaveToFile();
         return Ok();
     }
 }

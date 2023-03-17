@@ -12,9 +12,9 @@ public class ShizouOptions
 
     public AniDbOptions AniDb { get; set; } = new();
 
-    public static void SaveToFile(ShizouOptions options)
+    public void SaveToFile()
     {
-        Dictionary<string, object> json = new() { { Shizou, options } };
+        Dictionary<string, object> json = new() { { Shizou, this } };
         var jsonSettings = JsonSerializer.Serialize(json, new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true });
         File.WriteAllText(Constants.OptionsPath, jsonSettings);
     }

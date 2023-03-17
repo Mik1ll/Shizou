@@ -28,7 +28,7 @@ try
     if (!Directory.Exists(Constants.ApplicationData))
         Directory.CreateDirectory(Constants.ApplicationData);
     if (!File.Exists(Constants.OptionsPath) || string.IsNullOrWhiteSpace(File.ReadAllText(Constants.OptionsPath)))
-        ShizouOptions.SaveToFile(new ShizouOptions());
+        new ShizouOptions().SaveToFile();
 
     var builder = WebApplication.CreateBuilder();
     builder.Configuration.AddJsonFile(Constants.OptionsPath, false, true);
