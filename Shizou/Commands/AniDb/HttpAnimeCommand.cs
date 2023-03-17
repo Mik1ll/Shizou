@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.EntityFrameworkCore;
@@ -43,21 +42,15 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
             Completed = true;
             return;
         }
-        string? result;
+        HttpAnimeResult? animeResult;
         if (!cacheHit || CommandParams.ForceRefresh)
-            result = await GetAnimeHttp();
+            animeResult = await GetAnimeHttp();
         else
-            result = await GetAnimeCache();
+            animeResult = GetAnimeCache();
 
-        if (result is null)
-        {
-            Completed = true;
-            return;
-        }
-        XmlSerializer serializer = new(typeof(HttpAnimeResult));
-        var animeResult = serializer.Deserialize(XmlReader.Create(new StringReader(result))) as HttpAnimeResult;
         if (animeResult is null)
         {
+            Logger.LogWarning("No anime info was returned");
             Completed = true;
             return;
         }
@@ -79,11 +72,15 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
         Completed = true;
     }
 
-    private async Task<string?> GetAnimeCache()
+    private HttpAnimeResult? GetAnimeCache()
     {
         Logger.LogInformation("Cache getting anime id {animeId}", CommandParams.AnimeId);
         if (File.Exists(_cacheFilePath))
-            return await File.ReadAllTextAsync(_cacheFilePath);
+        {
+            XmlSerializer serializer = new(typeof(HttpAnimeResult));
+            using var reader = XmlReader.Create(_cacheFilePath);
+            return serializer.Deserialize(reader) as HttpAnimeResult;
+        }
         return null;
     }
 
@@ -95,16 +92,16 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
         return (false, true);
     }
 
-    private async Task<string?> GetAnimeHttp()
+    private async Task<HttpAnimeResult?> GetAnimeHttp()
     {
         var request = new AnimeRequest(_provider, CommandParams.AnimeId);
-        string? result = null;
+        HttpAnimeResult? result = null;
         Logger.LogInformation("HTTP Getting anime id {animeId}", CommandParams.AnimeId);
         try
         {
             await request.Process();
             if (request.Errored) return null;
-            result = HttpUtility.HtmlDecode(request.ResponseText);
+            result = request.AnimeResult;
         }
         catch (HttpRequestException ex)
         {
@@ -122,7 +119,7 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
         }
         else
         {
-            await File.WriteAllTextAsync(_cacheFilePath, result, Encoding.UTF8);
+            await File.WriteAllTextAsync(_cacheFilePath, request.ResponseText, Encoding.UTF8);
         }
         return result;
     }

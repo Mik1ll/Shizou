@@ -24,7 +24,9 @@ public class MyListRequest : HttpRequest
         if (ResponseText is not null)
         {
             XmlSerializer serializer = new(typeof(HttpMyListResult));
-            MyListResult = serializer.Deserialize(XmlReader.Create(new StringReader(ResponseText))) as HttpMyListResult;
+            using var strReader = new StringReader(ResponseText);
+            using var xmlReader = XmlReader.Create(strReader);
+            MyListResult = serializer.Deserialize(xmlReader) as HttpMyListResult;
             if (MyListResult is null)
                 Errored = true;
         }

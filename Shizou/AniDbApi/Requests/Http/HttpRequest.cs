@@ -20,7 +20,7 @@ public abstract class HttpRequest
     private readonly AniDbHttpState _httpState;
 
     public Dictionary<string, string?> Params { get; } = new();
-    public string? ResponseText { get; private set; }
+    public string? ResponseText { get; protected set; }
     public bool Errored { get; set; }
 
     public HttpRequest(IServiceProvider provider)
