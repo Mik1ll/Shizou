@@ -105,13 +105,11 @@ public class AnimeRequest : AniDbUdpRequest
 
     public override async Task Process()
     {
-        await SendRequest();
+        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.Anime:
-                if (string.IsNullOrWhiteSpace(ResponseText))
-                    Errored = true;
-                else
+                if (!string.IsNullOrWhiteSpace(ResponseText))
                     AnimeResult = new AniDbAnimeResult(ResponseText, _aMask);
                 break;
             case AniDbResponseCode.NoSuchAnime:

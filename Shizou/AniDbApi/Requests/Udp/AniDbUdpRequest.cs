@@ -27,13 +27,12 @@ public abstract class AniDbUdpRequest
     public string Command { get; }
     public Dictionary<string, string> Params { get; } = new();
 
+    public Encoding Encoding { get; } = Encoding.UTF8;
     public string? RequestText { get; private set; }
 
     public string? ResponseText { get; protected set; }
-    public bool Errored { get; protected set; }
     public AniDbResponseCode? ResponseCode { get; protected set; }
     public string? ResponseCodeString { get; protected set; }
-    public Encoding Encoding { get; } = Encoding.UTF8;
 
     public static string DataUnescape(string data)
     {
@@ -42,35 +41,31 @@ public abstract class AniDbUdpRequest
 
     public abstract Task Process();
 
-    public async Task SendRequest()
+    public async Task HandleRequest()
     {
-        await BuildAndSendRequest();
-        if (!Errored)
+        var retried = false;
+        do
         {
+            if (!await BuildAndSendRequest())
+                return;
             await ReceiveResponse();
-            if (HandleSharedErrors())
-            {
-                Errored = false;
-                ResponseCode = null;
-                ResponseText = null;
-                ResponseCodeString = null;
-                await BuildAndSendRequest();
-                if (!Errored)
-                    await ReceiveResponse();
-            }
-        }
+        } while (HandleSharedErrors() && !retried && (retried = true));
     }
 
-    private async Task BuildAndSendRequest()
+    /// <summary>
+    ///     Create and send an UDP request to AniDb
+    /// </summary>
+    /// <returns>True if request sent</returns>
+    /// <exception cref="ProcessorPauseException"></exception>
+    private async Task<bool> BuildAndSendRequest()
     {
         var requestBuilder = new StringBuilder(Command + " ");
         if (!new List<string> { "PING", "ENCRYPT", "AUTH", "VERSION" }.Contains(Command))
         {
             if (!await AniDbUdpState.Login())
             {
-                Errored = true;
                 ResponseCode = AniDbResponseCode.LoginFailed;
-                return;
+                throw new ProcessorPauseException("Login failed");
             }
             if (!string.IsNullOrWhiteSpace(AniDbUdpState.SessionKey))
             {
@@ -78,9 +73,8 @@ public abstract class AniDbUdpRequest
             }
             else
             {
-                Errored = true;
                 ResponseCode = AniDbResponseCode.InvalidSession;
-                return;
+                throw new ProcessorPauseException("Failed to get new session");
             }
         }
         foreach (var (name, param) in Params)
@@ -93,25 +87,28 @@ public abstract class AniDbUdpRequest
         if (AniDbUdpState.Banned)
         {
             Logger.LogWarning("Banned, aborting UDP request: {requestText}", RequestText);
-            Errored = true;
-            return;
+            throw new ProcessorPauseException("Udp banned");
         }
         Logger.LogInformation("Sending AniDb UDP text: {requestText}", RequestText);
         try
         {
             await AniDbUdpState.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
+            return true;
         }
         catch (Exception ex)
         {
-            Errored = true;
             Logger.LogError(ex, "Error sending data: {exceptionMsg}", ex.Message);
         }
+        return false;
     }
 
     private async Task ReceiveResponse()
     {
         try
         {
+            ResponseText = null;
+            ResponseCode = null;
+            ResponseCodeString = null;
             var receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync()).Buffer;
             // Two null bytes and two bytes of Zlib header, seems to ignore trailer automatically
             using Stream memStream = receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0
@@ -129,7 +126,6 @@ public abstract class AniDbUdpRequest
         }
         catch (Exception ex)
         {
-            Errored = true;
             Logger.LogError(ex, "Error receiving data: {exceptionMsg}", ex.Message);
         }
     }
@@ -138,62 +134,52 @@ public abstract class AniDbUdpRequest
     ///     For AniDB general errors
     /// </summary>
     /// <returns>True if need to retry</returns>
+    /// <exception cref="ProcessorPauseException"></exception>
     private bool HandleSharedErrors()
     {
         switch (ResponseCode)
         {
             case null:
-                Logger.LogWarning("Can't handle possible error, no error response code");
-                Errored = true;
+                Logger.LogError("Can't handle possible error, no error response code");
                 throw new ProcessorPauseException("No response code from AniDB");
             case AniDbResponseCode.OutOfService:
                 Logger.LogWarning("AniDB out of service or in maintenance");
-                Errored = true;
                 throw new ProcessorPauseException("AniDB out of service/maintenance");
             case AniDbResponseCode.ServerBusy:
                 Logger.LogWarning("Server busy, try again later");
-                Errored = true;
                 throw new ProcessorPauseException("Server busy, try again later");
             case AniDbResponseCode.Banned:
                 AniDbUdpState.Banned = true;
                 AniDbUdpState.BanReason = ResponseText;
                 Logger.LogWarning("Banned: {banReason}, waiting {hours}hr {minutes}min ({unbanTime})", AniDbUdpState.BanReason, AniDbUdpState.BanPeriod.Hours,
-                    AniDbUdpState.BanPeriod.Minutes, DateTime.Now + AniDbUdpState.BanPeriod);
-                Errored = true;
-                break;
+                    AniDbUdpState.BanPeriod.Minutes, AniDbUdpState.BanEndTime);
+                throw new ProcessorPauseException($"Udp banned, waiting until {AniDbUdpState.BanEndTime}");
             case AniDbResponseCode.InvalidSession:
                 Logger.LogWarning("Invalid session, reauth");
                 AniDbUdpState.LoggedIn = false;
-                Errored = true;
                 return true;
             case AniDbResponseCode.LoginFirst:
                 Logger.LogWarning("Not logged in, reauth");
                 AniDbUdpState.LoggedIn = false;
-                Errored = true;
                 return true;
             case AniDbResponseCode.AccessDenied:
                 Logger.LogError("Access denied");
-                Errored = true;
                 throw new ProcessorPauseException("Access was denied");
             case AniDbResponseCode.InternalServerError or (> AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700):
                 Logger.LogCritical("AniDB Server CRITICAL ERROR {errorCode} : {errorCodeStr}", ResponseCode, ResponseCodeString);
-                Errored = true;
                 throw new ProcessorPauseException($"Critical error with server {ResponseCode} {ResponseCodeString}");
             case AniDbResponseCode.UnknownCommand:
                 Logger.LogError("Uknown command, {Command}, {RequestText}", Command, RequestText);
-                Errored = true;
-                throw new ProcessorPauseException($"Unknown AniDB command, investigate {Command}");
+                throw new ProcessorPauseException("Unknown AniDB command, check logs");
             case AniDbResponseCode.IllegalInputOrAccessDenied:
                 Logger.LogError("Illegal input or access is denied, {Command}, {RequestText}", Command, RequestText);
-                Errored = true;
-                throw new ProcessorPauseException($"Illegal AniDB input, investigate {Command}");
+                throw new ProcessorPauseException("Illegal AniDB input, check logs");
             default:
                 if (!Enum.IsDefined(typeof(AniDbResponseCode), ResponseCode))
                 {
                     Logger.LogError("Response Code {ResponseCode} not found in enumeration: Code string: {codeString}", ResponseCode,
                         ResponseCodeString);
-                    Errored = true;
-                    throw new ProcessorPauseException($"Unknown response code: {ResponseCode}");
+                    throw new ProcessorPauseException($"Unknown response code: {ResponseCode}: {ResponseCodeString}");
                 }
                 break;
         }

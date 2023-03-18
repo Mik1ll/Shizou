@@ -28,7 +28,7 @@ public class AuthRequest : AniDbUdpRequest
     public override async Task Process()
     {
         Logger.LogInformation("Attempting to log into AniDB");
-        await SendRequest();
+        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.LoginAccepted or AniDbResponseCode.LoginAcceptedNewVersion:
@@ -40,16 +40,12 @@ public class AuthRequest : AniDbUdpRequest
                 AniDbUdpState.LoggedIn = true;
                 break;
             case AniDbResponseCode.LoginFailed:
-                Errored = true;
                 throw new ProcessorPauseException("Login failed, change credentials");
             case AniDbResponseCode.ClientOutdated:
-                Errored = true;
                 throw new ProcessorPauseException("Login failed, client outdated");
             case AniDbResponseCode.ClientBanned:
-                Errored = true;
                 throw new ProcessorPauseException("Login failed, client banned");
             case null:
-                Errored = true;
                 throw new ProcessorPauseException("No auth response");
         }
     }

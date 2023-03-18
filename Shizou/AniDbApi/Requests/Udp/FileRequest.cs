@@ -142,13 +142,11 @@ public class FileRequest : AniDbUdpRequest
 
     public override async Task Process()
     {
-        await SendRequest();
+        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.File:
-                if (string.IsNullOrWhiteSpace(ResponseText))
-                    Errored = true;
-                else
+                if (!string.IsNullOrWhiteSpace(ResponseText))
                     FileResult = new AniDbFileResult(ResponseText, _fMask, _aMask);
                 break;
             case AniDbResponseCode.MultipleFilesFound:

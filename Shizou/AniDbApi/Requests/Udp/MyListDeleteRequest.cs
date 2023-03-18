@@ -36,13 +36,12 @@ public class MyListDeleteRequest : AniDbUdpRequest
 
     public override async Task Process()
     {
-        await SendRequest();
+        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.MyListDeleted:
                 break;
             case AniDbResponseCode.NoSuchMyListEntry:
-                Errored = true;
                 break;
         }
     }

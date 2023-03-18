@@ -14,7 +14,7 @@ public class PingRequest : AniDbUdpRequest
     public override async Task Process()
     {
         Logger.LogDebug("Pinging server...");
-        await SendRequest();
+        await HandleRequest();
         Logger.LogDebug("Ping Response: {responseCode}", ResponseCode);
     }
 }

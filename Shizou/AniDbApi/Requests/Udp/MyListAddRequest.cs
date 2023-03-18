@@ -47,13 +47,12 @@ public class MyListAddRequest : AniDbUdpRequest
     
     public override async Task Process()
     {
-        await SendRequest();
+        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.MyListAdded:
                 if (string.IsNullOrWhiteSpace(ResponseText))
                 {
-                    Errored = true;
                     return;
                 }
                 if (Params["edit"] == "0" && Params.ContainsKey("fid"))
@@ -66,7 +65,6 @@ public class MyListAddRequest : AniDbUdpRequest
             case AniDbResponseCode.FileInMyList:
                 if (string.IsNullOrWhiteSpace(ResponseText))
                 {
-                    Errored = true;
                     return;
                 }
                 var dataArr = ResponseText.Split('|');
@@ -79,13 +77,10 @@ public class MyListAddRequest : AniDbUdpRequest
                 );
                 break;
             case AniDbResponseCode.NoSuchFile:
-                Errored = true;
                 break;
             case AniDbResponseCode.NoSuchAnime:
-                Errored = true;
                 break;
             case AniDbResponseCode.NoSuchMyListEntry:
-                Errored = true;
                 break;
         }
     }

@@ -13,7 +13,7 @@ public class LogoutRequest : AniDbUdpRequest
     public override async Task Process()
     {
         Logger.LogInformation("Attempting to log out of AniDB");
-        await SendRequest();
+        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.LoggedOut:

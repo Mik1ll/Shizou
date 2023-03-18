@@ -26,13 +26,11 @@ public class EpisodeRequest : AniDbUdpRequest
 
     public override async Task Process()
     {
-        await SendRequest();
+        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.Episode:
-                if (string.IsNullOrWhiteSpace(ResponseText))
-                    Errored = true;
-                else
+                if (!string.IsNullOrWhiteSpace(ResponseText))
                     EpisodeResult = new AniDbEpisodeResult(ResponseText);
                 break;
             case AniDbResponseCode.NoSuchEpisode:

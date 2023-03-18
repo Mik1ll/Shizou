@@ -58,31 +58,24 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListParams>
                 return;
             }
             await request.Process();
-            if (!request.Errored)
+            switch (request.ResponseCode)
             {
-                var result = request.MyListResult;
-                switch (request.ResponseCode)
-                {
-                    case AniDbResponseCode.MyListAdded:
-                        break;
-                    case AniDbResponseCode.FileInMyList:
-                        break;
-                    case AniDbResponseCode.MultipleMyListEntries:
-                        break;
-                    case AniDbResponseCode.MyListEdited:
-                        break;
-                }
-            }
-            else
-            {
-                switch (request.ResponseCode)
-                {
-                    case AniDbResponseCode.NoSuchMyListEntry:
-                        CommandParams = CommandParams with { Lid = null, Edit = false };
-                        retry = true;
-                        Logger.LogInformation("Mylist entry not found, retrying with add");
-                        break;
-                }
+                case AniDbResponseCode.MyListAdded:
+                    // check if less than number of episodes on aid add and run again with edit
+                    break;
+                case AniDbResponseCode.FileInMyList:
+                    break;
+                case AniDbResponseCode.MultipleMyListEntries:
+                    break;
+                case AniDbResponseCode.MyListEdited:
+                    // check if less than number of episodes on aid edit and run again with add
+                    break;
+
+                case AniDbResponseCode.NoSuchMyListEntry:
+                    CommandParams = CommandParams with { Lid = null, Edit = false };
+                    retry = true;
+                    Logger.LogInformation("Mylist entry not found, retrying with add");
+                    break;
             }
         } while (retry);
         Completed = true;
