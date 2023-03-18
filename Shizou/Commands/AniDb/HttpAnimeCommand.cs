@@ -17,7 +17,7 @@ using Shizou.Models;
 
 namespace Shizou.Commands.AniDb;
 
-public record HttpAnimeParams(int AnimeId, bool ForceRefresh = false) : CommandParams($"{nameof(HttpAnimeCommand)}_{AnimeId}");
+public record HttpAnimeParams(int AnimeId, bool ForceRefresh = false) : CommandParams($"{nameof(HttpAnimeCommand)}_{AnimeId}_force={ForceRefresh}");
 
 [Command(CommandType.HttpGetAnime, CommandPriority.Default, QueueType.AniDbHttp)]
 public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
