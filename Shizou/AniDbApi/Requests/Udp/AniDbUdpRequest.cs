@@ -43,13 +43,17 @@ public abstract class AniDbUdpRequest
 
     public async Task HandleRequest()
     {
-        var retried = false;
-        do
+        if (!await BuildAndSendRequest())
+            return;
+        await ReceiveResponse();
+        var retry = HandleSharedErrors();
+        if (retry)
         {
             if (!await BuildAndSendRequest())
                 return;
             await ReceiveResponse();
-        } while (HandleSharedErrors() && !retried && (retried = true));
+            HandleSharedErrors();
+        }
     }
 
     /// <summary>
