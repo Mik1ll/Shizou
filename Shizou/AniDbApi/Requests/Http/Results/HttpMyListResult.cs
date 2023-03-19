@@ -15,7 +15,7 @@ namespace Shizou.AniDbApi.Requests.Http.Results
     [XmlRoot("mylist")]
     public class HttpMyListResult
     {
-        [XmlArrayItem("mylistitem")]
+        [XmlElement("mylistitem")]
         public List<MyListItem> MyListItems { get; set; }
 
         [XmlAttribute("uid")]

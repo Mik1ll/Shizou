@@ -84,24 +84,49 @@ public static class FileStateExtensions
 
 public enum MyListState
 {
+    [XmlEnum("0")]
     Unknown = 0,
+    [XmlEnum("1")]
     Internal = 1,
+    [XmlEnum("2")]
     External = 2,
+    [XmlEnum("3")]
     Deleted = 3,
+    [XmlEnum("4")]
     Remote = 4
 }
 
 public enum MyListFileState
 {
+    [XmlEnum("0")]
     Normal = 0,
+    [XmlEnum("1")]
     InvalidCrc = 1,
+    [XmlEnum("2")]
     SelfEdited = 2,
+    [XmlEnum("10")]
     SelfRipped = 10,
+    [XmlEnum("11")]
     Dvd = 11,
+    [XmlEnum("12")]
     Vhs = 12,
+    [XmlEnum("13")]
     Tv = 13,
+    [XmlEnum("14")]
     Theater = 14,
+    [XmlEnum("15")]
     Streamed = 15,
+    /// <summary>
+    ///     Doesn't work in mylist add
+    /// </summary>
+    [XmlEnum("16")]
+    BluRay = 16,
+    /// <summary>
+    ///     Doesn't work in mylist add
+    /// </summary>
+    [XmlEnum("17")]
+    Www = 17,
+    [XmlEnum("100")]
     Other = 100
 }
 
