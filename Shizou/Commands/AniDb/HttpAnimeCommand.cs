@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -25,6 +24,7 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
     private readonly IServiceProvider _provider;
     private readonly string _cacheFilePath;
     private readonly ShizouContext _context;
+    public TimeSpan AnimeRequestPeriod { get; } = TimeSpan.FromHours(24);
 
     public HttpAnimeCommand(IServiceProvider provider, HttpAnimeParams commandParams) : base(provider, commandParams)
     {
@@ -38,7 +38,8 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
         var (cacheHit, requestable) = CheckCache();
         if ((!cacheHit || CommandParams.ForceRefresh) && !requestable)
         {
-            Logger.LogWarning("Ignoring HTTP anime request: {animeId}, already requested in last 24 hours", CommandParams.AnimeId);
+            Logger.LogWarning("Ignoring HTTP anime request: {animeId}, already requested in last {hours} hours", CommandParams.AnimeId,
+                AnimeRequestPeriod.Hours);
             Completed = true;
             return;
         }
@@ -84,44 +85,32 @@ public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
         return null;
     }
 
-    private (bool Hit, bool canRequest) CheckCache()
+    private (bool Hit, bool CanRequest) CheckCache()
     {
         var fileInfo = new FileInfo(_cacheFilePath);
         if (fileInfo.Exists)
-            return (fileInfo.Length != 0, DateTime.UtcNow - fileInfo.LastWriteTimeUtc > TimeSpan.FromHours(24));
+            return (fileInfo.Length != 0, DateTime.UtcNow - fileInfo.LastWriteTimeUtc > AnimeRequestPeriod);
         return (false, true);
     }
 
     private async Task<HttpAnimeResult?> GetAnimeHttp()
     {
         var request = new AnimeRequest(_provider, CommandParams.AnimeId);
-        HttpAnimeResult? result = null;
-        Logger.LogInformation("HTTP Getting anime id {animeId}", CommandParams.AnimeId);
-        try
-        {
-            await request.Process();
-            if (string.IsNullOrEmpty(request.ResponseText))
-                return null;
-            result = request.AnimeResult;
-        }
-        catch (HttpRequestException ex)
-        {
-            Logger.LogWarning("Http anime request failed: {Message}", ex.Message);
-        }
-        if (result is null)
+        await request.Process();
+        if (request.AnimeResult is null)
         {
             if (!File.Exists(_cacheFilePath))
             {
-                if (!Directory.Exists(Constants.HttpCachePath))
-                    Directory.CreateDirectory(Constants.HttpCachePath);
+                Directory.CreateDirectory(Constants.HttpCachePath);
                 File.Create(_cacheFilePath).Dispose();
             }
-            File.SetLastWriteTime(_cacheFilePath, DateTime.UtcNow);
+            File.SetLastWriteTimeUtc(_cacheFilePath, DateTime.UtcNow);
+            Logger.LogWarning("Failed to get HTTP anime data, retry in {hours} hours", AnimeRequestPeriod.Hours);
         }
         else
         {
             await File.WriteAllTextAsync(_cacheFilePath, request.ResponseText, Encoding.UTF8);
         }
-        return result;
+        return request.AnimeResult;
     }
 }

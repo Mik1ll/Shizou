@@ -21,7 +21,7 @@ public class AnimeRequest : HttpRequest
 
     public override async Task Process()
     {
-        Logger.LogInformation("HTTP Getting anime from AniDb");
+        Logger.LogInformation("HTTP Getting anime {aid} from AniDb", Params["aid"]);
         await SendRequest();
         if (ResponseText is not null)
         {

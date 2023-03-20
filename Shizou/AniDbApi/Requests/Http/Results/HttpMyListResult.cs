@@ -48,8 +48,11 @@ namespace Shizou.AniDbApi.Requests.Http.Results
             [XmlAttribute("fid")]
             public int Fid { get; set; }
 
+            /// <summary>
+            ///     Only returns date, should be UTC
+            /// </summary>
             [XmlAttribute("updated")]
-            public DateTime Updated { get; set; }
+            public string Updated { get; set; }
 
             [XmlAttribute("startpercentage")]
             [MaybeNull]
@@ -66,7 +69,11 @@ namespace Shizou.AniDbApi.Requests.Http.Results
             public bool EndPercentageSpecified { get; set; }
 
             [XmlAttribute("viewdate")]
-            public string? Viewdate;
+            [MaybeNull]
+            public DateTime Viewdate;
+
+            [XmlIgnore]
+            public bool ViewdateSpecified { get; set; }
         }
     }
 }
