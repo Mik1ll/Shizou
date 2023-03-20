@@ -25,9 +25,8 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    if (!Directory.Exists(Constants.ApplicationData))
-        Directory.CreateDirectory(Constants.ApplicationData);
-    if (!File.Exists(Constants.OptionsPath) || string.IsNullOrWhiteSpace(File.ReadAllText(Constants.OptionsPath)))
+    Directory.CreateDirectory(Constants.ApplicationData);
+    if (!File.Exists(Constants.OptionsPath))
         new ShizouOptions().SaveToFile();
 
     var builder = WebApplication.CreateBuilder();
@@ -42,7 +41,10 @@ try
 
     builder.Services.AddAutoMapper(typeof(ShizouProfile));
 
-    builder.Services.Configure<ShizouOptions>(builder.Configuration.GetSection(ShizouOptions.Shizou));
+    builder.Services.AddOptions<ShizouOptions>()
+        .Bind(builder.Configuration.GetSection(ShizouOptions.Shizou))
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
     builder.Services.AddControllers();
     builder.Services.AddSwaggerGen(opt =>
     {
