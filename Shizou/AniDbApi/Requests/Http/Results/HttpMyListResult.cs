@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
 using Shizou.AniDbApi.Requests.Http.Results.SubElements;
@@ -69,11 +68,7 @@ namespace Shizou.AniDbApi.Requests.Http.Results
             public bool EndPercentageSpecified { get; set; }
 
             [XmlAttribute("viewdate")]
-            [MaybeNull]
-            public DateTime Viewdate;
-
-            [XmlIgnore]
-            public bool ViewdateSpecified { get; set; }
+            public string? Viewdate;
         }
     }
 }
