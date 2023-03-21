@@ -22,7 +22,7 @@ public record UpdateMyListParams(
     : CommandParams($"{nameof(UpdateMyListCommand)}_lid={Lid}_fid={Fid}_aid={Aid}_epno={EpNo}"
                     + $"_edit={Edit}_watched={Watched}_state={MyListState}_filestate={MyListFileState}");
 
-[Command(CommandType.UpdateMyList, CommandPriority.Default, QueueType.AniDbUdp)]
+[Command(CommandType.UpdateMyList, CommandPriority.Normal, QueueType.AniDbUdp)]
 public class UpdateMyListCommand : BaseCommand<UpdateMyListParams>
 {
     private readonly ShizouContext _context;

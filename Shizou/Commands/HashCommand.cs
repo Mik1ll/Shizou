@@ -16,7 +16,7 @@ namespace Shizou.Commands;
 
 public record HashParams(string Path) : CommandParams($"{nameof(HashCommand)}_{Path}");
 
-[Command(CommandType.Hash, CommandPriority.Default, QueueType.Hash)]
+[Command(CommandType.Hash, CommandPriority.Normal, QueueType.Hash)]
 public class HashCommand : BaseCommand<HashParams>
 {
     private readonly CommandService _commandService;

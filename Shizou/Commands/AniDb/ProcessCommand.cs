@@ -17,7 +17,7 @@ namespace Shizou.Commands.AniDb;
 
 public sealed record ProcessParams(int LocalFileId) : CommandParams($"{nameof(ProcessCommand)}_{LocalFileId}");
 
-[Command(CommandType.GetFile, CommandPriority.Default, QueueType.AniDbUdp)]
+[Command(CommandType.GetFile, CommandPriority.Normal, QueueType.AniDbUdp)]
 public class ProcessCommand : BaseCommand<ProcessParams>
 {
     private readonly CommandService _commandService;

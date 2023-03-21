@@ -16,17 +16,17 @@ using Shizou.Models;
 
 namespace Shizou.Commands.AniDb;
 
-public record HttpAnimeParams(int AnimeId, bool ForceRefresh = false) : CommandParams($"{nameof(HttpAnimeCommand)}_{AnimeId}_force={ForceRefresh}");
+public record HttpAnimeParams(int AnimeId, bool ForceRefresh = false) : CommandParams($"{nameof(AnimeCommand)}_{AnimeId}_force={ForceRefresh}");
 
-[Command(CommandType.HttpGetAnime, CommandPriority.Default, QueueType.AniDbHttp)]
-public class HttpAnimeCommand : BaseCommand<HttpAnimeParams>
+[Command(CommandType.GetAnime, CommandPriority.Normal, QueueType.AniDbHttp)]
+public class AnimeCommand : BaseCommand<HttpAnimeParams>
 {
     private readonly IServiceProvider _provider;
     private readonly string _cacheFilePath;
     private readonly ShizouContext _context;
     public TimeSpan AnimeRequestPeriod { get; } = TimeSpan.FromHours(24);
 
-    public HttpAnimeCommand(IServiceProvider provider, HttpAnimeParams commandParams) : base(provider, commandParams)
+    public AnimeCommand(IServiceProvider provider, HttpAnimeParams commandParams) : base(provider, commandParams)
     {
         _provider = provider;
         _context = provider.GetRequiredService<ShizouContext>();

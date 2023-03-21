@@ -6,7 +6,7 @@ namespace Shizou.Commands;
 
 public sealed record NoopParams(int Testint) : CommandParams(nameof(NoopCommand) + Testint);
 
-[Command(CommandType.Noop, CommandPriority.Default, QueueType.AniDbUdp)]
+[Command(CommandType.Noop, CommandPriority.Normal, QueueType.AniDbUdp)]
 public sealed class NoopCommand : BaseCommand<NoopParams>
 {
     public NoopCommand(IServiceProvider provider, NoopParams commandParams) : base(provider, commandParams)
