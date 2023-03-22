@@ -43,7 +43,7 @@ public class AniDbEpisode : IEntity
         DurationMinutes = episode.Length;
         Number = episode.Epno.Text.ParseEpisode().number;
         EpisodeType = episode.Epno.Type;
-        AirDate = episode.Airdate;
+        AirDate = string.IsNullOrEmpty(episode.Airdate) ? null : DateTimeOffset.Parse(episode.Airdate + "+00:00");
         Updated = DateTimeOffset.UtcNow;
         TitleEnglish = episode.Title.First(t => t.Lang == "en").Text;
         TitleRomaji = episode.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == animeLang)?.Text;

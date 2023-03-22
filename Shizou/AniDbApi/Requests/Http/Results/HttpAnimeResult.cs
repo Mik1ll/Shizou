@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
 using Shizou.AniDbApi.Requests.Http.Results.SubElements;
@@ -241,11 +240,7 @@ namespace Shizou.AniDbApi.Requests.Http.Results
             public bool Verified { get; set; }
 
             [XmlAttribute("update")]
-            [MaybeNull]
-            public DateTimeOffset Update { get; set; }
-
-            [XmlIgnore]
-            public bool UpdateSpecified { get; set; }
+            public string? Update { get; set; }
 
             [XmlText]
             public string Text { get; set; }
@@ -331,7 +326,7 @@ namespace Shizou.AniDbApi.Requests.Http.Results
             public string Type { get; set; }
 
             [XmlAttribute("update")]
-            public DateTimeOffset Update { get; set; }
+            public string Update { get; set; }
         }
 
         [XmlRoot("epno")]
@@ -354,7 +349,7 @@ namespace Shizou.AniDbApi.Requests.Http.Results
             public int Length { get; set; }
 
             [XmlElement("airdate")]
-            public DateTimeOffset? Airdate { get; set; }
+            public string? Airdate { get; set; }
 
             [XmlElement("rating")]
             public Rating? Rating { get; set; }
@@ -373,7 +368,7 @@ namespace Shizou.AniDbApi.Requests.Http.Results
             public int Id { get; set; }
 
             [XmlAttribute("update")]
-            public DateTimeOffset Update { get; set; }
+            public string Update { get; set; }
 
             [XmlAttribute("recap")]
             [MaybeNull]
