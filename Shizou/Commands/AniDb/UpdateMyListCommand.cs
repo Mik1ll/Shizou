@@ -9,7 +9,7 @@ using Shizou.Enums;
 
 namespace Shizou.Commands.AniDb;
 
-public record UpdateMyListParams(
+public record UpdateMyListArgs(
         int? Lid,
         int? Fid,
         int? Aid, string? EpNo,
@@ -19,15 +19,15 @@ public record UpdateMyListParams(
         MyListState? MyListState,
         MyListFileState? MyListFileState
     )
-    : CommandParams($"{nameof(UpdateMyListCommand)}_lid={Lid}_fid={Fid}_aid={Aid}_epno={EpNo}"
-                    + $"_edit={Edit}_watched={Watched}_state={MyListState}_filestate={MyListFileState}");
+    : CommandArgs($"{nameof(UpdateMyListCommand)}_lid={Lid}_fid={Fid}_aid={Aid}_epno={EpNo}"
+                  + $"_edit={Edit}_watched={Watched}_state={MyListState}_filestate={MyListFileState}");
 
 [Command(CommandType.UpdateMyList, CommandPriority.Normal, QueueType.AniDbUdp)]
-public class UpdateMyListCommand : BaseCommand<UpdateMyListParams>
+public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
 {
     private readonly ShizouContext _context;
 
-    public UpdateMyListCommand(IServiceProvider provider, UpdateMyListParams commandParams) : base(provider, commandParams)
+    public UpdateMyListCommand(IServiceProvider provider, UpdateMyListArgs commandArgs) : base(provider, commandArgs)
     {
         _context = provider.GetRequiredService<ShizouContext>();
     }
@@ -38,17 +38,17 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListParams>
         do
         {
             retry = false;
-            var request = CommandParams switch
+            var request = CommandArgs switch
             {
                 { Lid: not null, Edit: true } and ({ Fid: not null } or { Aid: not null, EpNo: not null }) =>
-                    new MyListAddRequest(Provider, CommandParams.Lid.Value, CommandParams.Watched, CommandParams.WatchedDate, CommandParams.MyListState,
-                        CommandParams.MyListFileState),
+                    new MyListAddRequest(Provider, CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState,
+                        CommandArgs.MyListFileState),
                 { Fid: not null, Edit: not null } =>
-                    new MyListAddRequest(Provider, CommandParams.Fid.Value, CommandParams.Edit.Value, CommandParams.Watched, CommandParams.WatchedDate,
-                        CommandParams.MyListState, CommandParams.MyListFileState),
+                    new MyListAddRequest(Provider, CommandArgs.Fid.Value, CommandArgs.Edit.Value, CommandArgs.Watched, CommandArgs.WatchedDate,
+                        CommandArgs.MyListState, CommandArgs.MyListFileState),
                 { Aid: not null, EpNo: not null, Edit: not null } =>
-                    new MyListAddRequest(Provider, CommandParams.Aid.Value, CommandParams.EpNo, CommandParams.Edit.Value, CommandParams.Watched,
-                        CommandParams.WatchedDate, CommandParams.MyListState, CommandParams.MyListFileState),
+                    new MyListAddRequest(Provider, CommandArgs.Aid.Value, CommandArgs.EpNo, CommandArgs.Edit.Value, CommandArgs.Watched,
+                        CommandArgs.WatchedDate, CommandArgs.MyListState, CommandArgs.MyListFileState),
                 _ => null
             };
             if (request is null)
@@ -72,7 +72,7 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListParams>
                     break;
 
                 case AniDbResponseCode.NoSuchMyListEntry:
-                    CommandParams = CommandParams with { Lid = null, Edit = false };
+                    CommandArgs = CommandArgs with { Lid = null, Edit = false };
                     retry = true;
                     Logger.LogInformation("Mylist entry not found, retrying with add");
                     break;

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi.Requests.Http;
@@ -13,17 +15,17 @@ using Shizou.Database;
 
 namespace Shizou.Commands.AniDb;
 
-public record HttpMyListParams() : CommandParams($"{nameof(SyncMyListCommand)}");
+public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}");
 
 [Command(CommandType.SyncMyList, CommandPriority.Normal, QueueType.AniDbHttp)]
-public class SyncMyListCommand : BaseCommand<HttpMyListParams>
+public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 {
     private readonly IServiceProvider _provider;
 
     public TimeSpan MyListRequestPeriod { get; } = TimeSpan.FromHours(24);
 
 
-    public SyncMyListCommand(IServiceProvider provider, HttpMyListParams commandParams) : base(provider, commandParams)
+    public SyncMyListCommand(IServiceProvider provider, SyncMyListArgs commandArgs) : base(provider, commandArgs)
     {
         _provider = provider;
     }

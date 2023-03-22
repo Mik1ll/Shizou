@@ -16,20 +16,20 @@ public interface ICommand
     Task Process();
 }
 
-public abstract class BaseCommand<T> : ICommand where T : CommandParams
+public abstract class BaseCommand<T> : ICommand where T : CommandArgs
 {
     protected readonly ILogger<BaseCommand<T>> Logger;
     protected readonly IServiceProvider Provider;
 
-    protected BaseCommand(IServiceProvider provider, T commandParams)
+    protected BaseCommand(IServiceProvider provider, T commandArgs)
     {
         Provider = provider;
-        CommandParams = commandParams;
+        CommandArgs = commandArgs;
         Logger = provider.GetRequiredService<ILogger<BaseCommand<T>>>();
-        CommandId = commandParams.CommandId;
+        CommandId = commandArgs.CommandId;
     }
 
-    protected T CommandParams { get; set; }
+    protected T CommandArgs { get; set; }
     public bool Completed { get; set; }
     public string CommandId { get; }
 
@@ -45,7 +45,7 @@ public abstract class BaseCommand<T> : ICommand where T : CommandParams
                 Priority = commandAttr.Priority,
                 QueueType = commandAttr.QueueType,
                 CommandId = CommandId,
-                CommandParams = JsonSerializer.Serialize(CommandParams)
+                CommandArgs = JsonSerializer.Serialize(CommandArgs)
             };
         }
     }

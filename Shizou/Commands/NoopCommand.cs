@@ -4,12 +4,12 @@ using Shizou.CommandProcessors;
 
 namespace Shizou.Commands;
 
-public sealed record NoopParams(int Testint) : CommandParams(nameof(NoopCommand) + Testint);
+public sealed record NoopArgs(int Testint) : CommandArgs(nameof(NoopCommand) + Testint);
 
 [Command(CommandType.Noop, CommandPriority.Normal, QueueType.AniDbUdp)]
-public sealed class NoopCommand : BaseCommand<NoopParams>
+public sealed class NoopCommand : BaseCommand<NoopArgs>
 {
-    public NoopCommand(IServiceProvider provider, NoopParams commandParams) : base(provider, commandParams)
+    public NoopCommand(IServiceProvider provider, NoopArgs commandArgs) : base(provider, commandArgs)
     {
     }
 

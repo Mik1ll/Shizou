@@ -15,31 +15,31 @@ using Shizou.Services;
 
 namespace Shizou.Commands.AniDb;
 
-public sealed record ProcessParams(int LocalFileId) : CommandParams($"{nameof(ProcessCommand)}_{LocalFileId}");
+public sealed record ProcessArgs(int LocalFileId) : CommandArgs($"{nameof(ProcessCommand)}_{LocalFileId}");
 
 [Command(CommandType.GetFile, CommandPriority.Normal, QueueType.AniDbUdp)]
-public class ProcessCommand : BaseCommand<ProcessParams>
+public class ProcessCommand : BaseCommand<ProcessArgs>
 {
     private readonly CommandService _commandService;
     private readonly ShizouContext _context;
     private readonly string _fileCachePath;
 
-    public ProcessCommand(IServiceProvider provider, ProcessParams commandParams)
-        : base(provider, commandParams)
+    public ProcessCommand(IServiceProvider provider, ProcessArgs commandArgs)
+        : base(provider, commandArgs)
     {
         _context = provider.GetRequiredService<ShizouContext>();
         _commandService = provider.GetRequiredService<CommandService>();
-        _fileCachePath = Path.Combine(Constants.TempFilePath, CommandParams.CommandId + ".json");
+        _fileCachePath = Path.Combine(Constants.TempFilePath, CommandArgs.CommandId + ".json");
     }
 
     public override async Task Process()
     {
-        Logger.LogInformation("Processing local file id: {localfileId}", CommandParams.LocalFileId);
-        var localFile = _context.LocalFiles.Find(CommandParams.LocalFileId);
+        Logger.LogInformation("Processing local file id: {localfileId}", CommandArgs.LocalFileId);
+        var localFile = _context.LocalFiles.Find(CommandArgs.LocalFileId);
         if (localFile is null)
         {
             Completed = true;
-            Logger.LogWarning("Unable to process local file id: {localFileId} not found, skipping", CommandParams.LocalFileId);
+            Logger.LogWarning("Unable to process local file id: {localFileId} not found, skipping", CommandArgs.LocalFileId);
             return;
         }
 
@@ -49,7 +49,7 @@ public class ProcessCommand : BaseCommand<ProcessParams>
 
         UpdateDatabase(result);
 
-        _commandService.Dispatch(new HttpAnimeParams(result.AnimeId!.Value));
+        _commandService.Dispatch(new AnimeArgs(result.AnimeId!.Value));
 
         Completed = true;
         File.Delete(_fileCachePath);

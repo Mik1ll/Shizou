@@ -14,16 +14,16 @@ using Shizou.Services;
 
 namespace Shizou.Commands;
 
-public record HashParams(string Path) : CommandParams($"{nameof(HashCommand)}_{Path}");
+public record HashArgs(string Path) : CommandArgs($"{nameof(HashCommand)}_{Path}");
 
 [Command(CommandType.Hash, CommandPriority.Normal, QueueType.Hash)]
-public class HashCommand : BaseCommand<HashParams>
+public class HashCommand : BaseCommand<HashArgs>
 {
     private readonly CommandService _commandService;
     private readonly ShizouContext _context;
 
 
-    public HashCommand(IServiceProvider provider, HashParams commandParams) : base(provider, commandParams)
+    public HashCommand(IServiceProvider provider, HashArgs commandArgs) : base(provider, commandArgs)
     {
         _context = provider.GetRequiredService<ShizouContext>();
         _commandService = provider.GetRequiredService<CommandService>();
@@ -31,7 +31,7 @@ public class HashCommand : BaseCommand<HashParams>
 
     public override async Task Process()
     {
-        var file = new FileInfo(CommandParams.Path);
+        var file = new FileInfo(CommandArgs.Path);
         ImportFolder? importFolder;
         if (!file.Exists || (importFolder = _context.ImportFolders.GetByPath(file.FullName)) is null)
         {
@@ -80,7 +80,7 @@ public class HashCommand : BaseCommand<HashParams>
         }
         _context.SaveChanges();
         if (_context.AniDbFiles.GetByEd2K(localFile.Ed2K) is null)
-            _commandService.Dispatch(new ProcessParams(localFile.Id));
+            _commandService.Dispatch(new ProcessArgs(localFile.Id));
         Completed = true;
     }
 }

@@ -12,20 +12,20 @@ namespace Shizou.Services;
 
 public class CommandService
 {
-    public static readonly List<(CommandAttribute cmdAttr, Type type, Type paramType, Func<IServiceProvider, CommandParams, ICommand> ctor)> Commands =
+    public static readonly List<(CommandAttribute cmdAttr, Type type, Type argType, Func<IServiceProvider, CommandArgs, ICommand> ctor)> Commands =
         Assembly
             .GetExecutingAssembly().GetTypes()
             .Select(t => new { type = t, commandAttr = t.GetCustomAttribute<CommandAttribute>() })
             .Where(x => x.commandAttr is not null)
             .Select(x =>
             {
-                var paramType = x.type.BaseType!.GetGenericArguments()[0];
-                Func<IServiceProvider, CommandParams, ICommand> ctor = (provider, cmdParams) =>
-                    (ICommand)Activator.CreateInstance(x.type, provider, cmdParams)!;
+                var argType = x.type.BaseType!.GetGenericArguments()[0];
+                Func<IServiceProvider, CommandArgs, ICommand> ctor = (provider, cmdArgs) =>
+                    (ICommand)Activator.CreateInstance(x.type, provider, cmdArgs)!;
                 return (
                     x.commandAttr!,
                     x.type,
-                    paramType,
+                    argType,
                     ctor
                 );
             })
@@ -38,11 +38,11 @@ public class CommandService
         _serviceProvider = serviceProvider;
     }
 
-    public void Dispatch<TParams>(TParams commandParams)
-        where TParams : CommandParams
+    public void Dispatch<TArgs>(TArgs commandArgs)
+        where TArgs : CommandArgs
     {
         var context = _serviceProvider.GetRequiredService<ShizouContext>();
-        var cmdRequest = RequestFromParams(commandParams);
+        var cmdRequest = RequestFromArgs(commandArgs);
         using var transaction = context.Database.BeginTransaction();
         if (!context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
             context.CommandRequests.Add(cmdRequest);
@@ -50,13 +50,13 @@ public class CommandService
         transaction.Commit();
     }
 
-    public void DispatchRange<TParams>(IEnumerable<TParams> commandParamsEnumerable)
-        where TParams : CommandParams
+    public void DispatchRange<TArgs>(IEnumerable<TArgs> commandArgsEnumerable)
+        where TArgs : CommandArgs
     {
         var context = _serviceProvider.GetRequiredService<ShizouContext>();
         using var transaction = context.Database.BeginTransaction();
         context.CommandRequests.AddRange(
-            commandParamsEnumerable.Select(commandParams => RequestFromParams(commandParams))
+            commandArgsEnumerable.Select(commandArgs => RequestFromArgs(commandArgs))
                 // Throw away identical command ids
                 .GroupBy(cr => cr.CommandId)
                 .Select(crs => crs.First())
@@ -70,20 +70,20 @@ public class CommandService
     public ICommand CommandFromRequest(CommandRequest commandRequest)
     {
         var command = Commands.Single(x => commandRequest.Type == x.cmdAttr.Type);
-        return command.ctor(_serviceProvider, (CommandParams)JsonSerializer.Deserialize(commandRequest.CommandParams, command.paramType)!);
+        return command.ctor(_serviceProvider, (CommandArgs)JsonSerializer.Deserialize(commandRequest.CommandArgs, command.argType)!);
     }
 
-    public CommandRequest RequestFromParams(CommandParams commandParams)
+    public CommandRequest RequestFromArgs(CommandArgs commandArgs)
     {
-        var paramType = commandParams.GetType();
-        var commandAttr = Commands.Single(x => x.paramType == paramType).cmdAttr;
+        var argType = commandArgs.GetType();
+        var commandAttr = Commands.Single(x => x.argType == argType).cmdAttr;
         return new CommandRequest
         {
             Type = commandAttr.Type,
             Priority = commandAttr.Priority,
             QueueType = commandAttr.QueueType,
-            CommandId = commandParams.CommandId,
-            CommandParams = JsonSerializer.Serialize(commandParams, paramType)
+            CommandId = commandArgs.CommandId,
+            CommandArgs = JsonSerializer.Serialize(commandArgs, argType)
         };
     }
 }

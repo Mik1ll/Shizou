@@ -16,35 +16,35 @@ using Shizou.Models;
 
 namespace Shizou.Commands.AniDb;
 
-public record HttpAnimeParams(int AnimeId, bool ForceRefresh = false) : CommandParams($"{nameof(AnimeCommand)}_{AnimeId}_force={ForceRefresh}");
+public record AnimeArgs(int AnimeId, bool ForceRefresh = false) : CommandArgs($"{nameof(AnimeCommand)}_{AnimeId}_force={ForceRefresh}");
 
 [Command(CommandType.GetAnime, CommandPriority.Normal, QueueType.AniDbHttp)]
-public class AnimeCommand : BaseCommand<HttpAnimeParams>
+public class AnimeCommand : BaseCommand<AnimeArgs>
 {
     private readonly IServiceProvider _provider;
     private readonly string _cacheFilePath;
     private readonly ShizouContext _context;
     public TimeSpan AnimeRequestPeriod { get; } = TimeSpan.FromHours(24);
 
-    public AnimeCommand(IServiceProvider provider, HttpAnimeParams commandParams) : base(provider, commandParams)
+    public AnimeCommand(IServiceProvider provider, AnimeArgs commandArgs) : base(provider, commandArgs)
     {
         _provider = provider;
         _context = provider.GetRequiredService<ShizouContext>();
-        _cacheFilePath = Path.Combine(Constants.HttpCachePath, $"AnimeDoc_{CommandParams.AnimeId}.xml");
+        _cacheFilePath = Path.Combine(Constants.HttpCachePath, $"AnimeDoc_{CommandArgs.AnimeId}.xml");
     }
 
     public override async Task Process()
     {
         var (cacheHit, requestable) = CheckCache();
-        if ((!cacheHit || CommandParams.ForceRefresh) && !requestable)
+        if ((!cacheHit || CommandArgs.ForceRefresh) && !requestable)
         {
-            Logger.LogWarning("Ignoring HTTP anime request: {animeId}, already requested in last {hours} hours", CommandParams.AnimeId,
+            Logger.LogWarning("Ignoring HTTP anime request: {animeId}, already requested in last {hours} hours", CommandArgs.AnimeId,
                 AnimeRequestPeriod.Hours);
             Completed = true;
             return;
         }
         HttpAnimeResult? animeResult;
-        if (!cacheHit || CommandParams.ForceRefresh)
+        if (!cacheHit || CommandArgs.ForceRefresh)
             animeResult = await GetAnimeHttp();
         else
             animeResult = GetAnimeCache();
@@ -57,7 +57,7 @@ public class AnimeCommand : BaseCommand<HttpAnimeParams>
         }
 
         var aniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes)
-            .FirstOrDefault(a => a.Id == CommandParams.AnimeId);
+            .FirstOrDefault(a => a.Id == CommandArgs.AnimeId);
         var newAniDbAnime = new AniDbAnime(animeResult);
         if (aniDbAnime is null)
         {
@@ -75,7 +75,7 @@ public class AnimeCommand : BaseCommand<HttpAnimeParams>
 
     private HttpAnimeResult? GetAnimeCache()
     {
-        Logger.LogInformation("Cache getting anime id {animeId}", CommandParams.AnimeId);
+        Logger.LogInformation("Cache getting anime id {animeId}", CommandArgs.AnimeId);
         if (File.Exists(_cacheFilePath))
         {
             XmlSerializer serializer = new(typeof(HttpAnimeResult));
@@ -95,7 +95,7 @@ public class AnimeCommand : BaseCommand<HttpAnimeParams>
 
     private async Task<HttpAnimeResult?> GetAnimeHttp()
     {
-        var request = new AnimeRequest(_provider, CommandParams.AnimeId);
+        var request = new AnimeRequest(_provider, CommandArgs.AnimeId);
         await request.Process();
         if (request.AnimeResult is null)
         {

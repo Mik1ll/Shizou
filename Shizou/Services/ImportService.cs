@@ -62,7 +62,7 @@ public class ImportService
             .Where(e => !(e.LocalFile?.Ignored ?? false) && (e.FileInfo.Length != e.LocalFile?.FileSize || forceRescan))
             .Select(e => e.FileInfo);
 
-        _commandService.DispatchRange(filesToHash.Select(e => new HashParams(e.FullName)));
+        _commandService.DispatchRange(filesToHash.Select(e => new HashArgs(e.FullName)));
     }
 
     public void CheckForMissingFiles()

@@ -12,5 +12,5 @@ public class CommandRequest : IEntity
     public CommandPriority Priority { get; set; }
     public QueueType QueueType { get; set; }
     public string CommandId { get; set; } = string.Empty;
-    public string CommandParams { get; set; } = string.Empty;
+    public string CommandArgs { get; set; } = string.Empty;
 }
