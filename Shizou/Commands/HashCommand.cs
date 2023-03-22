@@ -72,7 +72,7 @@ public class HashCommand : BaseCommand<HashParams>
             localFile.Crc = hashes[RHasherService.HashIds.Crc32];
             localFile.Ed2K = hashes[RHasherService.HashIds.Ed2K];
             localFile.FileSize = file.Length;
-            localFile.Updated = DateTime.UtcNow;
+            localFile.Updated = DateTimeOffset.UtcNow;
             localFile.ImportFolder = importFolder;
             localFile.PathTail = pathTail;
             Logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasherService.HashIds.Ed2K],

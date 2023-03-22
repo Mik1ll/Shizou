@@ -12,12 +12,12 @@ public class AniDbEpisodeDto : IEntityDto
     public int Number { get; set; }
     public EpisodeType EpisodeType { get; set; }
     public int? DurationMinutes { get; set; }
-    public DateTime? AirDate { get; set; }
+    public DateTimeOffset? AirDate { get; set; }
     public bool Watched { get; set; }
-    public DateTime? WatchedDate { get; set; }
+    public DateTimeOffset? WatchedUpdated { get; set; }
     public int? GenericFileId { get; set; }
 
-    public DateTime? Updated { get; set; }
+    public DateTimeOffset? Updated { get; set; }
 
     
     public int AniDbAnimeId { get; set; }

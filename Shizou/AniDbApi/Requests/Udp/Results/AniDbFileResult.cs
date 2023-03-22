@@ -109,7 +109,7 @@ public sealed record AniDbFileResult
                         Description = AniDbUdpRequest.DataUnescape(data);
                         break;
                     case FileRequest.FMask.EpisodeAiredDate:
-                        EpisodeAiredDate = data != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime : null;
+                        EpisodeAiredDate = data != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)) : null;
                         break;
                     case FileRequest.FMask.AniDbFileName:
                         AniDbFileName = data;
@@ -125,7 +125,7 @@ public sealed record AniDbFileResult
                         MyListViewed = int.Parse(data) != 0;
                         break;
                     case FileRequest.FMask.MyListViewDate:
-                        MyListViewDate = data != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime : null;
+                        MyListViewDate = data != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)) : null;
                         break;
                     case FileRequest.FMask.MyListStorage:
                         MyListStorage = data;
@@ -214,7 +214,7 @@ public sealed record AniDbFileResult
                         GroupNameShort = data;
                         break;
                     case FileRequest.AMask.DateAnimeRecordUpdated:
-                        DateRecordUpdated = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
+                        DateRecordUpdated = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data));
                         break;
                 }
             }
@@ -252,13 +252,13 @@ public sealed record AniDbFileResult
     public List<string>? SubLangugages { get; init; }
     public int? LengthInSeconds { get; init; }
     public string? Description { get; init; }
-    public DateTime? EpisodeAiredDate { get; init; }
+    public DateTimeOffset? EpisodeAiredDate { get; init; }
     public string? AniDbFileName { get; init; }
 
     public MyListState? MyListState { get; init; }
     public MyListFileState? MyListFileState { get; init; }
     public bool? MyListViewed { get; init; }
-    public DateTime? MyListViewDate { get; init; }
+    public DateTimeOffset? MyListViewDate { get; init; }
     public string? MyListStorage { get; init; }
     public string? MyListSource { get; init; }
     public string? MyListOther { get; init; }
@@ -291,7 +291,7 @@ public sealed record AniDbFileResult
 
     public string? GroupName { get; init; }
     public string? GroupNameShort { get; init; }
-    public DateTime? DateRecordUpdated { get; init; }
+    public DateTimeOffset? DateRecordUpdated { get; init; }
 
     #endregion AMask
 }

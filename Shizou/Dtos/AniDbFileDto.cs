@@ -14,14 +14,14 @@ public class AniDbFileDto : IEntityDto
     public long FileSize { get; set; }
     public int? DurationSeconds { get; set; }
     public string? Source { get; set; }
-    public DateTime? Updated { get; set; }
+    public DateTimeOffset? Updated { get; set; }
     public int FileVersion { get; set; }
     public string FileName { get; set; } = null!;
     public bool? Censored { get; set; }
     public bool Deprecated { get; set; }
     public bool Chaptered { get; set; }
     public bool Watched { get; set; }
-    public DateTime? WatchedDate { get; set; }
+    public DateTimeOffset? WatchedUpdated { get; set; }
 
     public AniDbMyListEntry? MyListEntry { get; set; }
 

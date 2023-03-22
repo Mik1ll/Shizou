@@ -29,7 +29,7 @@ public class AniDbFile : IEntity
         DurationSeconds = result.LengthInSeconds;
         Source = result.Source;
         FileVersion = result.State!.Value.FileVersion();
-        Updated = DateTime.UtcNow;
+        Updated = DateTimeOffset.UtcNow;
         AniDbGroupId = result.GroupId;
         MyListEntryId = result.MyListId;
         MyListEntry = result.MyListId is null
@@ -79,14 +79,14 @@ public class AniDbFile : IEntity
     public long FileSize { get; set; }
     public int? DurationSeconds { get; set; }
     public string? Source { get; set; }
-    public DateTime? Updated { get; set; }
+    public DateTimeOffset? Updated { get; set; }
     public int FileVersion { get; set; }
     public string FileName { get; set; } = null!;
     public bool? Censored { get; set; }
     public bool Deprecated { get; set; }
     public bool Chaptered { get; set; }
     public bool Watched { get; set; }
-    public DateTime? WatchedDate { get; set; }
+    public DateTimeOffset? WatchedUpdated { get; set; }
 
     public int? MyListEntryId { get; set; }
     public AniDbMyListEntry? MyListEntry { get; set; }

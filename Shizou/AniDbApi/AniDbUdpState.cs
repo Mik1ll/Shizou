@@ -105,7 +105,7 @@ public sealed class AniDbUdpState : IDisposable
             {
                 _bannedTimer.Stop();
                 _bannedTimer.Start();
-                BanEndTime = DateTime.UtcNow + BanPeriod;
+                BanEndTime = DateTimeOffset.UtcNow + BanPeriod;
             }
             else
             {
@@ -116,7 +116,7 @@ public sealed class AniDbUdpState : IDisposable
     }
 
     public string? BanReason { get; set; }
-    public DateTime? BanEndTime { get; private set; }
+    public DateTimeOffset? BanEndTime { get; private set; }
 
     public void Dispose()
     {

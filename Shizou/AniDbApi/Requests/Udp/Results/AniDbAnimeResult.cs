@@ -68,10 +68,10 @@ public sealed record AniDbAnimeResult
                         SpecialEpisodeCount = int.Parse(data);
                         break;
                     case AnimeRequest.AMask.AirDate:
-                        AirDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
+                        AirDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data));
                         break;
                     case AnimeRequest.AMask.EndDate:
-                        EndDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
+                        EndDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data));
                         break;
                     case AnimeRequest.AMask.Url:
                         Url = data;
@@ -122,7 +122,7 @@ public sealed record AniDbAnimeResult
                         TagWeights = data.Split(',').Select(x => int.Parse(x)).ToList();
                         break;
                     case AnimeRequest.AMask.DateRecordUpdated:
-                        DateRecordUpdated = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)).UtcDateTime;
+                        DateRecordUpdated = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data));
                         break;
                     case AnimeRequest.AMask.CharacterIds:
                         CharacterIds = data.Split(',').Select(x => int.Parse(x)).ToList();
@@ -161,8 +161,8 @@ public sealed record AniDbAnimeResult
     public int? TotalEpisodes { get; }
     public int? HighestEpisodeNumber { get; }
     public int? SpecialEpisodeCount { get; }
-    public DateTime? AirDate { get; }
-    public DateTime? EndDate { get; }
+    public DateTimeOffset? AirDate { get; }
+    public DateTimeOffset? EndDate { get; }
     public string? Url { get; }
     public string? PicName { get; }
     public int? Rating { get; }
@@ -179,7 +179,7 @@ public sealed record AniDbAnimeResult
     public List<string>? TagNames { get; }
     public List<int>? TagIds { get; }
     public List<int>? TagWeights { get; }
-    public DateTime? DateRecordUpdated { get; }
+    public DateTimeOffset? DateRecordUpdated { get; }
     public List<int>? CharacterIds { get; }
     public int? SpecialsCount { get; }
     public int? CreditsCount { get; }

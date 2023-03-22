@@ -28,7 +28,7 @@ public abstract class RateLimiter
     public bool Available => _watch.Elapsed > LongDelay ||
                              (_watch.Elapsed > ShortDelay && _activeWatch.Elapsed < ShortPeriod);
 
-    public DateTime NextAvailable { get; private set; } = DateTime.UtcNow;
+    public DateTimeOffset NextAvailable { get; private set; } = DateTimeOffset.UtcNow;
 
     public async Task EnsureRate()
     {
@@ -37,13 +37,13 @@ public abstract class RateLimiter
             await _rateSemaphore.WaitAsync();
             if (!Available)
             {
-                Logger.LogDebug("Time since last command: {watchElapsed}, waiting for {nextAvailable}", _watch.Elapsed, NextAvailable - DateTime.UtcNow);
-                await Task.Delay(NextAvailable - DateTime.UtcNow);
+                Logger.LogDebug("Time since last command: {watchElapsed}, waiting for {nextAvailable}", _watch.Elapsed, NextAvailable - DateTimeOffset.UtcNow);
+                await Task.Delay(NextAvailable - DateTimeOffset.UtcNow);
             }
             if (_watch.Elapsed > ResetPeriod)
                 _activeWatch.Restart();
             _watch.Restart();
-            NextAvailable = DateTime.UtcNow + (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay);
+            NextAvailable = DateTimeOffset.UtcNow + (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay);
             Logger.LogDebug("Got rate limiter");
         }
         finally

@@ -11,7 +11,7 @@ public class LocalFileDto : IEntityDto
     public string Signature { get; set; } = null!;
     public bool Ignored { get; set; }
     public string PathTail { get; set; } = null!;
-    public DateTime? Updated { get; set; }
+    public DateTimeOffset? Updated { get; set; }
 
     public int ImportFolderId { get; set; }
 }

@@ -24,7 +24,7 @@ public class AniDbEpisode : IEntity
         EpisodeType = result.Type;
         DurationMinutes = result.DurationMinutes is null ? null : result.DurationMinutes.Value;
         AirDate = result.AiredDate;
-        Updated = DateTime.UtcNow;
+        Updated = DateTimeOffset.UtcNow;
         AniDbAnimeId = result.AnimeId;
     }
 
@@ -44,7 +44,7 @@ public class AniDbEpisode : IEntity
         Number = episode.Epno.Text.ParseEpisode().number;
         EpisodeType = episode.Epno.Type;
         AirDate = episode.Airdate;
-        Updated = DateTime.UtcNow;
+        Updated = DateTimeOffset.UtcNow;
         AniDbAnimeId = Id;
         TitleEnglish = episode.Title.First(t => t.Lang == "en").Text;
         TitleRomaji = episode.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == animeLang)?.Text;
@@ -62,12 +62,12 @@ public class AniDbEpisode : IEntity
     public int Number { get; set; }
     public EpisodeType EpisodeType { get; set; }
     public int? DurationMinutes { get; set; }
-    public DateTime? AirDate { get; set; }
+    public DateTimeOffset? AirDate { get; set; }
     public bool Watched { get; set; }
-    public DateTime? WatchedDate { get; set; }
+    public DateTimeOffset? WatchedUpdated { get; set; }
     public int? GenericFileId { get; set; }
-    
-    public DateTime? Updated { get; set; }
+
+    public DateTimeOffset? Updated { get; set; }
 
 
     public int AniDbAnimeId { get; set; }

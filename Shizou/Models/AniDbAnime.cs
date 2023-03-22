@@ -47,7 +47,7 @@ public class AniDbAnime : IEntity
         ImagePath = result.Picture;
         Title = mainTitle.Text;
         AniDbEpisodes = result.Episodes.Select(e => new AniDbEpisode(e, mainTitle.Lang)).ToList();
-        Updated = DateTime.UtcNow;
+        Updated = DateTimeOffset.UtcNow;
     }
 
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -62,8 +62,8 @@ public class AniDbAnime : IEntity
     public string? Description { get; set; }
     public bool Restricted { get; set; }
     public string? ImagePath { get; set; }
-    public DateTime? Updated { get; set; }
-    public DateTime AniDbUpdated { get; set; }
+    public DateTimeOffset? Updated { get; set; }
+    public DateTimeOffset AniDbUpdated { get; set; }
 
     public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
 }

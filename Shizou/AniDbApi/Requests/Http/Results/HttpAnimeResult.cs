@@ -242,7 +242,7 @@ namespace Shizou.AniDbApi.Requests.Http.Results
 
             [XmlAttribute("update")]
             [MaybeNull]
-            public DateTime Update { get; set; }
+            public DateTimeOffset Update { get; set; }
 
             [XmlIgnore]
             public bool UpdateSpecified { get; set; }
@@ -331,7 +331,7 @@ namespace Shizou.AniDbApi.Requests.Http.Results
             public string Type { get; set; }
 
             [XmlAttribute("update")]
-            public DateTime Update { get; set; }
+            public DateTimeOffset Update { get; set; }
         }
 
         [XmlRoot("epno")]
@@ -354,7 +354,7 @@ namespace Shizou.AniDbApi.Requests.Http.Results
             public int Length { get; set; }
 
             [XmlElement("airdate")]
-            public DateTime? Airdate { get; set; }
+            public DateTimeOffset? Airdate { get; set; }
 
             [XmlElement("rating")]
             public Rating? Rating { get; set; }
@@ -373,7 +373,7 @@ namespace Shizou.AniDbApi.Requests.Http.Results
             public int Id { get; set; }
 
             [XmlAttribute("update")]
-            public DateTime Update { get; set; }
+            public DateTimeOffset Update { get; set; }
 
             [XmlAttribute("recap")]
             [MaybeNull]

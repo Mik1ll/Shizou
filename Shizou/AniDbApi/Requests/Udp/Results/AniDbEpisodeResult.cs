@@ -17,7 +17,7 @@ public sealed record AniDbEpisodeResult
         TitleEnglish = dataArr[6];
         TitleRomaji = dataArr[7];
         TitleKanji = dataArr[8];
-        AiredDate = dataArr[9] != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[9])).UtcDateTime : null;
+        AiredDate = dataArr[9] != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[9])) : null;
     }
 
     public int EpisodeId { get; }
@@ -30,5 +30,5 @@ public sealed record AniDbEpisodeResult
     public string TitleEnglish { get; }
     public string TitleRomaji { get; }
     public string TitleKanji { get; }
-    public DateTime? AiredDate { get; }
+    public DateTimeOffset? AiredDate { get; }
 }

@@ -10,7 +10,8 @@ public class AniDbMyListEntry : IEntity
     public int Id { get; set; }
 
     public bool Watched { get; set; }
-    public DateTime? WatchedDate { get; set; }
+    public DateTimeOffset? WatchedDate { get; set; }
     public MyListState MyListState { get; set; }
     public MyListFileState MyListFileState { get; set; }
+    public DateTimeOffset Updated { get; set; }
 }

@@ -37,7 +37,7 @@ public class AniDbHttpState : IDisposable
             {
                 _bannedTimer.Stop();
                 _bannedTimer.Start();
-                BanEndTime = DateTime.UtcNow + BanPeriod;
+                BanEndTime = DateTimeOffset.UtcNow + BanPeriod;
             }
             else
             {
@@ -48,7 +48,7 @@ public class AniDbHttpState : IDisposable
 
     public TimeSpan BanPeriod { get; } = new(12, 0, 0);
 
-    public DateTime? BanEndTime { get; set; }
+    public DateTimeOffset? BanEndTime { get; set; }
 
     public void Dispose()
     {
