@@ -13,16 +13,16 @@ public class AuthRequest : AniDbUdpRequest
     public AuthRequest(IServiceProvider provider) : base(provider, "AUTH")
     {
         var opts = provider.GetRequiredService<IOptionsSnapshot<ShizouOptions>>().Value;
-        Params["user"] = opts.AniDb.Username;
-        Params["pass"] = opts.AniDb.Password;
-        Params["protover"] = "3";
-        Params["client"] = "shizouudp";
-        Params["clientver"] = "1";
-        Params["comp"] = "1";
-        Params["enc"] = Encoding.BodyName;
-        Params["mtu"] = "1400";
-        Params["imgserver"] = "1";
-        Params["nat"] = "1";
+        Args["user"] = opts.AniDb.Username;
+        Args["pass"] = opts.AniDb.Password;
+        Args["protover"] = "3";
+        Args["client"] = "shizouudp";
+        Args["clientver"] = "1";
+        Args["comp"] = "1";
+        Args["enc"] = Encoding.BodyName;
+        Args["mtu"] = "1400";
+        Args["imgserver"] = "1";
+        Args["nat"] = "1";
     }
 
     public override async Task Process()

@@ -14,7 +14,7 @@ public class MyListRequest : HttpRequest
 
     public MyListRequest(IServiceProvider provider) : base(provider)
     {
-        Params["request"] = "mylist";
+        Args["request"] = "mylist";
     }
 
     public override async Task Process()

@@ -20,35 +20,35 @@ public class MyListAddRequest : AniDbUdpRequest
         _watchedDate = watchedDate;
         _state = state;
         _fileState = fileState;
-        Params["edit"] = edit ? "1" : "0";
+        Args["edit"] = edit ? "1" : "0";
         if (watched is not null)
-            Params["viewed"] = watched.Value ? "1" : "0";
+            Args["viewed"] = watched.Value ? "1" : "0";
         if (watchedDate is not null)
-            Params["viewdate"] = watchedDate.Value.ToUnixTimeSeconds().ToString();
+            Args["viewdate"] = watchedDate.Value.ToUnixTimeSeconds().ToString();
         if (state is not null)
-            Params["state"] = ((int)state).ToString();
+            Args["state"] = ((int)state).ToString();
         if (fileState is not null)
-            Params["filestate"] = ((int)fileState).ToString();
+            Args["filestate"] = ((int)fileState).ToString();
     }
 
     public MyListAddRequest(IServiceProvider provider, int fid, bool edit, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null,
         MyListFileState? fileState = null) : this(provider, edit, watched, watchedDate, state, fileState)
     {
-        Params["fid"] = fid.ToString();
+        Args["fid"] = fid.ToString();
     }
 
     public MyListAddRequest(IServiceProvider provider, int lid, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null,
         MyListFileState? fileState = null) : this(provider, true, watched, watchedDate, state, fileState)
     {
-        Params["lid"] = lid.ToString();
+        Args["lid"] = lid.ToString();
     }
 
     public MyListAddRequest(IServiceProvider provider, int aid, string epno, bool edit, bool? watched = null, DateTimeOffset? watchedDate = null,
         MyListState? state = null, MyListFileState? fileState = null) : this(provider, edit, watched, watchedDate, state, fileState)
     {
-        Params["aid"] = aid.ToString();
-        Params["epno"] = epno;
-        Params["generic"] = "1";
+        Args["aid"] = aid.ToString();
+        Args["epno"] = epno;
+        Args["generic"] = "1";
     }
     
     public override async Task Process()
@@ -61,7 +61,7 @@ public class MyListAddRequest : AniDbUdpRequest
                 {
                     return;
                 }
-                if (Params["edit"] == "0" && Params.ContainsKey("fid"))
+                if (Args["edit"] == "0" && Args.ContainsKey("fid"))
                     MyListResult = new AniDbMyListAddResult(int.Parse(ResponseText), DateTimeOffset.UtcNow, _state, _watched, _watchedDate, _fileState);
                 break;
             case AniDbResponseCode.MyListEdited:

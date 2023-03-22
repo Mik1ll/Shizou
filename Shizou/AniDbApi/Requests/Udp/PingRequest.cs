@@ -8,7 +8,7 @@ public class PingRequest : AniDbUdpRequest
 {
     public PingRequest(IServiceProvider provider) : base(provider, "PING")
     {
-        Params["nat"] = "1";
+        Args["nat"] = "1";
     }
     
     public override async Task Process()

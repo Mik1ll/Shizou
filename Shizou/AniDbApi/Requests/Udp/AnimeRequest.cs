@@ -99,8 +99,8 @@ public class AnimeRequest : AniDbUdpRequest
     public AnimeRequest(IServiceProvider provider, int animeId, AMask aMask) : this(provider)
     {
         _aMask = aMask;
-        Params["aid"] = animeId.ToString();
-        Params["amask"] = ((ulong)aMask).ToString("X14");
+        Args["aid"] = animeId.ToString();
+        Args["amask"] = ((ulong)aMask).ToString("X14");
     }
 
     public override async Task Process()

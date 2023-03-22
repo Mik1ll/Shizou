@@ -114,27 +114,27 @@ public class FileRequest : AniDbUdpRequest
     {
         _fMask = fMask;
         _aMask = aMask;
-        Params["fmask"] = ((ulong)fMask).ToString("X10");
-        Params["amask"] = aMask.ToString("X");
+        Args["fmask"] = ((ulong)fMask).ToString("X10");
+        Args["amask"] = aMask.ToString("X");
     }
 
     public FileRequest(IServiceProvider provider, int fileId, FMask fMask, AMask aMask) : this(provider, fMask, aMask)
     {
-        Params["fid"] = fileId.ToString();
+        Args["fid"] = fileId.ToString();
     }
 
     public FileRequest(IServiceProvider provider, long fileSize, string ed2K, FMask fMask, AMask aMask) : this(provider, fMask, aMask)
     {
-        Params["size"] = fileSize.ToString();
-        Params["ed2k"] = ed2K;
+        Args["size"] = fileSize.ToString();
+        Args["ed2k"] = ed2K;
     }
 
     // TODO: Test if epno can take special episode string
     public FileRequest(IServiceProvider provider, int animeId, int groupId, string episodeNumber, FMask fMask, AMask aMask) : this(provider, fMask, aMask)
     {
-        Params["aid"] = animeId.ToString();
-        Params["gid"] = groupId.ToString();
-        Params["epno"] = episodeNumber;
+        Args["aid"] = animeId.ToString();
+        Args["gid"] = groupId.ToString();
+        Args["epno"] = episodeNumber;
     }
 
     public AniDbFileResult? FileResult { get; private set; }

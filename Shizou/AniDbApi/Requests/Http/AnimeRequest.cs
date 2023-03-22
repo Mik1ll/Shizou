@@ -13,15 +13,15 @@ public class AnimeRequest : HttpRequest
 {
     public AnimeRequest(IServiceProvider provider, int aid) : base(provider)
     {
-        Params["request"] = "anime";
-        Params["aid"] = aid.ToString();
+        Args["request"] = "anime";
+        Args["aid"] = aid.ToString();
     }
 
     public HttpAnimeResult? AnimeResult { get; private set; }
 
     public override async Task Process()
     {
-        Logger.LogInformation("HTTP Getting anime {aid} from AniDb", Params["aid"]);
+        Logger.LogInformation("HTTP Getting anime {aid} from AniDb", Args["aid"]);
         await SendRequest();
         if (ResponseText is not null)
         {

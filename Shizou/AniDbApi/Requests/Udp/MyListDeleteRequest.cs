@@ -20,18 +20,18 @@ public class MyListDeleteRequest : AniDbUdpRequest
         switch (idType)
         {
             case IdType.MyListId:
-                Params["lid"] = id.ToString();
+                Args["lid"] = id.ToString();
                 break;
             case IdType.FileId:
-                Params["fid"] = id.ToString();
+                Args["fid"] = id.ToString();
                 break;
         }
     }
 
     public MyListDeleteRequest(IServiceProvider provider, int aid, string epno) : this(provider)
     {
-        Params["aid"] = aid.ToString();
-        Params["epno"] = epno;
+        Args["aid"] = aid.ToString();
+        Args["epno"] = epno;
     }
 
     public override async Task Process()

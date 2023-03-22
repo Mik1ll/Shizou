@@ -18,7 +18,7 @@ public abstract class HttpRequest
     protected readonly ILogger<HttpRequest> Logger;
     private readonly AniDbHttpState _httpState;
 
-    public Dictionary<string, string?> Params { get; } = new();
+    public Dictionary<string, string?> Args { get; } = new();
     public string? ResponseText { get; protected set; }
 
     public HttpRequest(IServiceProvider provider)
@@ -28,18 +28,18 @@ public abstract class HttpRequest
         _httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("gzip");
         _builder = new UriBuilder("http", options.AniDb.ServerHost, options.AniDb.HttpServerPort, "httpapi");
         Logger = provider.GetRequiredService<ILogger<HttpRequest>>();
-        Params["client"] = "shizouhttp";
-        Params["clientver"] = "1";
-        Params["protover"] = "1";
-        Params["user"] = options.AniDb.Username;
-        Params["pass"] = options.AniDb.Password;
+        Args["client"] = "shizouhttp";
+        Args["clientver"] = "1";
+        Args["protover"] = "1";
+        Args["user"] = options.AniDb.Username;
+        Args["pass"] = options.AniDb.Password;
     }
 
     public abstract Task Process();
 
     public async Task SendRequest()
     {
-        var url = QueryHelpers.AddQueryString(_builder.Uri.AbsoluteUri, Params);
+        var url = QueryHelpers.AddQueryString(_builder.Uri.AbsoluteUri, Args);
         try
         {
             await _httpState.RateLimiter.EnsureRate();

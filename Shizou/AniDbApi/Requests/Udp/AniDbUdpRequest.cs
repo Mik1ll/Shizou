@@ -25,7 +25,7 @@ public abstract class AniDbUdpRequest
     }
 
     public string Command { get; }
-    public Dictionary<string, string> Params { get; } = new();
+    public Dictionary<string, string> Args { get; } = new();
 
     public Encoding Encoding { get; } = Encoding.UTF8;
     public string? RequestText { get; private set; }
@@ -73,7 +73,7 @@ public abstract class AniDbUdpRequest
             }
             if (!string.IsNullOrWhiteSpace(AniDbUdpState.SessionKey))
             {
-                Params["s"] = AniDbUdpState.SessionKey;
+                Args["s"] = AniDbUdpState.SessionKey;
             }
             else
             {
@@ -81,7 +81,7 @@ public abstract class AniDbUdpRequest
                 throw new ProcessorPauseException("Failed to get new session");
             }
         }
-        foreach (var (name, param) in Params)
+        foreach (var (name, param) in Args)
             requestBuilder.Append($"{name}={Regex.Replace(HttpUtility.HtmlEncode(param), @"\r?\n|\r", "<br />")}&");
         // Removes the extra & at end of parameters
         requestBuilder.Length--;
