@@ -46,7 +46,7 @@ public class AniDbAnime : IEntity
         EpisodeCount = result.Episodecount;
         ImagePath = result.Picture;
         Title = mainTitle.Text;
-        AniDbEpisodes = result.Episodes.Select(e => new AniDbEpisode(e, mainTitle.Lang)).ToList();
+        AniDbEpisodes = result.Episodes.Select(e => new AniDbEpisode(e, mainTitle.Lang) { AniDbAnimeId = Id }).ToList();
         Updated = DateTimeOffset.UtcNow;
     }
 

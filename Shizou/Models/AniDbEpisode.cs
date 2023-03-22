@@ -45,7 +45,6 @@ public class AniDbEpisode : IEntity
         EpisodeType = episode.Epno.Type;
         AirDate = episode.Airdate;
         Updated = DateTimeOffset.UtcNow;
-        AniDbAnimeId = Id;
         TitleEnglish = episode.Title.First(t => t.Lang == "en").Text;
         TitleRomaji = episode.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == animeLang)?.Text;
         TitleKanji = episode.Title.FirstOrDefault(t =>
