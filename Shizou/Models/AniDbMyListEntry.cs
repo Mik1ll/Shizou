@@ -13,5 +13,5 @@ public class AniDbMyListEntry : IEntity
     public DateTimeOffset? WatchedDate { get; set; }
     public MyListState MyListState { get; set; }
     public MyListFileState MyListFileState { get; set; }
-    public DateTimeOffset Updated { get; set; }
+    public DateTimeOffset? Updated { get; set; }
 }
