@@ -3,8 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -52,17 +50,14 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private async Task<HttpMyListResult?> GetMyList()
     {
-        var (cacheHit, requestable) = CheckCache();
+        var requestable = true;
+        var fileInfo = new FileInfo(Constants.MyListPath);
+        if (fileInfo.Exists)
+            requestable = DateTime.UtcNow - fileInfo.LastWriteTimeUtc > MyListRequestPeriod;
         if (!requestable)
         {
-            if (!cacheHit)
-            {
-                Logger.LogWarning("Failed to get mylist: already requested in last {hours} hours and no local cache", MyListRequestPeriod.Hours);
-                return null;
-            }
-            Logger.LogInformation("Already requested mylist in last {hours} hours, not requesting", MyListRequestPeriod.Hours);
-            var serializer = new XmlSerializer(typeof(HttpMyListResult));
-            return serializer.Deserialize(new XmlTextReader(Constants.MyListPath)) as HttpMyListResult;
+            Logger.LogWarning("Failed to get mylist: already requested in last {hours} hours", MyListRequestPeriod.Hours);
+            return null;
         }
 
         var request = new MyListRequest(_provider);
@@ -83,14 +78,5 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             Logger.LogInformation("HTTP Get mylist succeeded");
         }
         return request.MyListResult;
-    }
-
-
-    private (bool Hit, bool CanRequest) CheckCache()
-    {
-        var fileInfo = new FileInfo(Constants.MyListPath);
-        if (fileInfo.Exists)
-            return (fileInfo.Length != 0, DateTime.UtcNow - fileInfo.LastWriteTimeUtc > MyListRequestPeriod);
-        return (false, true);
     }
 }
