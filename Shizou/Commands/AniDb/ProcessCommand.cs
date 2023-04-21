@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -101,7 +102,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private void UpdateEpRelations(AniDbFileResult result)
     {
-        var resultRels = result.OtherEpisodeIds!.Append(result.EpisodeId!.Value)
+        var resultRels = (result.OtherEpisodeIds ?? new List<int>()).Append(result.EpisodeId!.Value)
             .Select(x => new AniDbEpisodeFileXref { AniDbEpisodeId = x, AniDbFileId = result.FileId }).ToList();
         var dbRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
         _context.ReplaceList(resultRels, dbRels, r => r.AniDbEpisodeId);
