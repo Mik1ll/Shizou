@@ -8,13 +8,13 @@ public class ShizouProfile : Profile
 {
     public ShizouProfile()
     {
-        CreateMap<AniDbAnime, AniDbAnimeDto>();
-        CreateMap<AniDbAudio, AniDbAudioDto>();
-        CreateMap<AniDbEpisode, AniDbEpisodeDto>();
-        CreateMap<AniDbFile, AniDbFileDto>();
-        CreateMap<AniDbGroup, AniDbGroupDto>();
-        CreateMap<AniDbSubtitle, AniDbSubtitleDto>();
-        CreateMap<ImportFolder, ImportFolderDto>();
-        CreateMap<LocalFile, LocalFileDto>();
+        CreateMap<AniDbAnime, AniDbAnimeDto>().ReverseMap();
+        CreateMap<AniDbAudio, AniDbAudioDto>().ReverseMap();
+        CreateMap<AniDbEpisode, AniDbEpisodeDto>().ReverseMap();
+        CreateMap<AniDbFile, AniDbFileDto>().ReverseMap();
+        CreateMap<AniDbGroup, AniDbGroupDto>().ReverseMap();
+        CreateMap<AniDbSubtitle, AniDbSubtitleDto>().ReverseMap();
+        CreateMap<ImportFolder, ImportFolderDto>().ReverseMap();
+        CreateMap<LocalFile, LocalFileDto>().ReverseMap();
     }
 }
