@@ -91,7 +91,7 @@ public class EntityController<TEntity, TDto> : ControllerBase
                 return Conflict();
             throw;
         }
-        return CreatedAtAction(nameof(Get), new { id = newEntity.Id }, Mapper.Map<TDto>(entity));
+        return CreatedAtAction(nameof(Get), new { id = newEntity.Id }, Mapper.Map<TDto>(newEntity));
     }
 
     /// <summary>
