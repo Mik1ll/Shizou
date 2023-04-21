@@ -25,7 +25,6 @@ public class AnimeRequest : HttpRequest
         await SendRequest();
         if (ResponseText is not null)
         {
-            ResponseText = HttpUtility.HtmlDecode(ResponseText);
             XmlSerializer serializer = new(typeof(HttpAnimeResult));
             using var strReader = new StringReader(ResponseText);
             using var xmlReader = XmlReader.Create(strReader);
