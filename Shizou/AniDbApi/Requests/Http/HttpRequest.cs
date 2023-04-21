@@ -23,7 +23,8 @@ public abstract class HttpRequest
 
     public HttpRequest(IServiceProvider provider)
     {
-        var options = provider.GetRequiredService<IOptionsSnapshot<ShizouOptions>>().Value;
+        using var scope = provider.CreateScope();
+        var options = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<ShizouOptions>>().Value;
         _httpState = provider.GetRequiredService<AniDbHttpState>();
         _httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("gzip");
         _builder = new UriBuilder("http", options.AniDb.ServerHost, options.AniDb.HttpServerPort, "httpapi");
