@@ -3,8 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -33,9 +31,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     public override async Task Process()
     {
-        //var myList = await GetMyList();
-        var serializer = new XmlSerializer(typeof(HttpMyListResult));
-        var myList = serializer.Deserialize(new XmlTextReader(Constants.MyListPath)) as HttpMyListResult;
+        var myList = await GetMyList();
 
         if (myList is null)
         {
