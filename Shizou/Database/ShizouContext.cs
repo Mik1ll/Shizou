@@ -48,7 +48,7 @@ public sealed class ShizouContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder
-            .UseSqlite(@$"Data Source={Path.Combine(Constants.ApplicationData, "ShizouDB.sqlite3")};Foreign Keys=True;")
+            .UseSqlite(@$"Data Source={Path.Combine(Constants.ApplicationDataDir, "ShizouDB.sqlite3")};Foreign Keys=True;")
             .EnableSensitiveDataLogging();
     }
 

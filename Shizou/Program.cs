@@ -25,7 +25,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    Directory.CreateDirectory(Constants.ApplicationData);
+    Directory.CreateDirectory(Constants.ApplicationDataDir);
     if (!File.Exists(Constants.OptionsPath))
         new ShizouOptions().SaveToFile();
 
@@ -33,7 +33,7 @@ try
     builder.Configuration.AddJsonFile(Constants.OptionsPath, false, true);
     builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration)
         .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}")
-        .WriteTo.File(Path.Combine(Constants.LogsPath, ".log"),
+        .WriteTo.File(Path.Combine(Constants.LogsDir, ".log"),
             outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}",
             rollingInterval: RollingInterval.Day)
         .WriteTo.Seq("http://localhost:5341")

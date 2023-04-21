@@ -78,6 +78,8 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         {
             Logger.LogDebug("Overwriting mylist file");
             await File.WriteAllTextAsync(Constants.MyListPath, request.ResponseText, Encoding.UTF8);
+            var backupFilePath = Path.Combine(Constants.MyListBackupDir, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".xml");
+            await File.WriteAllTextAsync(backupFilePath, request.ResponseText, Encoding.UTF8);
             Logger.LogInformation("HTTP Get mylist succeeded");
         }
         return request.MyListResult;

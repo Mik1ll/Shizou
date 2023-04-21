@@ -30,7 +30,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
     {
         _provider = provider;
         _context = provider.GetRequiredService<ShizouContext>();
-        _cacheFilePath = Path.Combine(Constants.HttpCachePath, $"AnimeDoc_{CommandArgs.AnimeId}.xml");
+        _cacheFilePath = Path.Combine(Constants.HttpCacheDir, $"AnimeDoc_{CommandArgs.AnimeId}.xml");
     }
 
     public override async Task Process()
@@ -101,7 +101,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         {
             if (!File.Exists(_cacheFilePath))
             {
-                Directory.CreateDirectory(Constants.HttpCachePath);
+                Directory.CreateDirectory(Constants.HttpCacheDir);
                 File.Create(_cacheFilePath).Dispose();
             }
             File.SetLastWriteTimeUtc(_cacheFilePath, DateTime.UtcNow);

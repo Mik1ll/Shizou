@@ -5,7 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shizou.CommandProcessors;
+using Shizou.Commands.AniDb;
 using Shizou.Database;
+using Shizou.Services;
 
 // ReSharper disable UnusedVariable
 
@@ -30,6 +32,8 @@ public sealed class StartupService : BackgroundService
         
         var processors = scope.ServiceProvider.GetServices<CommandProcessor>();
         foreach (var processor in processors) processor.Unpause();
+
+        scope.ServiceProvider.GetRequiredService<CommandService>().Dispatch(new AnimeArgs(11683));
         
         log.LogInformation("Startup service finished");
     }

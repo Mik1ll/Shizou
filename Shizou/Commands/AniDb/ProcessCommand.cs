@@ -29,7 +29,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
     {
         _context = provider.GetRequiredService<ShizouContext>();
         _commandService = provider.GetRequiredService<CommandService>();
-        _fileCachePath = Path.Combine(Constants.TempFilePath, CommandArgs.CommandId + ".json");
+        _fileCachePath = Path.Combine(Constants.TempFileDir, CommandArgs.CommandId + ".json");
     }
 
     public override async Task Process()
@@ -139,8 +139,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private async Task SaveToFileCache(AniDbFileResult? result)
     {
-        if (!Directory.Exists(Constants.TempFilePath))
-            Directory.CreateDirectory(Constants.TempFilePath);
+        if (!Directory.Exists(Constants.TempFileDir))
+            Directory.CreateDirectory(Constants.TempFileDir);
         using (var file = new FileStream(_fileCachePath, FileMode.Create, FileAccess.Write))
         {
             await JsonSerializer.SerializeAsync(file, result);
