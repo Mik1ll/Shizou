@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -10,6 +12,7 @@ using Shizou.AniDbApi.Requests.Http;
 using Shizou.AniDbApi.Requests.Http.Results;
 using Shizou.CommandProcessors;
 using Shizou.Database;
+using Shizou.Models;
 
 namespace Shizou.Commands.AniDb;
 
@@ -30,7 +33,10 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     public override async Task Process()
     {
-        var myList = await GetMyList();
+        //var myList = await GetMyList();
+        var serializer = new XmlSerializer(typeof(HttpMyListResult));
+        var myList = serializer.Deserialize(new XmlTextReader(Constants.MyListPath)) as HttpMyListResult;
+
         if (myList is null)
         {
             Completed = true;
@@ -38,12 +44,35 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         }
 
         var context = _provider.GetRequiredService<ShizouContext>();
-        foreach (var myListEntry in myList.MyListItems)
+        var localEntries = context.AniDbMyListEntries.ToList();
+        // Delete local entries that don't exist on anidb
+        var toDelete = localEntries.Where(e => !myList.MyListItems.Select(i => i.Id).Contains(e.Id));
+        context.AniDbMyListEntries.RemoveRange(toDelete);
+        // Add new anidb entries that don't exist in local db
+        var toAdd = myList.MyListItems.Where(i => !localEntries.Select(e => e.Id).Contains(i.Id)).ToList();
+        foreach (var myListItem in toAdd)
         {
-            var updated = DateTime.SpecifyKind(DateTime.Parse(myListEntry.Updated), DateTimeKind.Utc);
-            DateTime? watched = myListEntry.Viewdate is null ? null : DateTime.Parse(myListEntry.Viewdate).ToUniversalTime();
-            var dbMyListEntry = context.AniDbMyListEntries.Find(myListEntry.Id);
+            var relatedFile = context.AniDbFiles.Include(f => f.MyListEntry).FirstOrDefault(f => f.Id == myListItem.Fid);
+            if (relatedFile is not null)
+            {
+                relatedFile.MyListEntry = new AniDbMyListEntry(myListItem);
+            }
+            else
+            {
+                var relatedEpisode = context.AniDbEpisodes.Include(e => e.GenericMyListEntry).FirstOrDefault(e => e.GenericFileId == myListItem.Fid);
+                if (relatedEpisode is not null)
+                    relatedEpisode.GenericMyListEntry = new AniDbMyListEntry(myListItem);
+            }
         }
+        // Replace changed entries
+        var toUpdate = myList.MyListItems.Except(toAdd);
+        foreach (var myListItem in toUpdate)
+        {
+            var existingEntry = localEntries.FirstOrDefault(e => e.Id == myListItem.Id);
+            if (existingEntry is not null)
+                context.Entry(existingEntry).CurrentValues.SetValues(new AniDbMyListEntry(myListItem));
+        }
+        context.SaveChanges();
 
         Completed = true;
     }
