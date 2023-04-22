@@ -6,11 +6,14 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shizou.AniDbApi.Requests.Http;
 using Shizou.AniDbApi.Requests.Http.Results;
 using Shizou.CommandProcessors;
 using Shizou.Database;
 using Shizou.Models;
+using Shizou.Options;
+using Shizou.Services;
 
 namespace Shizou.Commands.AniDb;
 
@@ -20,6 +23,9 @@ public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}");
 public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 {
     private readonly IServiceProvider _provider;
+    private readonly ShizouContext _context;
+    private readonly CommandService _commandService;
+    private readonly ShizouOptions _options;
 
     public TimeSpan MyListRequestPeriod { get; } = TimeSpan.FromHours(24);
 
@@ -27,6 +33,10 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     public SyncMyListCommand(IServiceProvider provider, SyncMyListArgs commandArgs) : base(provider, commandArgs)
     {
         _provider = provider;
+        _context = _provider.GetRequiredService<ShizouContext>();
+        _commandService = _provider.GetRequiredService<CommandService>();
+        using var scope = _provider.CreateScope();
+        _options = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<ShizouOptions>>().Value;
     }
 
     public override async Task Process()
@@ -39,38 +49,46 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             return;
         }
 
-        var context = _provider.GetRequiredService<ShizouContext>();
-        var localEntries = context.AniDbMyListEntries.ToList();
-        // Delete local entries that don't exist on anidb
-        var toDelete = localEntries.Where(e => !myList.MyListItems.Select(i => i.Id).Contains(e.Id));
-        context.AniDbMyListEntries.RemoveRange(toDelete);
+        SyncMyListEntries(myList);
+
+        Completed = true;
+    }
+
+    private void SyncMyListEntries(HttpMyListResult myListResult)
+    {
+        var remoteItems = myListResult.MyListItems;
+        var localEntries = _context.AniDbMyListEntries.ToList();
+        // Delete local entries that don't exist on anidb, use exceptby since they are not same objects
+        var toDelete = localEntries.ExceptBy(remoteItems.Select(e => e.Id), e => e.Id).ToList();
+        _context.AniDbMyListEntries.RemoveRange(toDelete);
         // Add new anidb entries that don't exist in local db
-        var toAdd = myList.MyListItems.Where(i => !localEntries.Select(e => e.Id).Contains(i.Id)).ToList();
-        foreach (var myListItem in toAdd)
+        var toAdd = remoteItems.ExceptBy(localEntries.Select(e => e.Id), e => e.Id).ToList();
+        var fileIds = _context.AniDbFiles.Select(f => f.Id).ToHashSet();
+        var genericFileIds = _context.AniDbEpisodes.Select(e => e.GenericFileId).ToHashSet();
+        foreach (var item in toAdd)
         {
-            var relatedFile = context.AniDbFiles.Include(f => f.MyListEntry).FirstOrDefault(f => f.Id == myListItem.Fid);
-            if (relatedFile is not null)
+            var newEntry = new AniDbMyListEntry(item);
+            _context.AniDbMyListEntries.Add(newEntry);
+            if (fileIds.Contains(item.Fid))
             {
-                relatedFile.MyListEntry = new AniDbMyListEntry(myListItem);
+                var relatedFile = _context.AniDbFiles.Include(f => f.MyListEntry).First(f => f.Id == item.Fid);
+                relatedFile.MyListEntry = newEntry;
             }
-            else
+            else if (genericFileIds.Contains(item.Fid))
             {
-                var relatedEpisode = context.AniDbEpisodes.Include(e => e.GenericMyListEntry).FirstOrDefault(e => e.GenericFileId == myListItem.Fid);
-                if (relatedEpisode is not null)
-                    relatedEpisode.GenericMyListEntry = new AniDbMyListEntry(myListItem);
+                var relatedEpisode = _context.AniDbEpisodes.Include(e => e.GenericMyListEntry).First(e => e.GenericFileId == item.Fid);
+                relatedEpisode.GenericMyListEntry = newEntry;
             }
         }
         // Replace changed entries
-        var toUpdate = myList.MyListItems.Except(toAdd);
+        var toUpdate = myListResult.MyListItems.Except(toAdd);
         foreach (var myListItem in toUpdate)
         {
             var existingEntry = localEntries.FirstOrDefault(e => e.Id == myListItem.Id);
             if (existingEntry is not null)
-                context.Entry(existingEntry).CurrentValues.SetValues(new AniDbMyListEntry(myListItem));
+                _context.Entry(existingEntry).CurrentValues.SetValues(new AniDbMyListEntry(myListItem));
         }
-        context.SaveChanges();
-
-        Completed = true;
+        _context.SaveChanges();
     }
 
     private async Task<HttpMyListResult?> GetMyList()
@@ -97,8 +115,10 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         else
         {
             Logger.LogDebug("Overwriting mylist file");
+            Directory.CreateDirectory(Path.GetDirectoryName(Constants.MyListPath)!);
             await File.WriteAllTextAsync(Constants.MyListPath, request.ResponseText, Encoding.UTF8);
             var backupFilePath = Path.Combine(Constants.MyListBackupDir, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".xml");
+            Directory.CreateDirectory(Constants.MyListBackupDir);
             await File.WriteAllTextAsync(backupFilePath, request.ResponseText, Encoding.UTF8);
             Logger.LogInformation("HTTP Get mylist succeeded");
         }
