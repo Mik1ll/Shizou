@@ -41,17 +41,30 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     public override async Task Process()
     {
-        var myList = await GetMyList();
+        var myListResult = await GetMyList();
 
-        if (myList is null)
+        if (myListResult is null)
         {
             Completed = true;
             return;
         }
 
-        SyncMyListEntries(myList);
+        SyncMyListEntries(myListResult);
+
+        MarkAbsentFiles(myListResult);
 
         Completed = true;
+    }
+
+    private void MarkAbsentFiles(HttpMyListResult myListResult)
+    {
+        var fileIds = _context.AniDbFiles.Select(f => f.Id).ToHashSet();
+        var genericFileIds = _context.AniDbEpisodes.Select(e => e.GenericFileId).ToHashSet();
+        var markAbsentCommands = myListResult.MyListItems.Where(i => !fileIds.Contains(i.Fid) &&
+                                                                     !genericFileIds.Contains(i.Fid) &&
+                                                                     i.State != _options.MyList.AbsentFileState).Select(i =>
+            new UpdateMyListArgs(i.Id, Edit: true, MyListState: _options.MyList.AbsentFileState));
+        _commandService.DispatchRange(markAbsentCommands);
     }
 
     private void SyncMyListEntries(HttpMyListResult myListResult)
