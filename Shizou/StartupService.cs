@@ -32,8 +32,6 @@ public sealed class StartupService : BackgroundService
         
         var processors = scope.ServiceProvider.GetServices<CommandProcessor>();
         foreach (var processor in processors) processor.Unpause();
-
-        scope.ServiceProvider.GetRequiredService<CommandService>().Dispatch(new AnimeArgs(11683));
         
         log.LogInformation("Startup service finished");
     }
