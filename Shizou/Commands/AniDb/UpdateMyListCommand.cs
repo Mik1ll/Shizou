@@ -10,14 +10,14 @@ using Shizou.Enums;
 namespace Shizou.Commands.AniDb;
 
 public record UpdateMyListArgs(
-        int? Lid,
-        int? Fid,
-        int? Aid, string? EpNo,
-        bool? Edit,
-        bool? Watched,
-        DateTimeOffset? WatchedDate,
-        MyListState? MyListState,
-        MyListFileState? MyListFileState
+        int? Lid = null,
+        int? Fid = null,
+        int? Aid = null, string? EpNo = null,
+        bool? Edit = null,
+        bool? Watched = null,
+        DateTimeOffset? WatchedDate = null,
+        MyListState? MyListState = null,
+        MyListFileState? MyListFileState = null
     )
     : CommandArgs($"{nameof(UpdateMyListCommand)}_lid={Lid}_fid={Fid}_aid={Aid}_epno={EpNo}"
                   + $"_edit={Edit}_watched={Watched}_state={MyListState}_filestate={MyListFileState}");
