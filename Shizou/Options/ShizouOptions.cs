@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using Shizou.Enums;
 
 namespace Shizou.Options;
 
@@ -11,6 +12,8 @@ public class ShizouOptions
     public ImportOptions Import { get; set; } = new();
 
     public AniDbOptions AniDb { get; set; } = new();
+
+    public MyListOptions MyList { get; set; } = new();
 
     public void SaveToFile()
     {
@@ -36,5 +39,11 @@ public class ShizouOptions
         public ushort HttpServerPort { get; set; } = 9001;
 
         public ushort ClientPort { get; set; } = 4556;
+    }
+
+    public class MyListOptions
+    {
+        public MyListState AbsentFileState = MyListState.Deleted;
+        public MyListState PresentFileState = MyListState.Internal;
     }
 }
