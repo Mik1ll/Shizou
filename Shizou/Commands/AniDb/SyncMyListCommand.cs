@@ -59,7 +59,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     private void MarkAbsentFiles(HttpMyListResult myListResult)
     {
         var fileIds = _context.AniDbFiles.Select(f => f.Id).ToHashSet();
-        var genericFileIds = _context.AniDbEpisodes.Select(e => e.GenericFileId).ToHashSet();
+        var genericFileIds = _context.AniDbGenericFiles.Select(e => e.Id).ToHashSet();
         var markAbsentCommands = myListResult.MyListItems.Where(i => !fileIds.Contains(i.Fid) &&
                                                                      !genericFileIds.Contains(i.Fid) &&
                                                                      i.State != _options.MyList.AbsentFileState).Select(i =>
@@ -77,7 +77,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         // Add new anidb entries that don't exist in local db
         var toAdd = remoteItems.ExceptBy(localEntries.Select(e => e.Id), e => e.Id).ToList();
         var fileIds = _context.AniDbFiles.Select(f => f.Id).ToHashSet();
-        var genericFileIds = _context.AniDbEpisodes.Select(e => e.GenericFileId).ToHashSet();
+        var genericFileIds = _context.AniDbGenericFiles.Select(e => e.Id).ToHashSet();
         foreach (var item in toAdd)
         {
             var newEntry = new AniDbMyListEntry(item);
@@ -89,8 +89,8 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             }
             else if (genericFileIds.Contains(item.Fid))
             {
-                var relatedEpisode = _context.AniDbEpisodes.Include(e => e.GenericMyListEntry).First(e => e.GenericFileId == item.Fid);
-                relatedEpisode.GenericMyListEntry = newEntry;
+                var relatedGenericFile = _context.AniDbGenericFiles.Include(f => f.MyListEntry).First(f => f.Id == item.Fid);
+                relatedGenericFile.MyListEntry = newEntry;
             }
         }
         // Replace changed entries

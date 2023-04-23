@@ -64,16 +64,13 @@ public class AniDbEpisode : IEntity
     public DateTimeOffset? AirDate { get; set; }
     public bool Watched { get; set; }
     public DateTimeOffset? WatchedUpdated { get; set; }
-    public int? GenericFileId { get; set; }
 
     public DateTimeOffset? Updated { get; set; }
 
+    public AniDbGenericFile? AniDbGenericFile { get; set; }
 
     public int AniDbAnimeId { get; set; }
     public AniDbAnime AniDbAnime { get; set; } = null!;
-
-    public int? GenericMyListEntryId { get; set; }
-    public AniDbMyListEntry? GenericMyListEntry { get; set; }
 
     public List<LocalFile> ManualLinkLocalFiles { get; set; } = null!;
 }
