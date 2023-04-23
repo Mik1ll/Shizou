@@ -34,14 +34,7 @@ public class AniDbFile : IEntity
         MyListEntryId = result.MyListId;
         MyListEntry = result.MyListId is null
             ? null
-            : new AniDbMyListEntry
-            {
-                Id = result.MyListId!.Value,
-                Watched = result.MyListViewed!.Value,
-                WatchedDate = result.MyListViewDate,
-                MyListState = result.MyListState!.Value,
-                MyListFileState = result.MyListFileState!.Value
-            };
+            : new AniDbMyListEntry(result);
         Audio = result.AudioCodecs!.Zip(result.AudioBitRates!, (codec, bitrate) => (codec, bitrate))
             .Zip(result.DubLanguages!, (tup, lang) => (tup.codec, tup.bitrate, lang)).Select((tuple, i) =>
                 new AniDbAudio { Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Id = i + 1, AniDbFileId = result.FileId }).ToList();

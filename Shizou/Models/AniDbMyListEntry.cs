@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using Shizou.AniDbApi.Requests.Http.Results.SubElements;
+using Shizou.AniDbApi.Requests.Udp.Results;
 using Shizou.Enums;
 
 namespace Shizou.Models;
@@ -19,6 +20,15 @@ public class AniDbMyListEntry : IEntity
         MyListState = item.State;
         MyListFileState = item.FileState;
         Updated = DateTime.SpecifyKind(DateTime.Parse(item.Updated), DateTimeKind.Utc);
+    }
+
+    public AniDbMyListEntry(AniDbFileResult result)
+    {
+        Id = result.MyListId!.Value;
+        Watched = result.MyListViewed!.Value;
+        WatchedDate = result.MyListViewDate;
+        MyListState = result.MyListState!.Value;
+        MyListFileState = result.MyListFileState!.Value;
     }
 
     [DatabaseGenerated(DatabaseGeneratedOption.None)]

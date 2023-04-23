@@ -67,8 +67,6 @@ public class AniDbEpisode : IEntity
 
     public DateTimeOffset? Updated { get; set; }
 
-    public AniDbGenericFile? AniDbGenericFile { get; set; }
-
     public int AniDbAnimeId { get; set; }
     public AniDbAnime AniDbAnime { get; set; } = null!;
 
