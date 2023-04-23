@@ -56,6 +56,14 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private void UpdateDatabase(AniDbFileResult result)
     {
+        if (result.Ed2K is null && result.State == 0) // Generics also have .rl extension but don't know if it's exclusive
+            UpdateGenericFile(result);
+        else
+            UpdateFile(result);
+    }
+
+    private void UpdateFile(AniDbFileResult result)
+    {
         var file = _context.AniDbFiles
             .Include(f => f.AniDbGroup)
             .Include(f => f.MyListEntry)
@@ -86,7 +94,9 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
 
         if (file is null)
+        {
             _context.Entry(newFile).State = EntityState.Added;
+        }
         else
         {
             _context.ReplaceList(newFile.Audio, file.Audio, a => a.Id);
@@ -96,6 +106,30 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         _context.SaveChanges();
 
         UpdateEpRelations(result);
+    }
+
+    private void UpdateGenericFile(AniDbFileResult result)
+    {
+        var genericFile = _context.AniDbGenericFiles.Include(f => f.MyListEntry)
+            .SingleOrDefault(f => f.Id == result.FileId);
+        var newGenericFile = new AniDbGenericFile(result);
+        if (newGenericFile.MyListEntry is not null)
+        {
+            var eMyListEntry = _context.AniDbMyListEntries.Find(newGenericFile.MyListEntryId);
+            if (eMyListEntry is null)
+                _context.AniDbMyListEntries.Add(newGenericFile.MyListEntry);
+            else
+                _context.Entry(eMyListEntry).CurrentValues.SetValues(newGenericFile.MyListEntry);
+        }
+        if (genericFile?.MyListEntry is not null && genericFile.MyListEntryId != newGenericFile.MyListEntryId)
+            _context.AniDbMyListEntries.Remove(genericFile.MyListEntry);
+        _context.SaveChanges();
+
+        if (genericFile is null)
+            _context.Entry(newGenericFile).State = EntityState.Added;
+        else
+            _context.Entry(genericFile).CurrentValues.SetValues(newGenericFile);
+        _context.SaveChanges();
     }
 
     private void UpdateEpRelations(AniDbFileResult result)

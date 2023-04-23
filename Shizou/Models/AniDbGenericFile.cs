@@ -1,9 +1,21 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using Shizou.AniDbApi.Requests.Udp.Results;
 
 namespace Shizou.Models;
 
 public class AniDbGenericFile : IEntity
 {
+    public AniDbGenericFile()
+    {
+    }
+
+    public AniDbGenericFile(AniDbFileResult result)
+    {
+        Id = result.FileId;
+        AniDbEpisodeId = result.EpisodeId!.Value;
+        MyListEntryId = result.MyListId;
+    }
+    
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public int Id { get; set; }
 
