@@ -16,7 +16,13 @@ using Shizou.Services;
 
 namespace Shizou.Commands.AniDb;
 
-public sealed record ProcessArgs(int LocalFileId) : CommandArgs($"{nameof(ProcessCommand)}_{LocalFileId}");
+public enum IdType
+{
+    LocalId = 1,
+    FileId = 2
+}
+
+public sealed record ProcessArgs(int Id, IdType IdType) : CommandArgs($"{nameof(ProcessCommand)}_idtype={IdType}");
 
 [Command(CommandType.GetFile, CommandPriority.Normal, QueueType.AniDbUdp)]
 public class ProcessCommand : BaseCommand<ProcessArgs>
@@ -35,16 +41,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     public override async Task Process()
     {
-        Logger.LogInformation("Processing local file id: {localfileId}", CommandArgs.LocalFileId);
-        var localFile = _context.LocalFiles.Find(CommandArgs.LocalFileId);
-        if (localFile is null)
-        {
-            Completed = true;
-            Logger.LogWarning("Unable to process local file id: {localFileId} not found, skipping", CommandArgs.LocalFileId);
-            return;
-        }
+        var result = await GetFileResult();
 
-        var result = await GetFileResult(localFile);
         if (result is null)
             return;
 
@@ -110,25 +108,47 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         _context.SaveChanges();
     }
 
-    private async Task<AniDbFileResult?> GetFileResult(LocalFile localFile)
+    private async Task<AniDbFileResult?> GetFileResult()
     {
         // Check if file was requested before and did not complete
         var result = await GetFromFileCache();
         if (result is not null)
             return result;
 
-        var fileReq = new FileRequest(Provider, localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+        FileRequest? fileReq;
+        switch (CommandArgs.IdType)
+        {
+            case IdType.LocalId:
+            {
+                var localFile = _context.LocalFiles.Find(CommandArgs.Id);
+                if (localFile is null)
+                {
+                    Completed = true;
+                    Logger.LogWarning("Unable to process local file id: {localFileId} not found, skipping", CommandArgs.Id);
+                    return null;
+                }
+                Logger.LogInformation("Processing local file id: {localfileId}, ed2k: {localFileEd2k}", CommandArgs.Id, localFile.Ed2K);
+                fileReq = new FileRequest(Provider, localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                break;
+            }
+            case IdType.FileId:
+                Logger.LogInformation("Processing file id: {fileId}", CommandArgs.Id);
+                fileReq = new FileRequest(Provider, CommandArgs.Id, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                break;
+            default:
+                throw new ArgumentException("Idtype does not exist");
+        }
+
         await fileReq.Process();
         result = fileReq.FileResult;
         if (fileReq.ResponseCode == AniDbResponseCode.NoSuchFile)
         {
-            Logger.LogInformation("Skipped processing local file id: {localFileId}, ed2k: {localFileEd2k}, file not found on anidb", localFile.Id,
-                localFile.Ed2K);
+            Logger.LogInformation("Skipped processing {idName}: {Id}, file not found on anidb", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
             Completed = true;
         }
         else if (result is null)
         {
-            Logger.LogError("Could not process local file id: {localFileId}, ed2k: {localFileEd2k}, no file result", localFile.Id, localFile.Ed2K);
+            Logger.LogError("Could not process  {idName}: {Id}, no file result", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
         }
         else
         {
