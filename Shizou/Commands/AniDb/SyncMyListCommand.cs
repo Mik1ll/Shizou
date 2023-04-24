@@ -50,10 +50,23 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         }
 
         SyncMyListEntries(myListResult);
-        
+
         MarkAbsentFiles(myListResult);
 
+        FindGenericFiles(myListResult);
+
         Completed = true;
+    }
+
+    private void FindGenericFiles(HttpMyListResult myListResult)
+    {
+        var epsWithoutGenericFile = _context.AniDbEpisodes.Where(e => !_context.AniDbGenericFiles
+                .Select(f => f.AniDbEpisodeId).Contains(e.Id))
+            .Select(a => a.Id).ToHashSet();
+        var anidbFiles = _context.AniDbFiles.Select(f => f.Id).Union(_context.AniDbGenericFiles.Select(f => f.Id)).ToHashSet();
+        var commands = myListResult.MyListItems.Where(item => epsWithoutGenericFile.Contains(item.Eid) && !anidbFiles.Contains(item.Fid))
+            .Select(item => new ProcessArgs(item.Fid, IdType.FileId));
+        _commandService.DispatchRange(commands);
     }
 
     private void MarkAbsentFiles(HttpMyListResult myListResult)
