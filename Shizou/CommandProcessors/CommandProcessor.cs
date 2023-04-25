@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Shizou.Database;
 using Shizou.Exceptions;
 using Shizou.Extensions;
-using Shizou.Models;
 using Shizou.Services;
+using ShizouData.Database;
+using ShizouData.Enums;
+using ShizouData.Models;
 
 namespace Shizou.CommandProcessors;
 

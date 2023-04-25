@@ -1,7 +1,6 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 
-namespace Shizou.Enums;
+namespace ShizouData.Enums;
 
 public enum AnimeType
 {

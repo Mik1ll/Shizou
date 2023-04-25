@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Shizou.Database;
 using Shizou.Dtos;
 using Shizou.Extensions;
-using Shizou.Models;
+using ShizouData.Database;
+using ShizouData.Models;
 
 namespace Shizou.Controllers;
 

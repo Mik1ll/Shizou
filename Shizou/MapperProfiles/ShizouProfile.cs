@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Shizou.Dtos;
-using Shizou.Models;
+using ShizouData.Models;
 
 namespace Shizou.MapperProfiles;
 

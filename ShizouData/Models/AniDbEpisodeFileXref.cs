@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Shizou.Models;
+namespace ShizouData.Models;
 
 [PrimaryKey(nameof(AniDbEpisodeId), nameof(AniDbFileId))]
 public class AniDbEpisodeFileXref
 {
-    public int AniDbEpisodeId { get; set; }
-    public int AniDbFileId { get; set; }
+    public required int AniDbEpisodeId { get; set; }
+    public required int AniDbFileId { get; set; }
 }

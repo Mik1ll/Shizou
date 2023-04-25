@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Shizou.Database;
+using ShizouData.Database;
 
 namespace Shizou.Services;
 

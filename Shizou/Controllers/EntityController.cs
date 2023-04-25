@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Shizou.Database;
 using Shizou.Dtos;
-using Shizou.Models;
+using ShizouData.Database;
+using ShizouData.Models;
 
 namespace Shizou.Controllers;
 

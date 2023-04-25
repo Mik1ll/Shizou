@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Shizou.Database;
+using ShizouData.Database;
 
 namespace Shizou.Controllers;
 

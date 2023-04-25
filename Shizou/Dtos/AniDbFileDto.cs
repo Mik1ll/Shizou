@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Shizou.Models;
+using ShizouData.Models;
 
 namespace Shizou.Dtos;
 

@@ -1,4 +1,4 @@
-﻿namespace Shizou.Models;
+﻿namespace ShizouData.Models;
 
 public interface IEntity
 {

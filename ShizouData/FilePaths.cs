@@ -1,9 +1,6 @@
-﻿using System;
-using System.IO;
+﻿namespace ShizouData;
 
-namespace Shizou;
-
-public class Constants
+public static class FilePaths
 {
     public static readonly string ApplicationDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Shizou");
     public static readonly string TempFileDir = Path.Combine(ApplicationDataDir, "Temp");

@@ -9,10 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi.Requests.Udp;
 using Shizou.AniDbApi.Requests.Udp.Results;
-using Shizou.CommandProcessors;
-using Shizou.Database;
-using Shizou.Models;
 using Shizou.Services;
+using ShizouData;
+using ShizouData.Database;
+using ShizouData.Enums;
+using ShizouData.Models;
 
 namespace Shizou.Commands.AniDb;
 
@@ -36,7 +37,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
     {
         _context = provider.GetRequiredService<ShizouContext>();
         _commandService = provider.GetRequiredService<CommandService>();
-        _fileCachePath = Path.Combine(Constants.TempFileDir, CommandArgs.CommandId + ".json");
+        _fileCachePath = Path.Combine(FilePaths.TempFileDir, CommandArgs.CommandId + ".json");
     }
 
     public override async Task Process()
@@ -68,7 +69,51 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             .Include(f => f.AniDbGroup)
             .Include(f => f.MyListEntry)
             .SingleOrDefault(f => f.Id == result.FileId);
-        var newFile = new AniDbFile(result);
+        var newFile = new AniDbFile
+        {
+            Id = result.FileId,
+            Ed2K = result.Ed2K!,
+            Md5 = result.Md5,
+            Crc = result.Crc32,
+            Sha1 = result.Sha1,
+            Censored = result.State!.Value.IsCensored(),
+            Chaptered = result.State!.Value.HasFlag(FileState.Chaptered),
+            Deprecated = result.IsDeprecated!.Value,
+            FileSize = result.Size!.Value,
+            DurationSeconds = result.LengthInSeconds,
+            Source = result.Source,
+            FileVersion = result.State!.Value.FileVersion(),
+            Updated = DateTimeOffset.UtcNow,
+            MyListEntryId = result.MyListId,
+            MyListEntry = result.MyListId is null
+                ? null
+                : FileResultToAniDbMyListEntry(result),
+            Audio = result.AudioCodecs!.Zip(result.AudioBitRates!, (codec, bitrate) => (codec, bitrate))
+                .Zip(result.DubLanguages!, (tup, lang) => (tup.codec, tup.bitrate, lang)).Select((tuple, i) =>
+                    new AniDbAudio { Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Id = i + 1, AniDbFileId = result.FileId }).ToList(),
+            Video = result.VideoCodec is null
+                ? null
+                : new AniDbVideo
+                {
+                    Codec = result.VideoCodec,
+                    BitRate = result.VideoBitRate!.Value,
+                    ColorDepth = result.VideoColorDepth ?? 8,
+                    Height = int.Parse(result.VideoResolution!.Split('x')[1]),
+                    Width = int.Parse(result.VideoResolution!.Split('x')[0])
+                },
+            Subtitles = result.SubLangugages!.Select((s, i) => new AniDbSubtitle { Language = s, Id = i + 1, AniDbFileId = result.FileId }).ToList(),
+            FileName = result.AniDbFileName!,
+            AniDbGroupId = result.GroupId,
+            AniDbGroup = result.GroupId is null
+                ? null
+                : new AniDbGroup
+                {
+                    Id = result.GroupId!.Value,
+                    Name = result.GroupName!,
+                    ShortName = result.GroupNameShort!,
+                    Url = null
+                }
+        };
 
         if (newFile.MyListEntry is not null)
         {
@@ -108,11 +153,29 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         UpdateEpRelations(result);
     }
 
+    private static AniDbMyListEntry FileResultToAniDbMyListEntry(AniDbFileResult result)
+    {
+        return new AniDbMyListEntry
+        {
+            Id = result.MyListId!.Value,
+            Watched = result.MyListViewed!.Value,
+            WatchedDate = result.MyListViewDate,
+            MyListState = result.MyListState!.Value,
+            MyListFileState = result.MyListFileState!.Value
+        };
+    }
+
     private void UpdateGenericFile(AniDbFileResult result)
     {
         var genericFile = _context.AniDbGenericFiles.Include(f => f.MyListEntry)
             .SingleOrDefault(f => f.Id == result.FileId);
-        var newGenericFile = new AniDbGenericFile(result);
+        var newGenericFile = new AniDbGenericFile
+        {
+            Id = result.FileId,
+            AniDbEpisodeId = result.EpisodeId!.Value,
+            MyListEntryId = result.MyListId,
+            MyListEntry = result.MyListId is null ? null : FileResultToAniDbMyListEntry(result)
+        };
         if (newGenericFile.MyListEntry is not null)
         {
             var eMyListEntry = _context.AniDbMyListEntries.Find(newGenericFile.MyListEntryId);
@@ -194,8 +257,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private async Task SaveToFileCache(AniDbFileResult? result)
     {
-        if (!Directory.Exists(Constants.TempFileDir))
-            Directory.CreateDirectory(Constants.TempFileDir);
+        if (!Directory.Exists(FilePaths.TempFileDir))
+            Directory.CreateDirectory(FilePaths.TempFileDir);
         using (var file = new FileStream(_fileCachePath, FileMode.Create, FileAccess.Write))
         {
             await JsonSerializer.SerializeAsync(file, result);

@@ -3,9 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi.Requests.Udp;
-using Shizou.CommandProcessors;
-using Shizou.Database;
-using Shizou.Enums;
+using ShizouData.Database;
+using ShizouData.Enums;
 
 namespace Shizou.Commands.AniDb;
 

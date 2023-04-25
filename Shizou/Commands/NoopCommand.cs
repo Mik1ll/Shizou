@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Shizou.CommandProcessors;
+using ShizouData.Enums;
 
 namespace Shizou.Commands;
 

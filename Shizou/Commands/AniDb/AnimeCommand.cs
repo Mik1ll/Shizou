@@ -10,9 +10,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi.Requests.Http;
 using Shizou.AniDbApi.Requests.Http.Results;
-using Shizou.CommandProcessors;
-using Shizou.Database;
-using Shizou.Models;
+using ShizouData;
+using ShizouData.Database;
+using ShizouData.Enums;
+using ShizouData.Models;
 
 namespace Shizou.Commands.AniDb;
 
@@ -30,7 +31,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
     {
         _provider = provider;
         _context = provider.GetRequiredService<ShizouContext>();
-        _cacheFilePath = Path.Combine(Constants.HttpCacheDir, $"AnimeDoc_{CommandArgs.AnimeId}.xml");
+        _cacheFilePath = Path.Combine(FilePaths.HttpCacheDir, $"AnimeDoc_{CommandArgs.AnimeId}.xml");
     }
 
     public override async Task Process()
@@ -58,7 +59,35 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
 
         var aniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes)
             .FirstOrDefault(a => a.Id == CommandArgs.AnimeId);
-        var newAniDbAnime = new AniDbAnime(animeResult);
+        var mainTitle = animeResult.Titles.First(t => t.Type == "main");
+        var newAniDbAnime = new AniDbAnime
+        {
+            Id = animeResult.Id,
+            Description = animeResult.Description,
+            Restricted = animeResult.Restricted,
+            AirDate = animeResult.Startdate,
+            EndDate = animeResult.Enddate,
+            AnimeType = animeResult.Type,
+            EpisodeCount = animeResult.Episodecount,
+            ImagePath = animeResult.Picture,
+            Title = mainTitle.Text,
+            AniDbEpisodes = animeResult.Episodes.Select(e => new AniDbEpisode
+            {
+                AniDbAnimeId = animeResult.Id,
+                Id = e.Id,
+                DurationMinutes = e.Length,
+                Number = e.Epno.Text.ParseEpisode().number,
+                EpisodeType = e.Epno.Type,
+                AirDate = string.IsNullOrEmpty(e.Airdate) ? null : DateTimeOffset.Parse(e.Airdate + "+00:00"),
+                Updated = DateTimeOffset.UtcNow,
+                TitleEnglish = e.Title.First(t => t.Lang == "en").Text,
+                TitleRomaji = e.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == mainTitle.Lang)?.Text,
+                TitleKanji = e.Title.FirstOrDefault(t =>
+                    t.Lang.StartsWith(mainTitle.Lang switch { "x-jat" => "ja", "x-zht" => "zh-han", "x-kot" => "ko", _ => "none" },
+                        StringComparison.OrdinalIgnoreCase))?.Text
+            }).ToList(),
+            Updated = DateTimeOffset.UtcNow
+        };
         if (aniDbAnime is null)
         {
             _context.AniDbAnimes.Add(newAniDbAnime);
@@ -101,7 +130,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         {
             if (!File.Exists(_cacheFilePath))
             {
-                Directory.CreateDirectory(Constants.HttpCacheDir);
+                Directory.CreateDirectory(FilePaths.HttpCacheDir);
                 File.Create(_cacheFilePath).Dispose();
             }
             File.SetLastWriteTimeUtc(_cacheFilePath, DateTime.UtcNow);

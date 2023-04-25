@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Shizou.Models;
+using ShizouData.Models;
 
 namespace Shizou.Commands;
 

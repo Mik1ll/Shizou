@@ -5,8 +5,8 @@ using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Shizou.Commands;
-using Shizou.Database;
-using Shizou.Models;
+using ShizouData.Database;
+using ShizouData.Models;
 
 namespace Shizou.Services;
 

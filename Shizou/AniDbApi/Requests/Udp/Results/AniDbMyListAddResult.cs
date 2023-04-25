@@ -1,5 +1,5 @@
 ﻿using System;
-using Shizou.Enums;
+using ShizouData.Enums;
 
 namespace Shizou.AniDbApi.Requests.Udp.Results;
 

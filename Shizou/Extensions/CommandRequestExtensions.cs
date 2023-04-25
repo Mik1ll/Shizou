@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Shizou.CommandProcessors;
-using Shizou.Models;
+using ShizouData.Enums;
+using ShizouData.Models;
 
 namespace Shizou.Extensions;
 

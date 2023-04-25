@@ -9,11 +9,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.AniDbApi.Requests.Http;
 using Shizou.AniDbApi.Requests.Http.Results;
-using Shizou.CommandProcessors;
-using Shizou.Database;
-using Shizou.Models;
+using Shizou.AniDbApi.Requests.Http.Results.SubElements;
 using Shizou.Options;
 using Shizou.Services;
+using ShizouData;
+using ShizouData.Database;
+using ShizouData.Enums;
+using ShizouData.Models;
 
 namespace Shizou.Commands.AniDb;
 
@@ -106,7 +108,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         var genericFileIds = _context.AniDbGenericFiles.Select(e => e.Id).ToHashSet();
         foreach (var item in toAdd)
         {
-            var newEntry = new AniDbMyListEntry(item);
+            var newEntry = ItemToAniDbMyListEntry(item);
             _context.AniDbMyListEntries.Add(newEntry);
             if (fileIds.Contains(item.Fid))
             {
@@ -125,15 +127,28 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         {
             var existingEntry = localEntries.FirstOrDefault(e => e.Id == myListItem.Id);
             if (existingEntry is not null)
-                _context.Entry(existingEntry).CurrentValues.SetValues(new AniDbMyListEntry(myListItem));
+                _context.Entry(existingEntry).CurrentValues.SetValues(ItemToAniDbMyListEntry(myListItem));
         }
         _context.SaveChanges();
+    }
+
+    private static AniDbMyListEntry ItemToAniDbMyListEntry(MyListItem item)
+    {
+        return new AniDbMyListEntry
+        {
+            Id = item.Id,
+            Watched = item.Viewdate is not null,
+            WatchedDate = item.Viewdate is null ? null : DateTime.Parse(item.Viewdate).ToUniversalTime(),
+            MyListState = item.State,
+            MyListFileState = item.FileState,
+            Updated = DateTime.SpecifyKind(DateTime.Parse(item.Updated), DateTimeKind.Utc)
+        };
     }
 
     private async Task<HttpMyListResult?> GetMyList()
     {
         var requestable = true;
-        var fileInfo = new FileInfo(Constants.MyListPath);
+        var fileInfo = new FileInfo(FilePaths.MyListPath);
         if (fileInfo.Exists)
             requestable = DateTime.UtcNow - fileInfo.LastWriteTimeUtc > MyListRequestPeriod;
         if (!requestable)
@@ -146,18 +161,18 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         await request.Process();
         if (request.MyListResult is null)
         {
-            if (!File.Exists(Constants.MyListPath))
-                File.Create(Constants.MyListPath).Dispose();
-            File.SetLastWriteTimeUtc(Constants.MyListPath, DateTime.UtcNow);
+            if (!File.Exists(FilePaths.MyListPath))
+                File.Create(FilePaths.MyListPath).Dispose();
+            File.SetLastWriteTimeUtc(FilePaths.MyListPath, DateTime.UtcNow);
             Logger.LogWarning("Failed to get mylist data from AniDb, retry in {hours} hours", MyListRequestPeriod.Hours);
         }
         else
         {
             Logger.LogDebug("Overwriting mylist file");
-            Directory.CreateDirectory(Path.GetDirectoryName(Constants.MyListPath)!);
-            await File.WriteAllTextAsync(Constants.MyListPath, request.ResponseText, Encoding.UTF8);
-            var backupFilePath = Path.Combine(Constants.MyListBackupDir, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".xml");
-            Directory.CreateDirectory(Constants.MyListBackupDir);
+            Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.MyListPath)!);
+            await File.WriteAllTextAsync(FilePaths.MyListPath, request.ResponseText, Encoding.UTF8);
+            var backupFilePath = Path.Combine(FilePaths.MyListBackupDir, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".xml");
+            Directory.CreateDirectory(FilePaths.MyListBackupDir);
             await File.WriteAllTextAsync(backupFilePath, request.ResponseText, Encoding.UTF8);
             Logger.LogInformation("HTTP Get mylist succeeded");
         }

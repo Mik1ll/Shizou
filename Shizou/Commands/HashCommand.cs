@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Shizou.CommandProcessors;
 using Shizou.Commands.AniDb;
-using Shizou.Database;
 using Shizou.Extensions;
-using Shizou.Models;
 using Shizou.Services;
+using ShizouData.Database;
+using ShizouData.Enums;
+using ShizouData.Models;
 
 namespace Shizou.Commands;
 
@@ -66,15 +66,17 @@ public class HashCommand : BaseCommand<HashArgs>
             else
                 Logger.LogInformation("Hashing new file: \"{Path}\"", file.FullName);
             var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2K | RHasherService.HashIds.Crc32);
-            if (localFile is null)
-                localFile = _context.LocalFiles.Add(new LocalFile()).Entity;
-            localFile.Signature = signature;
-            localFile.Crc = hashes[RHasherService.HashIds.Crc32];
-            localFile.Ed2K = hashes[RHasherService.HashIds.Ed2K];
-            localFile.FileSize = file.Length;
-            localFile.Updated = DateTimeOffset.UtcNow;
-            localFile.ImportFolder = importFolder;
-            localFile.PathTail = pathTail;
+            localFile ??= _context.LocalFiles.Add(new LocalFile
+            {
+                Signature = signature,
+                Crc = hashes[RHasherService.HashIds.Crc32],
+                Ed2K = hashes[RHasherService.HashIds.Ed2K],
+                FileSize = file.Length,
+                Updated = DateTimeOffset.UtcNow,
+                PathTail = pathTail,
+                Ignored = false,
+                ImportFolderId = importFolder.Id
+            }).Entity;
             Logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasherService.HashIds.Ed2K],
                 hashes[RHasherService.HashIds.Crc32]);
         }

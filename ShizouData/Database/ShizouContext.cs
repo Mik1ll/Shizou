@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Shizou.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using ShizouData.Models;
 
-namespace Shizou.Database;
+namespace ShizouData.Database;
 
 public sealed class ShizouContext : DbContext
 {
@@ -49,7 +45,7 @@ public sealed class ShizouContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder
-            .UseSqlite(@$"Data Source={Path.Combine(Constants.ApplicationDataDir, "ShizouDB.sqlite3")};Foreign Keys=True;")
+            .UseSqlite(@$"Data Source={Path.Combine(FilePaths.ApplicationDataDir, "ShizouDB.sqlite3")};Foreign Keys=True;")
             .EnableSensitiveDataLogging();
     }
 

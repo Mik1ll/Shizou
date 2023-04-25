@@ -14,10 +14,12 @@ using Shizou;
 using Shizou.AniDbApi;
 using Shizou.AniDbApi.RateLimiters;
 using Shizou.CommandProcessors;
-using Shizou.Database;
 using Shizou.MapperProfiles;
 using Shizou.Options;
 using Shizou.Services;
+using ShizouData;
+using ShizouData.Database;
+using ShizouData.Enums;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}")
@@ -25,15 +27,15 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    Directory.CreateDirectory(Constants.ApplicationDataDir);
-    if (!File.Exists(Constants.OptionsPath))
+    Directory.CreateDirectory(FilePaths.ApplicationDataDir);
+    if (!File.Exists(FilePaths.OptionsPath))
         new ShizouOptions().SaveToFile();
 
     var builder = WebApplication.CreateBuilder();
-    builder.Configuration.AddJsonFile(Constants.OptionsPath, false, true);
+    builder.Configuration.AddJsonFile(FilePaths.OptionsPath, false, true);
     builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration)
         .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}")
-        .WriteTo.File(Path.Combine(Constants.LogsDir, ".log"),
+        .WriteTo.File(Path.Combine(FilePaths.LogsDir, ".log"),
             outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}",
             rollingInterval: RollingInterval.Day)
         .WriteTo.Seq("http://localhost:5341")

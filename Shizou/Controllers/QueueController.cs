@@ -3,8 +3,9 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shizou.CommandProcessors;
-using Shizou.Database;
-using Shizou.Models;
+using ShizouData.Database;
+using ShizouData.Enums;
+using ShizouData.Models;
 
 namespace Shizou.Controllers;
 

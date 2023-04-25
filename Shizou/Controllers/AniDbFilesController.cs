@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
-using Shizou.Database;
 using Shizou.Dtos;
-using Shizou.Models;
+using ShizouData.Database;
+using ShizouData.Models;
 
 namespace Shizou.Controllers;
 

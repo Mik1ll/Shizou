@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Shizou.Commands;
-using Shizou.Database;
+using ShizouData.Database;
 
 namespace Shizou.Services;
 

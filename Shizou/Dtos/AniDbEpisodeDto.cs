@@ -1,5 +1,5 @@
 ﻿using System;
-using Shizou.Enums;
+using ShizouData.Enums;
 
 namespace Shizou.Dtos;
 
@@ -15,11 +15,9 @@ public class AniDbEpisodeDto : IEntityDto
     public DateTimeOffset? AirDate { get; set; }
     public bool Watched { get; set; }
     public DateTimeOffset? WatchedUpdated { get; set; }
-    public int? GenericFileId { get; set; }
 
     public DateTimeOffset? Updated { get; set; }
 
     
     public int AniDbAnimeId { get; set; }
-    public int? GenericMyListEntryId { get; set; }
 }

@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using Shizou.Enums;
+using ShizouData;
+using ShizouData.Enums;
 
 namespace Shizou.Options;
 
@@ -19,7 +20,7 @@ public class ShizouOptions
     {
         Dictionary<string, object> json = new() { { Shizou, this } };
         var jsonSettings = JsonSerializer.Serialize(json, new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true });
-        File.WriteAllText(Constants.OptionsPath, jsonSettings);
+        File.WriteAllText(FilePaths.OptionsPath, jsonSettings);
     }
 
     public class ImportOptions

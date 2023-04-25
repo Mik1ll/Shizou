@@ -1,5 +1,5 @@
 ﻿using System;
-using Shizou.Enums;
+using ShizouData.Enums;
 
 namespace Shizou.Dtos;
 
@@ -7,7 +7,6 @@ public class AniDbAnimeDto : IEntityDto
 {
     public int Id { get; set; }
     public int EpisodeCount { get; set; }
-    public int HighestEpisode { get; set; }
     public string? AirDate { get; set; }
     public string? EndDate { get; set; }
     public AnimeType AnimeType { get; set; }

@@ -5,9 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shizou.CommandProcessors;
-using Shizou.Commands.AniDb;
-using Shizou.Database;
-using Shizou.Services;
+using ShizouData.Database;
 
 // ReSharper disable UnusedVariable
 
