@@ -1,18 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ShizouData.Models;
 
 namespace ShizouData.Database;
 
-public sealed class ShizouContext : DbContext
+public sealed class ShizouContext : IdentityDbContext
 {
-    public ShizouContext()
-    {
-    }
-
-    public ShizouContext(DbContextOptions<ShizouContext> options) : base(options)
-    {
-    }
-
     public DbSet<CommandRequest> CommandRequests { get; set; } = null!;
     public DbSet<ImportFolder> ImportFolders { get; set; } = null!;
     public DbSet<AniDbAnime> AniDbAnimes { get; set; } = null!;
@@ -47,6 +40,7 @@ public sealed class ShizouContext : DbContext
         optionsBuilder
             .UseSqlite(@$"Data Source={Path.Combine(FilePaths.ApplicationDataDir, "ShizouDB.sqlite3")};Foreign Keys=True;")
             .EnableSensitiveDataLogging();
+        base.OnConfiguring(optionsBuilder);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -61,6 +55,7 @@ public sealed class ShizouContext : DbContext
             .HasMany(e => e.ManualLinkLocalFiles)
             .WithMany(e => e.ManualLinkEpisodes)
             .UsingEntity(j => j.ToTable("ManualLinkXrefs"));
+        base.OnModelCreating(modelBuilder);
     }
 
     public void ReplaceList<T, TKey>(List<T> source, List<T> destination, Func<T, TKey> keySelector)

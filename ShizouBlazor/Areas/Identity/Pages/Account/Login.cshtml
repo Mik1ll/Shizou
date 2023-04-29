@@ -1,0 +1,34 @@
+﻿@page
+@model Login
+
+@{
+    ViewData["Title"] = "Log In";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (User.Identity?.IsAuthenticated ?? false)
+{
+    <h2>Already Logged in</h2>
+}
+else
+{
+    <div class="row" style="margin:50px">
+        <div class="col-md-4">
+            <section>
+                <form id="account" method="post">
+                    <h2>Enter the password</h2>
+                    <hr/>
+                    <div class="form-floating" style="margin:10px">
+                        <input asp-for="Input.Password" class="form-control" autocomplete="password" aria-required="true">
+                        <label asp-for="Input.Password" class="form-label"></label>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+                    <div style="margin:10px">
+                        <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log In</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+}
