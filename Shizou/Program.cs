@@ -1,72 +1,36 @@
 using System;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Shizou;
-using Shizou.AniDbApi;
-using Shizou.AniDbApi.RateLimiters;
-using Shizou.CommandProcessors;
-using Shizou.MapperProfiles;
-using Shizou.Options;
-using Shizou.Services;
+using Shizou.Extensions;
 using ShizouData;
 using ShizouData.Database;
-using ShizouData.Enums;
 
+var logTemplate = "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}";
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}")
+    .WriteTo.Console(outputTemplate: logTemplate)
     .CreateBootstrapLogger();
 
 try
 {
     Directory.CreateDirectory(FilePaths.ApplicationDataDir);
-    if (!File.Exists(FilePaths.OptionsPath))
-        new ShizouOptions().SaveToFile();
 
     var builder = WebApplication.CreateBuilder();
-    builder.Configuration.AddJsonFile(FilePaths.OptionsPath, false, true);
-    builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration)
-        .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}")
-        .WriteTo.File(Path.Combine(FilePaths.LogsDir, ".log"),
-            outputTemplate: "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}",
-            rollingInterval: RollingInterval.Day)
-        .WriteTo.Seq("http://localhost:5341")
-        .Enrich.FromLogContext());
 
-    builder.Services.AddAutoMapper(typeof(ShizouProfile));
+    builder.AddShizouOptions()
+        .AddShizouLogging(logTemplate)
+        .AddShizouApiServices()
+        .AddShizouServices()
+        .AddAniDbServices()
+        .AddShizouProcessors();
 
-    builder.Services.AddOptions<ShizouOptions>()
-        .Bind(builder.Configuration.GetSection(ShizouOptions.Shizou))
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
-    builder.Services.AddControllers();
-    builder.Services.AddSwaggerGen(opt =>
-    {
-        opt.SchemaGeneratorOptions.UseInlineDefinitionsForEnums = true;
-        opt.SchemaGeneratorOptions.SupportNonNullableReferenceTypes = true;
-    });
     builder.Services.AddHostedService<StartupService>();
-    builder.Services.AddDbContext<ShizouContext>();
-    builder.Services.AddScoped<CommandService>();
-    builder.Services.AddScoped<ImportService>();
 
-    builder.Services.AddSingleton<AniDbUdpState>();
-    builder.Services.AddSingleton<UdpRateLimiter>();
-    builder.Services.AddSingleton<AniDbHttpState>();
-    builder.Services.AddSingleton<HttpRateLimiter>();
-
-    AddProcessors(builder);
-
-    builder.Services.AddHttpClient("gzip")
-        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip });
 
     var app = builder.Build();
 
@@ -105,17 +69,4 @@ finally
 {
     Log.Information("Shut down complete");
     Log.CloseAndFlush();
-}
-
-void AddProcessors(WebApplicationBuilder webApplicationBuilder)
-{
-    webApplicationBuilder.Services.AddSingleton<CommandProcessor, AniDbUdpProcessor>();
-    webApplicationBuilder.Services.AddSingleton<CommandProcessor, HashProcessor>();
-    webApplicationBuilder.Services.AddSingleton<CommandProcessor, AniDbHttpProcessor>();
-    webApplicationBuilder.Services.AddSingleton(p => (AniDbUdpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
-    webApplicationBuilder.Services.AddSingleton(p => (HashProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
-    webApplicationBuilder.Services.AddSingleton(p => (AniDbHttpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
-    webApplicationBuilder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
-    webApplicationBuilder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
-    webApplicationBuilder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
 }
