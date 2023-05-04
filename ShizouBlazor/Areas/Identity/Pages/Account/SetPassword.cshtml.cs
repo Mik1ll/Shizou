@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -18,18 +19,15 @@ public class SetPassword : PageModel
     }
 
     [BindProperty]
-    public InputModel Input { get; set; }
-
-    public string ReturnUrl { get; set; }
+    public required InputModel Input { get; set; }
 
     public void OnGet()
     {
-        ReturnUrl = Url.Content("~/");
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
-        ReturnUrl = Url.Content("~/");
+        var returnUrl = Url.Content("~/");
         if (!IsLoopBackAddress(HttpContext)) return Forbid("Must be on localhost to change password");
         if (ModelState.IsValid)
         {
@@ -38,16 +36,16 @@ public class SetPassword : PageModel
             if (identity is null)
             {
                 identity = new IdentityUser { UserName = "Admin" };
-                result = await _userManager.CreateAsync(identity, Input.Password);
+                result = await _userManager.CreateAsync(identity, Input.Password!);
             }
             else
             {
-                result = await _userManager.ResetPasswordAsync(identity, await _userManager.GeneratePasswordResetTokenAsync(identity), Input.Password);
+                result = await _userManager.ResetPasswordAsync(identity, await _userManager.GeneratePasswordResetTokenAsync(identity), Input.Password!);
             }
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(identity, true);
-                return LocalRedirect(ReturnUrl);
+                return LocalRedirect(returnUrl);
             }
         }
         return Page();
@@ -71,15 +69,16 @@ public class SetPassword : PageModel
         return ipString == context.Connection.LocalIpAddress?.ToString();
     }
 
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class InputModel
     {
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
         [Compare(nameof(Password))]
-        public string ConfirmPassword { get; set; }
+        public string? ConfirmPassword { get; set; }
     }
 }

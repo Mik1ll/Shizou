@@ -15,22 +15,19 @@ public class Login : PageModel
     }
 
     [BindProperty]
-    public InputModel Input { get; set; }
-
-    public string ReturnUrl { get; set; }
-
+    public required InputModel Input { get; set; }
+    
     public void OnGet()
     {
-        ReturnUrl = Url.Content("~/");
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
-        ReturnUrl = Url.Content("~/");
+        var returnUrl = Url.Content("~/");
         if (ModelState.IsValid)
         {
-            var result = await _signInManager.PasswordSignInAsync("Admin", Input.Password, true, false);
-            if (result.Succeeded) return LocalRedirect(ReturnUrl);
+            var result = await _signInManager.PasswordSignInAsync("Admin", Input.Password!, true, false);
+            if (result.Succeeded) return LocalRedirect(returnUrl);
         }
         return Page();
     }
@@ -39,6 +36,6 @@ public class Login : PageModel
     {
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string? Password { get; set; }
     }
 }
