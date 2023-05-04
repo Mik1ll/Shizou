@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Shizou.Extensions;
 using ShizouBlazor.Data;
 using ShizouData.Database;
 
@@ -9,7 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-builder.Services.AddDbContext<ShizouContext>();
+builder.AddShizouOptions()
+    .AddShizouServices()
+    .AddAniDbServices()
+    .AddShizouProcessors();
+
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     {
         options.SignIn.RequireConfirmedEmail = false;

@@ -12,6 +12,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\ShizouData\ShizouData.csproj" />
+        <ProjectReference Include="..\Shizou\Shizou.csproj" />
     </ItemGroup>
 
 </Project>
