@@ -1,0 +1,77 @@
+﻿@page "/Queues"
+@using Shizou.Extensions
+@using Shizou.CommandProcessors
+@using ShizouData.Database
+@using Microsoft.EntityFrameworkCore
+
+@inject IDbContextFactory<ShizouContext> ContextFactory
+@inject IServiceProvider ServiceProvider
+
+<h3>Queues</h3>
+
+@if (_processors is null || _context is null)
+{
+    <div>
+        <em>Loading...</em>
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Type</th>
+            <th>Message</th>
+            <th>Queued</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var processor in _processors)
+        {
+            <tr>
+                <td>@Enum.GetName(processor.QueueType)</td>
+                <td>
+                    @if (processor.Paused)
+                    {
+                        @processor.PauseReason
+                    }
+                    else
+                    {
+                        @processor.CurrentCommand?.CommandId
+                    }
+                </td>
+                <td>@_context.CommandRequests.GetQueueCount(processor.QueueType)</td>
+                <td>
+                    @if (processor.Paused)
+                    {
+                        <button class="btn" @onclick="processor.Unpause">
+                            <i class="oi oi-media-play"></i>
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn" @onclick="() => processor.Pause()">
+                            <i class="oi oi-media-pause"></i>
+                        </button>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<CommandProcessor>? _processors;
+    private ShizouContext? _context;
+
+    protected override void OnInitialized()
+    {
+        _processors = ServiceProvider.GetServices<CommandProcessor>().ToList();
+        _context = ContextFactory.CreateDbContext();
+
+        base.OnInitialized();
+    }
+
+}
