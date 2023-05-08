@@ -6,6 +6,10 @@ namespace ShizouData.Database;
 
 public sealed class ShizouContext : IdentityDbContext
 {
+    public ShizouContext(DbContextOptions<ShizouContext> options) : base(options)
+    {
+    }
+
     public DbSet<CommandRequest> CommandRequests { get; set; } = null!;
     public DbSet<ImportFolder> ImportFolders { get; set; } = null!;
     public DbSet<AniDbAnime> AniDbAnimes { get; set; } = null!;
@@ -33,14 +37,6 @@ public sealed class ShizouContext : IdentityDbContext
             join r in AniDbEpisodeFileXrefs on f.Id equals r.AniDbFileId
             where r.AniDbEpisodeId == episodeId
             select f;
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder
-            .UseSqlite(@$"Data Source={Path.Combine(FilePaths.ApplicationDataDir, "ShizouDB.sqlite3")};Foreign Keys=True;")
-            .EnableSensitiveDataLogging();
-        base.OnConfiguring(optionsBuilder);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
