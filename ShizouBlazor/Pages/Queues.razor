@@ -9,7 +9,7 @@
 
 <h3>Queues</h3>
 
-@if (_processors is null || _context is null)
+@if (_processors is null)
 {
     <div>
         <em>Loading...</em>
@@ -27,36 +27,39 @@ else
         </tr>
         </thead>
         <tbody>
-        @foreach (var processor in _processors)
+        @using (var context = ContextFactory.CreateDbContext())
         {
-            <tr>
-                <td>@Enum.GetName(processor.QueueType)</td>
-                <td>
-                    @if (processor.Paused)
-                    {
-                        @processor.PauseReason
-                    }
-                    else
-                    {
-                        @processor.CurrentCommand?.CommandId
-                    }
-                </td>
-                <td>@_context.CommandRequests.GetQueueCount(processor.QueueType)</td>
-                <td>
-                    @if (processor.Paused)
-                    {
-                        <button class="btn" @onclick="processor.Unpause">
-                            <i class="oi oi-media-play"></i>
-                        </button>
-                    }
-                    else
-                    {
-                        <button class="btn" @onclick="() => processor.Pause()">
-                            <i class="oi oi-media-pause"></i>
-                        </button>
-                    }
-                </td>
-            </tr>
+            @foreach (var processor in _processors)
+            {
+                <tr>
+                    <td>@Enum.GetName(processor.QueueType)</td>
+                    <td>
+                        @if (processor.Paused)
+                        {
+                            @processor.PauseReason
+                        }
+                        else
+                        {
+                            @processor.CurrentCommand?.CommandId
+                        }
+                    </td>
+                    <td>@context.CommandRequests.GetQueueCount(processor.QueueType)</td>
+                    <td>
+                        @if (processor.Paused)
+                        {
+                            <button class="btn" @onclick="processor.Unpause">
+                                <i class="oi oi-media-play"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn" @onclick="() => processor.Pause()">
+                                <i class="oi oi-media-pause"></i>
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
         }
         </tbody>
     </table>
@@ -64,12 +67,10 @@ else
 
 @code {
     private List<CommandProcessor>? _processors;
-    private ShizouContext? _context;
 
     protected override void OnInitialized()
     {
         _processors = ServiceProvider.GetServices<CommandProcessor>().ToList();
-        _context = ContextFactory.CreateDbContext();
 
         base.OnInitialized();
     }
