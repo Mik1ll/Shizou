@@ -65,14 +65,20 @@ public static class WebAppliationBuilderExtensions
     public static WebApplicationBuilder AddShizouProcessors(this WebApplicationBuilder builder)
     {
         builder.Services.AddSingleton<CommandProcessor, AniDbUdpProcessor>();
-        builder.Services.AddSingleton<CommandProcessor, HashProcessor>();
-        builder.Services.AddSingleton<CommandProcessor, AniDbHttpProcessor>();
         builder.Services.AddSingleton(p => (AniDbUdpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
-        builder.Services.AddSingleton(p => (HashProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
-        builder.Services.AddSingleton(p => (AniDbHttpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
         builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
+        
+        builder.Services.AddSingleton<CommandProcessor, HashProcessor>();
+        builder.Services.AddSingleton(p => (HashProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
         builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
+        
+        builder.Services.AddSingleton<CommandProcessor, AniDbHttpProcessor>();
+        builder.Services.AddSingleton(p => (AniDbHttpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
         builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
+
+        builder.Services.AddSingleton<CommandProcessor, GeneralProcessor>();
+        builder.Services.AddSingleton(p => (GeneralProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.General));
+        builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.General));
         return builder;
     }
 
