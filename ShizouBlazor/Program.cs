@@ -1,8 +1,14 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Serilog;
 using Shizou.Extensions;
 using ShizouBlazor.Data;
 using ShizouData.Database;
+
+var logTemplate = "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}";
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console(outputTemplate: logTemplate)
+    .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +19,8 @@ builder.Services.AddServerSideBlazor();
 builder.AddShizouOptions()
     .AddShizouServices()
     .AddAniDbServices()
-    .AddShizouProcessors();
+    .AddShizouProcessors()
+    .AddShizouLogging(logTemplate);
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     {
