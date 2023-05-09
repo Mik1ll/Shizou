@@ -1,19 +1,23 @@
 ﻿@page "/Queues"
+
 @using Shizou.Extensions
 @using Shizou.CommandProcessors
+@using System.Timers
 @using ShizouData.Database
 @using Microsoft.EntityFrameworkCore
+@implements IDisposable
 
 @inject IDbContextFactory<ShizouContext> ContextFactory
+@inject ILogger<Queues> Logger
 @inject IServiceProvider ServiceProvider
 
 <h3>Queues</h3>
 
 @if (_processors is null)
 {
-    <div>
+    <p>
         <em>Loading...</em>
-    </div>
+    </p>
 }
 else
 {
@@ -23,6 +27,7 @@ else
             <th>Type</th>
             <th>Message</th>
             <th>Queued</th>
+            <th></th>
             <th></th>
         </tr>
         </thead>
@@ -58,6 +63,11 @@ else
                             </button>
                         }
                     </td>
+                    <td>
+                        <button @onclick="() => ClearQueue(processor)">
+                            <i class="oi oi-x"></i>
+                        </button>
+                    </td>
                 </tr>
             }
         }
@@ -67,12 +77,30 @@ else
 
 @code {
     private List<CommandProcessor>? _processors;
+    private Timer? _timer;
 
     protected override void OnInitialized()
     {
         _processors = ServiceProvider.GetServices<CommandProcessor>().ToList();
+        _timer = new Timer(2_000);
+        _timer.AutoReset = true;
+        _timer.Elapsed += (_, _) => InvokeAsync(StateHasChanged);
+        _timer.Enabled = true;
 
         base.OnInitialized();
+    }
+
+    private void ClearQueue(CommandProcessor processor)
+    {
+        using var context = ContextFactory.CreateDbContext();
+        context.CommandRequests.ClearQueue(processor.QueueType);
+        context.SaveChanges();
+        Logger.LogInformation("{queueType} queue cleared", Enum.GetName(processor.QueueType));
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 
 }
