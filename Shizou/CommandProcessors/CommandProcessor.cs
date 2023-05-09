@@ -76,7 +76,7 @@ public abstract class CommandProcessor : BackgroundService
             var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
             if (Paused || (CurrentCommand = context.CommandRequests.GetNextRequest(QueueType)) is null)
             {
-                await Task.Delay(PollInterval);
+                await Task.Delay(PollInterval, stoppingToken);
                 if (!Paused) PollInterval = Math.Min((int)(PollInterval * Math.Pow(10, 1f / 4)), 10000);
                 continue;
             }
@@ -91,7 +91,7 @@ public abstract class CommandProcessor : BackgroundService
                 ProcessingCommand = true;
                 var task = command.Process();
                 while (!stoppingToken.IsCancellationRequested && !task.IsCompleted)
-                    await Task.Delay(500);
+                    await Task.Delay(500, stoppingToken);
             }
             catch (ProcessorPauseException ex)
             {
