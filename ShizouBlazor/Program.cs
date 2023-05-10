@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Serilog;
 using Shizou.Extensions;
@@ -45,15 +44,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-var forwardingOptions = new ForwardedHeadersOptions
-    { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.All };
-app.UseForwardedHeaders(forwardingOptions);
-
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();

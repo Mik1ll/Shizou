@@ -57,6 +57,12 @@ public static class WebAppliationBuilderExtensions
             .UseSqlite(connectionString)
             .EnableSensitiveDataLogging());
 
+        var httpUrl = builder.Configuration.GetValue<string>("Kestrel:Endpoints:Http:Url") ?? "";
+        builder.Services.AddCors(opts =>
+            opts.AddDefaultPolicy(pol =>
+                pol.WithOrigins(httpUrl)
+                    .WithMethods("Get")));
+
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();
         return builder;
@@ -67,11 +73,11 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddSingleton<CommandProcessor, AniDbUdpProcessor>();
         builder.Services.AddSingleton(p => (AniDbUdpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
         builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
-        
+
         builder.Services.AddSingleton<CommandProcessor, HashProcessor>();
         builder.Services.AddSingleton(p => (HashProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
         builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
-        
+
         builder.Services.AddSingleton<CommandProcessor, AniDbHttpProcessor>();
         builder.Services.AddSingleton(p => (AniDbHttpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
         builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));

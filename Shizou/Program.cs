@@ -34,12 +34,15 @@ try
 
     var app = builder.Build();
 
+    if (!app.Environment.IsDevelopment()) app.UseHsts();
+
     app.UseSwagger();
     app.UseSwaggerUI();
 
     app.UseSerilogRequestLogging();
 
     app.UseHttpsRedirection();
+    app.UseCors();
     app.UseAuthorization();
     app.MapControllers();
 
