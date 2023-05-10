@@ -30,12 +30,16 @@ public abstract class CommandProcessor : BackgroundService
 
     protected ILogger<CommandProcessor> Logger { get; }
 
-    public bool ProcessingCommand { get; protected set; }
+    public bool ProcessingCommand { get; private set; }
 
-    public CommandRequest? CurrentCommand { get; protected set; }
+    public CommandRequest? CurrentCommand { get; private set; }
+
+    public int CommandsInQueue { get; private set; }
 
     public virtual bool Paused { get; protected set; } = true;
     public virtual string? PauseReason { get; protected set; }
+
+    private CancellationTokenSource? _unpauseTokenSource;
 
     public void Pause(string? pauseReason = null)
     {
@@ -52,6 +56,7 @@ public abstract class CommandProcessor : BackgroundService
         Paused = false;
         if (!Paused)
         {
+            _unpauseTokenSource?.Cancel();
             PauseReason = null;
             Logger.LogInformation("Processor unpaused");
         }
@@ -69,17 +74,35 @@ public abstract class CommandProcessor : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         stoppingToken.Register(Shutdown);
+
         while (!stoppingToken.IsCancellationRequested)
         {
             using var scope = Provider.CreateScope();
             var commandManager = scope.ServiceProvider.GetRequiredService<CommandService>();
             var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
-            if (Paused || (CurrentCommand = context.CommandRequests.GetNextRequest(QueueType)) is null)
+            CommandsInQueue = context.CommandRequests.GetQueueCount(QueueType);
+            if (Paused || CommandsInQueue == 0)
             {
-                await Task.Delay(PollInterval, stoppingToken);
-                if (!Paused) PollInterval = Math.Min((int)(PollInterval * Math.Pow(10, 1f / 4)), 10000);
+                _unpauseTokenSource = new CancellationTokenSource();
+                var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_unpauseTokenSource.Token, stoppingToken);
+                try
+                {
+                    await Task.Delay(PollInterval, linkedTokenSource.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                }
+                finally
+                {
+                    PollInterval = Math.Min((int)(PollInterval * Math.Pow(10, 1f / 4)), 10000);
+                    _unpauseTokenSource.Dispose();
+                    linkedTokenSource.Dispose();
+                }
                 continue;
             }
+            CurrentCommand = context.CommandRequests.GetNextRequest(QueueType);
+            if (CurrentCommand is null)
+                continue;
             PollInterval = BasePollInterval;
             var command = commandManager.CommandFromRequest(CurrentCommand);
             try
@@ -91,7 +114,8 @@ public abstract class CommandProcessor : BackgroundService
                 ProcessingCommand = true;
                 var task = command.Process();
                 while (!stoppingToken.IsCancellationRequested && !task.IsCompleted)
-                    await Task.Delay(500, stoppingToken);
+                    // ReSharper disable once MethodSupportsCancellation
+                    await Task.Delay(500);
             }
             catch (ProcessorPauseException ex)
             {
