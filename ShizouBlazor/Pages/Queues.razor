@@ -1,5 +1,4 @@
 ﻿@page "/Queues"
-
 @using Shizou.Extensions
 @using Shizou.CommandProcessors
 @using System.Timers
@@ -13,81 +12,70 @@
 
 <h3>Queues</h3>
 
-@if (_processors is null)
-{
-    <p>
-        <em>Loading...</em>
-    </p>
-}
-else
-{
-    <table class="table">
-        <thead>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Type</th>
+        <th>Message</th>
+        <th>Queued</th>
+        <th></th>
+        <th></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach (var processor in _processors)
+    {
         <tr>
-            <th>Type</th>
-            <th>Message</th>
-            <th>Queued</th>
-            <th></th>
-            <th></th>
+            <td>@Enum.GetName(processor.QueueType)</td>
+            <td>
+                @if (processor.Paused)
+                {
+                    @processor.PauseReason
+                }
+                else
+                {
+                    @processor.CurrentCommand?.CommandId
+                }
+            </td>
+            <td>@processor.CommandsInQueue</td>
+            <td>
+                @if (processor.Paused)
+                {
+                    <button class="btn" @onclick="@processor.Unpause">
+                        <i class="oi oi-media-play"></i>
+                    </button>
+                }
+                else
+                {
+                    <button class="btn" @onclick="@(() => processor.Pause())">
+                        <i class="oi oi-media-pause"></i>
+                    </button>
+                }
+            </td>
+            <td>
+                <button @onclick="@(() => ClearQueue(processor))">
+                    <i class="oi oi-x"></i>
+                </button>
+            </td>
         </tr>
-        </thead>
-        <tbody>
-        @using (var context = ContextFactory.CreateDbContext())
-        {
-            @foreach (var processor in _processors)
-            {
-                <tr>
-                    <td>@Enum.GetName(processor.QueueType)</td>
-                    <td>
-                        @if (processor.Paused)
-                        {
-                            @processor.PauseReason
-                        }
-                        else
-                        {
-                            @processor.CurrentCommand?.CommandId
-                        }
-                    </td>
-                    <td>@context.CommandRequests.GetQueueCount(processor.QueueType)</td>
-                    <td>
-                        @if (processor.Paused)
-                        {
-                            <button class="btn" @onclick="processor.Unpause">
-                                <i class="oi oi-media-play"></i>
-                            </button>
-                        }
-                        else
-                        {
-                            <button class="btn" @onclick="() => processor.Pause()">
-                                <i class="oi oi-media-pause"></i>
-                            </button>
-                        }
-                    </td>
-                    <td>
-                        <button @onclick="() => ClearQueue(processor)">
-                            <i class="oi oi-x"></i>
-                        </button>
-                    </td>
-                </tr>
-            }
-        }
-        </tbody>
-    </table>
-}
+    }
+    </tbody>
+</table>
+
 
 @code {
-    private List<CommandProcessor>? _processors;
-    private Timer? _timer;
+    private readonly List<CommandProcessor> _processors = new();
+    private readonly Timer _timer = new(2_000)
+    {
+        AutoReset = true,
+        Enabled = true
+    };
 
     protected override void OnInitialized()
     {
-        _processors = ServiceProvider.GetServices<CommandProcessor>().ToList();
-        _timer = new Timer(2_000);
-        _timer.AutoReset = true;
+        _processors.AddRange(ServiceProvider.GetServices<CommandProcessor>());
         _timer.Elapsed += (_, _) => InvokeAsync(StateHasChanged);
-        _timer.Enabled = true;
-
-        base.OnInitialized();
     }
 
     private void ClearQueue(CommandProcessor processor)
@@ -100,7 +88,7 @@ else
 
     public void Dispose()
     {
-        _timer?.Dispose();
+        _timer.Dispose();
     }
 
 }
