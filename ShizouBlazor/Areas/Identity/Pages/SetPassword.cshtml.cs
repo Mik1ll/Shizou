@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
-namespace ShizouBlazor.Areas.Identity.Pages.Account;
+namespace ShizouBlazor.Areas.Identity.Pages;
 
 public class SetPassword : PageModel
 {
@@ -28,7 +28,7 @@ public class SetPassword : PageModel
     public async Task<IActionResult> OnPostAsync()
     {
         var returnUrl = Url.Content("~/");
-        if (!IsLoopBackAddress(HttpContext)) return Forbid("Must be on localhost to change password");
+        if (!IsLoopBackAddress(HttpContext)) return Forbid("Must connect via localhost to change password");
         if (ModelState.IsValid)
         {
             var identity = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == "Admin");
@@ -53,20 +53,7 @@ public class SetPassword : PageModel
 
     public static bool IsLoopBackAddress(HttpContext context)
     {
-        string? ipString;
-        if (string.IsNullOrEmpty(ipString = context.Request.Headers["X-Forwarded-For"].ToString()))
-            ipString = context.Connection.RemoteIpAddress?.ToString();
-
-        // if unknown, assume not local
-        if (string.IsNullOrEmpty(ipString))
-            return false;
-
-        // check if localhost
-        if (ipString is "127.0.0.1" or "::1")
-            return true;
-
-        // compare with local address
-        return ipString == context.Connection.LocalIpAddress?.ToString();
+        return (context.Connection.RemoteIpAddress?.ToString(), context.Connection.LocalIpAddress?.ToString()) is ("127.0.0.1", "127.0.0.1") or ("::1", "::1");
     }
 
     [SuppressMessage("ReSharper", "UnusedMember.Global")]

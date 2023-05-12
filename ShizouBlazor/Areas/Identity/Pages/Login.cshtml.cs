@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace ShizouBlazor.Areas.Identity.Pages.Account;
+namespace ShizouBlazor.Areas.Identity.Pages;
 
 public class Login : PageModel
 {
