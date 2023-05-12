@@ -28,7 +28,6 @@ public class SetPassword : PageModel
     public async Task<IActionResult> OnPostAsync()
     {
         var returnUrl = Url.Content("~/");
-        if (!IsLoopBackAddress(HttpContext)) return Forbid("Must connect via localhost to change password");
         if (ModelState.IsValid)
         {
             var identity = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == "Admin");
