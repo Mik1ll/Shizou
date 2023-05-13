@@ -153,7 +153,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             requestable = DateTime.UtcNow - fileInfo.LastWriteTimeUtc > MyListRequestPeriod;
         if (!requestable)
         {
-            Logger.LogWarning("Failed to get mylist: already requested in last {hours} hours", MyListRequestPeriod.Hours);
+            Logger.LogWarning("Failed to get mylist: already requested in last {Hours} hours", MyListRequestPeriod.Hours);
             return null;
         }
 
@@ -164,7 +164,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             if (!File.Exists(FilePaths.MyListPath))
                 File.Create(FilePaths.MyListPath).Dispose();
             File.SetLastWriteTimeUtc(FilePaths.MyListPath, DateTime.UtcNow);
-            Logger.LogWarning("Failed to get mylist data from AniDb, retry in {hours} hours", MyListRequestPeriod.Hours);
+            Logger.LogWarning("Failed to get mylist data from AniDb, retry in {Hours} hours", MyListRequestPeriod.Hours);
         }
         else
         {

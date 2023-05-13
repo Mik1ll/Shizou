@@ -221,15 +221,15 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                 if (localFile is null)
                 {
                     Completed = true;
-                    Logger.LogWarning("Unable to process local file id: {localFileId} not found, skipping", CommandArgs.Id);
+                    Logger.LogWarning("Unable to process local file id: {LocalFileId} not found, skipping", CommandArgs.Id);
                     return null;
                 }
-                Logger.LogInformation("Processing local file id: {localfileId}, ed2k: {localFileEd2k}", CommandArgs.Id, localFile.Ed2K);
+                Logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2K);
                 fileReq = new FileRequest(Provider, localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             }
             case IdType.FileId:
-                Logger.LogInformation("Processing file id: {fileId}", CommandArgs.Id);
+                Logger.LogInformation("Processing file id: {FileId}", CommandArgs.Id);
                 fileReq = new FileRequest(Provider, CommandArgs.Id, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             default:
@@ -240,12 +240,12 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         result = fileReq.FileResult;
         if (fileReq.ResponseCode == AniDbResponseCode.NoSuchFile)
         {
-            Logger.LogInformation("Skipped processing {idName}: {Id}, file not found on anidb", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
+            Logger.LogInformation("Skipped processing {IdName}: {Id}, file not found on anidb", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
             Completed = true;
         }
         else if (result is null)
         {
-            Logger.LogError("Could not process  {idName}: {Id}, no file result", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
+            Logger.LogError("Could not process  {IdName}: {Id}, no file result", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
         }
         else
         {

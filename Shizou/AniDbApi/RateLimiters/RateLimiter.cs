@@ -37,7 +37,7 @@ public abstract class RateLimiter
             await _rateSemaphore.WaitAsync();
             if (!Available)
             {
-                Logger.LogDebug("Time since last command: {watchElapsed}, waiting for {nextAvailable}", _watch.Elapsed, NextAvailable - DateTimeOffset.UtcNow);
+                Logger.LogDebug("Time since last command: {WatchElapsed}, waiting for {NextAvailable}", _watch.Elapsed, NextAvailable - DateTimeOffset.UtcNow);
                 await Task.Delay(NextAvailable - DateTimeOffset.UtcNow);
             }
             if (_watch.Elapsed > ResetPeriod)

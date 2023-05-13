@@ -90,10 +90,10 @@ public abstract class AniDbUdpRequest
         await AniDbUdpState.RateLimiter.EnsureRate();
         if (AniDbUdpState.Banned)
         {
-            Logger.LogWarning("Banned, aborting UDP request: {requestText}", RequestText);
+            Logger.LogWarning("Banned, aborting UDP request: {RequestText}", RequestText);
             throw new ProcessorPauseException("Udp banned");
         }
-        Logger.LogInformation("Sending AniDb UDP text: {requestText}", RequestText);
+        Logger.LogInformation("Sending AniDb UDP text: {RequestText}", RequestText);
         try
         {
             await AniDbUdpState.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
@@ -101,7 +101,7 @@ public abstract class AniDbUdpRequest
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error sending data: {exceptionMsg}", ex.Message);
+            Logger.LogError(ex, "Error sending data: {ExceptionMsg}", ex.Message);
         }
         return false;
     }
@@ -123,14 +123,14 @@ public abstract class AniDbUdpRequest
             ResponseText = reader.ReadToEnd();
             if (string.IsNullOrWhiteSpace(codeLine) || codeLine.Length <= 2)
                 throw new InvalidOperationException("AniDB response is empty");
-            Logger.LogInformation("Received AniDB UDP response {codeString}", codeLine);
+            Logger.LogInformation("Received AniDB UDP response {CodeString}", codeLine);
             ResponseCode = (AniDbResponseCode)int.Parse(codeLine[..3]);
             if (codeLine.Length >= 5)
                 ResponseCodeString = codeLine[4..];
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error receiving data: {exceptionMsg}", ex.Message);
+            Logger.LogError(ex, "Error receiving data: {ExceptionMsg}", ex.Message);
         }
     }
 
@@ -155,7 +155,7 @@ public abstract class AniDbUdpRequest
             case AniDbResponseCode.Banned:
                 AniDbUdpState.Banned = true;
                 AniDbUdpState.BanReason = ResponseText;
-                Logger.LogWarning("Banned: {banReason}, waiting {hours}hr {minutes}min ({unbanTime})", AniDbUdpState.BanReason, AniDbUdpState.BanPeriod.Hours,
+                Logger.LogWarning("Banned: {BanReason}, waiting {Hours}hr {Minutes}min ({UnbanTime})", AniDbUdpState.BanReason, AniDbUdpState.BanPeriod.Hours,
                     AniDbUdpState.BanPeriod.Minutes, AniDbUdpState.BanEndTime);
                 throw new ProcessorPauseException($"Udp banned, waiting until {AniDbUdpState.BanEndTime}");
             case AniDbResponseCode.InvalidSession:
@@ -170,7 +170,7 @@ public abstract class AniDbUdpRequest
                 Logger.LogError("Access denied");
                 throw new ProcessorPauseException("Access was denied");
             case AniDbResponseCode.InternalServerError or (> AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700):
-                Logger.LogCritical("AniDB Server CRITICAL ERROR {errorCode} : {errorCodeStr}", ResponseCode, ResponseCodeString);
+                Logger.LogCritical("AniDB Server CRITICAL ERROR {ErrorCode} : {ErrorCodeStr}", ResponseCode, ResponseCodeString);
                 throw new ProcessorPauseException($"Critical error with server {ResponseCode} {ResponseCodeString}");
             case AniDbResponseCode.UnknownCommand:
                 Logger.LogError("Uknown command, {Command}, {RequestText}", Command, RequestText);
@@ -181,7 +181,7 @@ public abstract class AniDbUdpRequest
             default:
                 if (!Enum.IsDefined(typeof(AniDbResponseCode), ResponseCode))
                 {
-                    Logger.LogError("Response Code {ResponseCode} not found in enumeration: Code string: {codeString}", ResponseCode,
+                    Logger.LogError("Response Code {ResponseCode} not found in enumeration: Code string: {CodeString}", ResponseCode,
                         ResponseCodeString);
                     throw new ProcessorPauseException($"Unknown response code: {ResponseCode}: {ResponseCodeString}");
                 }

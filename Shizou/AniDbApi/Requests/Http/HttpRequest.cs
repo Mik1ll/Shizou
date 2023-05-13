@@ -46,10 +46,10 @@ public abstract class HttpRequest
             await _httpState.RateLimiter.EnsureRate();
             if (_httpState.Banned)
             {
-                Logger.LogWarning("Banned, aborting HTTP request: {url}", url);
+                Logger.LogWarning("Banned, aborting HTTP request: {Url}", url);
                 return;
             }
-            Logger.LogInformation("Sending HTTP request: {url}", url);
+            Logger.LogInformation("Sending HTTP request: {Url}", url);
             ResponseText = await _httpClient.GetStringAsync(url);
             if (string.IsNullOrWhiteSpace(ResponseText))
             {
@@ -61,12 +61,12 @@ public abstract class HttpRequest
                 if (ResponseText.Contains("Banned"))
                 {
                     _httpState.Banned = true;
-                    Logger.LogWarning("HTTP Banned! waiting {banPeriod}", _httpState.BanPeriod);
+                    Logger.LogWarning("HTTP Banned! waiting {BanPeriod}", _httpState.BanPeriod);
                     throw new ProcessorPauseException($"HTTP Banned, wait {_httpState.BanPeriod}");
                 }
                 else
                 {
-                    Logger.LogError("Unknown error http response: {errText}", ResponseText);
+                    Logger.LogError("Unknown error http response: {ErrText}", ResponseText);
                     throw new ProcessorPauseException("Unknown error http response, check log");
                 }
             }

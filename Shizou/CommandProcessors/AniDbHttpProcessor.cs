@@ -12,7 +12,7 @@ public class AniDbHttpProcessor : CommandProcessor
 
     private string? _pauseReason;
 
-    public AniDbHttpProcessor(ILogger<CommandProcessor> logger, IServiceProvider provider, AniDbHttpState httpState) : base(logger, provider,
+    public AniDbHttpProcessor(ILogger<AniDbHttpProcessor> logger, IServiceProvider provider, AniDbHttpState httpState) : base(logger, provider,
         QueueType.AniDbHttp)
     {
         _httpState = httpState;

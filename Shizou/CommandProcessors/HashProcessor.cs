@@ -6,7 +6,7 @@ namespace Shizou.CommandProcessors;
 
 public class HashProcessor : CommandProcessor
 {
-    public HashProcessor(ILogger<CommandProcessor> logger, IServiceProvider provider)
+    public HashProcessor(ILogger<HashProcessor> logger, IServiceProvider provider)
         : base(logger, provider, QueueType.Hash)
     {
     }

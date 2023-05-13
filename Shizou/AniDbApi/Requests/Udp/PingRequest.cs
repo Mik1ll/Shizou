@@ -15,6 +15,6 @@ public class PingRequest : AniDbUdpRequest
     {
         Logger.LogDebug("Pinging server...");
         await HandleRequest();
-        Logger.LogDebug("Ping Response: {responseCode}", ResponseCode);
+        Logger.LogDebug("Ping Response: {ResponseCode}", ResponseCode);
     }
 }

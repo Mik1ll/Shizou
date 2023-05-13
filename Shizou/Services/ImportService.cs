@@ -40,7 +40,7 @@ public class ImportService
         var importFolder = _context.ImportFolders.Find(importFolderId);
         if (importFolder is null)
             throw new InvalidOperationException($"import folder id {importFolderId} not found");
-        _logger.LogInformation("Beginning scan on import folder \"{importFolderPath}\"", importFolder.Path);
+        _logger.LogInformation("Beginning scan on import folder \"{ImportFolderPath}\"", importFolder.Path);
         var dir = new DirectoryInfo(importFolder.Path);
         var allFiles = dir.GetFiles("*", SearchOption.AllDirectories);
         var filesToHash = allFiles

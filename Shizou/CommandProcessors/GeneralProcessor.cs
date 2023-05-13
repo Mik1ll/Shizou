@@ -6,7 +6,7 @@ namespace Shizou.CommandProcessors;
 
 public class GeneralProcessor : CommandProcessor
 {
-    public GeneralProcessor(ILogger<CommandProcessor> logger, IServiceProvider provider) : base(logger, provider, QueueType.General)
+    public GeneralProcessor(ILogger<GeneralProcessor> logger, IServiceProvider provider) : base(logger, provider, QueueType.General)
     {
     }
 }

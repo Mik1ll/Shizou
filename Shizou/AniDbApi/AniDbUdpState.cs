@@ -54,14 +54,14 @@ public sealed class AniDbUdpState : IDisposable
         }
         else
         {
-            _logger.LogInformation($"Creating port mapping on port {options.CurrentValue.AniDb.ClientPort}");
+            _logger.LogInformation("Creating port mapping on port {AniDbClientPort}", options.CurrentValue.AniDb.ClientPort);
             var mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, options.CurrentValue.AniDb.ClientPort, options.CurrentValue.AniDb.ClientPort));
             if (mapping.Lifetime > 0)
             {
                 _mappingTimer = new Timer(TimeSpan.FromSeconds(mapping.Lifetime - 60).TotalMilliseconds);
                 _mappingTimer.Elapsed += (_, _) =>
                 {
-                    _logger.LogInformation($"Recreating port mapping on port {options.CurrentValue.AniDb.ClientPort}");
+                    _logger.LogInformation("Recreating port mapping on port {AniDbClientPort}", options.CurrentValue.AniDb.ClientPort);
                     mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, options.CurrentValue.AniDb.ClientPort,
                         options.CurrentValue.AniDb.ClientPort));
                 };

@@ -45,16 +45,16 @@ public class HashCommand : BaseCommand<HashArgs>
                                  || (l.ImportFolderId == importFolder.Id && l.PathTail == pathTail));
         if (localFile is not null && localFile.Signature == signature)
         {
-            Logger.LogInformation("Found local file by signature: {signature} \"{Path}\"", signature, file.FullName);
+            Logger.LogInformation("Found local file by signature: {Signature} \"{Path}\"", signature, file.FullName);
             var oldPath = Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
             if (file.FullName != oldPath)
             {
                 if (File.Exists(oldPath))
                 {
-                    Logger.LogError("Skipping add local file for \"{newPath}\": duplicate file at \"{oldPath}\"", file.FullName, oldPath);
+                    Logger.LogError("Skipping add local file for \"{NewPath}\": duplicate file at \"{OldPath}\"", file.FullName, oldPath);
                     return;
                 }
-                Logger.LogInformation("Changing path and/or import folder for local file \"{newPath}\" old path: \"{oldPath}\"", file.FullName, oldPath);
+                Logger.LogInformation("Changing path and/or import folder for local file \"{NewPath}\" old path: \"{OldPath}\"", file.FullName, oldPath);
                 localFile.ImportFolder = importFolder;
                 localFile.PathTail = pathTail;
             }

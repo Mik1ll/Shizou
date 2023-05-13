@@ -48,7 +48,7 @@ public abstract class CommandProcessor : BackgroundService
         if (pauseReason is null)
             Logger.LogInformation("Processor paused");
         else
-            Logger.LogInformation("Processor paused with reason: {pauseReason}", pauseReason);
+            Logger.LogInformation("Processor paused with reason: {PauseReason}", pauseReason);
     }
 
     public void Unpause()
@@ -107,7 +107,7 @@ public abstract class CommandProcessor : BackgroundService
             var command = commandManager.CommandFromRequest(CurrentCommand);
             try
             {
-                Logger.LogDebug("Processing command: {commandId}", command.CommandId);
+                Logger.LogDebug("Processing command: {CommandId}", command.CommandId);
                 LastThreeCommands.Enqueue(command.CommandId);
                 if (LastThreeCommands.Count > 3)
                     LastThreeCommands.Dequeue();
@@ -132,17 +132,18 @@ public abstract class CommandProcessor : BackgroundService
 
             if (command.Completed)
             {
-                Logger.LogDebug("Deleting command: {commandId}", command.CommandId);
+                Logger.LogDebug("Deleting command: {CommandId}", command.CommandId);
                 context.CommandRequests.Remove(CurrentCommand);
+                // ReSharper disable once MethodHasAsyncOverloadWithCancellation
                 context.SaveChanges();
             }
             else
             {
-                Logger.LogWarning("Not deleting uncompleted command: {commandId}", command.CommandId);
+                Logger.LogWarning("Not deleting uncompleted command: {CommandId}", command.CommandId);
                 if (LastThreeCommands.Count >= 3 && LastThreeCommands.Distinct().Count() == 1)
                 {
                     Pause($"Failed to complete command: {command.CommandId} after three attempts");
-                    Logger.LogWarning("Queue paused after failing to complete command three times: {commandId}", command.CommandId);
+                    Logger.LogWarning("Queue paused after failing to complete command three times: {CommandId}", command.CommandId);
                 }
             }
             CurrentCommand = null;

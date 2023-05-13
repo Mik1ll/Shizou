@@ -39,7 +39,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         var (cacheHit, requestable) = CheckCache();
         if ((!cacheHit || CommandArgs.ForceRefresh) && !requestable)
         {
-            Logger.LogWarning("Ignoring HTTP anime request: {animeId}, already requested in last {hours} hours", CommandArgs.AnimeId,
+            Logger.LogWarning("Ignoring HTTP anime request: {AnimeId}, already requested in last {Hours} hours", CommandArgs.AnimeId,
                 AnimeRequestPeriod.Hours);
             Completed = true;
             return;
@@ -104,7 +104,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
 
     private HttpAnimeResult? GetAnimeCache()
     {
-        Logger.LogInformation("Cache getting anime id {animeId}", CommandArgs.AnimeId);
+        Logger.LogInformation("Cache getting anime id {AnimeId}", CommandArgs.AnimeId);
         if (File.Exists(_cacheFilePath))
         {
             XmlSerializer serializer = new(typeof(HttpAnimeResult));
@@ -134,7 +134,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
                 File.Create(_cacheFilePath).Dispose();
             }
             File.SetLastWriteTimeUtc(_cacheFilePath, DateTime.UtcNow);
-            Logger.LogWarning("Failed to get HTTP anime data, retry in {hours} hours", AnimeRequestPeriod.Hours);
+            Logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", AnimeRequestPeriod.Hours);
         }
         else
         {

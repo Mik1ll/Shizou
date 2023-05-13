@@ -83,7 +83,7 @@
         using var context = ContextFactory.CreateDbContext();
         context.CommandRequests.ClearQueue(processor.QueueType);
         context.SaveChanges();
-        Logger.LogInformation("{queueType} queue cleared", Enum.GetName(processor.QueueType));
+        Logger.LogInformation("{QueueType} queue cleared", Enum.GetName(processor.QueueType));
     }
 
     public void Dispose()

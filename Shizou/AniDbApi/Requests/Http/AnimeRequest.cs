@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using System.Web;
 using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
@@ -21,7 +20,7 @@ public class AnimeRequest : HttpRequest
 
     public override async Task Process()
     {
-        Logger.LogInformation("HTTP Getting anime {aid} from AniDb", Args["aid"]);
+        Logger.LogInformation("HTTP Getting anime {Aid} from AniDb", Args["aid"]);
         await SendRequest();
         if (ResponseText is not null)
         {
