@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Serilog;
 using Shizou.Extensions;
-using ShizouBlazor.Data;
 using ShizouData.Database;
 
 var logTemplate = "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}";
@@ -32,7 +31,6 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     .AddEntityFrameworkStores<ShizouContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<WeatherForecastService>();
 
 var app = builder.Build();
 

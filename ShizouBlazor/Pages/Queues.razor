@@ -12,7 +12,7 @@
 
 <h3>Queues</h3>
 
-<table class="table">
+<table class="table" style="width:100%">
     <thead>
     <tr>
         <th>Type</th>
@@ -28,7 +28,7 @@
     {
         <tr>
             <td>@Enum.GetName(processor.QueueType)</td>
-            <td>
+            <td class="absorbing-column">
                 @if (processor.Paused)
                 {
                     @processor.PauseReason
@@ -54,7 +54,7 @@
                 }
             </td>
             <td>
-                <button @onclick="@(() => ClearQueue(processor))">
+                <button class="btn" @onclick="@(() => ClearQueue(processor))">
                     <i class="oi oi-x"></i>
                 </button>
             </td>
