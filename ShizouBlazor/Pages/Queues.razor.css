@@ -12,3 +12,7 @@ table td {
 table .absorbing-column {
     width: 100%;
 }
+
+#queued-column {
+    text-align: center
+}

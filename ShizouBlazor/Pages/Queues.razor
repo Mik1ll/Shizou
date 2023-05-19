@@ -38,25 +38,19 @@
                         @processor.CurrentCommand?.CommandId
                     }
                 </td>
-                <td style="text-align: center">@processor.CommandsInQueue</td>
+                <td id="queued-column">@processor.CommandsInQueue</td>
                 <td>
                     @if (processor.Paused)
                     {
-                        <button class="btn" @onclick="@processor.Unpause">
-                            <i class="oi oi-media-play"></i>
-                        </button>
+                        <button class="btn oi oi-media-play" @onclick="@processor.Unpause"></button>
                     }
                     else
                     {
-                        <button class="btn" @onclick="@(() => processor.Pause())">
-                            <i class="oi oi-media-pause"></i>
-                        </button>
+                        <button class="btn oi oi-media-pause" @onclick="@(() => processor.Pause())"></button>
                     }
                 </td>
                 <td>
-                    <button class="btn" @onclick="@(() => ClearQueue(processor))">
-                        <i class="oi oi-x"></i>
-                    </button>
+                    <button class="btn oi oi-x" @onclick="@(() => ClearQueue(processor))"></button>
                 </td>
             </tr>
         }
