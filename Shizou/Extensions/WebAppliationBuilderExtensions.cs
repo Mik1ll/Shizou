@@ -57,12 +57,6 @@ public static class WebAppliationBuilderExtensions
             .UseSqlite(connectionString)
             .EnableSensitiveDataLogging());
 
-        var httpUrl = builder.Configuration.GetValue<string>("Kestrel:Endpoints:Http:Url") ?? "";
-        builder.Services.AddCors(opts =>
-            opts.AddDefaultPolicy(pol =>
-                pol.WithOrigins(httpUrl)
-                    .WithMethods("Get")));
-
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();
         return builder;
