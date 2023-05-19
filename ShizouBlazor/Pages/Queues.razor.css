@@ -1,0 +1,14 @@
+﻿table {
+    table-layout: auto;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table td {
+    text-align: left;
+    vertical-align: middle;
+}
+
+table .absorbing-column {
+    width: 100%;
+}

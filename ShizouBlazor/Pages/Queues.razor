@@ -11,58 +11,58 @@
 @inject IServiceProvider ServiceProvider
 
 <h3>Queues</h3>
-
-<table class="table table-condensed table-hover" style="width:100%">
-    <thead>
-    <tr>
-        <th>Type</th>
-        <th>Message</th>
-        <th>Queued</th>
-        <th></th>
-        <th></th>
-    </tr>
-    </thead>
-
-    <tbody>
-    @foreach (var processor in _processors)
-    {
+<div class="container-fluid">
+    <table class="table table-hover">
+        <thead>
         <tr>
-            <td>@Enum.GetName(processor.QueueType)</td>
-            <td class="absorbing-column">
-                @if (processor.Paused)
-                {
-                    @processor.PauseReason
-                }
-                else
-                {
-                    @processor.CurrentCommand?.CommandId
-                }
-            </td>
-            <td>@processor.CommandsInQueue</td>
-            <td>
-                @if (processor.Paused)
-                {
-                    <button class="btn" @onclick="@processor.Unpause">
-                        <i class="oi oi-media-play"></i>
-                    </button>
-                }
-                else
-                {
-                    <button class="btn" @onclick="@(() => processor.Pause())">
-                        <i class="oi oi-media-pause"></i>
-                    </button>
-                }
-            </td>
-            <td>
-                <button class="btn" @onclick="@(() => ClearQueue(processor))">
-                    <i class="oi oi-x"></i>
-                </button>
-            </td>
+            <th>Type</th>
+            <th>Message</th>
+            <th>Queued</th>
+            <th></th>
+            <th></th>
         </tr>
-    }
-    </tbody>
-</table>
+        </thead>
 
+        <tbody>
+        @foreach (var processor in _processors)
+        {
+            <tr>
+                <td>@Enum.GetName(processor.QueueType)</td>
+                <td class="absorbing-column">
+                    @if (processor.Paused)
+                    {
+                        @processor.PauseReason
+                    }
+                    else
+                    {
+                        @processor.CurrentCommand?.CommandId
+                    }
+                </td>
+                <td style="text-align: center">@processor.CommandsInQueue</td>
+                <td>
+                    @if (processor.Paused)
+                    {
+                        <button class="btn" @onclick="@processor.Unpause">
+                            <i class="oi oi-media-play"></i>
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn" @onclick="@(() => processor.Pause())">
+                            <i class="oi oi-media-pause"></i>
+                        </button>
+                    }
+                </td>
+                <td>
+                    <button class="btn" @onclick="@(() => ClearQueue(processor))">
+                        <i class="oi oi-x"></i>
+                    </button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
 
 @code {
     private readonly List<CommandProcessor> _processors = new();
