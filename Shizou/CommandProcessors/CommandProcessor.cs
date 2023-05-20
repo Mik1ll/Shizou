@@ -89,7 +89,7 @@ public abstract class CommandProcessor : BackgroundService
 
     protected virtual int BasePollInterval => 1000;
     protected virtual int MaxPollSteps => 4;
-    public int PollStep { get; private set; } = 1;
+    public int PollStep { get; private set; }
     protected virtual int MaxPollInterval => 10000;
     protected double ExponentialFactor => (double)MaxPollInterval / BasePollInterval;
 
@@ -131,7 +131,7 @@ public abstract class CommandProcessor : BackgroundService
             CurrentCommand = context.CommandRequests.GetNextRequest(QueueType);
             if (CurrentCommand is null)
                 continue;
-            PollStep = 1;
+            PollStep = 0;
             var command = commandManager.CommandFromRequest(CurrentCommand);
             try
             {
