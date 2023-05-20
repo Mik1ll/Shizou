@@ -73,6 +73,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     private CommandRequest? _currentCommand;
     private int _commandsInQueue;
     private bool _paused = true;
+    private int _pollStep;
 
     public void Pause(string? pauseReason = null)
     {
@@ -89,7 +90,13 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     protected virtual int BasePollInterval => 1000;
     protected virtual int MaxPollSteps => 4;
-    public int PollStep { get; private set; }
+
+    public int PollStep
+    {
+        get => _pollStep;
+        private set => _pollStep = Math.Min(value, MaxPollSteps);
+    }
+
     protected virtual int MaxPollInterval => 10000;
     protected double ExponentialFactor => (double)MaxPollInterval / BasePollInterval;
 
