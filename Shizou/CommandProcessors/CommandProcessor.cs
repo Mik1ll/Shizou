@@ -25,7 +25,6 @@ public abstract class CommandProcessor : BackgroundService
         Logger = logger;
         Provider = provider;
         QueueType = queueType;
-        PollInterval = BasePollInterval;
     }
 
     protected ILogger<CommandProcessor> Logger { get; }
@@ -86,10 +85,15 @@ public abstract class CommandProcessor : BackgroundService
         }
     }
 
-    public Queue<string> LastThreeCommands { get; set; } = new(3);
+    public Queue<string> LastThreeCommands { get; } = new(3);
 
-    protected int BasePollInterval { get; set; } = 1000;
-    protected int PollInterval { get; set; }
+    protected virtual int BasePollInterval => 1000;
+    protected virtual int MaxPollSteps => 4;
+    public int PollStep { get; private set; } = 1;
+    protected virtual int MaxPollInterval => 10000;
+    protected double ExponentialFactor => (double)MaxPollInterval / BasePollInterval;
+
+    public int PollInterval => Math.Min((int)(BasePollInterval * Math.Pow(ExponentialFactor, (float)PollStep / MaxPollSteps)), MaxPollInterval);
 
     public virtual void Shutdown()
     {
@@ -118,7 +122,7 @@ public abstract class CommandProcessor : BackgroundService
                 }
                 finally
                 {
-                    PollInterval = Math.Min((int)(PollInterval * Math.Pow(10, 1f / 4)), 10000);
+                    PollStep++;
                     _unpauseTokenSource.Dispose();
                     linkedTokenSource.Dispose();
                 }
@@ -127,7 +131,7 @@ public abstract class CommandProcessor : BackgroundService
             CurrentCommand = context.CommandRequests.GetNextRequest(QueueType);
             if (CurrentCommand is null)
                 continue;
-            PollInterval = BasePollInterval;
+            PollStep = 1;
             var command = commandManager.CommandFromRequest(CurrentCommand);
             try
             {
