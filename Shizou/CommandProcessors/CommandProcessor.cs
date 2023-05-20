@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -168,9 +169,20 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             if (command.Completed)
             {
                 Logger.LogDebug("Deleting command: {CommandId}", command.CommandId);
-                context.CommandRequests.Remove(CurrentCommand);
-                // ReSharper disable once MethodHasAsyncOverloadWithCancellation
-                context.SaveChanges();
+
+                try
+                {
+                    if (context.CommandRequests.Any(cr => cr.Id == CurrentCommand.Id))
+                    {
+                        context.CommandRequests.Remove(CurrentCommand);
+                        // ReSharper disable once MethodHasAsyncOverloadWithCancellation
+                        context.SaveChanges();
+                    }
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    ex.Entries.Single().State = EntityState.Detached;
+                }
             }
             else
             {
