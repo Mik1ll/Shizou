@@ -8,25 +8,28 @@ namespace Shizou.CommandProcessors;
 public class AniDbHttpProcessor : CommandProcessor
 {
     private readonly AniDbHttpState _httpState;
-    private bool _paused = true;
-
-    private string? _pauseReason;
 
     public AniDbHttpProcessor(ILogger<AniDbHttpProcessor> logger, IServiceProvider provider, AniDbHttpState httpState) : base(logger, provider,
         QueueType.AniDbHttp)
     {
         _httpState = httpState;
     }
-    
+
     public override bool Paused
     {
-        get => _paused || _httpState.Banned;
-        protected set => _paused = value;
+        get => _httpState.Banned || base.Paused;
+        protected set
+        {
+            if (!value && _httpState.Banned)
+                Logger.LogWarning("Can't unpause, HTTP banned");
+            else
+                base.Paused = value;
+        }
     }
 
     public override string? PauseReason
     {
-        get => _httpState.Banned ? "HTTP banned" : _pauseReason;
-        protected set => _pauseReason = value;
+        get => _httpState.Banned ? "HTTP banned" : base.PauseReason;
+        protected set => base.PauseReason = value;
     }
 }

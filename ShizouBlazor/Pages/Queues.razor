@@ -3,6 +3,7 @@
 @using Shizou.Services
 @using Shizou.CommandProcessors
 @using Shizou.Commands
+@using System.ComponentModel
 @using ShizouData.Database
 @using Microsoft.EntityFrameworkCore
 @implements IDisposable
@@ -67,10 +68,10 @@
     {
         _processors.AddRange(ServiceProvider.GetServices<CommandProcessor>());
         foreach (var processor in _processors)
-            processor.StateChanged += OnCommandChanged;
+            processor.PropertyChanged += OnCommandChanged;
     }
 
-    private void OnCommandChanged(object? sender, EventArgs eventArgs)
+    private void OnCommandChanged(object? sender, PropertyChangedEventArgs eventArgs)
     {
         InvokeAsync(StateHasChanged);
     }
@@ -86,7 +87,7 @@
     public void Dispose()
     {
         foreach (var processor in _processors)
-            processor.StateChanged -= OnCommandChanged;
+            processor.PropertyChanged -= OnCommandChanged;
     }
 
     private void DispatchNoop()

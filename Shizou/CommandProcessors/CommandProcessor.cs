@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +17,7 @@ using ShizouData.Models;
 
 namespace Shizou.CommandProcessors;
 
-public abstract class CommandProcessor : BackgroundService
+public abstract class CommandProcessor : BackgroundService, INotifyPropertyChanged
 {
     protected readonly IServiceProvider Provider;
     public readonly QueueType QueueType;
@@ -34,55 +36,53 @@ public abstract class CommandProcessor : BackgroundService
     public CommandRequest? CurrentCommand
     {
         get => _currentCommand;
-        private set
-        {
-            var changed = _currentCommand != value;
-            _currentCommand = value;
-            if (changed)
-                StateChanged?.Invoke(this, EventArgs.Empty);
-        }
+        private set => SetField(ref _currentCommand, value);
     }
-
-    public event EventHandler? StateChanged;
 
     public int CommandsInQueue
     {
         get => _commandsInQueue;
-        private set
+        private set => SetField(ref _commandsInQueue, value);
+    }
+
+    public virtual bool Paused
+    {
+        get => _paused;
+        protected set
         {
-            var changed = _commandsInQueue != value;
-            _commandsInQueue = value;
-            if (changed)
-                StateChanged?.Invoke(this, EventArgs.Empty);
+            if (value)
+            {
+                if (PauseReason is null)
+                    Logger.LogInformation("Processor paused");
+                else
+                    Logger.LogInformation("Processor paused with reason: {PauseReason}", PauseReason);
+            }
+            else
+            {
+                _unpauseTokenSource?.Cancel();
+                PauseReason = null;
+                Logger.LogInformation("Processor unpaused");
+            }
+            SetField(ref _paused, value);
         }
     }
 
-    public virtual bool Paused { get; protected set; } = true;
     public virtual string? PauseReason { get; protected set; }
 
     private CancellationTokenSource? _unpauseTokenSource;
     private CommandRequest? _currentCommand;
     private int _commandsInQueue;
+    private bool _paused = true;
 
     public void Pause(string? pauseReason = null)
     {
-        Paused = true;
         PauseReason = pauseReason;
-        if (pauseReason is null)
-            Logger.LogInformation("Processor paused");
-        else
-            Logger.LogInformation("Processor paused with reason: {PauseReason}", pauseReason);
+        Paused = true;
     }
 
     public void Unpause()
     {
         Paused = false;
-        if (!Paused)
-        {
-            _unpauseTokenSource?.Cancel();
-            PauseReason = null;
-            Logger.LogInformation("Processor unpaused");
-        }
     }
 
     public Queue<string> LastThreeCommands { get; } = new(3);
@@ -176,5 +176,20 @@ public abstract class CommandProcessor : BackgroundService
             }
             CurrentCommand = null;
         }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
     }
 }
