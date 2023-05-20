@@ -1,7 +1,8 @@
 ﻿@page "/Queues"
 @using Shizou.Extensions
+@using Shizou.Services
 @using Shizou.CommandProcessors
-@using System.Timers
+@using Shizou.Commands
 @using ShizouData.Database
 @using Microsoft.EntityFrameworkCore
 @implements IDisposable
@@ -56,20 +57,22 @@
         }
         </tbody>
     </table>
+    <button class="btn btn-primary" @onclick="DispatchNoop">Add noops</button>
 </div>
 
 @code {
     private readonly List<CommandProcessor> _processors = new();
-    private readonly Timer _timer = new(2_000)
-    {
-        AutoReset = true,
-        Enabled = true
-    };
 
     protected override void OnInitialized()
     {
         _processors.AddRange(ServiceProvider.GetServices<CommandProcessor>());
-        _timer.Elapsed += (_, _) => InvokeAsync(StateHasChanged);
+        foreach (var processor in _processors)
+            processor.StateChanged += OnCommandChanged;
+    }
+
+    private void OnCommandChanged(object? sender, EventArgs eventArgs)
+    {
+        InvokeAsync(StateHasChanged);
     }
 
     private void ClearQueue(CommandProcessor processor)
@@ -82,7 +85,13 @@
 
     public void Dispose()
     {
-        _timer.Dispose();
+        foreach (var processor in _processors)
+            processor.StateChanged -= OnCommandChanged;
+    }
+
+    private void DispatchNoop()
+    {
+        ServiceProvider.GetRequiredService<CommandService>().DispatchRange(Enumerable.Range(1, 10).Select(n => new NoopArgs(n)));
     }
 
 }

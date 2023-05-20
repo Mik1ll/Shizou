@@ -32,14 +32,38 @@ public abstract class CommandProcessor : BackgroundService
 
     public bool ProcessingCommand { get; private set; }
 
-    public CommandRequest? CurrentCommand { get; private set; }
+    public CommandRequest? CurrentCommand
+    {
+        get => _currentCommand;
+        private set
+        {
+            var changed = _currentCommand != value;
+            _currentCommand = value;
+            if (changed)
+                StateChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
 
-    public int CommandsInQueue { get; private set; }
+    public event EventHandler? StateChanged;
+
+    public int CommandsInQueue
+    {
+        get => _commandsInQueue;
+        private set
+        {
+            var changed = _commandsInQueue != value;
+            _commandsInQueue = value;
+            if (changed)
+                StateChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
 
     public virtual bool Paused { get; protected set; } = true;
     public virtual string? PauseReason { get; protected set; }
 
     private CancellationTokenSource? _unpauseTokenSource;
+    private CommandRequest? _currentCommand;
+    private int _commandsInQueue;
 
     public void Pause(string? pauseReason = null)
     {
