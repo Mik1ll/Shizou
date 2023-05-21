@@ -21,7 +21,12 @@ namespace Shizou.CommandProcessors;
 public abstract class CommandProcessor : BackgroundService, INotifyPropertyChanged
 {
     protected readonly IServiceProvider Provider;
-    public readonly QueueType QueueType;
+
+    private CancellationTokenSource? _unpauseTokenSource;
+    private CommandRequest? _currentCommand;
+    private int _commandsInQueue;
+    private bool _paused = true;
+    private int _pollStep;
 
     protected CommandProcessor(ILogger<CommandProcessor> logger, IServiceProvider provider, QueueType queueType)
     {
@@ -30,7 +35,13 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         QueueType = queueType;
     }
 
-    protected ILogger<CommandProcessor> Logger { get; }
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public QueueType QueueType { get; }
+
+    public Queue<string> LastThreeCommands { get; } = new(3);
+
+    public int PollInterval => (int)(BasePollInterval * Math.Pow((double)MaxPollInterval / BasePollInterval, (float)PollStep / MaxPollSteps));
 
     public bool ProcessingCommand { get; private set; }
 
@@ -70,11 +81,17 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     public virtual string? PauseReason { get; protected set; }
 
-    private CancellationTokenSource? _unpauseTokenSource;
-    private CommandRequest? _currentCommand;
-    private int _commandsInQueue;
-    private bool _paused = true;
-    private int _pollStep;
+    public int PollStep
+    {
+        get => _pollStep;
+        private set => _pollStep = Math.Min(value, MaxPollSteps);
+    }
+
+    protected ILogger<CommandProcessor> Logger { get; }
+
+    protected virtual int BasePollInterval => 1000;
+    protected virtual int MaxPollSteps => 4;
+    protected virtual int MaxPollInterval => 10000;
 
     public void Pause(string? pauseReason = null)
     {
@@ -86,22 +103,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     {
         Paused = false;
     }
-
-    public Queue<string> LastThreeCommands { get; } = new(3);
-
-    protected virtual int BasePollInterval => 1000;
-    protected virtual int MaxPollSteps => 4;
-
-    public int PollStep
-    {
-        get => _pollStep;
-        private set => _pollStep = Math.Min(value, MaxPollSteps);
-    }
-
-    protected virtual int MaxPollInterval => 10000;
-    protected double ExponentialFactor => (double)MaxPollInterval / BasePollInterval;
-
-    public int PollInterval => Math.Min((int)(BasePollInterval * Math.Pow(ExponentialFactor, (float)PollStep / MaxPollSteps)), MaxPollInterval);
 
     public virtual void Shutdown()
     {
@@ -115,7 +116,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         {
             using var scope = Provider.CreateScope();
             var commandManager = scope.ServiceProvider.GetRequiredService<CommandService>();
-            var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
+            using var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
             CommandsInQueue = context.CommandRequests.GetQueueCount(QueueType);
             if (Paused || CommandsInQueue == 0)
             {
@@ -196,8 +197,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             CurrentCommand = null;
         }
     }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
