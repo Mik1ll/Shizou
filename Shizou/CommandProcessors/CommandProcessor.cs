@@ -116,7 +116,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         {
             using var scope = Provider.CreateScope();
             var commandManager = scope.ServiceProvider.GetRequiredService<CommandService>();
-            using var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
+            var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
             CommandsInQueue = context.CommandRequests.GetQueueCount(QueueType);
             if (Paused || CommandsInQueue == 0)
             {
