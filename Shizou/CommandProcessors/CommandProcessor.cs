@@ -22,7 +22,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 {
     protected readonly IServiceProvider Provider;
 
-    private CancellationTokenSource? _unpauseTokenSource;
+    private CancellationTokenSource? _wakeupTokenSource;
     private CommandRequest? _currentCommand;
     private int _commandsInQueue;
     private bool _paused = true;
@@ -71,7 +71,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             }
             else
             {
-                _unpauseTokenSource?.Cancel();
+                _wakeupTokenSource?.Cancel();
                 PauseReason = null;
                 Logger.LogInformation("Processor unpaused");
             }
@@ -108,6 +108,23 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     {
     }
 
+    public void UpdateCommandsInQueue()
+    {
+        using var scope = Provider.CreateScope();
+        CommandsInQueue = scope.ServiceProvider.GetRequiredService<ShizouContext>().CommandRequests.GetQueueCount(QueueType);
+        _wakeupTokenSource?.Cancel();
+    }
+
+    public void ClearQueue()
+    {
+        using var scope = Provider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
+        context.CommandRequests.ClearQueue(QueueType);
+        context.SaveChanges();
+        UpdateCommandsInQueue();
+        Logger.LogInformation("{QueueType} queue cleared", Enum.GetName(QueueType));
+    }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         stoppingToken.Register(Shutdown);
@@ -117,27 +134,30 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             using var scope = Provider.CreateScope();
             var commandManager = scope.ServiceProvider.GetRequiredService<CommandService>();
             var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
-            CommandsInQueue = context.CommandRequests.GetQueueCount(QueueType);
+            UpdateCommandsInQueue();
             if (Paused || CommandsInQueue == 0)
             {
-                _unpauseTokenSource = new CancellationTokenSource();
-                var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_unpauseTokenSource.Token, stoppingToken);
+                _wakeupTokenSource = new CancellationTokenSource();
+                var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_wakeupTokenSource.Token, stoppingToken);
                 try
                 {
                     await Task.Delay(PollInterval, linkedTokenSource.Token);
                 }
                 catch (TaskCanceledException)
                 {
+                    Logger.LogDebug("Processor woken up from pause/inactive state");
                 }
                 finally
                 {
                     PollStep++;
-                    _unpauseTokenSource.Dispose();
+                    _wakeupTokenSource.Dispose();
+                    _wakeupTokenSource = null;
                     linkedTokenSource.Dispose();
                 }
                 continue;
             }
             CurrentCommand = context.CommandRequests.GetNextRequest(QueueType);
+            Logger.LogDebug("Current command assigned");
             if (CurrentCommand is null)
                 continue;
             PollStep = 0;

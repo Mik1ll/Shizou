@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Shizou.CommandProcessors;
 using Shizou.Commands;
 using ShizouData.Database;
 using ShizouData.Models;
@@ -43,11 +44,13 @@ public class CommandService
     {
         var context = _serviceProvider.GetRequiredService<ShizouContext>();
         var cmdRequest = RequestFromArgs(commandArgs);
+        var processor = _serviceProvider.GetServices<CommandProcessor>().Single(cp => cp.QueueType == cmdRequest.QueueType);
         using var transaction = context.Database.BeginTransaction();
         if (!context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
             context.CommandRequests.Add(cmdRequest);
         context.SaveChanges();
         transaction.Commit();
+        processor.UpdateCommandsInQueue();
     }
 
     public void DispatchRange<TArgs>(IEnumerable<TArgs> commandArgsEnumerable)
@@ -55,16 +58,19 @@ public class CommandService
     {
         var context = _serviceProvider.GetRequiredService<ShizouContext>();
         using var transaction = context.Database.BeginTransaction();
-        context.CommandRequests.AddRange(
-            commandArgsEnumerable.Select(commandArgs => RequestFromArgs(commandArgs))
-                // Throw away identical command ids
-                .GroupBy(cr => cr.CommandId)
-                .Select(crs => crs.First())
-                // Left outer join, exclude commands already in database
-                .Where(e => !context.CommandRequests.Any(c => c.CommandId == e.CommandId))
-        );
+        var commandRequests = commandArgsEnumerable.Select(commandArgs => RequestFromArgs(commandArgs))
+            // Throw away identical command ids
+            .GroupBy(cr => cr.CommandId)
+            .Select(crs => crs.First())
+            // Left outer join, exclude commands already in database
+            .Where(e => !context.CommandRequests.Any(c => c.CommandId == e.CommandId))
+            .ToList();
+        context.CommandRequests.AddRange(commandRequests);
         context.SaveChanges();
         transaction.Commit();
+        var processors = _serviceProvider.GetServices<CommandProcessor>();
+        foreach (var processor in processors.Where(p => commandRequests.Select(cr => cr.QueueType).Distinct().Any(qt => qt == p.QueueType)))
+            processor.UpdateCommandsInQueue();
     }
 
     public ICommand CommandFromRequest(CommandRequest commandRequest)

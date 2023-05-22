@@ -1,8 +1,7 @@
 ﻿@page "/Queues"
-@using Shizou.Extensions
-@using Shizou.Services
 @using Shizou.CommandProcessors
 @using Shizou.Commands
+@using Shizou.Services
 @using System.ComponentModel
 @using ShizouData.Database
 @using Microsoft.EntityFrameworkCore
@@ -31,14 +30,7 @@
             <tr>
                 <td>@Enum.GetName(processor.QueueType)</td>
                 <td class="absorbing-column">
-                    @if (processor.Paused)
-                    {
-                        @processor.PauseReason
-                    }
-                    else
-                    {
-                        @processor.CurrentCommand?.CommandId
-                    }
+                    @(processor.CurrentCommand?.CommandId ?? (processor.Paused ? processor.PauseReason : ""))
                 </td>
                 <td id="queued-column">@processor.CommandsInQueue</td>
                 <td>
@@ -52,7 +44,7 @@
                     }
                 </td>
                 <td>
-                    <button class="btn oi oi-x" @onclick="@(() => ClearQueue(processor))"></button>
+                    <button class="btn oi oi-x" @onclick="@(processor.ClearQueue)"></button>
                 </td>
             </tr>
         }
@@ -74,14 +66,6 @@
     private void OnCommandChanged(object? sender, PropertyChangedEventArgs eventArgs)
     {
         InvokeAsync(StateHasChanged);
-    }
-
-    private void ClearQueue(CommandProcessor processor)
-    {
-        using var context = ContextFactory.CreateDbContext();
-        context.CommandRequests.ClearQueue(processor.QueueType);
-        context.SaveChanges();
-        Logger.LogInformation("{QueueType} queue cleared", Enum.GetName(processor.QueueType));
     }
 
     public void Dispose()
