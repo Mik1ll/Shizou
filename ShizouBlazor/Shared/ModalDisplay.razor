@@ -6,7 +6,7 @@
                 <button type="button" class="close" @onclick="@ModalCancel">&times;</button>
             </div>
             <div class="modal-body">
-                <p>@Text</p>
+                @ChildContent
             </div>
             <div class="modal-footer">
                 @switch (DialogType)
@@ -40,11 +40,12 @@
 
     [Parameter]
     [EditorRequired]
-    public required string Text { get; set; }
+    public required EventCallback<bool> OnClose { get; set; }
 
     [Parameter]
     [EditorRequired]
-    public required EventCallback<bool> OnClose { get; set; }
+    public required RenderFragment ChildContent { get; set; }
+
 
     private Task ModalCancel()
     {

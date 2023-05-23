@@ -9,8 +9,8 @@
     <button type="button" class="btn btn-primary" @onclick="@OpenDialog">Add Import Folder</button>
     @if (DialogOpen)
     {
-        <ModalDisplay Title="Add Import Folder" Text="Add an import folder"
-                      OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.OkCancel">
+        <ModalDisplay Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.OkCancel">
+            blah
         </ModalDisplay>
     }
 </section>
