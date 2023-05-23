@@ -1,7 +1,4 @@
-﻿@page "/Queues"
-@using Shizou.CommandProcessors
-@using Shizou.Commands
-@using Shizou.Services
+﻿@using Shizou.CommandProcessors
 @using System.ComponentModel
 @using ShizouData.Database
 @using Microsoft.EntityFrameworkCore
@@ -12,18 +9,17 @@
 @inject IServiceProvider ServiceProvider
 
 <h3>Queues</h3>
-<div class="container-fluid">
+<section class="queues">
     <table class="table table-hover">
         <thead>
         <tr>
             <th>Type</th>
             <th>Message</th>
             <th>Queued</th>
-            <th></th>
-            <th></th>
+            <th>&nbsp;</th>
+            <th>&nbsp;</th>
         </tr>
         </thead>
-
         <tbody>
         @foreach (var processor in _processors)
         {
@@ -50,8 +46,7 @@
         }
         </tbody>
     </table>
-    <button class="btn btn-primary" @onclick="DispatchNoop">Add noops</button>
-</div>
+</section>
 
 @code {
     private readonly List<CommandProcessor> _processors = new();
@@ -72,11 +67,6 @@
     {
         foreach (var processor in _processors)
             processor.PropertyChanged -= OnCommandChanged;
-    }
-
-    private void DispatchNoop()
-    {
-        ServiceProvider.GetRequiredService<CommandService>().DispatchRange(Enumerable.Range(1, 10).Select(n => new NoopArgs(n)));
     }
 
 }
