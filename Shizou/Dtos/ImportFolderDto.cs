@@ -1,9 +1,15 @@
-﻿namespace Shizou.Dtos;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Shizou.Dtos;
 
 public class ImportFolderDto : IEntityDto
 {
     public int Id { get; set; }
+
+    [Required]
     public string Name { get; set; } = null!;
+
+    [Required]
     public string Path { get; set; } = null!;
     public bool ScanOnImport { get; set; }
 }

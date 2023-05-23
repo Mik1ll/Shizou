@@ -6,7 +6,18 @@
                 <button type="button" class="close" @onclick="@ModalCancel">&times;</button>
             </div>
             <div class="modal-body">
-                @ChildContent
+                @if (DialogType == ModalDialogType.Form)
+                {
+                    <EditForm id="modalForm" Model="@Model" OnValidSubmit="@ModalOk">
+                        <DataAnnotationsValidator/>
+                        <ValidationSummary/>
+                        @ChildContent
+                    </EditForm>
+                }
+                else
+                {
+                    @ChildContent
+                }
             </div>
             <div class="modal-footer">
                 @switch (DialogType)
@@ -22,6 +33,9 @@
                         <button type="button" class="btn" @onclick="@ModalCancel">Cancel</button>
                         <button type="button" class="btn btn-danger" @onclick=@ModalOk>Delete</button>
                         break;
+                    case ModalDialogType.Form:
+                        <button type="submit" form="modalForm" class="btn btn-primary">Submit</button>
+                        break;
                 }
             </div>
         </div>
@@ -29,6 +43,9 @@
 </div>
 
 @code {
+
+    [Parameter]
+    public object? Model { get; set; }
 
     [Parameter]
     [EditorRequired]
@@ -47,6 +64,14 @@
     public required RenderFragment ChildContent { get; set; }
 
 
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        parameters.SetParameterProperties(this);
+        if (DialogType == ModalDialogType.Form && Model is null)
+            throw new ArgumentNullException($"{nameof(ModalDisplay)} requires a {nameof(Model)} when type is {Enum.GetName(ModalDialogType.Form)}");
+        return base.SetParametersAsync(parameters);
+    }
+
     private Task ModalCancel()
     {
         return OnClose.InvokeAsync(false);
@@ -61,7 +86,8 @@
     {
         Ok,
         OkCancel,
-        DeleteCancel
+        DeleteCancel,
+        Form
     }
 
 }

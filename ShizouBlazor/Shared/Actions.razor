@@ -1,4 +1,5 @@
-﻿@using Shizou.Services
+﻿@using Shizou.Dtos
+@using Shizou.Services
 @using Shizou.Commands
 @inject IServiceProvider ServiceProvider
 
@@ -9,19 +10,33 @@
     <button type="button" class="btn btn-primary" @onclick="@OpenDialog">Add Import Folder</button>
     @if (DialogOpen)
     {
-        <ModalDisplay Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.OkCancel">
-            blah
+        <ModalDisplay Model="@ImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.Form">
+            <div class="form-group">
+                <label for="nameInput">Name</label>
+                <InputText class="form-control" id="nameInput" @bind-Value="@(ImportFolder.Name)"></InputText>
+            </div>
+            <div class="form-group">
+                <label for="pathInput">Path</label>
+                <InputText class="form-control" id="pathInput" @bind-Value="@(ImportFolder.Path)"></InputText>
+            </div>
+            <div class="form-group">
+                <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(ImportFolder.ScanOnImport)"></InputCheckbox>
+                <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
+            </div>
         </ModalDisplay>
     }
 </section>
 
 @code {
 
+    public ImportFolderDto ImportFolder { get; set; } = new();
+
     public bool DialogOpen { get; set; }
 
     private void OnDialogClose(bool accepted)
     {
         DialogOpen = false;
+        ImportFolder = new ImportFolderDto();
         StateHasChanged();
     }
 
