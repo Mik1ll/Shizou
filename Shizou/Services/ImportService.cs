@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Commands;
 using ShizouData.Database;
@@ -10,13 +11,13 @@ namespace Shizou.Services;
 public class ImportService
 {
     private readonly CommandService _commandService;
-    private readonly ShizouContext _context;
     private readonly ILogger<ImportService> _logger;
+    private readonly IDbContextFactory<ShizouContext> _contextFactory;
 
-    public ImportService(ILogger<ImportService> logger, ShizouContext context, CommandService commandService)
+    public ImportService(ILogger<ImportService> logger, IDbContextFactory<ShizouContext> contextFactory, CommandService commandService)
     {
         _logger = logger;
-        _context = context;
+        _contextFactory = contextFactory;
         _commandService = commandService;
     }
 
@@ -24,7 +25,8 @@ public class ImportService
     public void Import()
     {
         _logger.LogInformation("Beginning import");
-        var folders = _context.ImportFolders.Where(f => f.ScanOnImport);
+        using var context = _contextFactory.CreateDbContext();
+        var folders = context.ImportFolders.Where(f => f.ScanOnImport);
         foreach (var folder in folders)
             ScanImportFolder(folder.Id);
     }
@@ -37,7 +39,8 @@ public class ImportService
     /// <param name="forceRescan">Ensures even files with matching file size are rehashed</param>
     public void ScanImportFolder(int importFolderId, bool forceRescan = false)
     {
-        var importFolder = _context.ImportFolders.Find(importFolderId);
+        using var context = _contextFactory.CreateDbContext();
+        var importFolder = context.ImportFolders.Find(importFolderId);
         if (importFolder is null)
             throw new InvalidOperationException($"Import folder id {importFolderId} not found");
         _logger.LogInformation("Beginning scan on import folder \"{ImportFolderPath}\"", importFolder.Path);
@@ -46,8 +49,8 @@ public class ImportService
         var filesToHash = allFiles
             // Left Outer Join on all files with DB local files. Includes DB files that are not ignored and mismatch filesize.
             .GroupJoin(
-                _context.LocalFiles
-                    .Join(_context.ImportFolders,
+                context.LocalFiles
+                    .Join(context.ImportFolders,
                         e => e.ImportFolderId,
                         e => e.Id,
                         (file, folder) => new
@@ -67,7 +70,8 @@ public class ImportService
 
     public void CheckForMissingFiles()
     {
-        var files = _context.LocalFiles.Join(_context.ImportFolders, e => e.ImportFolderId, e => e.Id,
+        using var context = _contextFactory.CreateDbContext();
+        var files = context.LocalFiles.Join(context.ImportFolders, e => e.ImportFolderId, e => e.Id,
                 (file, folder) => new { Path = Path.GetFullPath(Path.Combine(folder.Path, file.PathTail)), LocalFile = file })
             .Where(e => !new FileInfo(e.Path).Exists).Select(e => e.LocalFile);
     }
