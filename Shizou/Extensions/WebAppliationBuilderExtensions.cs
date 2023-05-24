@@ -57,6 +57,8 @@ public static class WebAppliationBuilderExtensions
             .UseSqlite(connectionString)
             .EnableSensitiveDataLogging());
 
+        builder.Services.AddAutoMapper(typeof(ShizouProfile));
+
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();
         return builder;
@@ -96,7 +98,6 @@ public static class WebAppliationBuilderExtensions
 
     public static WebApplicationBuilder AddShizouApiServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddAutoMapper(typeof(ShizouProfile));
         builder.Services.AddControllers();
         builder.Services.AddSwaggerGen(opt =>
         {
