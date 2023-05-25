@@ -1,7 +1,7 @@
 ﻿@using Shizou.Dtos
+@using ShizouData.Models
 @using AutoMapper
 @using ShizouData.Database
-@using ShizouData.Models
 @using Microsoft.EntityFrameworkCore
 @inject IMapper Mapper
 @inject IDbContextFactory<ShizouContext> ContextFactory
@@ -25,7 +25,7 @@
             {
                 <tr>
                     <td>
-                        <i class="oi oi-magnifying-glass"></i>
+                        <button class="btn oi oi-magnifying-glass"></button>
                     </td>
                     <td class="absorbing-column">@(importFolder.Name)</td>
                     <td>
@@ -39,10 +39,10 @@
                         }
                     </td>
                     <td>
-                        <i class="oi oi-pencil"></i>
+                        <button class="btn oi oi-pencil" @onclick="@(() => OpenDialog(importFolder))"></button>
                     </td>
                     <td>
-                        <i class="oi oi-trash"></i>
+                        <button class="btn oi oi-trash"></button>
                     </td>
                 </tr>
             }
@@ -78,8 +78,16 @@
     {
         if (accepted)
         {
+            var myImportFolderModel = Mapper.Map<ImportFolder>(MyImportFolder);
             using var context = ContextFactory.CreateDbContext();
-            context.ImportFolders.Add(Mapper.Map<ImportFolder>(MyImportFolder));
+            if (MyImportFolder.Id == 0)
+                context.ImportFolders.Add(myImportFolderModel);
+            else
+            {
+                var importFolder = context.ImportFolders.Find(MyImportFolder.Id);
+                if (importFolder is not null)
+                    context.Entry(importFolder).CurrentValues.SetValues(myImportFolderModel);
+            }
             context.SaveChanges();
         }
         DialogOpen = false;
@@ -91,6 +99,12 @@
     {
         DialogOpen = true;
         StateHasChanged();
+    }
+
+    private void OpenDialog(ImportFolder importFolder)
+    {
+        MyImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
+        OpenDialog();
     }
 
 }
