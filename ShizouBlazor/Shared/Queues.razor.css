@@ -9,10 +9,6 @@ table td {
     vertical-align: middle;
 }
 
-table .absorbing-column {
-    width: 100%;
-}
-
 #queued-column {
     text-align: center;
 }

@@ -66,3 +66,10 @@ a, .btn-link {
 .blazor-error-boundary::after {
     content: "An error has occurred."
 }
+
+
+/*My styles*/
+
+table .absorbing-column {
+    width: 100%;
+}

@@ -10,8 +10,8 @@
                 {
                     <EditForm id="modalForm" Model="@Model" OnValidSubmit="@ModalOk">
                         <DataAnnotationsValidator/>
-                        <ValidationSummary/>
                         @ChildContent
+                        <ValidationSummary/>
                     </EditForm>
                 }
                 else
