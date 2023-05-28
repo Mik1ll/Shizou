@@ -13,6 +13,11 @@
     {
       "library": "open-iconic@1.1.1",
       "destination": "wwwroot/lib/open-iconic"
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "bootswatch@5.2.3",
+      "destination": "wwwroot/lib/bootswatch"
     }
   ]
 }
