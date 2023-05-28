@@ -1,10 +1,12 @@
 ﻿@using Shizou.Dtos
+@using Shizou.Services
 @using ShizouData.Models
 @using AutoMapper
 @using ShizouData.Database
 @using Microsoft.EntityFrameworkCore
 @inject IMapper Mapper
 @inject IDbContextFactory<ShizouContext> ContextFactory
+@inject ImportService ImportService
 
 <section class="import-folders">
     <h3>ImportFolders</h3>
@@ -25,7 +27,7 @@
             {
                 <tr>
                     <td>
-                        <button class="btn oi oi-magnifying-glass"></button>
+                        <button class="btn oi oi-magnifying-glass" @onclick="@(() => ImportService.ScanImportFolder(importFolder.Id))"></button>
                     </td>
                     <td class="absorbing-column">@(importFolder.Name)</td>
                     <td>
