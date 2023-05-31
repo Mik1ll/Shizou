@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Shizou.Dtos;
+namespace ShizouContracts.Dtos;
 
 public class ImportFolderDto : IEntityDto
 {

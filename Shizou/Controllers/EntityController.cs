@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Shizou.Dtos;
+using ShizouContracts.Dtos;
 using ShizouData.Database;
 using ShizouData.Models;
 

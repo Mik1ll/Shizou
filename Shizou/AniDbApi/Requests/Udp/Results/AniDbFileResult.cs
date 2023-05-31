@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ShizouData.Enums;
+using ShizouCommon.Enums;
 
 namespace Shizou.AniDbApi.Requests.Udp.Results;
 

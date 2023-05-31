@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi;
-using ShizouData.Enums;
+using ShizouCommon.Enums;
 
 namespace Shizou.CommandProcessors;
 

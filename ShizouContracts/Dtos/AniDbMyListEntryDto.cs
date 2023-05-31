@@ -1,13 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using ShizouCommon.Enums;
+﻿using ShizouCommon.Enums;
 
-namespace ShizouData.Models;
+namespace ShizouContracts.Dtos;
 
-public class AniDbMyListEntry : IEntity
+public class AniDbMyListEntryDto : IEntityDto
 {
-    [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public required int Id { get; set; }
-
+    public int Id { get; set; }
     public required bool Watched { get; set; }
     public required DateTimeOffset? WatchedDate { get; set; }
     public required MyListState MyListState { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace Shizou.Dtos;
+﻿namespace ShizouContracts.Dtos;
 
 public class AniDbSubtitleDto : IEntityDto
 {

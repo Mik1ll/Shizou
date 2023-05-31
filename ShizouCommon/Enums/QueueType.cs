@@ -1,4 +1,4 @@
-﻿namespace ShizouData.Enums;
+﻿namespace ShizouCommon.Enums;
 
 public enum QueueType
 {

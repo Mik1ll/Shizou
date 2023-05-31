@@ -1,7 +1,6 @@
-﻿using System;
-using ShizouData.Enums;
+﻿using ShizouCommon.Enums;
 
-namespace Shizou.Dtos;
+namespace ShizouContracts.Dtos;
 
 public class AniDbAnimeDto : IEntityDto
 {

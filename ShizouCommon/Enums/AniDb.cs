@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace ShizouData.Enums;
+namespace ShizouCommon.Enums;
 
 public enum AnimeType
 {

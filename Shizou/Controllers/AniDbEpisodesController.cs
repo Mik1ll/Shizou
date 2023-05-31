@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
-using Shizou.Dtos;
+using ShizouContracts.Dtos;
 using ShizouData.Database;
 using ShizouData.Models;
 

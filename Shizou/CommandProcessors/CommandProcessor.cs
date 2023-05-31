@@ -12,8 +12,8 @@ using Microsoft.Extensions.Logging;
 using Shizou.Exceptions;
 using Shizou.Extensions;
 using Shizou.Services;
+using ShizouCommon.Enums;
 using ShizouData.Database;
-using ShizouData.Enums;
 using ShizouData.Models;
 
 namespace Shizou.CommandProcessors;

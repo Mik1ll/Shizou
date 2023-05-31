@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ShizouData.Enums;
+using ShizouCommon.Enums;
 
 namespace ShizouData.Models;
 

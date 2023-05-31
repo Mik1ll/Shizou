@@ -33,6 +33,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\ShizouContracts\ShizouContracts.csproj" />
         <ProjectReference Include="..\ShizouData\ShizouData.csproj" />
     </ItemGroup>
+
 </Project>

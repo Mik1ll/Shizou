@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Shizou.Dtos;
 using Shizou.Extensions;
+using ShizouContracts.Dtos;
 using ShizouData.Database;
 using ShizouData.Models;
 

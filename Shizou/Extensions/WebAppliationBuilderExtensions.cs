@@ -14,9 +14,9 @@ using Shizou.CommandProcessors;
 using Shizou.MapperProfiles;
 using Shizou.Options;
 using Shizou.Services;
+using ShizouCommon.Enums;
 using ShizouData;
 using ShizouData.Database;
-using ShizouData.Enums;
 
 namespace Shizou.Extensions;
 

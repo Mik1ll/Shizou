@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Shizou.Dtos;
+using ShizouContracts.Dtos;
 using ShizouData.Models;
 
 namespace Shizou.MapperProfiles;
@@ -16,5 +16,7 @@ public class ShizouProfile : Profile
         CreateMap<AniDbSubtitle, AniDbSubtitleDto>().ReverseMap();
         CreateMap<ImportFolder, ImportFolderDto>().ReverseMap();
         CreateMap<LocalFile, LocalFileDto>().ReverseMap();
+        CreateMap<AniDbMyListEntry, AniDbMyListEntryDto>().ReverseMap();
+        CreateMap<AniDbVideo, AniDbVideoDto>().ReverseMap();
     }
 }

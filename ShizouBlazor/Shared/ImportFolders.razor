@@ -1,9 +1,9 @@
-﻿@using Shizou.Dtos
-@using Shizou.Services
+﻿@using ShizouContracts.Dtos
+@using ShizouData.Database
 @using ShizouData.Models
 @using AutoMapper
-@using ShizouData.Database
 @using Microsoft.EntityFrameworkCore
+@using Shizou.Services
 @inject IMapper Mapper
 @inject IDbContextFactory<ShizouContext> ContextFactory
 @inject ImportService ImportService

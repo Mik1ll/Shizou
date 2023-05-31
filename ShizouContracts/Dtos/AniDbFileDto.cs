@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using ShizouData.Models;
-
-namespace Shizou.Dtos;
+﻿namespace ShizouContracts.Dtos;
 
 public class AniDbFileDto : IEntityDto
 {
@@ -23,10 +19,10 @@ public class AniDbFileDto : IEntityDto
     public bool Watched { get; set; }
     public DateTimeOffset? WatchedUpdated { get; set; }
 
-    public AniDbMyListEntry? MyListEntry { get; set; }
+    public AniDbMyListEntryDto? MyListEntry { get; set; }
 
     public int? AniDbGroupId { get; set; }
-    public AniDbVideo? Video { get; set; }
+    public AniDbVideoDto? Video { get; set; }
     public List<AniDbAudioDto> Audio { get; set; } = null!;
     public List<AniDbSubtitleDto> Subtitles { get; set; } = null!;
 }

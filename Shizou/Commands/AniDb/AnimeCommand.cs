@@ -10,9 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi.Requests.Http;
 using Shizou.AniDbApi.Requests.Http.Results;
+using ShizouCommon.Enums;
 using ShizouData;
 using ShizouData.Database;
-using ShizouData.Enums;
 using ShizouData.Models;
 
 namespace Shizou.Commands.AniDb;

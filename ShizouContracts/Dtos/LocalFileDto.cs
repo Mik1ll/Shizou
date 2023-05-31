@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Shizou.Dtos;
+﻿namespace ShizouContracts.Dtos;
 
 public class LocalFileDto : IEntityDto
 {

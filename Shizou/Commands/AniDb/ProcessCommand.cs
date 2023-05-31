@@ -10,9 +10,9 @@ using Microsoft.Extensions.Logging;
 using Shizou.AniDbApi.Requests.Udp;
 using Shizou.AniDbApi.Requests.Udp.Results;
 using Shizou.Services;
+using ShizouCommon.Enums;
 using ShizouData;
 using ShizouData.Database;
-using ShizouData.Enums;
 using ShizouData.Models;
 
 namespace Shizou.Commands.AniDb;

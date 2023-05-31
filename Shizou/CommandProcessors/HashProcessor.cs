@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
-using ShizouData.Enums;
+using ShizouCommon.Enums;
 
 namespace Shizou.CommandProcessors;
 

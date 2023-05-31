@@ -12,9 +12,9 @@ using Shizou.AniDbApi.Requests.Http.Results;
 using Shizou.AniDbApi.Requests.Http.Results.SubElements;
 using Shizou.Options;
 using Shizou.Services;
+using ShizouCommon.Enums;
 using ShizouData;
 using ShizouData.Database;
-using ShizouData.Enums;
 using ShizouData.Models;
 
 namespace Shizou.Commands.AniDb;
