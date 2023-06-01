@@ -1,7 +1,5 @@
-﻿@using ShizouContracts.Dtos
+﻿@using AutoMapper
 @using ShizouData.Database
-@using ShizouData.Models
-@using AutoMapper
 @using Microsoft.EntityFrameworkCore
 @using Shizou.Services
 @inject IMapper Mapper
@@ -10,6 +8,7 @@
 
 <section class="import-folders">
     <h3>ImportFolders</h3>
+    <ImportFolderModal @ref="@_importFolderModal" RefreshCallback="@(() => StateHasChanged())"></ImportFolderModal>
     <table class="table table-hover align-middle">
         <thead>
         <tr>
@@ -41,7 +40,7 @@
                         }
                     </td>
                     <td>
-                        <button class="btn oi oi-pencil" @onclick="@(() => OpenDialog(importFolder))"></button>
+                        <button class="btn oi oi-pencil" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))"></button>
                     </td>
                     <td>
                         <button class="btn oi oi-trash"></button>
@@ -51,62 +50,9 @@
         }
         </tbody>
     </table>
-    <button type="button" class="btn btn-primary" @onclick="@OpenDialog">Add Import Folder</button>
-    @if (DialogOpen)
-    {
-        <ModalDisplay Model="@MyImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.Form">
-            <div class="mb-3">
-                <label for="nameInput">Name</label>
-                <InputText class="form-control" id="nameInput" @bind-Value="@(MyImportFolder.Name)"></InputText>
-            </div>
-            <div class="mb-3">
-                <label for="pathInput">Path</label>
-                <InputText class="form-control" id="pathInput" @bind-Value="@(MyImportFolder.Path)"></InputText>
-            </div>
-            <div class="mb-3 form-check">
-                <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(MyImportFolder.ScanOnImport)"></InputCheckbox>
-                <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
-            </div>
-        </ModalDisplay>
-    }
+    <button type="button" class="btn btn-primary" @onclick="@(() => _importFolderModal?.NewDialog())">Add Import Folder</button>
 </section>
 
 @code {
-    public ImportFolderDto MyImportFolder { get; set; } = new();
-
-    public bool DialogOpen { get; set; }
-
-    private void OnDialogClose(bool accepted)
-    {
-        if (accepted)
-        {
-            var myImportFolderModel = Mapper.Map<ImportFolder>(MyImportFolder);
-            using var context = ContextFactory.CreateDbContext();
-            if (MyImportFolder.Id == 0)
-                context.ImportFolders.Add(myImportFolderModel);
-            else
-            {
-                var importFolder = context.ImportFolders.Find(MyImportFolder.Id);
-                if (importFolder is not null)
-                    context.Entry(importFolder).CurrentValues.SetValues(myImportFolderModel);
-            }
-            context.SaveChanges();
-        }
-        DialogOpen = false;
-        MyImportFolder = new ImportFolderDto();
-        StateHasChanged();
-    }
-
-    private void OpenDialog()
-    {
-        DialogOpen = true;
-        StateHasChanged();
-    }
-
-    private void OpenDialog(ImportFolder importFolder)
-    {
-        MyImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
-        OpenDialog();
-    }
-
+    private ImportFolderModal? _importFolderModal;
 }

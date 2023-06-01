@@ -1,0 +1,73 @@
+﻿@using ShizouContracts.Dtos
+@using ShizouData.Database
+@using ShizouData.Models
+@using AutoMapper
+@using Microsoft.EntityFrameworkCore
+@using Shizou.Services
+@inject IMapper Mapper
+@inject IDbContextFactory<ShizouContext> ContextFactory
+@inject ImportService ImportService
+
+@if (DialogOpen)
+{
+    <ModalDisplay Model="@MyImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.Form">
+        <div class="mb-3">
+            <label for="nameInput">Name</label>
+            <InputText class="form-control" id="nameInput" @bind-Value="@(MyImportFolder.Name)"></InputText>
+        </div>
+        <div class="mb-3">
+            <label for="pathInput">Path</label>
+            <InputText class="form-control" id="pathInput" @bind-Value="@(MyImportFolder.Path)"></InputText>
+        </div>
+        <div class="mb-3 form-check">
+            <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(MyImportFolder.ScanOnImport)"></InputCheckbox>
+            <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
+        </div>
+    </ModalDisplay>
+}
+
+@code {
+    public ImportFolderDto MyImportFolder { get; set; } = new();
+
+    public bool DialogOpen { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback RefreshCallback { get; set; }
+
+    private void OnDialogClose(bool accepted)
+    {
+        if (accepted)
+        {
+            var myImportFolderModel = Mapper.Map<ImportFolder>(MyImportFolder);
+            using var context = ContextFactory.CreateDbContext();
+            if (MyImportFolder.Id == 0)
+                context.ImportFolders.Add(myImportFolderModel);
+            else
+            {
+                var importFolder = context.ImportFolders.Find(MyImportFolder.Id);
+                if (importFolder is not null)
+                    context.Entry(importFolder).CurrentValues.SetValues(myImportFolderModel);
+            }
+            context.SaveChanges();
+        }
+        DialogOpen = false;
+        MyImportFolder = new ImportFolderDto();
+        RefreshCallback.InvokeAsync();
+    }
+
+    public void NewDialog()
+    {
+        MyImportFolder = new ImportFolderDto();
+        DialogOpen = true;
+        RefreshCallback.InvokeAsync();
+    }
+
+    public void EditDialog(ImportFolder importFolder)
+    {
+        MyImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
+        DialogOpen = true;
+        RefreshCallback.InvokeAsync();
+    }
+
+}
