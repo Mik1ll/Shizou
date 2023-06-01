@@ -10,25 +10,25 @@
 
 <h3>Queues</h3>
 <section class="queues">
-    <table class="table table-hover">
+    <table class="table table-hover align-middle">
         <thead>
         <tr>
-            <th>Type</th>
-            <th>Message</th>
-            <th>Queued</th>
-            <th>&nbsp;</th>
-            <th>&nbsp;</th>
+            <th scope="col">Type</th>
+            <th scope="col">Message</th>
+            <th scope="col">Queued</th>
+            <th></th>
+            <th></th>
         </tr>
         </thead>
         <tbody>
         @foreach (var processor in _processors)
         {
             <tr>
-                <td>@Enum.GetName(processor.QueueType)</td>
+                <th scope="row">@Enum.GetName(processor.QueueType)</th>
                 <td class="absorbing-column">
                     @(processor.CurrentCommand?.CommandId ?? (processor.Paused ? processor.PauseReason : ""))
                 </td>
-                <td id="queued-column">@processor.CommandsInQueue</td>
+                <td class="text-center">@processor.CommandsInQueue</td>
                 <td>
                     @if (processor.Paused)
                     {
