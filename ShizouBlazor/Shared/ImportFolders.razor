@@ -26,7 +26,7 @@
             {
                 <tr>
                     <td>
-                        <button class="btn oi oi-magnifying-glass" @onclick="@(() => ImportService.ScanImportFolder(importFolder.Id))"></button>
+                        <button class="btn oi oi-magnifying-glass" @onclick=@(() => ImportService.ScanImportFolder(importFolder.Id))></button>
                     </td>
                     <td class="absorbing-column">@(importFolder.Name)</td>
                     <td>
@@ -40,7 +40,7 @@
                         }
                     </td>
                     <td>
-                        <button class="btn oi oi-pencil" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))"></button>
+                        <button class="btn oi oi-pencil" @onclick=@(() => _importFolderModal!.EditDialog(importFolder))></button>
                     </td>
                     <td>
                         <button class="btn oi oi-trash"></button>
@@ -50,7 +50,7 @@
         }
         </tbody>
     </table>
-    <button type="button" class="btn btn-primary" @onclick="@(() => _importFolderModal?.NewDialog())">Add Import Folder</button>
+    <button type="button" class="btn btn-primary" @onclick="@_importFolderModal!.NewDialog">Add Import Folder</button>
 </section>
 
 @code {

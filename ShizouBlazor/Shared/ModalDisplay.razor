@@ -8,7 +8,7 @@
             <div class="modal-body">
                 @if (DialogType == ModalDialogType.Form)
                 {
-                    <EditForm id="modalForm" Model="@Model" OnValidSubmit="@ModalOk">
+                    <EditForm id="modalForm" Model=@Model OnValidSubmit=@ModalOk>
                         <DataAnnotationsValidator/>
                         @ChildContent
                         <ValidationSummary/>
@@ -26,11 +26,11 @@
                         <button type="button" class="btn btn-primary" @onclick=@ModalOk>OK</button>
                         break;
                     case ModalDialogType.OkCancel:
-                        <button type="button" class="btn" @onclick="@ModalCancel">Cancel</button>
+                        <button type="button" class="btn" @onclick=@ModalCancel>Cancel</button>
                         <button type="button" class="btn btn-primary" @onclick=@ModalOk>OK</button>
                         break;
                     case ModalDialogType.DeleteCancel:
-                        <button type="button" class="btn" @onclick="@ModalCancel">Cancel</button>
+                        <button type="button" class="btn" @onclick=@ModalCancel>Cancel</button>
                         <button type="button" class="btn btn-danger" @onclick=@ModalOk>Delete</button>
                         break;
                     case ModalDialogType.Form:
