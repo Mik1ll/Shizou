@@ -8,7 +8,7 @@
 
 <section class="import-folders">
     <h3>ImportFolders</h3>
-    <ImportFolderModal @ref="@_importFolderModal" RefreshCallback="@(() => StateHasChanged())"></ImportFolderModal>
+    <ImportFolderModal @ref="@_importFolderModal" OnClose="@StateHasChanged"></ImportFolderModal>
     <table class="table table-hover align-middle">
         <thead>
         <tr>

@@ -8,7 +8,7 @@
 @inject IDbContextFactory<ShizouContext> ContextFactory
 @inject ImportService ImportService
 
-@if (DialogOpen)
+@if (DialogIsOpen)
 {
     <ModalDisplay Model="@MyImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.Form">
         <div class="mb-3">
@@ -29,11 +29,10 @@
 @code {
     public ImportFolderDto MyImportFolder { get; set; } = new();
 
-    public bool DialogOpen { get; set; }
+    public bool DialogIsOpen { get; set; }
 
     [Parameter]
-    [EditorRequired]
-    public EventCallback RefreshCallback { get; set; }
+    public EventCallback OnClose { get; set; }
 
     private void OnDialogClose(bool accepted)
     {
@@ -51,23 +50,21 @@
             }
             context.SaveChanges();
         }
-        DialogOpen = false;
+        DialogIsOpen = false;
         MyImportFolder = new ImportFolderDto();
-        RefreshCallback.InvokeAsync();
+        OnClose.InvokeAsync();
     }
 
     public void NewDialog()
     {
         MyImportFolder = new ImportFolderDto();
-        DialogOpen = true;
-        RefreshCallback.InvokeAsync();
+        DialogIsOpen = true;
     }
 
     public void EditDialog(ImportFolder importFolder)
     {
         MyImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
-        DialogOpen = true;
-        RefreshCallback.InvokeAsync();
+        DialogIsOpen = true;
     }
 
 }
