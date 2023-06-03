@@ -6,8 +6,20 @@ namespace ShizouData.Database;
 
 public sealed class ShizouContext : IdentityDbContext
 {
+    public ShizouContext()
+    {
+    }
+
     public ShizouContext(DbContextOptions<ShizouContext> options) : base(options)
     {
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+            optionsBuilder
+                .UseSqlite(@$"Data Source={Path.Combine(FilePaths.ApplicationDataDir, "ShizouDB.sqlite3")};Foreign Keys=True;")
+                .EnableSensitiveDataLogging();
     }
 
     public DbSet<CommandRequest> CommandRequests { get; set; } = null!;

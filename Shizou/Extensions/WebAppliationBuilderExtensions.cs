@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -47,15 +46,9 @@ public static class WebAppliationBuilderExtensions
 
     public static WebApplicationBuilder AddShizouServices(this WebApplicationBuilder builder)
     {
-        var connectionString = @$"Data Source={Path.Combine(FilePaths.ApplicationDataDir, "ShizouDB.sqlite3")};Foreign Keys=True;";
-        builder.Services.AddDbContext<ShizouContext>(opts => opts
-                .UseSqlite(connectionString)
-                .EnableSensitiveDataLogging(),
-            optionsLifetime: ServiceLifetime.Singleton);
+        builder.Services.AddDbContext<ShizouContext>(optionsLifetime: ServiceLifetime.Singleton);
 
-        builder.Services.AddDbContextFactory<ShizouContext>(opts => opts
-            .UseSqlite(connectionString)
-            .EnableSensitiveDataLogging());
+        builder.Services.AddDbContextFactory<ShizouContext>();
 
         builder.Services.AddAutoMapper(typeof(ShizouProfile));
 
