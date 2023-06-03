@@ -10,26 +10,35 @@
 
 @if (DialogIsOpen)
 {
-    <ModalDisplay Model="@MyImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.Form">
-        <div class="mb-3">
-            <label for="nameInput">Name</label>
-            <InputText class="form-control" id="nameInput" @bind-Value="@(MyImportFolder.Name)"></InputText>
-        </div>
-        <div class="mb-3">
-            <label for="pathInput">Path</label>
-            <InputText class="form-control" id="pathInput" @bind-Value="@(MyImportFolder.Path)"></InputText>
-        </div>
-        <div class="mb-3 form-check">
-            <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(MyImportFolder.ScanOnImport)"></InputCheckbox>
-            <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
-        </div>
-    </ModalDisplay>
+    if (!_isDelete)
+    {
+        <ModalDisplay Model="@MyImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.Form">
+            <div class="mb-3">
+                <label for="nameInput">Name</label>
+                <InputText class="form-control" id="nameInput" @bind-Value="@(MyImportFolder.Name)"></InputText>
+            </div>
+            <div class="mb-3">
+                <label for="pathInput">Path</label>
+                <InputText class="form-control" id="pathInput" @bind-Value="@(MyImportFolder.Path)"></InputText>
+            </div>
+            <div class="mb-3 form-check">
+                <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(MyImportFolder.ScanOnImport)"></InputCheckbox>
+                <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
+            </div>
+        </ModalDisplay>
+    }
+    else
+    {
+        <ModalDisplay Title="@($"Delete Import Folder: {MyImportFolder.Name}")" OnClose="@OnDialogClose" DialogType="ModalDisplay.ModalDialogType.DeleteCancel"></ModalDisplay>
+    }
 }
 
 @code {
     public ImportFolderDto MyImportFolder { get; set; } = new();
 
     public bool DialogIsOpen { get; set; }
+
+    private bool _isDelete = false;
 
     [Parameter]
     public EventCallback OnClose { get; set; }
@@ -38,15 +47,22 @@
     {
         if (accepted)
         {
-            var myImportFolderModel = Mapper.Map<ImportFolder>(MyImportFolder);
             using var context = ContextFactory.CreateDbContext();
-            if (MyImportFolder.Id == 0)
-                context.ImportFolders.Add(myImportFolderModel);
+            var myImportFolderModel = Mapper.Map<ImportFolder>(MyImportFolder);
+            if (!_isDelete)
+            {
+                if (MyImportFolder.Id == 0)
+                    context.ImportFolders.Add(myImportFolderModel);
+                else
+                {
+                    var importFolder = context.ImportFolders.Find(MyImportFolder.Id);
+                    if (importFolder is not null)
+                        context.Entry(importFolder).CurrentValues.SetValues(myImportFolderModel);
+                }
+            }
             else
             {
-                var importFolder = context.ImportFolders.Find(MyImportFolder.Id);
-                if (importFolder is not null)
-                    context.Entry(importFolder).CurrentValues.SetValues(myImportFolderModel);
+                context.ImportFolders.Remove(myImportFolderModel);
             }
             context.SaveChanges();
         }
@@ -57,12 +73,21 @@
 
     public void NewDialog()
     {
+        _isDelete = false;
         MyImportFolder = new ImportFolderDto();
         DialogIsOpen = true;
     }
 
     public void EditDialog(ImportFolder importFolder)
     {
+        _isDelete = false;
+        MyImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
+        DialogIsOpen = true;
+    }
+
+    public void DeleteDialog(ImportFolder importFolder)
+    {
+        _isDelete = true;
         MyImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
         DialogIsOpen = true;
     }

@@ -43,7 +43,7 @@
                         <button class="btn oi oi-pencil" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))"></button>
                     </td>
                     <td>
-                        <button class="btn oi oi-trash"></button>
+                        <button class="btn oi oi-trash" @onclick="@(() => _importFolderModal?.DeleteDialog(importFolder))"></button>
                     </td>
                 </tr>
             }

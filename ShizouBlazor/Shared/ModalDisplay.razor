@@ -3,22 +3,24 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title">@Title</h4>
-                <button type="button" class="close" @onclick="@ModalCancel">&times;</button>
             </div>
-            <div class="modal-body">
-                @if (DialogType == ModalDialogType.Form)
-                {
-                    <EditForm id="modalForm" Model="@Model" OnValidSubmit="@ModalOk">
-                        <DataAnnotationsValidator/>
+            @if (ChildContent is not null)
+            {
+                <div class="modal-body">
+                    @if (DialogType == ModalDialogType.Form)
+                    {
+                        <EditForm id="modalForm" Model="@Model" OnValidSubmit="@ModalOk">
+                            <DataAnnotationsValidator/>
+                            @ChildContent
+                            <ValidationSummary/>
+                        </EditForm>
+                    }
+                    else
+                    {
                         @ChildContent
-                        <ValidationSummary/>
-                    </EditForm>
-                }
-                else
-                {
-                    @ChildContent
-                }
-            </div>
+                    }
+                </div>
+            }
             <div class="modal-footer">
                 @switch (DialogType)
                 {
@@ -26,15 +28,16 @@
                         <button type="button" class="btn btn-primary" @onclick=@ModalOk>OK</button>
                         break;
                     case ModalDialogType.OkCancel:
-                        <button type="button" class="btn" @onclick="@ModalCancel">Cancel</button>
+                        <button type="button" class="btn btn-secondary" @onclick="@ModalCancel">Cancel</button>
                         <button type="button" class="btn btn-primary" @onclick=@ModalOk>OK</button>
                         break;
                     case ModalDialogType.DeleteCancel:
-                        <button type="button" class="btn" @onclick="@ModalCancel">Cancel</button>
+                        <button type="button" class="btn btn-secondary" @onclick="@ModalCancel">Cancel</button>
                         <button type="button" class="btn btn-danger" @onclick=@ModalOk>Delete</button>
                         break;
                     case ModalDialogType.Form:
-                        <button type="submit" form="modalForm" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" @onclick="@ModalCancel">Cancel</button>
+                        <button type="submit" form="modalForm" class="btn btn-success">Submit</button>
                         break;
                 }
             </div>
@@ -60,8 +63,7 @@
     public required EventCallback<bool> OnClose { get; set; }
 
     [Parameter]
-    [EditorRequired]
-    public required RenderFragment ChildContent { get; set; }
+    public RenderFragment? ChildContent { get; set; }
 
 
     public override Task SetParametersAsync(ParameterView parameters)
