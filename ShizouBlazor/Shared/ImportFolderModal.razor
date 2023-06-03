@@ -12,20 +12,30 @@
 {
     if (!_isDelete)
     {
-        <ModalDisplay Model="@MyImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.Form">
-            <div class="mb-3">
-                <label for="nameInput">Name</label>
-                <InputText class="form-control" id="nameInput" @bind-Value="@(MyImportFolder.Name)"></InputText>
-            </div>
-            <div class="mb-3">
-                <label for="pathInput">Path</label>
-                <InputText class="form-control" id="pathInput" @bind-Value="@(MyImportFolder.Path)"></InputText>
-            </div>
-            <div class="mb-3 form-check">
-                <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(MyImportFolder.ScanOnImport)"></InputCheckbox>
-                <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
-            </div>
-        </ModalDisplay>
+        if (!_folderPickerOpen)
+        {
+            <ModalDisplay Model="@MyImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.Form">
+                <div class="mb-3 form-floating">
+                    <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(MyImportFolder.Name)"></InputText>
+                    <label for="nameInput">Name</label>
+                </div>
+                <div class="mb-3 input-group">
+                    <div class="form-floating">
+                        <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(MyImportFolder.Path)"></InputText>
+                        <label for="pathInput">Path</label>
+                    </div>
+                    <button type="button" class="input-group-text" @onclick="@(() => { _folderPickerOpen = true; })">Browse</button>
+                </div>
+                <div class="mb-3 form-check">
+                    <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(MyImportFolder.ScanOnImport)"></InputCheckbox>
+                    <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
+                </div>
+            </ModalDisplay>
+        }
+        else
+        {
+            <FolderPickerModal @bind-FolderPath="@MyImportFolder.Path" OnFolderPickerClose="@OnFolderPickerClose"></FolderPickerModal>
+        }
     }
     else
     {
@@ -39,6 +49,7 @@
     public bool DialogIsOpen { get; set; }
 
     private bool _isDelete = false;
+    private bool _folderPickerOpen = false;
 
     [Parameter]
     public EventCallback OnClose { get; set; }
@@ -69,6 +80,11 @@
         DialogIsOpen = false;
         MyImportFolder = new ImportFolderDto();
         OnClose.InvokeAsync();
+    }
+
+    public void OnFolderPickerClose()
+    {
+        _folderPickerOpen = false;
     }
 
     public void NewDialog()

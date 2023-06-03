@@ -1,0 +1,21 @@
+﻿<ModalDisplay Title="Pick folder" OnClose="@OnFolderPickerClose" DialogType="ModalDisplay.ModalDialogType.OkCancel">
+    <div class="d-flex">
+        <button type="button" class="justify-content-left btn btn-primary bi bi-box-arrow-up"></button>
+        <input type="text" class="form-control justify-content-center" value="@FolderPath" disabled readonly>
+    </div>
+
+</ModalDisplay>
+
+@code {
+
+    [Parameter]
+    public string FolderPath { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<string> FolderPathChanged { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnFolderPickerClose { get; set; }
+
+}
