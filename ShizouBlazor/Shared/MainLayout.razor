@@ -1,26 +1,27 @@
 ﻿@inherits LayoutComponentBase
 
 <PageTitle>ShizouBlazor</PageTitle>
-
-<div class="page">
-    <div class="sidebar">
-        <NavMenu/>
-    </div>
-
-    <main>
-        <div class="top-row px-4 bg-dark">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-            <AuthorizeView>
-                <Authorized>
-                    <a href="/Identity/Logout">Logout</a>
-                </Authorized>
-                <NotAuthorized>
-                    <a href="/Identity/Login">Login</a>
-                </NotAuthorized>
-            </AuthorizeView>
+<ErrorBoundary>
+    <div class="page">
+        <div class="sidebar">
+            <NavMenu/>
         </div>
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+
+        <main>
+            <div class="top-row px-4 bg-dark">
+                <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+                <AuthorizeView>
+                    <Authorized>
+                        <a href="/Identity/Logout">Logout</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/Identity/Login">Login</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
+    </div>
+</ErrorBoundary>
