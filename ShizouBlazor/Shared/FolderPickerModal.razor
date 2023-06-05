@@ -1,15 +1,38 @@
-﻿<ModalDisplay Title="Pick folder" OnClose="@OnFolderPickerClose" DialogType="ModalDisplay.ModalDialogType.OkCancel">
-    <div class="d-flex">
-        <button type="button" class="justify-content-left btn btn-primary bi bi-box-arrow-up"></button>
+﻿@using System.Runtime.InteropServices
+<ModalDisplay Title="Pick folder" OnClose="@OnClose" DialogType="ModalDisplay.ModalDialogType.OkCancel">
+    <div class="d-flex mb-3">
+        <button type="button" class="justify-content-left btn btn-primary bi bi-box-arrow-up" @onclick="@GoUp"></button>
         <input type="text" class="form-control justify-content-center" value="@FolderPath" disabled readonly>
     </div>
+    @{
+        var directories = _pathParent == string.Empty ?
+            Directory.GetLogicalDrives() :
+            Directory.EnumerateDirectories(_pathParent, "*", new EnumerationOptions { IgnoreInaccessible = true }).ToArray();
+    }
+    <select class="form-select" size="@Math.Min(Math.Max(directories.Length, 2), 15)" @bind="@_pathChild" @ondblclick="@GoDown">
+        @foreach (var dir in directories)
+        {
+            var name = Path.GetPathRoot(dir) == dir ? dir : Path.GetFileName(dir);
+            <option value="@name" selected=@(name == _pathChild)>@name</option>
+        }
+    </select>
 
 </ModalDisplay>
 
 @code {
+    private string _pathParent = string.Empty;
+    private string _pathChild = string.Empty;
 
     [Parameter]
-    public string FolderPath { get; set; } = "";
+    public string FolderPath
+    {
+        get => Path.Combine(_pathParent, _pathChild);
+        set
+        {
+            _pathParent = Path.GetDirectoryName(value) ?? string.Empty;
+            _pathChild = Path.GetFileName(value);
+        }
+    }
 
     [Parameter]
     public EventCallback<string> FolderPathChanged { get; set; }
@@ -17,5 +40,35 @@
     [Parameter]
     [EditorRequired]
     public EventCallback OnFolderPickerClose { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrWhiteSpace(FolderPath))
+        {
+            _pathParent = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        }
+    }
+
+    public void OnClose(bool accepted)
+    {
+        if (accepted)
+            FolderPathChanged.InvokeAsync(FolderPath);
+        OnFolderPickerClose.InvokeAsync();
+    }
+
+    public void GoDown()
+    {
+        _pathParent = FolderPath;
+        _pathChild = string.Empty;
+    }
+
+    public void GoUp()
+    {
+        if (_pathChild == string.Empty)
+            _pathChild = Path.GetPathRoot(FolderPath) == _pathParent ? string.Empty : Path.GetFileName(_pathParent);
+        else
+            _pathChild = Path.GetPathRoot(FolderPath) == _pathParent ? _pathParent : Path.GetFileName(Path.GetDirectoryName(FolderPath)) ?? string.Empty;
+        _pathParent = Path.GetDirectoryName(_pathParent) ?? (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? string.Empty : _pathParent);
+    }
 
 }
