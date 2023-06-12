@@ -25,11 +25,11 @@
             foreach (var importFolder in context.ImportFolders)
             {
                 <tr>
-                    <td>
-                        <button class="btn oi oi-magnifying-glass" @onclick="@(() => ImportService.ScanImportFolder(importFolder.Id))"></button>
+                    <td class="text-center">
+                        <i role="button" class="oi oi-magnifying-glass" @onclick="@(() => ImportService.ScanImportFolder(importFolder.Id))"></i>
                     </td>
                     <td class="absorbing-column">@(importFolder.Name)</td>
-                    <td>
+                    <td class="text-center">
                         @if (importFolder.ScanOnImport)
                         {
                             <i class="oi oi-circle-check"></i>
@@ -39,11 +39,11 @@
                             <i class="oi oi-circle-x"></i>
                         }
                     </td>
-                    <td>
-                        <button class="btn oi oi-pencil" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))"></button>
+                    <td class="text-center">
+                        <i role="button" class="oi oi-pencil" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))"></i>
                     </td>
-                    <td>
-                        <button class="btn oi oi-trash" @onclick="@(() => _importFolderModal?.DeleteDialog(importFolder))"></button>
+                    <td class="text-center">
+                        <i role="button" class="oi oi-trash" @onclick="@(() => _importFolderModal?.DeleteDialog(importFolder))"></i>
                     </td>
                 </tr>
             }
