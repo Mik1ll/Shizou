@@ -8,48 +8,47 @@
 @inject IDbContextFactory<ShizouContext> ContextFactory
 @inject ImportService ImportService
 
-@if (DialogIsOpen)
+@if (_dialogIsOpen)
 {
     if (!_isDelete)
     {
         if (!_folderPickerOpen)
         {
-            <ModalDisplay Model="@MyImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.Form">
+            <ModalDisplay @ref="@_modalDisplay" Model="@_myImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.Form">
                 <div class="mb-3 form-floating">
-                    <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(MyImportFolder.Name)"></InputText>
+                    <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_myImportFolder.Name)"></InputText>
                     <label for="nameInput">Name</label>
                 </div>
                 <div class="mb-3 input-group">
                     <div class="form-floating">
-                        <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(MyImportFolder.Path)"></InputText>
+                        <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(_myImportFolder.Path)"></InputText>
                         <label for="pathInput">Path</label>
                     </div>
                     <button type="button" class="input-group-text" @onclick="@(() => { _folderPickerOpen = true; })">Browse</button>
                 </div>
                 <div class="mb-3 form-check">
-                    <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(MyImportFolder.ScanOnImport)"></InputCheckbox>
+                    <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(_myImportFolder.ScanOnImport)"></InputCheckbox>
                     <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
                 </div>
             </ModalDisplay>
         }
         else
         {
-            <FolderPickerModal @bind-FolderPath="@MyImportFolder.Path" OnFolderPickerClose="@OnFolderPickerClose"></FolderPickerModal>
+            <FolderPickerModal @bind-FolderPath="@_myImportFolder.Path" OnFolderPickerClose="@OnFolderPickerClose"></FolderPickerModal>
         }
     }
     else
     {
-        <ModalDisplay Title="@($"Delete Import Folder: {MyImportFolder.Name}")" OnClose="@OnDialogClose" DialogType="ModalDisplay.ModalDialogType.DeleteCancel"></ModalDisplay>
+        <ModalDisplay Title="@($"Delete Import Folder: {_myImportFolder.Name}")" OnClose="@OnDialogClose" DialogType="ModalDisplay.ModalDialogType.DeleteCancel"></ModalDisplay>
     }
 }
 
 @code {
-    public ImportFolderDto MyImportFolder { get; set; } = new();
-
-    public bool DialogIsOpen { get; set; }
-
+    private ImportFolderDto _myImportFolder = new();
+    private bool _dialogIsOpen = false;
     private bool _isDelete = false;
     private bool _folderPickerOpen = false;
+    private ModalDisplay? _modalDisplay;
 
     [Parameter]
     public EventCallback OnClose { get; set; }
@@ -59,14 +58,14 @@
         if (accepted)
         {
             using var context = ContextFactory.CreateDbContext();
-            var myImportFolderModel = Mapper.Map<ImportFolder>(MyImportFolder);
+            var myImportFolderModel = Mapper.Map<ImportFolder>(_myImportFolder);
             if (!_isDelete)
             {
-                if (MyImportFolder.Id == 0)
+                if (_myImportFolder.Id == 0)
                     context.ImportFolders.Add(myImportFolderModel);
                 else
                 {
-                    var importFolder = context.ImportFolders.Find(MyImportFolder.Id);
+                    var importFolder = context.ImportFolders.Find(_myImportFolder.Id);
                     if (importFolder is not null)
                         context.Entry(importFolder).CurrentValues.SetValues(myImportFolderModel);
                 }
@@ -75,10 +74,16 @@
             {
                 context.ImportFolders.Remove(myImportFolderModel);
             }
-            context.SaveChanges();
+            try
+            {
+                context.SaveChanges();
+            }
+            catch (DbUpdateException ex)
+            {
+            }
         }
-        DialogIsOpen = false;
-        MyImportFolder = new ImportFolderDto();
+        _dialogIsOpen = false;
+        _myImportFolder = new ImportFolderDto();
         OnClose.InvokeAsync();
     }
 
@@ -90,22 +95,22 @@
     public void NewDialog()
     {
         _isDelete = false;
-        MyImportFolder = new ImportFolderDto();
-        DialogIsOpen = true;
+        _myImportFolder = new ImportFolderDto();
+        _dialogIsOpen = true;
     }
 
     public void EditDialog(ImportFolder importFolder)
     {
         _isDelete = false;
-        MyImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
-        DialogIsOpen = true;
+        _myImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
+        _dialogIsOpen = true;
     }
 
     public void DeleteDialog(ImportFolder importFolder)
     {
         _isDelete = true;
-        MyImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
-        DialogIsOpen = true;
+        _myImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
+        _dialogIsOpen = true;
     }
 
 }

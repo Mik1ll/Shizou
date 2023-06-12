@@ -52,15 +52,15 @@
 
     [Parameter]
     [EditorRequired]
-    public required ModalDialogType DialogType { get; set; }
+    public ModalDialogType DialogType { get; set; }
 
     [Parameter]
     [EditorRequired]
-    public required string Title { get; set; }
+    public string Title { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
-    public required EventCallback<bool> OnClose { get; set; }
+    public EventCallback<bool> OnClose { get; set; }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
