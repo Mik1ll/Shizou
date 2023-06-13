@@ -14,7 +14,7 @@
     {
         if (!_folderPickerOpen)
         {
-            <ModalDisplay @ref="@_modalDisplay" Model="@_myImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" DialogType="@ModalDisplay.ModalDialogType.Form">
+            <ModalDisplay @ref="@_modalDisplay" Model="@_myImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" OnValidate="@OnValidate" DialogType="@ModalDisplay.ModalDialogType.Form">
                 <div class="mb-3 form-floating">
                     <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_myImportFolder.Name)"></InputText>
                     <label for="nameInput">Name</label>
@@ -53,13 +53,24 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
+    private void OnValidate(ValidationMessageStore messageStore)
+    {
+        using var context = ContextFactory.CreateDbContext();
+        if (context.ImportFolders.Where(i => i.Id != _myImportFolder.Id).Any(i => i.Name == _myImportFolder.Name))
+            messageStore.Add(() => _myImportFolder.Name, "Import folder name must be unique");
+        if (context.ImportFolders.Where(i => i.Id != _myImportFolder.Id).Any(i => i.Path == _myImportFolder.Path))
+            messageStore.Add(() => _myImportFolder.Path, "Import folder path must be unique");
+    }
+
     private void OnDialogClose(bool accepted)
     {
         if (accepted)
         {
             using var context = ContextFactory.CreateDbContext();
             var myImportFolderModel = Mapper.Map<ImportFolder>(_myImportFolder);
-            if (!_isDelete)
+            if (_isDelete)
+                context.ImportFolders.Remove(myImportFolderModel);
+            else
             {
                 if (_myImportFolder.Id == 0)
                     context.ImportFolders.Add(myImportFolderModel);
@@ -70,17 +81,7 @@
                         context.Entry(importFolder).CurrentValues.SetValues(myImportFolderModel);
                 }
             }
-            else
-            {
-                context.ImportFolders.Remove(myImportFolderModel);
-            }
-            try
-            {
-                context.SaveChanges();
-            }
-            catch (DbUpdateException ex)
-            {
-            }
+            context.SaveChanges();
         }
         _dialogIsOpen = false;
         _myImportFolder = new ImportFolderDto();

@@ -9,7 +9,7 @@
                 <div class="modal-body">
                     @if (DialogType == ModalDialogType.Form)
                     {
-                        <EditForm id="modalForm" Model="@Model" OnValidSubmit="@ModalOk">
+                        <EditForm EditContext="@EditContext" id="modalForm" OnValidSubmit="@ModalOk">
                             <DataAnnotationsValidator/>
                             @ChildContent
                             <ValidationSummary/>
@@ -46,6 +46,8 @@
 </div>
 
 @code {
+    public EditContext? EditContext { get; private set; }
+    public ValidationMessageStore? MessageStore { get; private set; }
 
     [Parameter]
     public object? Model { get; set; }
@@ -63,13 +65,25 @@
     public EventCallback<bool> OnClose { get; set; }
 
     [Parameter]
+    public EventCallback<ValidationMessageStore> OnValidate { get; set; }
+
+    [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    protected override void OnInitialized()
+    {
+        if (DialogType is ModalDialogType.Form)
+        {
+            EditContext = new EditContext(Model!);
+            MessageStore = new ValidationMessageStore(EditContext);
+            EditContext.OnValidationRequested += (_, _) => OnValidate.InvokeAsync(MessageStore);
+        }
+    }
 
     public override Task SetParametersAsync(ParameterView parameters)
     {
         parameters.SetParameterProperties(this);
-        if (DialogType == ModalDialogType.Form && Model is null)
+        if (DialogType is ModalDialogType.Form && Model is null)
             throw new ArgumentNullException($"{nameof(ModalDisplay)} requires a {nameof(Model)} when type is {Enum.GetName(ModalDialogType.Form)}");
         return base.SetParametersAsync(parameters);
     }
@@ -79,11 +93,11 @@
         return OnClose.InvokeAsync(false);
     }
 
-    private Task ModalOk()
+    private async Task ModalOk()
     {
-        return OnClose.InvokeAsync(true);
+        await OnClose.InvokeAsync(true);
     }
-
+    
     public enum ModalDialogType
     {
         Ok,
