@@ -25,10 +25,7 @@ public partial class ImportFolderModal
 
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
-
-    [Inject]
-    private ImportService ImportService { get; set; } = default!;
-
+    
     public void OnFolderPickerClose()
     {
         _folderPickerOpen = false;
