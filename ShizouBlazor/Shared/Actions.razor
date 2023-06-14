@@ -1,25 +1,6 @@
-﻿@using Shizou.Services
-@using Shizou.Commands
-@inject IServiceProvider ServiceProvider
-
-<h3>Actions</h3>
+﻿<h3>Actions</h3>
 <section class="actions">
     <button type="button" class="btn btn-primary" @onclick="@DispatchNoop">Add noops</button>
     <button type="button" class="btn btn-primary" @onclick="@RunImport">Run Import</button>
 
 </section>
-
-@code {
-
-
-    private void DispatchNoop()
-    {
-        ServiceProvider.GetRequiredService<CommandService>().DispatchRange(Enumerable.Range(1, 10).Select(n => new NoopArgs(n)));
-    }
-
-    private void RunImport()
-    {
-        ServiceProvider.GetRequiredService<ImportService>().Import();
-    }
-
-}
