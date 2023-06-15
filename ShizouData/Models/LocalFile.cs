@@ -14,7 +14,7 @@ public class LocalFile : IEntity
     public required string Signature { get; set; }
     public required bool Ignored { get; set; }
     public required string PathTail { get; set; }
-    public DateTimeOffset? Updated { get; set; }
+    public DateTime? Updated { get; set; }
 
     public required int ImportFolderId { get; set; }
     public ImportFolder ImportFolder { get; set; } = null!;

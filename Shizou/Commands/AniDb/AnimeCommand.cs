@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -78,15 +79,15 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
                 DurationMinutes = e.Length,
                 Number = e.Epno.Text.ParseEpisode().number,
                 EpisodeType = e.Epno.Type,
-                AirDate = string.IsNullOrEmpty(e.Airdate) ? null : DateTimeOffset.Parse(e.Airdate + "+00:00"),
-                Updated = DateTimeOffset.UtcNow,
+                AirDate = string.IsNullOrEmpty(e.Airdate) ? null : DateTime.Parse(e.Airdate, styles: DateTimeStyles.AssumeUniversal),
+                Updated = DateTime.UtcNow,
                 TitleEnglish = e.Title.First(t => t.Lang == "en").Text,
                 TitleRomaji = e.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == mainTitle.Lang)?.Text,
                 TitleKanji = e.Title.FirstOrDefault(t =>
                     t.Lang.StartsWith(mainTitle.Lang switch { "x-jat" => "ja", "x-zht" => "zh-han", "x-kot" => "ko", _ => "none" },
                         StringComparison.OrdinalIgnoreCase))?.Text
             }).ToList(),
-            Updated = DateTimeOffset.UtcNow
+            Updated = DateTime.UtcNow
         };
         if (aniDbAnime is null)
         {

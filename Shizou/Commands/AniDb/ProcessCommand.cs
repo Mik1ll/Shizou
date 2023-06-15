@@ -83,7 +83,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             DurationSeconds = result.LengthInSeconds,
             Source = result.Source,
             FileVersion = result.State!.Value.FileVersion(),
-            Updated = DateTimeOffset.UtcNow,
+            Updated = DateTime.UtcNow,
             MyListEntryId = result.MyListId,
             MyListEntry = result.MyListId is null
                 ? null
@@ -159,7 +159,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         {
             Id = result.MyListId!.Value,
             Watched = result.MyListViewed!.Value,
-            WatchedDate = result.MyListViewDate,
+            WatchedDate = result.MyListViewDate?.UtcDateTime,
             MyListState = result.MyListState!.Value,
             MyListFileState = result.MyListFileState!.Value
         };

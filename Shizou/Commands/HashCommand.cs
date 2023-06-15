@@ -72,7 +72,7 @@ public class HashCommand : BaseCommand<HashArgs>
                 Crc = hashes[RHasherService.HashIds.Crc32],
                 Ed2K = hashes[RHasherService.HashIds.Ed2K],
                 FileSize = file.Length,
-                Updated = DateTimeOffset.UtcNow,
+                Updated = DateTime.UtcNow,
                 PathTail = pathTail,
                 Ignored = false,
                 ImportFolderId = importFolder.Id

@@ -16,8 +16,8 @@ public class AniDbAnime : IEntity
     public required string? Description { get; set; }
     public required bool Restricted { get; set; }
     public required string? ImagePath { get; set; }
-    public DateTimeOffset? Updated { get; set; }
-    public DateTimeOffset? AniDbUpdated { get; set; }
+    public DateTime? Updated { get; set; }
+    public DateTime? AniDbUpdated { get; set; }
 
     public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
 }

@@ -16,14 +16,14 @@ public class AniDbFile : IEntity
     public required long FileSize { get; set; }
     public required int? DurationSeconds { get; set; }
     public required string? Source { get; set; }
-    public DateTimeOffset? Updated { get; set; }
+    public DateTime? Updated { get; set; }
     public required int FileVersion { get; set; }
     public required string FileName { get; set; }
     public required bool? Censored { get; set; }
     public required bool Deprecated { get; set; }
     public required bool Chaptered { get; set; }
     public bool Watched { get; set; }
-    public DateTimeOffset? WatchedUpdated { get; set; }
+    public DateTime? WatchedUpdated { get; set; }
 
     public int? MyListEntryId { get; set; }
     public AniDbMyListEntry? MyListEntry { get; set; }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShizouData.Models;
 
 namespace ShizouData.Database;
@@ -12,14 +13,6 @@ public sealed class ShizouContext : IdentityDbContext
 
     public ShizouContext(DbContextOptions<ShizouContext> options) : base(options)
     {
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-            optionsBuilder
-                .UseSqlite(@$"Data Source={Path.Combine(FilePaths.ApplicationDataDir, "ShizouDB.sqlite3")};Foreign Keys=True;")
-                .EnableSensitiveDataLogging();
     }
 
     public DbSet<CommandRequest> CommandRequests { get; set; } = null!;
@@ -51,21 +44,6 @@ public sealed class ShizouContext : IdentityDbContext
             select f;
     }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<AniDbFile>()
-            .OwnsMany(f => f.Audio)
-            .WithOwner(a => a.AniDbFile);
-        modelBuilder.Entity<AniDbFile>()
-            .OwnsMany(f => f.Subtitles)
-            .WithOwner(s => s.AniDbFile);
-        modelBuilder.Entity<AniDbEpisode>()
-            .HasMany(e => e.ManualLinkLocalFiles)
-            .WithMany(e => e.ManualLinkEpisodes)
-            .UsingEntity(j => j.ToTable("ManualLinkXrefs"));
-        base.OnModelCreating(modelBuilder);
-    }
-
     public void ReplaceList<T, TKey>(List<T> source, List<T> destination, Func<T, TKey> keySelector)
         where TKey : IEquatable<TKey>
         where T : notnull
@@ -83,6 +61,63 @@ public sealed class ShizouContext : IdentityDbContext
                 destination.Add(item);
             }
             else
+            {
                 Entry(eItem).CurrentValues.SetValues(item);
+            }
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+            optionsBuilder
+                .UseSqlite(@$"Data Source={Path.Combine(FilePaths.ApplicationDataDir, "ShizouDB.sqlite3")};Foreign Keys=True;")
+                .EnableSensitiveDataLogging();
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AniDbFile>()
+            .OwnsMany(f => f.Audio)
+            .WithOwner(a => a.AniDbFile);
+        modelBuilder.Entity<AniDbFile>()
+            .OwnsMany(f => f.Subtitles)
+            .WithOwner(s => s.AniDbFile);
+        modelBuilder.Entity<AniDbEpisode>()
+            .HasMany(e => e.ManualLinkLocalFiles)
+            .WithMany(e => e.ManualLinkEpisodes)
+            .UsingEntity(j => j.ToTable("ManualLinkXrefs"));
+
+        base.OnModelCreating(modelBuilder);
+    }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder
+            .Properties<DateTime>()
+            .HaveConversion<DateTimeConverter>();
+        configurationBuilder
+            .Properties<DateTime?>()
+            .HaveConversion<NullableDateTimeConverter>();
+
+        base.ConfigureConventions(configurationBuilder);
+    }
+
+    // ReSharper disable once ClassNeverInstantiated.Local
+    private class DateTimeConverter : ValueConverter<DateTime, DateTime>
+    {
+        public DateTimeConverter() : base(v => v.ToUniversalTime(),
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc))
+        {
+        }
+    }
+
+    // ReSharper disable once ClassNeverInstantiated.Local
+    private class NullableDateTimeConverter : ValueConverter<DateTime?, DateTime?>
+    {
+        public NullableDateTimeConverter() : base(
+            v => v.HasValue ? v.Value.ToUniversalTime() : v,
+            v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v)
+        {
+        }
     }
 }
