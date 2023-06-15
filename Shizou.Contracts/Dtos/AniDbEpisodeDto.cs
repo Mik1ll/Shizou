@@ -1,0 +1,22 @@
+﻿using Shizou.Common.Enums;
+
+namespace Shizou.Contracts.Dtos;
+
+public class AniDbEpisodeDto : IEntityDto
+{
+    public int Id { get; set; }
+    public string TitleEnglish { get; set; } = null!;
+    public string? TitleRomaji { get; set; }
+    public string? TitleKanji { get; set; }
+    public int Number { get; set; }
+    public EpisodeType EpisodeType { get; set; }
+    public int? DurationMinutes { get; set; }
+    public DateTime? AirDate { get; set; }
+    public bool Watched { get; set; }
+    public DateTime? WatchedUpdated { get; set; }
+
+    public DateTime? Updated { get; set; }
+
+    
+    public int AniDbAnimeId { get; set; }
+}

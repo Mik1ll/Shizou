@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30717.126
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shizou", "Shizou\Shizou.csproj", "{40A78159-ACBC-403A-8851-485CCA88762E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shizou.Server", "Shizou.Server\Shizou.Server.csproj", "{40A78159-ACBC-403A-8851-485CCA88762E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShizouData", "ShizouData\ShizouData.csproj", "{7DE978B5-9756-4F36-8E41-3AF00CDEF816}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Data", "Shizou.Data\Shizou.Data.csproj", "{7DE978B5-9756-4F36-8E41-3AF00CDEF816}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShizouBlazor", "ShizouBlazor\ShizouBlazor.csproj", "{074BA0BD-418E-4119-8061-678A05D2712D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Blazor", "Shizou.Blazor\Shizou.Blazor.csproj", "{074BA0BD-418E-4119-8061-678A05D2712D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShizouContracts", "ShizouContracts\ShizouContracts.csproj", "{57DEFE2D-B8AB-45AF-803E-C4561B55729C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Contracts", "Shizou.Contracts\Shizou.Contracts.csproj", "{57DEFE2D-B8AB-45AF-803E-C4561B55729C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShizouCommon", "ShizouCommon\ShizouCommon.csproj", "{3C799AE0-8E09-464E-B854-C2F05D7A8076}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Common", "Shizou.Common\Shizou.Common.csproj", "{3C799AE0-8E09-464E-B854-C2F05D7A8076}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShizouTests", "ShizouTests\ShizouTests.csproj", "{55E2CB60-505D-4639-9620-39767AF09E15}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Tests", "Shizou.Tests\Shizou.Tests.csproj", "{55E2CB60-505D-4639-9620-39767AF09E15}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
