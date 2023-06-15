@@ -37,4 +37,8 @@
         <ProjectReference Include="..\ShizouData\ShizouData.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <InternalsVisibleTo Include="$(AssemblyName)Tests" />
+    </ItemGroup>
+
 </Project>
