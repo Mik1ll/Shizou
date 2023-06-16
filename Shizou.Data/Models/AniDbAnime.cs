@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Shizou.Common.Enums;
 
 namespace Shizou.Data.Models;
@@ -19,5 +20,6 @@ public class AniDbAnime : IEntity
     public DateTime? Updated { get; set; }
     public DateTime? AniDbUpdated { get; set; }
 
+    [JsonIgnore]
     public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
 }

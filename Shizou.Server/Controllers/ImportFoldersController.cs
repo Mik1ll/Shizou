@@ -1,17 +1,15 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Shizou.Contracts.Dtos;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Extensions;
 
 namespace Shizou.Server.Controllers;
 
-public class ImportFoldersController : EntityController<ImportFolder, ImportFolderDto>
+public class ImportFoldersController : EntityController<ImportFolder>
 {
-    public ImportFoldersController(ILogger<ImportFoldersController> logger, ShizouContext context, IMapper mapper) : base(logger, context, mapper)
+    public ImportFoldersController(ILogger<ImportFoldersController> logger, ShizouContext context) : base(logger, context)
     {
     }
 
@@ -28,6 +26,6 @@ public class ImportFoldersController : EntityController<ImportFolder, ImportFold
         var importFolder = Context.ImportFolders.GetByPath(path);
         if (importFolder is null)
             return NotFound();
-        return Mapper.Map<ImportFolder>(importFolder);
+        return importFolder;
     }
 }

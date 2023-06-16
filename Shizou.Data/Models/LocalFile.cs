@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Data.Models;
 
@@ -17,7 +18,8 @@ public class LocalFile : IEntity
     public DateTime? Updated { get; set; }
 
     public required int ImportFolderId { get; set; }
-    public ImportFolder ImportFolder { get; set; } = null!;
+    [JsonIgnore] public ImportFolder ImportFolder { get; set; } = null!;
 
+    [JsonIgnore]
     public List<AniDbEpisode> ManualLinkEpisodes { get; set; } = null!;
 }

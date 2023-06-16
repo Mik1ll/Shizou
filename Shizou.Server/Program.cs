@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,7 +41,7 @@ try
     app.UseSerilogRequestLogging();
 
     app.UseHttpsRedirection();
-    
+
     app.UseAuthorization();
     app.MapControllers();
 
@@ -53,9 +52,6 @@ try
 
         var context = services.GetRequiredService<ShizouContext>();
         context.Database.Migrate();
-
-        var mapper = services.GetRequiredService<IMapper>();
-        mapper.ConfigurationProvider.AssertConfigurationIsValid();
     }
 
     app.Run();

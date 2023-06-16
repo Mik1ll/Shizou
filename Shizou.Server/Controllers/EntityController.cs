@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Shizou.Contracts.Dtos;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 
@@ -13,20 +11,17 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class EntityController<TEntity, TDto> : ControllerBase
+public class EntityController<TEntity> : ControllerBase
     where TEntity : class, IEntity
-    where TDto : class, IEntityDto
 {
-    private readonly DbSet<TEntity> _dbSet;
     protected readonly ShizouContext Context;
-    protected readonly IMapper Mapper;
-    protected readonly ILogger<EntityController<TEntity, TDto>> Logger;
+    protected readonly ILogger<EntityController<TEntity>> Logger;
+    private readonly DbSet<TEntity> _dbSet;
 
-    public EntityController(ILogger<EntityController<TEntity, TDto>> logger, ShizouContext context, IMapper mapper)
+    public EntityController(ILogger<EntityController<TEntity>> logger, ShizouContext context)
     {
         Logger = logger;
         Context = context;
-        Mapper = mapper;
         _dbSet = Context.Set<TEntity>();
     }
 
@@ -38,9 +33,9 @@ public class EntityController<TEntity, TDto> : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Produces("application/json")]
-    public virtual ActionResult<List<TDto>> Get()
+    public virtual ActionResult<List<TEntity>> Get()
     {
-        return Mapper.Map<List<TDto>>(_dbSet.AsNoTracking());
+        return _dbSet.AsNoTracking().ToList();
     }
 
     /// <summary>
@@ -54,12 +49,12 @@ public class EntityController<TEntity, TDto> : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Produces("application/json")]
-    public virtual ActionResult<TDto> Get(int id)
+    public virtual ActionResult<TEntity> Get(int id)
     {
         var result = _dbSet.Find(id);
         if (result is null)
             return NotFound();
-        return Mapper.Map<TDto>(result);
+        return result;
     }
 
     /// <summary>
@@ -76,11 +71,11 @@ public class EntityController<TEntity, TDto> : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [Produces("application/json")]
     [Consumes("application/json")]
-    public virtual ActionResult<TDto> Post([FromBody] TDto entity)
+    public virtual ActionResult<TEntity> Post([FromBody] TEntity entity)
     {
         // TODO: Test adding already existing record
         // TODO: Test adding with child navigation id already existing
-        var newEntity = _dbSet.Add(Mapper.Map<TEntity>(entity)).Entity;
+        var newEntity = _dbSet.Add(entity).Entity;
         try
         {
             Context.SaveChanges();
@@ -91,7 +86,7 @@ public class EntityController<TEntity, TDto> : ControllerBase
                 return Conflict();
             throw;
         }
-        return CreatedAtAction(nameof(Get), new { id = newEntity.Id }, Mapper.Map<TDto>(newEntity));
+        return CreatedAtAction(nameof(Get), new { id = newEntity.Id }, newEntity);
     }
 
     /// <summary>
@@ -108,13 +103,13 @@ public class EntityController<TEntity, TDto> : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [Consumes("application/json")]
-    public virtual ActionResult Put(int id, [FromBody] TDto entity)
+    public virtual ActionResult Put(int id, [FromBody] TEntity entity)
     {
         if (entity.Id == 0)
             entity.Id = id;
         if (id == 0 || id != entity.Id)
             return BadRequest("Url id cannot be 0 or mismatch entity id");
-        Context.Entry(Mapper.Map<TEntity>(entity)).State = EntityState.Modified;
+        Context.Entry(entity).State = EntityState.Modified;
         try
         {
             // TODO: Test changing navigation id fields

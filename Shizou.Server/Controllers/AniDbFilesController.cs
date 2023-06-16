@@ -1,14 +1,12 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Logging;
-using Shizou.Contracts.Dtos;
+﻿using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 
 namespace Shizou.Server.Controllers;
 
-public class AniDbFilesController : EntityController<AniDbFile, AniDbFileDto>
+public class AniDbFilesController : EntityController<AniDbFile>
 {
-    public AniDbFilesController(ILogger<AniDbFilesController> logger, ShizouContext context, IMapper mapper) : base(logger, context, mapper)
+    public AniDbFilesController(ILogger<AniDbFilesController> logger, ShizouContext context) : base(logger, context)
     {
     }
 }

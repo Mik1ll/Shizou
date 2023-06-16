@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Shizou.Common.Enums;
 
 namespace Shizou.Data.Models;
@@ -21,7 +22,8 @@ public class AniDbEpisode : IEntity
     public DateTime? Updated { get; set; }
 
     public required int AniDbAnimeId { get; set; }
-    public AniDbAnime AniDbAnime { get; set; } = null!;
+    [JsonIgnore] public AniDbAnime AniDbAnime { get; set; } = null!;
 
+    [JsonIgnore]
     public List<LocalFile> ManualLinkLocalFiles { get; set; } = null!;
 }

@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Data", "Shizou.Data\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Blazor", "Shizou.Blazor\Shizou.Blazor.csproj", "{074BA0BD-418E-4119-8061-678A05D2712D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Contracts", "Shizou.Contracts\Shizou.Contracts.csproj", "{57DEFE2D-B8AB-45AF-803E-C4561B55729C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Common", "Shizou.Common\Shizou.Common.csproj", "{3C799AE0-8E09-464E-B854-C2F05D7A8076}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Tests", "Shizou.Tests\Shizou.Tests.csproj", "{55E2CB60-505D-4639-9620-39767AF09E15}"
@@ -33,10 +31,6 @@ Global
 		{074BA0BD-418E-4119-8061-678A05D2712D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{074BA0BD-418E-4119-8061-678A05D2712D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{074BA0BD-418E-4119-8061-678A05D2712D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{57DEFE2D-B8AB-45AF-803E-C4561B55729C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{57DEFE2D-B8AB-45AF-803E-C4561B55729C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{57DEFE2D-B8AB-45AF-803E-C4561B55729C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{57DEFE2D-B8AB-45AF-803E-C4561B55729C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3C799AE0-8E09-464E-B854-C2F05D7A8076}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3C799AE0-8E09-464E-B854-C2F05D7A8076}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C799AE0-8E09-464E-B854-C2F05D7A8076}.Release|Any CPU.ActiveCfg = Release|Any CPU

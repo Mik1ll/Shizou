@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Data.Models;
@@ -26,9 +27,11 @@ public class AniDbFile : IEntity
     public DateTime? WatchedUpdated { get; set; }
 
     public int? MyListEntryId { get; set; }
-    public AniDbMyListEntry? MyListEntry { get; set; }
+    [JsonIgnore] public AniDbMyListEntry? MyListEntry { get; set; }
+
     public int? AniDbGroupId { get; set; }
-    public AniDbGroup? AniDbGroup { get; set; }
+    [JsonIgnore] public AniDbGroup? AniDbGroup { get; set; }
+
     public AniDbVideo? Video { get; set; }
     public List<AniDbAudio> Audio { get; set; } = null!;
     public List<AniDbSubtitle> Subtitles { get; set; } = null!;

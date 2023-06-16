@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Data.Models;
@@ -12,5 +13,5 @@ public class AniDbGenericFile : IEntity
     public int AniDbEpisodeId { get; set; }
 
     public int? MyListEntryId { get; set; }
-    public AniDbMyListEntry? MyListEntry { get; set; }
+    [JsonIgnore] public AniDbMyListEntry? MyListEntry { get; set; }
 }

@@ -13,7 +13,6 @@ using Shizou.Data.Database;
 using Shizou.Server.AniDbApi;
 using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.CommandProcessors;
-using Shizou.Server.MapperProfiles;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -49,8 +48,6 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddDbContext<ShizouContext>(optionsLifetime: ServiceLifetime.Singleton);
 
         builder.Services.AddDbContextFactory<ShizouContext>();
-
-        builder.Services.AddAutoMapper(typeof(ShizouProfile));
 
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();
