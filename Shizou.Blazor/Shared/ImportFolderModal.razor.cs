@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
-using Shizou.Contracts.Dtos;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 
@@ -10,7 +8,7 @@ namespace Shizou.Blazor.Shared;
 
 public partial class ImportFolderModal
 {
-    private ImportFolderDto _myImportFolder = new();
+    private ImportFolder _myImportFolder = NewImportFolder();
     private bool _dialogIsOpen = false;
     private bool _isDelete = false;
     private bool _folderPickerOpen = false;
@@ -20,11 +18,8 @@ public partial class ImportFolderModal
     public EventCallback OnClose { get; set; }
 
     [Inject]
-    private IMapper Mapper { get; set; } = default!;
-
-    [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
-    
+
     public void OnFolderPickerClose()
     {
         _folderPickerOpen = false;
@@ -33,22 +28,32 @@ public partial class ImportFolderModal
     public void NewDialog()
     {
         _isDelete = false;
-        _myImportFolder = new ImportFolderDto();
+        _myImportFolder = NewImportFolder();
         _dialogIsOpen = true;
     }
+
 
     public void EditDialog(ImportFolder importFolder)
     {
         _isDelete = false;
-        _myImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
+        _myImportFolder = importFolder;
         _dialogIsOpen = true;
     }
 
     public void DeleteDialog(ImportFolder importFolder)
     {
         _isDelete = true;
-        _myImportFolder = Mapper.Map<ImportFolderDto>(importFolder);
+        _myImportFolder = importFolder;
         _dialogIsOpen = true;
+    }
+
+    private static ImportFolder NewImportFolder()
+    {
+        return new ImportFolder
+        {
+            Name = string.Empty,
+            Path = string.Empty
+        };
     }
 
     private void OnValidate(ValidationMessageStore messageStore)
@@ -65,7 +70,7 @@ public partial class ImportFolderModal
         if (accepted)
         {
             using var context = ContextFactory.CreateDbContext();
-            var myImportFolderModel = Mapper.Map<ImportFolder>(_myImportFolder);
+            var myImportFolderModel = _myImportFolder;
             if (_isDelete)
             {
                 context.ImportFolders.Remove(myImportFolderModel);
@@ -86,7 +91,7 @@ public partial class ImportFolderModal
             context.SaveChanges();
         }
         _dialogIsOpen = false;
-        _myImportFolder = new ImportFolderDto();
+        _myImportFolder = NewImportFolder();
         OnClose.InvokeAsync();
     }
 }

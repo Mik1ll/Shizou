@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Data.Models;
 
@@ -7,10 +9,15 @@ namespace Shizou.Data.Models;
 public class ImportFolder : IEntity
 {
     public int Id { get; set; }
+
+    [Required]
     public required string Name { get; set; }
+
+    [Required]
     public required string Path { get; set; }
 
-    public required bool ScanOnImport { get; set; }
+    public bool ScanOnImport { get; set; }
 
+    [JsonIgnore]
     public List<LocalFile> LocalFiles { get; set; } = null!;
 }
