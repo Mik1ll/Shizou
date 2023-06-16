@@ -4,17 +4,27 @@
     {
         if (!_folderPickerOpen)
         {
-            <ModalDisplay @ref="@_modalDisplay" Model="@_myImportFolder" Title="Add Import Folder" OnClose="@OnDialogClose" OnValidate="@OnValidate" DialogType="@ModalDisplay.ModalDialogType.Form">
+            <ModalDisplay @ref="@_modalDisplay"
+                          Model="@_myImportFolder"
+                          Title="Add Import Folder"
+                          OnClose="@OnDialogClose"
+                          OnValidate="@OnValidate"
+                          DialogType="@ModalDisplay.ModalDialogType.Form"
+                          ShowValidationSummary="false">
                 <div class="mb-3 form-floating">
                     <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_myImportFolder.Name)"></InputText>
                     <label for="nameInput">Name</label>
+                    <ValidationMessage For="@(() => _myImportFolder.Name)"></ValidationMessage>
                 </div>
-                <div class="mb-3 input-group">
-                    <div class="form-floating">
-                        <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(_myImportFolder.Path)"></InputText>
-                        <label for="pathInput">Path</label>
+                <div class="mb-3">
+                    <div class="input-group">
+                        <div class="form-floating">
+                            <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(_myImportFolder.Path)"></InputText>
+                            <label for="pathInput">Path</label>
+                        </div>
+                        <button type="button" class="input-group-text" @onclick="@(() => { _folderPickerOpen = true; })">Browse</button>
                     </div>
-                    <button type="button" class="input-group-text" @onclick="@(() => { _folderPickerOpen = true; })">Browse</button>
+                    <ValidationMessage For="@(() => _myImportFolder.Path)"></ValidationMessage>
                 </div>
                 <div class="mb-3 form-check">
                     <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(_myImportFolder.ScanOnImport)"></InputCheckbox>

@@ -12,7 +12,10 @@
                         <EditForm EditContext="@EditContext" id="modalForm" OnValidSubmit="@ModalOk">
                             <DataAnnotationsValidator/>
                             @ChildContent
-                            <ValidationSummary/>
+                            @if (ShowValidationSummary)
+                            {
+                                <ValidationSummary/>
+                            }
                         </EditForm>
                     }
                     else

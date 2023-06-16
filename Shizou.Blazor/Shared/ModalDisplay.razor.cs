@@ -27,6 +27,9 @@ public partial class ModalDisplay
     public EventCallback<ValidationMessageStore> OnValidate { get; set; }
 
     [Parameter]
+    public bool ShowValidationSummary { get; set; } = true;
+
+    [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
     protected override void OnInitialized()
