@@ -96,6 +96,8 @@ public abstract class AniDbUdpRequest
         Logger.LogInformation("Sending AniDb UDP text: {RequestText}", RequestText);
         try
         {
+            if (!AniDbUdpState.UdpClient.Client.Connected)
+                AniDbUdpState.Connect();
             await AniDbUdpState.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
             return true;
         }

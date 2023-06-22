@@ -21,14 +21,17 @@ public sealed class AniDbUdpState : IDisposable
     private bool _banned;
     private bool _loggedIn;
     private INatDevice? _router;
+    private readonly string _serverHost;
+    private readonly ushort _serverPort;
 
     public AniDbUdpState(IOptionsMonitor<ShizouOptions> options,
         ILogger<AniDbUdpState> logger, UdpRateLimiter rateLimiter, IServiceProvider provider)
     {
         _provider = provider;
+        _serverHost = options.CurrentValue.AniDb.ServerHost;
+        _serverPort = options.CurrentValue.AniDb.UdpServerPort;
         RateLimiter = rateLimiter;
         UdpClient = new UdpClient(options.CurrentValue.AniDb.ClientPort, AddressFamily.InterNetwork);
-        UdpClient.Connect(options.CurrentValue.AniDb.ServerHost, options.CurrentValue.AniDb.UdpServerPort);
         _logger = logger;
 
         _bannedTimer = new Timer(BanPeriod.TotalMilliseconds);
@@ -125,6 +128,11 @@ public sealed class AniDbUdpState : IDisposable
         _logoutTimer.Dispose();
         UdpClient.Dispose();
         _mappingTimer?.Dispose();
+    }
+
+    public void Connect()
+    {
+        UdpClient.Connect(_serverHost, _serverPort);
     }
 
     public async Task<bool> Login()
