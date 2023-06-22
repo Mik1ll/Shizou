@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using Shizou.Data.Validation;
 
 namespace Shizou.Data.Models;
 
@@ -11,9 +12,11 @@ public class ImportFolder : IEntity
     public int Id { get; set; }
 
     [Required]
+    [Unique]
     public required string Name { get; set; }
 
     [Required]
+    [Unique]
     public required string Path { get; set; }
 
     public bool ScanOnImport { get; set; }

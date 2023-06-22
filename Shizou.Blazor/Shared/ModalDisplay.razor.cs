@@ -5,9 +5,6 @@ namespace Shizou.Blazor.Shared;
 
 public partial class ModalDisplay
 {
-    public EditContext? EditContext { get; private set; }
-    public ValidationMessageStore? MessageStore { get; private set; }
-
     [Parameter]
     public object? Model { get; set; }
 
@@ -24,23 +21,10 @@ public partial class ModalDisplay
     public EventCallback<bool> OnClose { get; set; }
 
     [Parameter]
-    public EventCallback<ValidationMessageStore> OnValidate { get; set; }
-
-    [Parameter]
     public bool ShowValidationSummary { get; set; } = true;
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
-
-    protected override void OnInitialized()
-    {
-        if (DialogType is ModalDialogType.Form)
-        {
-            EditContext = new EditContext(Model!);
-            MessageStore = new ValidationMessageStore(EditContext);
-            EditContext.OnValidationRequested += (_, _) => OnValidate.InvokeAsync(MessageStore);
-        }
-    }
 
     public override Task SetParametersAsync(ParameterView parameters)
     {

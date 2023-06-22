@@ -9,7 +9,7 @@
                 <div class="modal-body">
                     @if (DialogType == ModalDialogType.Form)
                     {
-                        <EditForm EditContext="@EditContext" id="modalForm" OnValidSubmit="@ModalOk">
+                        <EditForm Model="@Model" id="modalForm" OnValidSubmit="@ModalOk">
                             <DataAnnotationsValidator/>
                             @ChildContent
                             @if (ShowValidationSummary)

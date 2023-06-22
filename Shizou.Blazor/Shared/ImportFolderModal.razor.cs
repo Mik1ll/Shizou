@@ -56,15 +56,6 @@ public partial class ImportFolderModal
         };
     }
 
-    private void OnValidate(ValidationMessageStore messageStore)
-    {
-        using var context = ContextFactory.CreateDbContext();
-        if (context.ImportFolders.Where(i => i.Id != _myImportFolder.Id).Any(i => i.Name == _myImportFolder.Name))
-            messageStore.Add(() => _myImportFolder.Name, "Import folder name must be unique");
-        if (context.ImportFolders.Where(i => i.Id != _myImportFolder.Id).Any(i => i.Path == _myImportFolder.Path))
-            messageStore.Add(() => _myImportFolder.Path, "Import folder path must be unique");
-    }
-
     private void OnDialogClose(bool accepted)
     {
         if (accepted)

@@ -8,16 +8,17 @@
                           Model="@_myImportFolder"
                           Title="Add Import Folder"
                           OnClose="@OnDialogClose"
-                          OnValidate="@OnValidate"
                           DialogType="@ModalDisplay.ModalDialogType.Form"
                           ShowValidationSummary="false">
-                <div class="mb-3 form-floating">
-                    <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_myImportFolder.Name)"></InputText>
-                    <label for="nameInput">Name</label>
+                <div class="mb-3">
+                    <div class="form-floating mb-1">
+                        <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_myImportFolder.Name)"></InputText>
+                        <label for="nameInput">Name</label>
+                    </div>
                     <ValidationMessage For="@(() => _myImportFolder.Name)"></ValidationMessage>
                 </div>
                 <div class="mb-3">
-                    <div class="input-group">
+                    <div class="input-group mb-1">
                         <div class="form-floating">
                             <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(_myImportFolder.Path)"></InputText>
                             <label for="pathInput">Path</label>
