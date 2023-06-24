@@ -29,13 +29,6 @@ public class CommandController : ControllerBase
         _commandService.Dispatch(commandArgs);
     }
 
-    [HttpPut("MyListDelete")]
-    public async Task MyListDeleteRequest(int aid, string epno)
-    {
-        var req = new MyListDeleteRequest(_provider, aid, epno);
-        await req.Process();
-    }
-
     [HttpPut("GenericUdpRequest")]
     public async Task<string?> GenericUdpRequest(string command, Dictionary<string, string> args)
     {

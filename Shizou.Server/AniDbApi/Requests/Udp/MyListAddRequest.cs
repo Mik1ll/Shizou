@@ -78,7 +78,7 @@ public class MyListAddRequest : AniDbUdpRequest
                 MyListResult = new AniDbMyListAddResult(int.Parse(dataArr[0]),
                     DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[5])),
                     Enum.Parse<MyListState>(dataArr[6]),
-                    watchedDate is null ? false : true,
+                    watchedDate is not null,
                     watchedDate,
                     Enum.Parse<MyListFileState>(dataArr[11])
                 );
