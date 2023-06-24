@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Shizou.Server.Options;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
@@ -21,7 +22,7 @@ public class OptionsController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
     [Produces("application/json")]
     public ActionResult<ShizouOptions> Get()
     {

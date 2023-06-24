@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
@@ -23,13 +24,16 @@ public class CommandController : ControllerBase
     }
 
     [HttpPut("UpdateMyList")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [Consumes("application/json")]
     public void UpdateMyList(UpdateMyListArgs commandArgs)
     {
         _commandService.Dispatch(commandArgs);
     }
 
     [HttpPut("GenericUdpRequest")]
+    [Produces("text/plain")]
+    [Consumes("application/json")]
     public async Task<string?> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
         var req = new GenericRequest(_provider, command, args);

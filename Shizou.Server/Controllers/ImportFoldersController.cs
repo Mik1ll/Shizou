@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Extensions;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
@@ -19,8 +20,9 @@ public class ImportFoldersController : EntityController<ImportFolder>
     /// <param name="path"></param>
     /// <returns></returns>
     [HttpGet("path/{path}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [Produces("application/json")]
     public ActionResult<ImportFolder> GetByPath(string path)
     {
         var importFolder = Context.ImportFolders.GetByPath(path);

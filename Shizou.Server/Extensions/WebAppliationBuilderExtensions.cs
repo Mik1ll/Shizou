@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -88,11 +89,13 @@ public static class WebAppliationBuilderExtensions
 
     public static WebApplicationBuilder AddShizouApiServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddJsonOptions(opt => opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         builder.Services.AddSwaggerGen(opt =>
         {
             opt.SchemaGeneratorOptions.UseInlineDefinitionsForEnums = true;
             opt.SchemaGeneratorOptions.SupportNonNullableReferenceTypes = true;
+            opt.EnableAnnotations();
         });
         return builder;
     }

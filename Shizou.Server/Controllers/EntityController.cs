@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
@@ -31,7 +32,7 @@ public class EntityController<TEntity> : ControllerBase
     /// <returns></returns>
     /// <response code="200">Success</response>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
     [Produces("application/json")]
     public virtual ActionResult<List<TEntity>> Get()
     {
@@ -46,8 +47,8 @@ public class EntityController<TEntity> : ControllerBase
     /// <response code="404">Entity is not found</response>
     /// <response code="200">Entity found</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
     [Produces("application/json")]
     public virtual ActionResult<TEntity> Get(int id)
     {
@@ -66,9 +67,9 @@ public class EntityController<TEntity> : ControllerBase
     /// <response code="400">Bad Request</response>
     /// <response code="409">Conflict when trying to add in database</response>
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [SwaggerResponse(StatusCodes.Status201Created)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    [SwaggerResponse(StatusCodes.Status409Conflict)]
     [Produces("application/json")]
     [Consumes("application/json")]
     public virtual ActionResult<TEntity> Post([FromBody] TEntity entity)
@@ -99,9 +100,9 @@ public class EntityController<TEntity> : ControllerBase
     /// <response code="404">Entity does not exist</response>
     /// <response code="409">Conflict when trying to update in database</response>
     [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [SwaggerResponse(StatusCodes.Status204NoContent)]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status409Conflict)]
     [Consumes("application/json")]
     public virtual ActionResult Put(int id, [FromBody] TEntity entity)
     {
@@ -133,10 +134,9 @@ public class EntityController<TEntity> : ControllerBase
     /// <response code="404">Not Found</response>
     /// <response code="409">Conflict when trying to delete in database</response>
     [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [Produces("application/json")]
+    [SwaggerResponse(StatusCodes.Status204NoContent)]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status409Conflict)]
     public virtual ActionResult Delete(int id)
     {
         var entity = _dbSet.Find(id);

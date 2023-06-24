@@ -6,6 +6,7 @@ using Shizou.Common.Enums;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.CommandProcessors;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
@@ -23,15 +24,17 @@ public class QueueController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [Produces("application/json")]
     public ActionResult List()
     {
         return Ok(_queues);
     }
 
     [HttpGet("{queueType}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [Produces("application/json")]
     public ActionResult Get(QueueType queueType)
     {
         var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
@@ -39,9 +42,9 @@ public class QueueController : ControllerBase
     }
 
     [HttpPut("{queueType}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status409Conflict)]
     public ActionResult Pause(QueueType queueType, bool paused)
     {
         var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
@@ -56,19 +59,21 @@ public class QueueController : ControllerBase
     }
 
     [HttpGet("{queueType}/current")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status204NoContent)]
+    [Produces("application/json")]
     public ActionResult<CommandRequest?> GetCurrentCommand(QueueType queueType)
     {
         var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
         if (queue is null) return NotFound("Queue not found");
-        return Ok(queue.CurrentCommand is null ? null : queue.CurrentCommand);
+        return Ok(queue.CurrentCommand);
     }
 
     [HttpGet("{queueType}/queued")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [Produces("application/json")]
     public ActionResult<IEnumerable<CommandRequest>> GetQueuedCommands(QueueType queueType)
     {
         var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);

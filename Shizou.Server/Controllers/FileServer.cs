@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
@@ -31,11 +32,10 @@ public class FileServer : ControllerBase
     /// <param name="localFileId"></param>
     /// <returns></returns>
     [HttpGet("{localFileId:int}")]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status416RangeNotSatisfiable)]
-    [ProducesResponseType(StatusCodes.Status206PartialContent)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [Produces("application/octet-stream", Type = typeof(FileStreamResult))]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status416RangeNotSatisfiable)]
+    [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: "application/octet-stream")]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
     public ActionResult Get(int localFileId)
     {
         var localDbFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
@@ -53,8 +53,8 @@ public class FileServer : ControllerBase
 
     [HttpGet("{localFileId:int}/play")]
     [Produces("text/html")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
     public ActionResult BrowserPlay(int localFileId)
     {
         _logger.LogInformation("Playing file {LocalFileId} in browser", localFileId);
