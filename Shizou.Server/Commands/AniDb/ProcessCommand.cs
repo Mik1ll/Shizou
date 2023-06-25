@@ -207,7 +207,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
     private async Task<AniDbFileResult?> GetFileResult()
     {
         // Check if file was requested before and did not complete
-        var result = await _fileResultCache.Get($"File {CommandArgs.Id}.json");
+        var result = await _fileResultCache.Get(_fileResultCacheKey);
         if (result is not null)
             return result;
 

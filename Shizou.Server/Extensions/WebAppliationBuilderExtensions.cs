@@ -52,6 +52,7 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddDbContextFactory<ShizouContext>();
 
         builder.Services.AddScoped<AniDbFileResultCache>();
+        builder.Services.AddScoped<HttpAnimeResultCache>();
         
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();

@@ -2,54 +2,47 @@
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Common.Enums;
-using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Results;
+using Shizou.Server.Services.FileCaches;
 
 namespace Shizou.Server.Commands.AniDb;
 
-public record AnimeArgs(int AnimeId, bool ForceRefresh = false) : CommandArgs($"{nameof(AnimeCommand)}_{AnimeId}_force={ForceRefresh}");
+public record AnimeArgs(int AnimeId) : CommandArgs($"{nameof(AnimeCommand)}_{AnimeId}");
 
 [Command(CommandType.GetAnime, CommandPriority.Normal, QueueType.AniDbHttp)]
 public class AnimeCommand : BaseCommand<AnimeArgs>
 {
     private readonly IServiceProvider _provider;
-    private readonly string _cacheFilePath;
+    private readonly string _animeResultCacheKey;
     private readonly ShizouContext _context;
-    public TimeSpan AnimeRequestPeriod { get; } = TimeSpan.FromHours(24);
+    private readonly HttpAnimeResultCache _animeResultCache;
 
     public AnimeCommand(IServiceProvider provider, AnimeArgs commandArgs) : base(provider, commandArgs)
     {
         _provider = provider;
         _context = provider.GetRequiredService<ShizouContext>();
-        _cacheFilePath = Path.Combine(FilePaths.HttpCacheDir, $"AnimeDoc_{CommandArgs.AnimeId}.xml");
+        _animeResultCache = provider.GetRequiredService<HttpAnimeResultCache>();
+        _animeResultCacheKey = $"AnimeDoc_{CommandArgs.AnimeId}.xml";
     }
 
     public override async Task Process()
     {
-        var (cacheHit, requestable) = CheckCache();
-        if ((!cacheHit || CommandArgs.ForceRefresh) && !requestable)
+        if (Path.Exists(Path.Combine(_animeResultCache.BasePath, _animeResultCacheKey)) && _animeResultCache.InsideRetentionPeriod(_animeResultCacheKey))
         {
             Logger.LogWarning("Ignoring HTTP anime request: {AnimeId}, already requested in last {Hours} hours", CommandArgs.AnimeId,
-                AnimeRequestPeriod.Hours);
+                _animeResultCache.RetentionDuration);
             Completed = true;
             return;
         }
-        HttpAnimeResult? animeResult;
-        if (!cacheHit || CommandArgs.ForceRefresh)
-            animeResult = await GetAnimeHttp();
-        else
-            animeResult = GetAnimeCache();
+        var animeResult = await _animeResultCache.Get(_animeResultCacheKey) ?? await GetAnimeHttp();
 
         if (animeResult is null)
         {
@@ -103,44 +96,13 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         Completed = true;
     }
 
-    private HttpAnimeResult? GetAnimeCache()
-    {
-        Logger.LogInformation("Cache getting anime id {AnimeId}", CommandArgs.AnimeId);
-        if (File.Exists(_cacheFilePath))
-        {
-            XmlSerializer serializer = new(typeof(HttpAnimeResult));
-            using var reader = XmlReader.Create(_cacheFilePath);
-            return serializer.Deserialize(reader) as HttpAnimeResult;
-        }
-        return null;
-    }
-
-    private (bool Hit, bool CanRequest) CheckCache()
-    {
-        var fileInfo = new FileInfo(_cacheFilePath);
-        if (fileInfo.Exists)
-            return (fileInfo.Length != 0, DateTime.UtcNow - fileInfo.LastWriteTimeUtc > AnimeRequestPeriod);
-        return (false, true);
-    }
-
     private async Task<HttpAnimeResult?> GetAnimeHttp()
     {
         var request = new AnimeRequest(_provider, CommandArgs.AnimeId);
         await request.Process();
+        await _animeResultCache.Save(_animeResultCacheKey, request.ResponseText ?? string.Empty);
         if (request.AnimeResult is null)
-        {
-            if (!File.Exists(_cacheFilePath))
-            {
-                Directory.CreateDirectory(FilePaths.HttpCacheDir);
-                File.Create(_cacheFilePath).Dispose();
-            }
-            File.SetLastWriteTimeUtc(_cacheFilePath, DateTime.UtcNow);
-            Logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", AnimeRequestPeriod.Hours);
-        }
-        else
-        {
-            await File.WriteAllTextAsync(_cacheFilePath, request.ResponseText, Encoding.UTF8);
-        }
+            Logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", _animeResultCache.RetentionDuration.Hours);
         return request.AnimeResult;
     }
 }

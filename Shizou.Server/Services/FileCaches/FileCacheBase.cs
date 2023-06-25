@@ -2,41 +2,76 @@
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Shizou.Server.Services.FileCaches;
 
-public abstract class FileCacheBase<T> where T : class
+public abstract class FileCacheBase<TIn, TOut>
+    where TIn : class
+    where TOut : class
 {
-    private readonly string _basePath;
-    private readonly TimeSpan _retentionDuration;
+    protected readonly ILogger<FileCacheBase<TIn, TOut>> Logger;
 
-    public FileCacheBase(string basePath, TimeSpan retentionDuration)
+    public FileCacheBase(ILogger<FileCacheBase<TIn, TOut>> logger, string basePath, TimeSpan retentionDuration)
     {
-        _basePath = basePath;
-        _retentionDuration = retentionDuration;
+        Logger = logger;
+        BasePath = basePath;
+        RetentionDuration = retentionDuration;
     }
 
-    public async Task<T?> Get(string filename)
+    public string BasePath { get; }
+
+    public TimeSpan RetentionDuration { get; }
+
+    public async Task<TOut?> Get(string filename)
     {
-        var path = Path.Combine(_basePath, filename);
-        if (new FileInfo(path) is not { Exists: true, Length: > 0 } fileInfo || fileInfo.LastWriteTimeUtc < DateTime.UtcNow - _retentionDuration) return null;
+        var path = Path.Combine(BasePath, filename);
+        if (!InsideRetentionPeriod(filename))
+        {
+            Logger.LogDebug("{Path} is outside retention period", path);
+            return null;
+        }
+        if (new FileInfo(path) is not { Exists: true, Length: > 0 })
+        {
+            Logger.LogDebug("{Path} not found in cache", path);
+            return null;
+        }
+        Logger.LogDebug("{Path} found in cache", path);
         await using var file = new FileStream(path, FileMode.Open, FileAccess.Read);
-        return await JsonSerializer.DeserializeAsync<T>(file);
+        return await DeserializeAsync(file);
     }
 
-    public async Task Save(string filename, T value)
+    public bool InsideRetentionPeriod(string filename)
     {
-        if (!Directory.Exists(_basePath))
-            Directory.CreateDirectory(_basePath);
-        var path = Path.Combine(_basePath, filename);
+        var path = Path.Combine(BasePath, filename);
+        var fileInfo = new FileInfo(path);
+        return !fileInfo.Exists || fileInfo.LastWriteTimeUtc > DateTime.UtcNow - RetentionDuration;
+    }
+
+    public async Task Save(string filename, TIn value)
+    {
+        if (!Directory.Exists(BasePath))
+            Directory.CreateDirectory(BasePath);
+        var path = Path.Combine(BasePath, filename);
         await using var file = new FileStream(path, FileMode.Create, FileAccess.Write);
-        await JsonSerializer.SerializeAsync(file, value);
+        await SerializeAsync(value, file);
+        Logger.LogDebug("{Path} saved to cache", path);
     }
 
     public void Delete(string filename)
     {
-        var path = Path.Combine(_basePath, filename);
+        var path = Path.Combine(BasePath, filename);
         if (File.Exists(path))
             File.Delete(path);
+    }
+
+    protected virtual async Task<TOut?> DeserializeAsync(FileStream file)
+    {
+        return await JsonSerializer.DeserializeAsync<TOut>(file);
+    }
+
+    protected virtual Task SerializeAsync(TIn value, FileStream file)
+    {
+        return JsonSerializer.SerializeAsync(file, value);
     }
 }
