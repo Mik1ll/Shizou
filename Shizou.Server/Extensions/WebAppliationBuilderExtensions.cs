@@ -16,6 +16,7 @@ using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.CommandProcessors;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
+using Shizou.Server.Services.FileCaches;
 
 namespace Shizou.Server.Extensions;
 
@@ -50,6 +51,8 @@ public static class WebAppliationBuilderExtensions
 
         builder.Services.AddDbContextFactory<ShizouContext>();
 
+        builder.Services.AddScoped<AniDbFileResultCache>();
+        
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();
         return builder;

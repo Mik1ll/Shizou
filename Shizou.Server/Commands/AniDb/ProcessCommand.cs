@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Common.Enums;
-using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.AniDbApi.Requests.Udp.Results;
 using Shizou.Server.Services;
+using Shizou.Server.Services.FileCaches;
 
 namespace Shizou.Server.Commands.AniDb;
 
@@ -30,14 +28,16 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 {
     private readonly CommandService _commandService;
     private readonly ShizouContext _context;
-    private readonly string _fileCachePath;
+    private readonly string _fileResultCacheKey;
+    private readonly AniDbFileResultCache _fileResultCache;
 
     public ProcessCommand(IServiceProvider provider, ProcessArgs commandArgs)
         : base(provider, commandArgs)
     {
         _context = provider.GetRequiredService<ShizouContext>();
         _commandService = provider.GetRequiredService<CommandService>();
-        _fileCachePath = Path.Combine(FilePaths.TempFileDir, CommandArgs.CommandId + ".json");
+        _fileResultCache = provider.GetRequiredService<AniDbFileResultCache>();
+        _fileResultCacheKey = $"File_{CommandArgs.Id}.json";
     }
 
     public override async Task Process()
@@ -52,7 +52,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         _commandService.Dispatch(new AnimeArgs(result.AnimeId!.Value));
 
         Completed = true;
-        File.Delete(_fileCachePath);
     }
 
     private void UpdateDatabase(AniDbFileResult result)
@@ -208,7 +207,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
     private async Task<AniDbFileResult?> GetFileResult()
     {
         // Check if file was requested before and did not complete
-        var result = await GetFromFileCache();
+        var result = await _fileResultCache.Get($"File {CommandArgs.Id}.json");
         if (result is not null)
             return result;
 
@@ -249,31 +248,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         }
         else
         {
-            // Keep file result just in case command does not complete
-            await SaveToFileCache(result);
+            await _fileResultCache.Save(_fileResultCacheKey, result);
         }
-        return result;
-    }
-
-    private async Task SaveToFileCache(AniDbFileResult? result)
-    {
-        if (!Directory.Exists(FilePaths.TempFileDir))
-            Directory.CreateDirectory(FilePaths.TempFileDir);
-        using (var file = new FileStream(_fileCachePath, FileMode.Create, FileAccess.Write))
-        {
-            await JsonSerializer.SerializeAsync(file, result);
-        }
-    }
-
-    private async Task<AniDbFileResult?> GetFromFileCache()
-    {
-        AniDbFileResult? result = null;
-        var fileResult = new FileInfo(_fileCachePath);
-        if (fileResult.Exists && fileResult.Length > 0)
-            using (var file = new FileStream(_fileCachePath, FileMode.Open, FileAccess.Read))
-            {
-                result = await JsonSerializer.DeserializeAsync<AniDbFileResult>(file);
-            }
         return result;
     }
 }
