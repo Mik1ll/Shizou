@@ -20,7 +20,7 @@ public enum IdType
     FileId = 2
 }
 
-public sealed record ProcessArgs(int Id, IdType IdType) : CommandArgs($"{nameof(ProcessCommand)}_idtype={IdType}");
+public sealed record ProcessArgs(int Id, IdType IdType) : CommandArgs($"{nameof(ProcessCommand)}_id={Id}_type={IdType}");
 
 [Command(CommandType.GetFile, CommandPriority.Normal, QueueType.AniDbUdp)]
 public class ProcessCommand : BaseCommand<ProcessArgs>
