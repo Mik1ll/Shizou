@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.CommandProcessors;
@@ -13,24 +14,12 @@ namespace Shizou.Server.Services;
 
 public class CommandService
 {
-    public static readonly List<(CommandAttribute cmdAttr, Type type, Type argType, Func<IServiceProvider, CommandArgs, ICommand> ctor)> Commands =
-        Assembly
-            .GetExecutingAssembly().GetTypes()
-            .Select(t => new { type = t, commandAttr = t.GetCustomAttribute<CommandAttribute>() })
-            .Where(x => x.commandAttr is not null)
-            .Select(x =>
-            {
-                var argType = x.type.BaseType!.GetGenericArguments()[0];
-                Func<IServiceProvider, CommandArgs, ICommand> ctor = (provider, cmdArgs) =>
-                    (ICommand)Activator.CreateInstance(x.type, provider, cmdArgs)!;
-                return (
-                    x.commandAttr!,
-                    x.type,
-                    argType,
-                    ctor
-                );
-            })
-            .ToList();
+    public static readonly IList<(CommandAttribute cmdAttr, Type type, Type argsType)> Commands =
+        (from type in Assembly.GetExecutingAssembly().GetTypes()
+            let cmdAttr = type.GetCustomAttribute<CommandAttribute>()
+            where cmdAttr is not null
+            let argsType = type.BaseType!.GetGenericArguments()[0]
+            select (cmdAttr, type, argsType)).ToList();
 
     private readonly IServiceProvider _serviceProvider;
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
@@ -79,13 +68,14 @@ public class CommandService
     public ICommand CommandFromRequest(CommandRequest commandRequest)
     {
         var command = Commands.Single(x => commandRequest.Type == x.cmdAttr.Type);
-        return command.ctor(_serviceProvider, (CommandArgs)JsonSerializer.Deserialize(commandRequest.CommandArgs, command.argType)!);
+        var args = (CommandArgs)JsonSerializer.Deserialize(commandRequest.CommandArgs, command.argsType)!;
+        return (ICommand)ActivatorUtilities.CreateInstance(_serviceProvider, command.type, args);
     }
 
     public CommandRequest RequestFromArgs(CommandArgs commandArgs)
     {
         var argType = commandArgs.GetType();
-        var commandAttr = Commands.Single(x => x.argType == argType).cmdAttr;
+        var commandAttr = Commands.Single(x => x.argsType == argType).cmdAttr;
         return new CommandRequest
         {
             Type = commandAttr.Type,

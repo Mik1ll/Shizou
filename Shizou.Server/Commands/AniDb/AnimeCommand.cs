@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Common.Enums;
 using Shizou.Data.Database;
@@ -20,16 +19,24 @@ public record AnimeArgs(int AnimeId) : CommandArgs($"{nameof(AnimeCommand)}_{Ani
 [Command(CommandType.GetAnime, CommandPriority.Normal, QueueType.AniDbHttp)]
 public class AnimeCommand : BaseCommand<AnimeArgs>
 {
+    private readonly ILogger<AnimeCommand> _logger;
     private readonly IServiceProvider _provider;
     private readonly string _animeResultCacheKey;
     private readonly ShizouContext _context;
     private readonly HttpAnimeResultCache _animeResultCache;
 
-    public AnimeCommand(IServiceProvider provider, AnimeArgs commandArgs) : base(provider, commandArgs)
+    public AnimeCommand(
+        AnimeArgs commandArgs,
+        ILogger<AnimeCommand> logger,
+        ShizouContext context,
+        HttpAnimeResultCache animeResultCache,
+        IServiceProvider provider
+    ) : base(commandArgs)
     {
+        _logger = logger;
         _provider = provider;
-        _context = provider.GetRequiredService<ShizouContext>();
-        _animeResultCache = provider.GetRequiredService<HttpAnimeResultCache>();
+        _context = context;
+        _animeResultCache = animeResultCache;
         _animeResultCacheKey = $"AnimeDoc_{CommandArgs.AnimeId}.xml";
     }
 
@@ -37,7 +44,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
     {
         if (Path.Exists(Path.Combine(_animeResultCache.BasePath, _animeResultCacheKey)) && _animeResultCache.InsideRetentionPeriod(_animeResultCacheKey))
         {
-            Logger.LogWarning("Ignoring HTTP anime request: {AnimeId}, already requested in last {Hours} hours", CommandArgs.AnimeId,
+            _logger.LogWarning("Ignoring HTTP anime request: {AnimeId}, already requested in last {Hours} hours", CommandArgs.AnimeId,
                 _animeResultCache.RetentionDuration);
             Completed = true;
             return;
@@ -46,7 +53,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
 
         if (animeResult is null)
         {
-            Logger.LogWarning("No anime info was returned");
+            _logger.LogWarning("No anime info was returned");
             Completed = true;
             return;
         }
@@ -102,7 +109,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         await request.Process();
         await _animeResultCache.Save(_animeResultCacheKey, request.ResponseText ?? string.Empty);
         if (request.AnimeResult is null)
-            Logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", _animeResultCache.RetentionDuration.Hours);
+            _logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", _animeResultCache.RetentionDuration.Hours);
         return request.AnimeResult;
     }
 }

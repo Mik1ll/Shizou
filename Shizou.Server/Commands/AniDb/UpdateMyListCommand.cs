@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Common.Enums;
 using Shizou.Data.Database;
@@ -24,11 +23,20 @@ public record UpdateMyListArgs(
 [Command(CommandType.UpdateMyList, CommandPriority.Normal, QueueType.AniDbUdp)]
 public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
 {
+    private readonly ILogger<UpdateMyListCommand> _logger;
     private readonly ShizouContext _context;
+    private readonly IServiceProvider _provider;
 
-    public UpdateMyListCommand(IServiceProvider provider, UpdateMyListArgs commandArgs) : base(provider, commandArgs)
+    public UpdateMyListCommand(
+        UpdateMyListArgs commandArgs,
+        ILogger<UpdateMyListCommand> logger,
+        ShizouContext context,
+        IServiceProvider provider
+    ) : base(commandArgs)
     {
-        _context = provider.GetRequiredService<ShizouContext>();
+        _logger = logger;
+        _context = context;
+        _provider = provider;
     }
 
     public override async Task Process()
@@ -40,20 +48,20 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
             var request = CommandArgs switch
             {
                 { Lid: not null, Edit: true } and ({ Fid: not null } or { Aid: not null, EpNo: not null }) =>
-                    new MyListAddRequest(Provider, CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState,
+                    new MyListAddRequest(_provider, CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState,
                         CommandArgs.MyListFileState),
                 { Fid: not null, Edit: not null } =>
-                    new MyListAddRequest(Provider, CommandArgs.Fid.Value, CommandArgs.Edit.Value, CommandArgs.Watched, CommandArgs.WatchedDate,
+                    new MyListAddRequest(_provider, CommandArgs.Fid.Value, CommandArgs.Edit.Value, CommandArgs.Watched, CommandArgs.WatchedDate,
                         CommandArgs.MyListState, CommandArgs.MyListFileState),
                 { Aid: not null, EpNo: not null, Edit: not null } =>
-                    new MyListAddRequest(Provider, CommandArgs.Aid.Value, CommandArgs.EpNo, CommandArgs.Edit.Value, CommandArgs.Watched,
+                    new MyListAddRequest(_provider, CommandArgs.Aid.Value, CommandArgs.EpNo, CommandArgs.Edit.Value, CommandArgs.Watched,
                         CommandArgs.WatchedDate, CommandArgs.MyListState, CommandArgs.MyListFileState),
                 _ => null
             };
             if (request is null)
             {
                 Completed = true;
-                Logger.LogError("Skipping, arguments are not valid");
+                _logger.LogError("Skipping, arguments are not valid");
                 return;
             }
             await request.Process();
@@ -73,7 +81,7 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
                 case AniDbResponseCode.NoSuchMyListEntry:
                     CommandArgs = CommandArgs with { Lid = null, Edit = false };
                     retry = true;
-                    Logger.LogInformation("Mylist entry not found, retrying with add");
+                    _logger.LogInformation("Mylist entry not found, retrying with add");
                     break;
             }
         } while (retry);

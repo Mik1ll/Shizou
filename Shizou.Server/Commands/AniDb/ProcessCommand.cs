@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Common.Enums;
 using Shizou.Data.Database;
@@ -27,16 +26,26 @@ public sealed record ProcessArgs(int Id, IdType IdType) : CommandArgs($"{nameof(
 public class ProcessCommand : BaseCommand<ProcessArgs>
 {
     private readonly CommandService _commandService;
+    private readonly ILogger<ProcessCommand> _logger;
     private readonly ShizouContext _context;
     private readonly string _fileResultCacheKey;
     private readonly AniDbFileResultCache _fileResultCache;
+    private readonly IServiceProvider _provider;
 
-    public ProcessCommand(IServiceProvider provider, ProcessArgs commandArgs)
-        : base(provider, commandArgs)
+    public ProcessCommand(
+        ProcessArgs commandArgs,
+        ILogger<ProcessCommand> logger,
+        ShizouContext context,
+        CommandService commandService,
+        AniDbFileResultCache fileResultCache,
+        IServiceProvider provider
+    ) : base(commandArgs)
     {
-        _context = provider.GetRequiredService<ShizouContext>();
-        _commandService = provider.GetRequiredService<CommandService>();
-        _fileResultCache = provider.GetRequiredService<AniDbFileResultCache>();
+        _logger = logger;
+        _context = context;
+        _commandService = commandService;
+        _fileResultCache = fileResultCache;
+        _provider = provider;
         _fileResultCacheKey = $"File_{CommandArgs.Id}.json";
     }
 
@@ -220,16 +229,16 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                 if (localFile is null)
                 {
                     Completed = true;
-                    Logger.LogWarning("Unable to process local file id: {LocalFileId} not found, skipping", CommandArgs.Id);
+                    _logger.LogWarning("Unable to process local file id: {LocalFileId} not found, skipping", CommandArgs.Id);
                     return null;
                 }
-                Logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2K);
-                fileReq = new FileRequest(Provider, localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                _logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2K);
+                fileReq = new FileRequest(_provider, localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             }
             case IdType.FileId:
-                Logger.LogInformation("Processing file id: {FileId}", CommandArgs.Id);
-                fileReq = new FileRequest(Provider, CommandArgs.Id, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                _logger.LogInformation("Processing file id: {FileId}", CommandArgs.Id);
+                fileReq = new FileRequest(_provider, CommandArgs.Id, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             default:
                 throw new ArgumentException("Idtype does not exist");
@@ -239,12 +248,12 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         result = fileReq.FileResult;
         if (fileReq.ResponseCode == AniDbResponseCode.NoSuchFile)
         {
-            Logger.LogInformation("Skipped processing {IdName}: {Id}, file not found on anidb", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
+            _logger.LogInformation("Skipped processing {IdName}: {Id}, file not found on anidb", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
             Completed = true;
         }
         else if (result is null)
         {
-            Logger.LogError("Could not process  {IdName}: {Id}, no file result", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
+            _logger.LogError("Could not process  {IdName}: {Id}, no file result", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
         }
         else
         {

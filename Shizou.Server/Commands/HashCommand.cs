@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Common.Enums;
 using Shizou.Data.Database;
@@ -19,14 +18,20 @@ public record HashArgs(string Path) : CommandArgs($"{nameof(HashCommand)}_{Path}
 [Command(CommandType.Hash, CommandPriority.Normal, QueueType.Hash)]
 public class HashCommand : BaseCommand<HashArgs>
 {
+    private readonly ILogger<HashCommand> _logger;
     private readonly CommandService _commandService;
     private readonly ShizouContext _context;
 
-
-    public HashCommand(IServiceProvider provider, HashArgs commandArgs) : base(provider, commandArgs)
+    public HashCommand(
+        HashArgs commandArgs,
+        ILogger<HashCommand> logger,
+        ShizouContext context,
+        CommandService commandService
+    ) : base(commandArgs)
     {
-        _context = provider.GetRequiredService<ShizouContext>();
-        _commandService = provider.GetRequiredService<CommandService>();
+        _logger = logger;
+        _context = context;
+        _commandService = commandService;
     }
 
     public override async Task Process()
@@ -35,7 +40,7 @@ public class HashCommand : BaseCommand<HashArgs>
         ImportFolder? importFolder;
         if (!file.Exists || (importFolder = _context.ImportFolders.GetByPath(file.FullName)) is null)
         {
-            Logger.LogWarning("File not found or not inside an import folder: \"{Path}\"", file.FullName);
+            _logger.LogWarning("File not found or not inside an import folder: \"{Path}\"", file.FullName);
             return;
         }
         var pathTail = file.FullName.Substring(importFolder.Path.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -45,16 +50,16 @@ public class HashCommand : BaseCommand<HashArgs>
                                  || (l.ImportFolderId == importFolder.Id && l.PathTail == pathTail));
         if (localFile is not null && localFile.Signature == signature)
         {
-            Logger.LogInformation("Found local file by signature: {Signature} \"{Path}\"", signature, file.FullName);
+            _logger.LogInformation("Found local file by signature: {Signature} \"{Path}\"", signature, file.FullName);
             var oldPath = Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
             if (file.FullName != oldPath)
             {
                 if (File.Exists(oldPath))
                 {
-                    Logger.LogError("Skipping add local file for \"{NewPath}\": duplicate file at \"{OldPath}\"", file.FullName, oldPath);
+                    _logger.LogError("Skipping add local file for \"{NewPath}\": duplicate file at \"{OldPath}\"", file.FullName, oldPath);
                     return;
                 }
-                Logger.LogInformation("Changing path and/or import folder for local file \"{NewPath}\" old path: \"{OldPath}\"", file.FullName, oldPath);
+                _logger.LogInformation("Changing path and/or import folder for local file \"{NewPath}\" old path: \"{OldPath}\"", file.FullName, oldPath);
                 localFile.ImportFolder = importFolder;
                 localFile.PathTail = pathTail;
             }
@@ -62,9 +67,9 @@ public class HashCommand : BaseCommand<HashArgs>
         else
         {
             if (localFile is not null)
-                Logger.LogInformation("Found local file with mismatched signature, rehashing: \"{Path}\"", file.FullName);
+                _logger.LogInformation("Found local file with mismatched signature, rehashing: \"{Path}\"", file.FullName);
             else
-                Logger.LogInformation("Hashing new file: \"{Path}\"", file.FullName);
+                _logger.LogInformation("Hashing new file: \"{Path}\"", file.FullName);
             var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2K | RHasherService.HashIds.Crc32);
             localFile ??= _context.LocalFiles.Add(new LocalFile
             {
@@ -77,7 +82,7 @@ public class HashCommand : BaseCommand<HashArgs>
                 Ignored = false,
                 ImportFolderId = importFolder.Id
             }).Entity;
-            Logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasherService.HashIds.Ed2K],
+            _logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasherService.HashIds.Ed2K],
                 hashes[RHasherService.HashIds.Crc32]);
         }
         _context.SaveChanges();

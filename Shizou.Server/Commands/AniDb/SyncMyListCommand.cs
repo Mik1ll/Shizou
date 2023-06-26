@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Common.Enums;
@@ -24,6 +23,7 @@ public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}");
 [Command(CommandType.SyncMyList, CommandPriority.Low, QueueType.AniDbHttp)]
 public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 {
+    private readonly ILogger<SyncMyListCommand> _logger;
     private readonly IServiceProvider _provider;
     private readonly ShizouContext _context;
     private readonly CommandService _commandService;
@@ -32,13 +32,20 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     public TimeSpan MyListRequestPeriod { get; } = TimeSpan.FromHours(24);
 
 
-    public SyncMyListCommand(IServiceProvider provider, SyncMyListArgs commandArgs) : base(provider, commandArgs)
+    public SyncMyListCommand(
+        SyncMyListArgs commandArgs,
+        ILogger<SyncMyListCommand> logger,
+        ShizouContext context,
+        CommandService commandService,
+        IOptionsSnapshot<ShizouOptions> options,
+        IServiceProvider provider
+    ) : base(commandArgs)
     {
+        _logger = logger;
         _provider = provider;
-        _context = _provider.GetRequiredService<ShizouContext>();
-        _commandService = _provider.GetRequiredService<CommandService>();
-        using var scope = _provider.CreateScope();
-        _options = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<ShizouOptions>>().Value;
+        _context = context;
+        _commandService = commandService;
+        _options = options.Value;
     }
 
     public override async Task Process()
@@ -153,7 +160,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             requestable = DateTime.UtcNow - fileInfo.LastWriteTimeUtc > MyListRequestPeriod;
         if (!requestable)
         {
-            Logger.LogWarning("Failed to get mylist: already requested in last {Hours} hours", MyListRequestPeriod.Hours);
+            _logger.LogWarning("Failed to get mylist: already requested in last {Hours} hours", MyListRequestPeriod.Hours);
             return null;
         }
 
@@ -164,17 +171,17 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             if (!File.Exists(FilePaths.MyListPath))
                 File.Create(FilePaths.MyListPath).Dispose();
             File.SetLastWriteTimeUtc(FilePaths.MyListPath, DateTime.UtcNow);
-            Logger.LogWarning("Failed to get mylist data from AniDb, retry in {Hours} hours", MyListRequestPeriod.Hours);
+            _logger.LogWarning("Failed to get mylist data from AniDb, retry in {Hours} hours", MyListRequestPeriod.Hours);
         }
         else
         {
-            Logger.LogDebug("Overwriting mylist file");
+            _logger.LogDebug("Overwriting mylist file");
             Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.MyListPath)!);
             await File.WriteAllTextAsync(FilePaths.MyListPath, request.ResponseText, Encoding.UTF8);
             var backupFilePath = Path.Combine(FilePaths.MyListBackupDir, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".xml");
             Directory.CreateDirectory(FilePaths.MyListBackupDir);
             await File.WriteAllTextAsync(backupFilePath, request.ResponseText, Encoding.UTF8);
-            Logger.LogInformation("HTTP Get mylist succeeded");
+            _logger.LogInformation("HTTP Get mylist succeeded");
         }
         return request.MyListResult;
     }

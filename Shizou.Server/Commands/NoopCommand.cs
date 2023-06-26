@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Shizou.Common.Enums;
 
 namespace Shizou.Server.Commands;
@@ -9,7 +8,7 @@ public sealed record NoopArgs(int Testint) : CommandArgs(nameof(NoopCommand) + T
 [Command(CommandType.Noop, CommandPriority.Normal, QueueType.General)]
 public sealed class NoopCommand : BaseCommand<NoopArgs>
 {
-    public NoopCommand(IServiceProvider provider, NoopArgs commandArgs) : base(provider, commandArgs)
+    public NoopCommand(NoopArgs commandArgs) : base(commandArgs)
     {
     }
 
