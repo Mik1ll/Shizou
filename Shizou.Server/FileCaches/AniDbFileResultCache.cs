@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Shizou.Data;
 using Shizou.Server.AniDbApi.Requests.Udp.Results;
 
-namespace Shizou.Server.Services.FileCaches;
+namespace Shizou.Server.FileCaches;
 
 public class AniDbFileResultCache : FileCacheBase<AniDbFileResult, AniDbFileResult>
 {

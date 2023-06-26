@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Shizou.Data.Database;
 using Shizou.Server.Commands.AniDb;
-using Shizou.Server.Services.FileCaches;
+using Shizou.Server.FileCaches;
 
 namespace Shizou.Tests;
 

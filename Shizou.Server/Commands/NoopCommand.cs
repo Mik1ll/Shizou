@@ -3,7 +3,7 @@ using Shizou.Common.Enums;
 
 namespace Shizou.Server.Commands;
 
-public sealed record NoopArgs(int Testint) : CommandArgs(nameof(NoopCommand) + Testint);
+public sealed record NoopArgs(int Testint) : CommandArgs($"{nameof(NoopCommand)}_{Testint}");
 
 [Command(CommandType.Noop, CommandPriority.Normal, QueueType.General)]
 public sealed class NoopCommand : BaseCommand<NoopArgs>

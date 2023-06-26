@@ -10,7 +10,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Results;
-using Shizou.Server.Services.FileCaches;
+using Shizou.Server.FileCaches;
 
 namespace Shizou.Server.Commands.AniDb;
 
@@ -20,23 +20,23 @@ public record AnimeArgs(int AnimeId) : CommandArgs($"{nameof(AnimeCommand)}_{Ani
 public class AnimeCommand : BaseCommand<AnimeArgs>
 {
     private readonly ILogger<AnimeCommand> _logger;
-    private readonly IServiceProvider _provider;
     private readonly string _animeResultCacheKey;
     private readonly ShizouContext _context;
     private readonly HttpAnimeResultCache _animeResultCache;
+    private readonly HttpRequestFactory _httpRequestFactory;
 
     public AnimeCommand(
         AnimeArgs commandArgs,
         ILogger<AnimeCommand> logger,
         ShizouContext context,
         HttpAnimeResultCache animeResultCache,
-        IServiceProvider provider
+        HttpRequestFactory httpRequestFactory
     ) : base(commandArgs)
     {
         _logger = logger;
-        _provider = provider;
         _context = context;
         _animeResultCache = animeResultCache;
+        _httpRequestFactory = httpRequestFactory;
         _animeResultCacheKey = $"AnimeDoc_{CommandArgs.AnimeId}.xml";
     }
 
@@ -105,7 +105,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
 
     private async Task<HttpAnimeResult?> GetAnimeHttp()
     {
-        var request = new AnimeRequest(_provider, CommandArgs.AnimeId);
+        var request = _httpRequestFactory.AnimeRequest(CommandArgs.AnimeId);
         await request.Process();
         await _animeResultCache.Save(_animeResultCacheKey, request.ResponseText ?? string.Empty);
         if (request.AnimeResult is null)

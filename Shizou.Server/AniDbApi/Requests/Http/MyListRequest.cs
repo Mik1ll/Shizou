@@ -1,10 +1,12 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shizou.Server.AniDbApi.Requests.Http.Results;
+using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Http;
 
@@ -12,7 +14,12 @@ public class MyListRequest : HttpRequest
 {
     public HttpMyListResult? MyListResult;
 
-    public MyListRequest(IServiceProvider provider) : base(provider)
+    public MyListRequest(
+        ILogger<MyListRequest> logger,
+        IOptionsSnapshot<ShizouOptions> optionsSnapshot,
+        AniDbHttpState httpState,
+        IHttpClientFactory httpClientFactory
+    ) : base(logger, optionsSnapshot, httpState, httpClientFactory)
     {
         Args["request"] = "mylist";
     }

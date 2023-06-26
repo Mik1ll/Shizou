@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Shizou.Data;
 using Shizou.Server.AniDbApi.Requests.Http.Results;
 
-namespace Shizou.Server.Services.FileCaches;
+namespace Shizou.Server.FileCaches;
 
 public class HttpAnimeResultCache : FileCacheBase<string, HttpAnimeResult>
 {

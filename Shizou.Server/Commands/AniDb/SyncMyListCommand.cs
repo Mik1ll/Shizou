@@ -24,9 +24,9 @@ public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}");
 public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 {
     private readonly ILogger<SyncMyListCommand> _logger;
-    private readonly IServiceProvider _provider;
     private readonly ShizouContext _context;
     private readonly CommandService _commandService;
+    private readonly HttpRequestFactory _httpRequestFactory;
     private readonly ShizouOptions _options;
 
     public TimeSpan MyListRequestPeriod { get; } = TimeSpan.FromHours(24);
@@ -38,13 +38,13 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         ShizouContext context,
         CommandService commandService,
         IOptionsSnapshot<ShizouOptions> options,
-        IServiceProvider provider
+        HttpRequestFactory httpRequestFactory
     ) : base(commandArgs)
     {
         _logger = logger;
-        _provider = provider;
         _context = context;
         _commandService = commandService;
+        _httpRequestFactory = httpRequestFactory;
         _options = options.Value;
     }
 
@@ -164,7 +164,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             return null;
         }
 
-        var request = new MyListRequest(_provider);
+        var request = _httpRequestFactory.MyListRequest();
         await request.Process();
         if (request.MyListResult is null)
         {

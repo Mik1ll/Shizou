@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Server.Exceptions;
@@ -21,14 +20,18 @@ public abstract class HttpRequest
     public Dictionary<string, string?> Args { get; } = new();
     public string? ResponseText { get; protected set; }
 
-    public HttpRequest(IServiceProvider provider)
+    public HttpRequest(
+        ILogger<HttpRequest> logger,
+        IOptionsSnapshot<ShizouOptions> optionsSnapshot,
+        AniDbHttpState httpState,
+        IHttpClientFactory httpClientFactory
+    )
     {
-        using var scope = provider.CreateScope();
-        var options = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<ShizouOptions>>().Value;
-        _httpState = provider.GetRequiredService<AniDbHttpState>();
-        _httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient("gzip");
+        var options = optionsSnapshot.Value;
+        Logger = logger;
+        _httpState = httpState;
+        _httpClient = httpClientFactory.CreateClient("gzip");
         _builder = new UriBuilder("http", options.AniDb.ServerHost, options.AniDb.HttpServerPort, "httpapi");
-        Logger = provider.GetRequiredService<ILogger<HttpRequest>>();
         Args["client"] = "shizouhttp";
         Args["clientver"] = "1";
         Args["protover"] = "1";

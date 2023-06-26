@@ -1,16 +1,24 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shizou.Server.AniDbApi.Requests.Http.Results;
+using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Http;
 
 public class AnimeRequest : HttpRequest
 {
-    public AnimeRequest(IServiceProvider provider, int aid) : base(provider)
+    public AnimeRequest(
+        ILogger<AnimeRequest> logger,
+        IOptionsSnapshot<ShizouOptions> optionsSnapshot,
+        AniDbHttpState httpState,
+        IHttpClientFactory httpClientFactory,
+        int aid
+    ) : base(logger, optionsSnapshot, httpState, httpClientFactory)
     {
         Args["request"] = "anime";
         Args["aid"] = aid.ToString();

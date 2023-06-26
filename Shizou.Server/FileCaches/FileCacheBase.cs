@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Shizou.Server.Services.FileCaches;
+namespace Shizou.Server.FileCaches;
 
 public abstract class FileCacheBase<TIn, TOut>
     where TIn : class

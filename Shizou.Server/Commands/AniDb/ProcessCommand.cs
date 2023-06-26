@@ -9,8 +9,8 @@ using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.AniDbApi.Requests.Udp.Results;
+using Shizou.Server.FileCaches;
 using Shizou.Server.Services;
-using Shizou.Server.Services.FileCaches;
 
 namespace Shizou.Server.Commands.AniDb;
 

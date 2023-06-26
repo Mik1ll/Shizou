@@ -13,10 +13,11 @@ using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Server.AniDbApi;
 using Shizou.Server.AniDbApi.RateLimiters;
+using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.CommandProcessors;
+using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
-using Shizou.Server.Services.FileCaches;
 
 namespace Shizou.Server.Extensions;
 
@@ -85,6 +86,8 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddSingleton<UdpRateLimiter>();
         builder.Services.AddSingleton<AniDbHttpState>();
         builder.Services.AddSingleton<HttpRateLimiter>();
+
+        builder.Services.AddScoped<HttpRequestFactory>();
 
         builder.Services.AddHttpClient("gzip")
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip });
