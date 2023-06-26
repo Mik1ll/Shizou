@@ -38,5 +38,10 @@
 @* ReSharper disable Html.PathError *@
 <script src="_framework/blazor.server.js"></script>
 @* ReSharper restore Html.PathError *@
+<script>
+window.loadTooltip = (id) => {
+    new bootstrap.Tooltip(document.getElementById(id));
+}
+</script>
 </body>
 </html>

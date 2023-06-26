@@ -24,7 +24,7 @@
             {
                 <tr>
                     <td class="text-center">
-                        <i role="button" class="oi oi-magnifying-glass" @onclick="@(() => ImportService.ScanImportFolder(importFolder.Id))"></i>
+                        <i role="button" class="oi oi-magnifying-glass" data-bs-toggle="tooltip" data-bs-title="Hold shift to force scan" id="scanButton" @onclick="@(e => ImportService.ScanImportFolder(importFolder.Id, e.ShiftKey))"></i>
                     </td>
                     <td class="absorbing-column">@(importFolder.Name)</td>
                     <td class="text-center">
