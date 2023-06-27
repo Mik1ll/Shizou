@@ -18,17 +18,17 @@ public sealed class AniDbUdpState : IDisposable
     private readonly ILogger<AniDbUdpState> _logger;
     private readonly Timer _logoutTimer;
     private readonly Timer? _mappingTimer;
-    private readonly IServiceProvider _provider;
     private bool _banned;
     private bool _loggedIn;
     private INatDevice? _router;
     private readonly string _serverHost;
     private readonly ushort _serverPort;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public AniDbUdpState(IOptionsMonitor<ShizouOptions> options,
-        ILogger<AniDbUdpState> logger, UdpRateLimiter rateLimiter, IServiceProvider provider)
+        ILogger<AniDbUdpState> logger, UdpRateLimiter rateLimiter, IServiceScopeFactory scopeFactory)
     {
-        _provider = provider;
+        _scopeFactory = scopeFactory;
         _serverHost = options.CurrentValue.AniDb.ServerHost;
         _serverPort = options.CurrentValue.AniDb.UdpServerPort;
         RateLimiter = rateLimiter;
@@ -144,7 +144,7 @@ public sealed class AniDbUdpState : IDisposable
             _logoutTimer.Start();
             return true;
         }
-        using var scope = _provider.CreateScope();
+        using var scope = _scopeFactory.CreateScope();
         var udpRequestFactory = scope.ServiceProvider.GetRequiredService<UdpRequestFactory>();
         var req = udpRequestFactory.AuthRequest();
         _logger.LogInformation("Attempting to log into AniDB");
@@ -162,7 +162,7 @@ public sealed class AniDbUdpState : IDisposable
     {
         if (!LoggedIn)
             return true;
-        using var scope = _provider.CreateScope();
+        using var scope = _scopeFactory.CreateScope();
         var udpRequestFactory = scope.ServiceProvider.GetRequiredService<UdpRequestFactory>();
         var req = udpRequestFactory.LogoutRequest();
         await req.Process();
