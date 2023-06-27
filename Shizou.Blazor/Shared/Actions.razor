@@ -1,6 +1,9 @@
-﻿<h3>Actions</h3>
+﻿@using Shizou.Server.AniDbApi.Requests.Udp
+@inject UdpRequestFactory UdpRequestFactory
+
+<h3>Actions</h3>
 <section class="actions">
     <button type="button" class="btn btn-primary" @onclick="@DispatchNoop">Add noops</button>
     <button type="button" class="btn btn-primary" @onclick="@RunImport">Run Import</button>
-
+    <button type="button" class="btn btn-primary" @onclick="@(async () => await UdpRequestFactory.PingRequest().Process())">Ping AniDb</button>
 </section>

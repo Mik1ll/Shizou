@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public class GenericRequest : AniDbUdpRequest
 {
-    public GenericRequest(IServiceProvider provider, string command, Dictionary<string, string> args) : base(provider, command)
+    public GenericRequest(
+        ILogger<GenericRequest> logger, AniDbUdpState aniDbUdpState
+    ) : base("", logger, aniDbUdpState)
     {
-        args.ToList().ForEach(a => Args.Add(a.Key, a.Value));
     }
 
     public override async Task Process()

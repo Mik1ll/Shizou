@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Timers;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
@@ -143,7 +144,9 @@ public sealed class AniDbUdpState : IDisposable
             _logoutTimer.Start();
             return true;
         }
-        var req = new AuthRequest(_provider);
+        using var scope = _provider.CreateScope();
+        var udpRequestFactory = scope.ServiceProvider.GetRequiredService<UdpRequestFactory>();
+        var req = udpRequestFactory.AuthRequest();
         _logger.LogInformation("Attempting to log into AniDB");
         await req.Process();
         if (LoggedIn)
@@ -159,7 +162,9 @@ public sealed class AniDbUdpState : IDisposable
     {
         if (!LoggedIn)
             return true;
-        var req = new LogoutRequest(_provider);
+        using var scope = _provider.CreateScope();
+        var udpRequestFactory = scope.ServiceProvider.GetRequiredService<UdpRequestFactory>();
+        var req = udpRequestFactory.LogoutRequest();
         await req.Process();
         if (!LoggedIn)
             return true;

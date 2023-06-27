@@ -14,10 +14,12 @@ using Shizou.Data.Database;
 using Shizou.Server.AniDbApi;
 using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Http;
+using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.CommandProcessors;
 using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
+using AnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.AnimeRequest;
 
 namespace Shizou.Server.Extensions;
 
@@ -87,7 +89,17 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddSingleton<AniDbHttpState>();
         builder.Services.AddSingleton<HttpRateLimiter>();
 
+        builder.Services.AddTransient<AnimeRequest>();
+        builder.Services.AddTransient<AuthRequest>();
+        builder.Services.AddTransient<EpisodeRequest>();
+        builder.Services.AddTransient<FileRequest>();
+        builder.Services.AddTransient<GenericRequest>();
+        builder.Services.AddTransient<LogoutRequest>();
+        builder.Services.AddTransient<MyListAddRequest>();
+        builder.Services.AddTransient<PingRequest>();
+
         builder.Services.AddScoped<HttpRequestFactory>();
+        builder.Services.AddScoped<UdpRequestFactory>();
 
         builder.Services.AddHttpClient("gzip")
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip });

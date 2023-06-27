@@ -25,18 +25,18 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
 {
     private readonly ILogger<UpdateMyListCommand> _logger;
     private readonly ShizouContext _context;
-    private readonly IServiceProvider _provider;
+    private readonly UdpRequestFactory _udpRequestFactory;
 
     public UpdateMyListCommand(
         UpdateMyListArgs commandArgs,
         ILogger<UpdateMyListCommand> logger,
         ShizouContext context,
-        IServiceProvider provider
+        UdpRequestFactory udpRequestFactory
     ) : base(commandArgs)
     {
         _logger = logger;
         _context = context;
-        _provider = provider;
+        _udpRequestFactory = udpRequestFactory;
     }
 
     public override async Task Process()
@@ -48,13 +48,13 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
             var request = CommandArgs switch
             {
                 { Lid: not null, Edit: true } and ({ Fid: not null } or { Aid: not null, EpNo: not null }) =>
-                    new MyListAddRequest(_provider, CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState,
+                    _udpRequestFactory.MyListAddRequest(CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState,
                         CommandArgs.MyListFileState),
                 { Fid: not null, Edit: not null } =>
-                    new MyListAddRequest(_provider, CommandArgs.Fid.Value, CommandArgs.Edit.Value, CommandArgs.Watched, CommandArgs.WatchedDate,
+                    _udpRequestFactory.MyListAddRequest(CommandArgs.Fid.Value, CommandArgs.Edit.Value, CommandArgs.Watched, CommandArgs.WatchedDate,
                         CommandArgs.MyListState, CommandArgs.MyListFileState),
                 { Aid: not null, EpNo: not null, Edit: not null } =>
-                    new MyListAddRequest(_provider, CommandArgs.Aid.Value, CommandArgs.EpNo, CommandArgs.Edit.Value, CommandArgs.Watched,
+                    _udpRequestFactory.MyListAddRequest(CommandArgs.Aid.Value, CommandArgs.EpNo, CommandArgs.Edit.Value, CommandArgs.Watched,
                         CommandArgs.WatchedDate, CommandArgs.MyListState, CommandArgs.MyListFileState),
                 _ => null
             };

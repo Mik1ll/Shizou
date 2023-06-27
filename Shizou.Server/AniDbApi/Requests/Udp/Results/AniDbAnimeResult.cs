@@ -7,11 +7,11 @@ namespace Shizou.Server.AniDbApi.Requests.Udp.Results;
 
 public sealed record AniDbAnimeResult
 {
-    public AniDbAnimeResult(string responseText, AnimeRequest.AMask mask)
+    public AniDbAnimeResult(string responseText, AMaskAnime mask)
     {
         var dataArr = responseText.TrimEnd().Split('|');
         var dataIdx = 0;
-        foreach (var value in Enum.GetValues<AnimeRequest.AMask>().OrderByDescending(v => v))
+        foreach (var value in Enum.GetValues<AMaskAnime>().OrderByDescending(v => v))
             if (mask.HasFlag(value))
             {
                 var data = dataArr[dataIdx++];
@@ -21,125 +21,125 @@ public sealed record AniDbAnimeResult
                 // TODO: Test switch cases
                 switch (value)
                 {
-                    case AnimeRequest.AMask.AnimeId:
+                    case AMaskAnime.AnimeId:
                         AnimeId = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.DateFlags:
-                        DateInfo = Enum.Parse<AnimeRequest.DateFlags>(data);
+                    case AMaskAnime.DateFlags:
+                        DateInfo = Enum.Parse<DateFlagsAnime>(data);
                         break;
-                    case AnimeRequest.AMask.Year:
+                    case AMaskAnime.Year:
                         Year = data;
                         break;
-                    case AnimeRequest.AMask.Type:
+                    case AMaskAnime.Type:
                         Type = Enum.Parse<AnimeType>(data.Replace(" ", string.Empty), true);
                         break;
-                    case AnimeRequest.AMask.RelatedAnimeIds:
+                    case AMaskAnime.RelatedAnimeIds:
                         RelatedAnimeIds = data.Split('\'').Select(x => int.Parse(x)).ToList();
                         break;
-                    case AnimeRequest.AMask.RelatedAnimeTypes:
+                    case AMaskAnime.RelatedAnimeTypes:
                         RelatedAnimeTypes =
                             data.Split('\'').Select(x => Enum.Parse<RelatedAnimeType>(x)).ToList();
                         break;
-                    case AnimeRequest.AMask.TitleRomaji:
+                    case AMaskAnime.TitleRomaji:
                         TitleRomaji = data;
                         break;
-                    case AnimeRequest.AMask.TitleKanji:
+                    case AMaskAnime.TitleKanji:
                         TitleKanji = data;
                         break;
-                    case AnimeRequest.AMask.TitleEnglish:
+                    case AMaskAnime.TitleEnglish:
                         TitleEnglish = data;
                         break;
-                    case AnimeRequest.AMask.TitlesOther:
+                    case AMaskAnime.TitlesOther:
                         TitlesOther = data.Split('\'').ToList();
                         break;
-                    case AnimeRequest.AMask.TitlesShort:
+                    case AMaskAnime.TitlesShort:
                         TitlesShort = data.Split('\'').ToList();
                         break;
-                    case AnimeRequest.AMask.TitlesSynonym:
+                    case AMaskAnime.TitlesSynonym:
                         TitlesSynonym = data.Split('\'').ToList();
                         break;
-                    case AnimeRequest.AMask.TotalEpisodes:
+                    case AMaskAnime.TotalEpisodes:
                         TotalEpisodes = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.HighestEpisodeNumber:
+                    case AMaskAnime.HighestEpisodeNumber:
                         HighestEpisodeNumber = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.SpecialEpisodeCount:
+                    case AMaskAnime.SpecialEpisodeCount:
                         SpecialEpisodeCount = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.AirDate:
+                    case AMaskAnime.AirDate:
                         AirDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data));
                         break;
-                    case AnimeRequest.AMask.EndDate:
+                    case AMaskAnime.EndDate:
                         EndDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data));
                         break;
-                    case AnimeRequest.AMask.Url:
+                    case AMaskAnime.Url:
                         Url = data;
                         break;
-                    case AnimeRequest.AMask.PicName:
+                    case AMaskAnime.PicName:
                         PicName = data;
                         break;
-                    case AnimeRequest.AMask.Rating:
+                    case AMaskAnime.Rating:
                         Rating = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.VoteCount:
+                    case AMaskAnime.VoteCount:
                         VoteCount = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.TempRating:
+                    case AMaskAnime.TempRating:
                         TempRating = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.TempVoteCount:
+                    case AMaskAnime.TempVoteCount:
                         TempVoteCount = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.AvgReviewRating:
+                    case AMaskAnime.AvgReviewRating:
                         AvgReviewRating = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.ReviewCount:
+                    case AMaskAnime.ReviewCount:
                         ReviewCount = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.Awards:
+                    case AMaskAnime.Awards:
                         Awards = data.Split('\'').ToList();
                         break;
-                    case AnimeRequest.AMask.IsRestricted:
+                    case AMaskAnime.IsRestricted:
                         IsRestricted = int.Parse(data) != 0;
                         break;
-                    case AnimeRequest.AMask.AnnId:
+                    case AMaskAnime.AnnId:
                         AnnId = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.AllCinemaId:
+                    case AMaskAnime.AllCinemaId:
                         AllCinemaId = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.AnimeNfoId:
+                    case AMaskAnime.AnimeNfoId:
                         AnimeNfoId = data;
                         break;
-                    case AnimeRequest.AMask.TagNames:
+                    case AMaskAnime.TagNames:
                         TagNames = data.Split(',').ToList();
                         break;
-                    case AnimeRequest.AMask.TagIds:
+                    case AMaskAnime.TagIds:
                         TagIds = data.Split(',').Select(x => int.Parse(x)).ToList();
                         break;
-                    case AnimeRequest.AMask.TagWeights:
+                    case AMaskAnime.TagWeights:
                         TagWeights = data.Split(',').Select(x => int.Parse(x)).ToList();
                         break;
-                    case AnimeRequest.AMask.DateRecordUpdated:
+                    case AMaskAnime.DateRecordUpdated:
                         DateRecordUpdated = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data));
                         break;
-                    case AnimeRequest.AMask.CharacterIds:
+                    case AMaskAnime.CharacterIds:
                         CharacterIds = data.Split(',').Select(x => int.Parse(x)).ToList();
                         break;
-                    case AnimeRequest.AMask.SpecialsCount:
+                    case AMaskAnime.SpecialsCount:
                         SpecialsCount = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.CreditsCount:
+                    case AMaskAnime.CreditsCount:
                         CreditsCount = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.OthersCount:
+                    case AMaskAnime.OthersCount:
                         OthersCount = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.TrailersCount:
+                    case AMaskAnime.TrailersCount:
                         TrailersCount = int.Parse(data);
                         break;
-                    case AnimeRequest.AMask.ParodiesCount:
+                    case AMaskAnime.ParodiesCount:
                         ParodiesCount = int.Parse(data);
                         break;
                 }
@@ -147,7 +147,7 @@ public sealed record AniDbAnimeResult
     }
 
     public int? AnimeId { get; }
-    public AnimeRequest.DateFlags? DateInfo { get; }
+    public DateFlagsAnime? DateInfo { get; }
     public string? Year { get; }
     public AnimeType? Type { get; }
     public List<int>? RelatedAnimeIds { get; }

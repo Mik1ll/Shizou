@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,12 +14,12 @@ namespace Shizou.Server.Controllers;
 public class CommandController : ControllerBase
 {
     private readonly CommandService _commandService;
-    private readonly IServiceProvider _provider;
+    private readonly UdpRequestFactory _udpRequestFactory;
 
-    public CommandController(CommandService commandService, IServiceProvider provider)
+    public CommandController(CommandService commandService, UdpRequestFactory udpRequestFactory)
     {
         _commandService = commandService;
-        _provider = provider;
+        _udpRequestFactory = udpRequestFactory;
     }
 
     [HttpPut("UpdateMyList")]
@@ -36,7 +35,7 @@ public class CommandController : ControllerBase
     [Consumes("application/json")]
     public async Task<string?> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
-        var req = new GenericRequest(_provider, command, args);
+        var req = _udpRequestFactory.GenericRequest(command, args);
         await req.Process();
         return req.ResponseCodeString + "\n" + req.ResponseText;
     }

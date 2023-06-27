@@ -30,7 +30,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
     private readonly ShizouContext _context;
     private readonly string _fileResultCacheKey;
     private readonly AniDbFileResultCache _fileResultCache;
-    private readonly IServiceProvider _provider;
+    private readonly UdpRequestFactory _udpRequestFactory;
 
     public ProcessCommand(
         ProcessArgs commandArgs,
@@ -38,14 +38,14 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         ShizouContext context,
         CommandService commandService,
         AniDbFileResultCache fileResultCache,
-        IServiceProvider provider
+        UdpRequestFactory udpRequestFactory
     ) : base(commandArgs)
     {
         _logger = logger;
         _context = context;
         _commandService = commandService;
         _fileResultCache = fileResultCache;
-        _provider = provider;
+        _udpRequestFactory = udpRequestFactory;
         _fileResultCacheKey = $"File_{CommandArgs.Id}.json";
     }
 
@@ -233,12 +233,12 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                     return null;
                 }
                 _logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2K);
-                fileReq = new FileRequest(_provider, localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                fileReq = _udpRequestFactory.FileRequest(localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             }
             case IdType.FileId:
                 _logger.LogInformation("Processing file id: {FileId}", CommandArgs.Id);
-                fileReq = new FileRequest(_provider, CommandArgs.Id, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                fileReq = _udpRequestFactory.FileRequest(CommandArgs.Id, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             default:
                 throw new ArgumentException("Idtype does not exist");

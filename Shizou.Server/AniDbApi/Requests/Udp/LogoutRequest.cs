@@ -1,15 +1,16 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public class LogoutRequest : AniDbUdpRequest
 {
-    public LogoutRequest(IServiceProvider provider) : base(provider, "LOGOUT")
+    public LogoutRequest(
+        ILogger<LogoutRequest> logger, AniDbUdpState aniDbUdpState
+    ) : base("LOGOUT", logger, aniDbUdpState)
     {
     }
-    
+
     public override async Task Process()
     {
         Logger.LogInformation("Attempting to log out of AniDB");

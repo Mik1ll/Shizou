@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Server.Exceptions;
 
@@ -17,15 +16,17 @@ public abstract class AniDbUdpRequest
     protected readonly AniDbUdpState AniDbUdpState;
     protected readonly ILogger<AniDbUdpRequest> Logger;
 
-    protected AniDbUdpRequest(IServiceProvider provider, string command)
+    protected AniDbUdpRequest(string command, ILogger<AniDbUdpRequest> logger, AniDbUdpState aniDbUdpState)
     {
         Command = command;
-        Logger = (ILogger<AniDbUdpRequest>)provider.GetRequiredService(typeof(ILogger<>).MakeGenericType(GetType()));
-        AniDbUdpState = provider.GetRequiredService<AniDbUdpState>();
+        Logger = logger;
+        AniDbUdpState = aniDbUdpState;
     }
 
-    public string Command { get; }
+    public string Command { get; set; }
     public Dictionary<string, string> Args { get; } = new();
+
+    public bool ParametersSet { get; set; }
 
     public Encoding Encoding { get; } = Encoding.UTF8;
     public string? RequestText { get; private set; }
@@ -43,6 +44,8 @@ public abstract class AniDbUdpRequest
 
     public async Task HandleRequest()
     {
+        if (!ParametersSet)
+            throw new ArgumentException($"Parameters not set before {nameof(HandleRequest)} called");
         if (!await BuildAndSendRequest())
             return;
         await ReceiveResponse();

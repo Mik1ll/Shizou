@@ -1,27 +1,15 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Shizou.Server.AniDbApi.Requests.Udp.Results;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public class EpisodeRequest : AniDbUdpRequest
 {
-    private EpisodeRequest(IServiceProvider provider) : base(provider, "EPISODE")
+    public EpisodeRequest(ILogger<EpisodeRequest> logger, AniDbUdpState aniDbUdpState) : base("EPISODE", logger, aniDbUdpState)
     {
     }
 
-    public EpisodeRequest(IServiceProvider provider, int episodeId) : this(provider)
-    {
-        Args["eid"] = episodeId.ToString();
-    }
-
-    // TODO: Test if epno can take special episode string
-    public EpisodeRequest(IServiceProvider provider, int animeId, string episodeNumber) : this(provider)
-    {
-        Args["aid"] = animeId.ToString();
-        Args["epno"] = episodeNumber;
-    }
-    
     public AniDbEpisodeResult? EpisodeResult { get; private set; }
 
     public override async Task Process()

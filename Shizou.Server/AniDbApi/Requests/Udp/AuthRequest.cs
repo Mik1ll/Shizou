@@ -1,29 +1,16 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Shizou.Server.Exceptions;
-using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public class AuthRequest : AniDbUdpRequest
 {
-    public AuthRequest(IServiceProvider provider) : base(provider, "AUTH")
+    public AuthRequest(
+        ILogger<AuthRequest> logger,
+        AniDbUdpState aniDbUdpState
+    ) : base("AUTH", logger, aniDbUdpState)
     {
-        using var scope = provider.CreateScope();
-        var opts = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<ShizouOptions>>().Value;
-        Args["user"] = opts.AniDb.Username;
-        Args["pass"] = opts.AniDb.Password;
-        Args["protover"] = "3";
-        Args["client"] = "shizouudp";
-        Args["clientver"] = "1";
-        Args["comp"] = "1";
-        Args["enc"] = Encoding.BodyName;
-        Args["mtu"] = "1400";
-        Args["imgserver"] = "1";
-        Args["nat"] = "1";
     }
 
     public override async Task Process()
