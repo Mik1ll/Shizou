@@ -20,15 +20,14 @@ public class MyListAddRequest : AniDbUdpRequest
     {
     }
 
-    public override async Task Process()
+    protected override Task HandleResponse()
     {
-        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.MyListAdded:
                 if (string.IsNullOrWhiteSpace(ResponseText))
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
                 if (Args["edit"] == "0" && Args.ContainsKey("fid"))
                     MyListResult = new AniDbMyListAddResult(int.Parse(ResponseText), DateTimeOffset.UtcNow, State, Watched, WatchedDate, FileState);
@@ -40,7 +39,7 @@ public class MyListAddRequest : AniDbUdpRequest
             case AniDbResponseCode.FileInMyList:
                 if (string.IsNullOrWhiteSpace(ResponseText))
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
                 var dataArr = ResponseText.Split('|');
                 DateTimeOffset? watchedDate = dataArr[7] != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[7])) : null;
@@ -59,5 +58,6 @@ public class MyListAddRequest : AniDbUdpRequest
             case AniDbResponseCode.NoSuchMyListEntry:
                 break;
         }
+        return Task.CompletedTask;
     }
 }

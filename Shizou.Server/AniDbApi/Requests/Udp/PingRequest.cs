@@ -9,11 +9,10 @@ public class PingRequest : AniDbUdpRequest
     {
         Args["nat"] = "1";
     }
-    
-    public override async Task Process()
+
+    protected override Task HandleResponse()
     {
-        Logger.LogDebug("Pinging server...");
-        await HandleRequest();
         Logger.LogDebug("Ping Response: {ResponseCode}", ResponseCode);
+        return Task.CompletedTask;
     }
 }

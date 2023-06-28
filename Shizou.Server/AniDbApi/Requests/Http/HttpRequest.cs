@@ -45,7 +45,7 @@ public abstract class HttpRequest
     public async Task Process()
     {
         if (!ParametersSet)
-            throw new ArgumentException($"Parameters not set before {nameof(SendRequest)} called");
+            throw new ArgumentException($"Parameters not set before {nameof(Process)} called");
         await SendRequest();
         await HandleResponse();
     }

@@ -19,9 +19,8 @@ public class AnimeRequest : AniDbUdpRequest
     {
     }
 
-    public override async Task Process()
+    protected override Task HandleResponse()
     {
-        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.Anime:
@@ -31,6 +30,7 @@ public class AnimeRequest : AniDbUdpRequest
             case AniDbResponseCode.NoSuchAnime:
                 break;
         }
+        return Task.CompletedTask;
     }
 }
 

@@ -11,8 +11,8 @@ public class GenericRequest : AniDbUdpRequest
     {
     }
 
-    public override async Task Process()
+    protected override Task HandleResponse()
     {
-        await HandleRequest();
+        return Task.CompletedTask;
     }
 }

@@ -13,10 +13,8 @@ public class AuthRequest : AniDbUdpRequest
     {
     }
 
-    public override async Task Process()
+    protected override Task HandleResponse()
     {
-        Logger.LogInformation("Attempting to log into AniDB");
-        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.LoginAccepted or AniDbResponseCode.LoginAcceptedNewVersion:
@@ -36,5 +34,6 @@ public class AuthRequest : AniDbUdpRequest
             case null:
                 throw new ProcessorPauseException("No auth response");
         }
+        return Task.CompletedTask;
     }
 }

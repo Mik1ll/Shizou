@@ -40,12 +40,13 @@ public abstract class AniDbUdpRequest
         return Regex.Replace(data, @"<br\s*/>", "\n").Replace('`', '\'').Replace('/', '|');
     }
 
-    public abstract Task Process();
 
-    public async Task HandleRequest()
+    protected abstract Task HandleResponse();
+
+    public async Task Process()
     {
         if (!ParametersSet)
-            throw new ArgumentException($"Parameters not set before {nameof(HandleRequest)} called");
+            throw new ArgumentException($"Parameters not set before {nameof(Process)} called");
         if (!await BuildAndSendRequest())
             return;
         await ReceiveResponse();
@@ -57,6 +58,7 @@ public abstract class AniDbUdpRequest
             await ReceiveResponse();
             HandleSharedErrors();
         }
+        await HandleResponse();
     }
 
     /// <summary>

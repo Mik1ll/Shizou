@@ -11,10 +11,8 @@ public class LogoutRequest : AniDbUdpRequest
     {
     }
 
-    public override async Task Process()
+    protected override Task HandleResponse()
     {
-        Logger.LogInformation("Attempting to log out of AniDB");
-        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.LoggedOut:
@@ -28,5 +26,6 @@ public class LogoutRequest : AniDbUdpRequest
                 AniDbUdpState.LoggedIn = false;
                 break;
         }
+        return Task.CompletedTask;
     }
 }

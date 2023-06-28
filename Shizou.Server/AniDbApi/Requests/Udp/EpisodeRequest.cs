@@ -12,9 +12,8 @@ public class EpisodeRequest : AniDbUdpRequest
 
     public AniDbEpisodeResult? EpisodeResult { get; private set; }
 
-    public override async Task Process()
+    protected override Task HandleResponse()
     {
-        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.Episode:
@@ -24,5 +23,6 @@ public class EpisodeRequest : AniDbUdpRequest
             case AniDbResponseCode.NoSuchEpisode:
                 break;
         }
+        return Task.CompletedTask;
     }
 }

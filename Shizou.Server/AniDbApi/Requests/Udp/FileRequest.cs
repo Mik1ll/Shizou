@@ -32,9 +32,8 @@ public class FileRequest : AniDbUdpRequest
     public AniDbFileResult? FileResult { get; private set; }
     public List<int>? MultipleFilesResult { get; private set; }
 
-    public override async Task Process()
+    protected override Task HandleResponse()
     {
-        await HandleRequest();
         switch (ResponseCode)
         {
             case AniDbResponseCode.File:
@@ -48,6 +47,7 @@ public class FileRequest : AniDbUdpRequest
             case AniDbResponseCode.NoSuchFile:
                 break;
         }
+        return Task.CompletedTask;
     }
 }
 
