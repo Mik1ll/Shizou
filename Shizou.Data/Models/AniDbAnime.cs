@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
-using Shizou.Common.Enums;
+using Shizou.Data.Enums;
 
 namespace Shizou.Data.Models;
 

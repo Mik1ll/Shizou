@@ -15,8 +15,4 @@
         </PackageReference>
     </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\Shizou.Common\Shizou.Common.csproj" />
-    </ItemGroup>
-
 </Project>

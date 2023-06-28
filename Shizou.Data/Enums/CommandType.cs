@@ -1,4 +1,4 @@
-﻿namespace Shizou.Common.Enums;
+﻿namespace Shizou.Data.Enums;
 
 [Flags]
 public enum CommandType

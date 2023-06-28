@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using Shizou.Common.Enums;
 using Shizou.Data;
+using Shizou.Data.Enums;
 
 namespace Shizou.Server.Options;
 

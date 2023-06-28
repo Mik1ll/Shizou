@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
-using Shizou.Common.Enums;
+using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi.Requests.Http.Results.SubElements;
 
 // ReSharper disable RedundantNullableFlowAttribute

@@ -1,5 +1,5 @@
 ﻿using System;
-using Shizou.Common.Enums;
+using Shizou.Data.Enums;
 
 namespace Shizou.Server.Commands;
 

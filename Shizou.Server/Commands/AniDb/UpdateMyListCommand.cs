@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Shizou.Common.Enums;
 using Shizou.Data.Database;
+using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi.Requests.Udp;
 
 namespace Shizou.Server.Commands.AniDb;

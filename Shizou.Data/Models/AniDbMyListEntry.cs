@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using Shizou.Common.Enums;
+using Shizou.Data.Enums;
 
 namespace Shizou.Data.Models;
 

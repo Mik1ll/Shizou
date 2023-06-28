@@ -2,8 +2,8 @@
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shizou.Common.Enums;
 using Shizou.Data.Database;
+using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.CommandProcessors;
 using Swashbuckle.AspNetCore.Annotations;

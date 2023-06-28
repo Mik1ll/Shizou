@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Shizou.Common.Enums;
+using Shizou.Data.Enums;
 using Shizou.Data.Models;
 
 namespace Shizou.Server.Extensions;
