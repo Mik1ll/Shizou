@@ -40,9 +40,17 @@ public abstract class HttpRequest
         Args["pass"] = options.AniDb.Password;
     }
 
-    public abstract Task Process();
+    protected abstract Task HandleResponse();
 
-    public async Task SendRequest()
+    public async Task Process()
+    {
+        if (!ParametersSet)
+            throw new ArgumentException($"Parameters not set before {nameof(SendRequest)} called");
+        await SendRequest();
+        await HandleResponse();
+    }
+
+    private async Task SendRequest()
     {
         var url = QueryHelpers.AddQueryString(_builder.Uri.AbsoluteUri, Args);
         try

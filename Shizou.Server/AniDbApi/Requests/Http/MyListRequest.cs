@@ -23,10 +23,8 @@ public class MyListRequest : HttpRequest
     {
     }
 
-    public override async Task Process()
+    protected override Task HandleResponse()
     {
-        Logger.LogInformation("HTTP Getting mylist from AniDb");
-        await SendRequest();
         if (ResponseText is not null)
         {
             XmlSerializer serializer = new(typeof(HttpMyListResult));
@@ -34,5 +32,6 @@ public class MyListRequest : HttpRequest
             using var xmlReader = XmlReader.Create(strReader);
             MyListResult = serializer.Deserialize(xmlReader) as HttpMyListResult;
         }
+        return Task.CompletedTask;
     }
 }

@@ -23,10 +23,8 @@ public class AnimeRequest : HttpRequest
 
     public HttpAnimeResult? AnimeResult { get; private set; }
 
-    public override async Task Process()
+    protected override Task HandleResponse()
     {
-        Logger.LogInformation("HTTP Getting anime {Aid} from AniDb", Args["aid"]);
-        await SendRequest();
         if (ResponseText is not null)
         {
             XmlSerializer serializer = new(typeof(HttpAnimeResult));
@@ -34,5 +32,6 @@ public class AnimeRequest : HttpRequest
             using var xmlReader = XmlReader.Create(strReader);
             AnimeResult = serializer.Deserialize(xmlReader) as HttpAnimeResult;
         }
+        return Task.CompletedTask;
     }
 }
