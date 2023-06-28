@@ -8,6 +8,7 @@ namespace Shizou.Server.AniDbApi;
 public class AniDbHttpState : IDisposable
 {
     private readonly Timer _bannedTimer;
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private readonly ILogger<AniDbHttpState> _logger;
     private bool _banned;
 

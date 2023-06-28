@@ -122,11 +122,14 @@ public abstract class AniDbUdpRequest
             ResponseCodeString = null;
             var receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync()).Buffer;
             // Two null bytes and two bytes of Zlib header, seems to ignore trailer automatically
+            // ReSharper disable once UseAwaitUsing
             using Stream memStream = receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0
                 ? new DeflateStream(new MemoryStream(receivedBytes, 4, receivedBytes.Length - 4), CompressionMode.Decompress)
                 : new MemoryStream(receivedBytes);
             using var reader = new StreamReader(memStream, Encoding);
+            // ReSharper disable once MethodHasAsyncOverload
             var codeLine = reader.ReadLine();
+            // ReSharper disable once MethodHasAsyncOverload
             ResponseText = reader.ReadToEnd();
             if (string.IsNullOrWhiteSpace(codeLine) || codeLine.Length <= 2)
                 throw new InvalidOperationException("AniDB response is empty");

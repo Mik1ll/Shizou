@@ -92,7 +92,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             .Select(f => f.Id).ToHashSet();
         var filesWithoutManualLinks = _context.AniDbGenericFiles
             .Where(f => _context.AniDbEpisodes.Include(e => e.ManualLinkLocalFiles)
-                .Where(e => e.Id == f.AniDbEpisodeId && e.ManualLinkLocalFiles.Count == 0).Any())
+                .Any(e => e.Id == f.AniDbEpisodeId && e.ManualLinkLocalFiles.Count == 0))
             .Select(f => f.Id).ToHashSet();
         var noLocalFiles = myListResult.MyListItems.Where(item =>
             !missingAnime.Contains(item.Aid) &&

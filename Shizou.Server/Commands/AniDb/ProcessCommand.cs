@@ -76,6 +76,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         var file = _context.AniDbFiles
             .Include(f => f.AniDbGroup)
             .Include(f => f.MyListEntry)
+            .AsSingleQuery()
             .SingleOrDefault(f => f.Id == result.FileId);
         var newFile = new AniDbFile
         {
