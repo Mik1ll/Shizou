@@ -14,11 +14,18 @@ public class HttpRequestFactory
 
     public AnimeRequest AnimeRequest(int aid)
     {
-        return ActivatorUtilities.CreateInstance<AnimeRequest>(_provider, aid);
+        var request = _provider.GetRequiredService<AnimeRequest>();
+        request.Args["request"] = "anime";
+        request.Args["aid"] = aid.ToString();
+        request.ParametersSet = true;
+        return request;
     }
 
     public MyListRequest MyListRequest()
     {
-        return ActivatorUtilities.CreateInstance<MyListRequest>(_provider);
+        var request = _provider.GetRequiredService<MyListRequest>();
+        request.Args["request"] = "mylist";
+        request.ParametersSet = true;
+        return request;
     }
 }

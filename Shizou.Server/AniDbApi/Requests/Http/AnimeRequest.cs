@@ -13,15 +13,12 @@ namespace Shizou.Server.AniDbApi.Requests.Http;
 public class AnimeRequest : HttpRequest
 {
     public AnimeRequest(
-        int aid,
         ILogger<AnimeRequest> logger,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,
         AniDbHttpState httpState,
         IHttpClientFactory httpClientFactory
     ) : base(logger, optionsSnapshot, httpState, httpClientFactory)
     {
-        Args["request"] = "anime";
-        Args["aid"] = aid.ToString();
     }
 
     public HttpAnimeResult? AnimeResult { get; private set; }

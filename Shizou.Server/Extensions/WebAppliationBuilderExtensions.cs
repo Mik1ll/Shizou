@@ -19,7 +19,8 @@ using Shizou.Server.CommandProcessors;
 using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
-using AnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.AnimeRequest;
+using UdpAnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.AnimeRequest;
+using HttpAnimeRequest = Shizou.Server.AniDbApi.Requests.Http.AnimeRequest;
 
 namespace Shizou.Server.Extensions;
 
@@ -89,7 +90,7 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddSingleton<AniDbHttpState>();
         builder.Services.AddSingleton<HttpRateLimiter>();
 
-        builder.Services.AddTransient<AnimeRequest>();
+        builder.Services.AddTransient<UdpAnimeRequest>();
         builder.Services.AddTransient<AuthRequest>();
         builder.Services.AddTransient<EpisodeRequest>();
         builder.Services.AddTransient<FileRequest>();
@@ -98,6 +99,9 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddTransient<MyListAddRequest>();
         builder.Services.AddTransient<PingRequest>();
 
+        builder.Services.AddTransient<HttpAnimeRequest>();
+        builder.Services.AddTransient<MyListRequest>();
+        
         builder.Services.AddScoped<HttpRequestFactory>();
         builder.Services.AddScoped<UdpRequestFactory>();
 

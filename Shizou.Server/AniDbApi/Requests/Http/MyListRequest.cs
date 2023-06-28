@@ -21,7 +21,6 @@ public class MyListRequest : HttpRequest
         IHttpClientFactory httpClientFactory
     ) : base(logger, optionsSnapshot, httpState, httpClientFactory)
     {
-        Args["request"] = "mylist";
     }
 
     public override async Task Process()

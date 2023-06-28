@@ -18,6 +18,7 @@ public abstract class HttpRequest
     private readonly AniDbHttpState _httpState;
 
     public Dictionary<string, string?> Args { get; } = new();
+    public bool ParametersSet { get; set; }
     public string? ResponseText { get; protected set; }
 
     public HttpRequest(
