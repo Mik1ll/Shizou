@@ -135,7 +135,7 @@ public class RHasherService
     public async Task<RHasherService> UpdateFileAsync(FileInfo file)
     {
         const int bufSize = 1 << 25;
-        using FileStream stream = new(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufSize, FileOptions.SequentialScan);
+        await using FileStream stream = new(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufSize, FileOptions.SequentialScan);
         var buf = new byte[bufSize];
         int len;
         while ((len = await stream.ReadAsync(buf, 0, buf.Length)) > 0)
