@@ -113,7 +113,7 @@ public static class WebAppliationBuilderExtensions
 
     public static WebApplicationBuilder AddShizouApiServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddControllers()
+        builder.Services.AddControllers(opts => opts.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true)
             .AddJsonOptions(opt => opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         builder.Services.AddSwaggerGen(opt =>
         {
