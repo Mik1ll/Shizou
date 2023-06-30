@@ -51,7 +51,7 @@ public class CommandService
     {
         using var context = _contextFactory.CreateDbContext();
         using var transaction = context.Database.BeginTransaction();
-        var commandRequests = commandArgsEnumerable.Select(commandArgs => RequestFromArgs(commandArgs))
+        var commandRequests = commandArgsEnumerable.Select(RequestFromArgs)
             // Throw away identical command ids
             .GroupBy(cr => cr.CommandId)
             .Select(crs => crs.First())
