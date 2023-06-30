@@ -51,7 +51,7 @@ public class QueueService
     public IEnumerable<CommandRequest> GetQueuedCommands(QueueType queueType)
     {
         using var context = _contextFactory.CreateDbContext();
-        return context.CommandRequests.Where(cr => cr.QueueType == queueType);
+        return context.CommandRequests.AsNoTracking().Where(cr => cr.QueueType == queueType);
     }
 
     private CommandProcessor GetQueue(QueueType queueType)
