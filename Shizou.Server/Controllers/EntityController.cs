@@ -50,23 +50,21 @@ public class EntityController<TEntity> : EntityGetController<TEntity> where TEnt
     /// <summary>
     ///     Updates existing entity
     /// </summary>
-    /// <param name="id"></param>
     /// <param name="entity"></param>
     /// <returns></returns>
     /// <response code="204">Entity updated</response>
     /// <response code="404">Entity does not exist</response>
     /// <response code="409">Conflict when trying to update in database</response>
-    [HttpPut("{id}")]
+    [HttpPut]
     [SwaggerResponse(StatusCodes.Status204NoContent)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     [Consumes("application/json")]
-    public virtual ActionResult Put(int id, [FromBody] TEntity entity)
+    public virtual ActionResult Put([FromBody] TEntity entity)
     {
-        if (entity.Id == 0)
-            entity.Id = id;
-        if (id == 0 || id != entity.Id)
-            return BadRequest("Url id cannot be 0 or mismatch entity id");
+        var id = entity.Id;
+        if (id == 0)
+            return BadRequest("Entity id cannot be 0");
         Context.Entry(entity).State = EntityState.Modified;
         try
         {
