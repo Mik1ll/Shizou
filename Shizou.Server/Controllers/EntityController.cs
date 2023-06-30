@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,52 +9,10 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
-[ApiController]
-[Route("[controller]")]
-public class EntityController<TEntity> : ControllerBase
-    where TEntity : class, IEntity
+public class EntityController<TEntity> : EntityGetController<TEntity> where TEntity : class, IEntity
 {
-    protected readonly ShizouContext Context;
-    protected readonly ILogger<EntityController<TEntity>> Logger;
-    private readonly DbSet<TEntity> _dbSet;
-
-    public EntityController(ILogger<EntityController<TEntity>> logger, ShizouContext context)
+    public EntityController(ILogger<EntityController<TEntity>> logger, ShizouContext context) : base(logger, context)
     {
-        Logger = logger;
-        Context = context;
-        _dbSet = Context.Set<TEntity>();
-    }
-
-    /// <summary>
-    ///     Get all entities
-    /// </summary>
-    /// <returns></returns>
-    /// <response code="200">Success</response>
-    [HttpGet]
-    [SwaggerResponse(StatusCodes.Status200OK)]
-    [Produces("application/json")]
-    public virtual ActionResult<List<TEntity>> Get()
-    {
-        return _dbSet.AsNoTracking().ToList();
-    }
-
-    /// <summary>
-    ///     Get entity
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    /// <response code="404">Entity is not found</response>
-    /// <response code="200">Entity found</response>
-    [HttpGet("{id}")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [Produces("application/json")]
-    public virtual ActionResult<TEntity> Get(int id)
-    {
-        var result = _dbSet.Find(id);
-        if (result is null)
-            return NotFound();
-        return result;
     }
 
     /// <summary>
@@ -76,7 +33,7 @@ public class EntityController<TEntity> : ControllerBase
     {
         // TODO: Test adding already existing record
         // TODO: Test adding with child navigation id already existing
-        var newEntity = _dbSet.Add(entity).Entity;
+        var newEntity = DbSet.Add(entity).Entity;
         try
         {
             Context.SaveChanges();
@@ -139,16 +96,16 @@ public class EntityController<TEntity> : ControllerBase
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     public virtual ActionResult Delete(int id)
     {
-        var entity = _dbSet.Find(id);
+        var entity = DbSet.Find(id);
         if (entity is null)
             return NotFound();
-        _dbSet.Remove(entity);
+        DbSet.Remove(entity);
         Context.SaveChanges();
         return NoContent();
     }
 
     protected bool Exists(int id)
     {
-        return _dbSet.Any(e => e.Id == id);
+        return DbSet.Any(e => e.Id == id);
     }
 }

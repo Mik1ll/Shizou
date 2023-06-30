@@ -4,7 +4,7 @@ using Shizou.Data.Models;
 
 namespace Shizou.Server.Controllers;
 
-public class AniDbFilesController : EntityController<AniDbFile>
+public class AniDbFilesController : EntityGetController<AniDbFile>
 {
     public AniDbFilesController(ILogger<AniDbFilesController> logger, ShizouContext context) : base(logger, context)
     {

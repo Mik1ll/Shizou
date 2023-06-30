@@ -4,7 +4,7 @@ using Shizou.Data.Models;
 
 namespace Shizou.Server.Controllers;
 
-public class LocalFilesController : EntityController<LocalFile>
+public class LocalFilesController : EntityGetController<LocalFile>
 {
     public LocalFilesController(ILogger<LocalFilesController> logger, ShizouContext context) : base(logger, context)
     {
