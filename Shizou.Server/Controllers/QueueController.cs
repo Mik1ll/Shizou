@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
-using Shizou.Server.CommandProcessors;
+using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
@@ -14,70 +13,63 @@ namespace Shizou.Server.Controllers;
 [Route("[controller]")]
 public class QueueController : ControllerBase
 {
-    private readonly IEnumerable<CommandProcessor> _queues;
-    private readonly ShizouContext _context;
+    private readonly QueueService _queueService;
 
-    public QueueController(IEnumerable<CommandProcessor> queues, ShizouContext context)
+    public QueueController(QueueService queueService)
     {
-        _queues = queues;
-        _context = context;
+        _queueService = queueService;
     }
 
-    [HttpGet]
+    [HttpPut("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [Produces("application/json")]
-    public ActionResult List()
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    public ActionResult Pause(QueueType queueType)
     {
-        return Ok(_queues);
-    }
-
-    [HttpGet("{queueType}")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [Produces("application/json")]
-    public ActionResult Get(QueueType queueType)
-    {
-        var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
-        return queue is not null ? Ok(queue) : NotFound();
-    }
-
-    [HttpPut("{queueType}")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status409Conflict)]
-    public ActionResult Pause(QueueType queueType, bool paused)
-    {
-        var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
-        if (queue is null) return NotFound();
-        if (paused)
-            queue.Pause();
-        else
-            queue.Unpause();
-        if (queue.Paused && !paused)
-            return Conflict($"Pause state locked: {queue.PauseReason}");
+        _queueService.Pause(queueType);
         return Ok();
     }
 
-    [HttpGet("{queueType}/current")]
+    [HttpPut("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status204NoContent)]
-    [Produces("application/json")]
-    public ActionResult<CommandRequest?> GetCurrentCommand(QueueType queueType)
+    [SwaggerResponse(StatusCodes.Status409Conflict)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    public ActionResult Unpause(QueueType queueType)
     {
-        var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
-        if (queue is null) return NotFound("Queue not found");
-        return Ok(queue.CurrentCommand);
+        if (_queueService.Unpause(queueType))
+            return Ok();
+        else
+            return Conflict($"Pause state locked: {_queueService.GetPauseReason(queueType)}");
     }
 
-    [HttpGet("{queueType}/queued")]
+    [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]
+    public record PauseResult(bool Paused, string? PauseReason);
+
+    [HttpGet("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
-    public ActionResult<IEnumerable<CommandRequest>> GetQueuedCommands(QueueType queueType)
+    public ActionResult<PauseResult> PauseState(QueueType queueType)
     {
-        var queue = _queues.FirstOrDefault(q => q.QueueType == queueType);
-        if (queue is null) return NotFound("Queue not found");
-        return Ok(_context.CommandRequests.Where(cr => cr.QueueType == queueType));
+        return Ok(new PauseResult(_queueService.GetPauseState(queueType), _queueService.GetPauseReason(queueType)));
+    }
+
+
+    [HttpGet("{queueType}/[action]")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status204NoContent)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    [Produces("application/json")]
+    public ActionResult<CommandRequest?> Current(QueueType queueType)
+    {
+        return Ok(_queueService.GetCurrentCommand(queueType));
+    }
+
+    [HttpGet("{queueType}/[action]")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    [Produces("application/json")]
+    public ActionResult<IEnumerable<CommandRequest>> Queued(QueueType queueType)
+    {
+        return Ok(_queueService.GetQueuedCommands(queueType));
     }
 }
