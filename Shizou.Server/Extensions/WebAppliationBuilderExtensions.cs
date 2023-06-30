@@ -57,7 +57,7 @@ public static class WebAppliationBuilderExtensions
 
         builder.Services.AddScoped<AniDbFileResultCache>();
         builder.Services.AddScoped<HttpAnimeResultCache>();
-        
+
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();
         builder.Services.AddScoped<QueueService>();
@@ -102,7 +102,7 @@ public static class WebAppliationBuilderExtensions
 
         builder.Services.AddTransient<HttpAnimeRequest>();
         builder.Services.AddTransient<MyListRequest>();
-        
+
         builder.Services.AddScoped<HttpRequestFactory>();
         builder.Services.AddScoped<UdpRequestFactory>();
 
@@ -119,6 +119,8 @@ public static class WebAppliationBuilderExtensions
         {
             opt.SchemaGeneratorOptions.UseInlineDefinitionsForEnums = true;
             opt.SchemaGeneratorOptions.SupportNonNullableReferenceTypes = true;
+            opt.OrderActionsBy(apiDesc =>
+                $"{apiDesc.ActionDescriptor.RouteValues["controller"]}_{apiDesc.RelativePath?.Length ?? 0:d3}_{apiDesc.HttpMethod switch { "GET" => "0", "PUT" => "1", "POST" => "2", "DELETE" => "3", _ => "4" }}");
             opt.EnableAnnotations();
         });
         return builder;
