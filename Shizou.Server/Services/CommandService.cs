@@ -52,10 +52,7 @@ public class CommandService
         using var context = _contextFactory.CreateDbContext();
         using var transaction = context.Database.BeginTransaction();
         var commandRequests = commandArgsEnumerable.Select(RequestFromArgs)
-            // Throw away identical command ids
-            .GroupBy(cr => cr.CommandId)
-            .Select(crs => crs.First())
-            // Left outer join, exclude commands already in database
+            .DistinctBy(cr => cr.CommandId)
             .Where(e => !context.CommandRequests.Any(c => c.CommandId == e.CommandId))
             .ToList();
         context.CommandRequests.AddRange(commandRequests);
