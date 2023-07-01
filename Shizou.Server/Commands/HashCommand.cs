@@ -23,18 +23,17 @@ public class HashCommand : BaseCommand<HashArgs>
     private readonly ShizouContext _context;
 
     public HashCommand(
-        HashArgs commandArgs,
         ILogger<HashCommand> logger,
         ShizouContext context,
         CommandService commandService
-    ) : base(commandArgs)
+    )
     {
         _logger = logger;
         _context = context;
         _commandService = commandService;
     }
 
-    public override async Task Process()
+    public override async Task ProcessInner()
     {
         var file = new FileInfo(CommandArgs.Path);
         ImportFolder? importFolder;

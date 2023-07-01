@@ -29,17 +29,14 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     private readonly HttpRequestFactory _httpRequestFactory;
     private readonly ShizouOptions _options;
 
-    public TimeSpan MyListRequestPeriod { get; } = TimeSpan.FromHours(24);
-
 
     public SyncMyListCommand(
-        SyncMyListArgs commandArgs,
         ILogger<SyncMyListCommand> logger,
         ShizouContext context,
         CommandService commandService,
         IOptionsSnapshot<ShizouOptions> options,
         HttpRequestFactory httpRequestFactory
-    ) : base(commandArgs)
+    )
     {
         _logger = logger;
         _context = context;
@@ -48,7 +45,9 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         _options = options.Value;
     }
 
-    public override async Task Process()
+    public TimeSpan MyListRequestPeriod { get; } = TimeSpan.FromHours(24);
+
+    public override async Task ProcessInner()
     {
         var myListResult = await GetMyList();
 
@@ -65,6 +64,19 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         FindGenericFiles(myListResult);
 
         Completed = true;
+    }
+
+    private static AniDbMyListEntry ItemToAniDbMyListEntry(MyListItem item)
+    {
+        return new AniDbMyListEntry
+        {
+            Id = item.Id,
+            Watched = item.Viewdate is not null,
+            WatchedDate = item.Viewdate is null ? null : DateTime.Parse(item.Viewdate).ToUniversalTime(),
+            MyListState = item.State,
+            MyListFileState = item.FileState,
+            Updated = DateTime.SpecifyKind(DateTime.Parse(item.Updated), DateTimeKind.Utc)
+        };
     }
 
     private void FindGenericFiles(HttpMyListResult myListResult)
@@ -137,19 +149,6 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                 _context.Entry(existingEntry).CurrentValues.SetValues(ItemToAniDbMyListEntry(myListItem));
         }
         _context.SaveChanges();
-    }
-
-    private static AniDbMyListEntry ItemToAniDbMyListEntry(MyListItem item)
-    {
-        return new AniDbMyListEntry
-        {
-            Id = item.Id,
-            Watched = item.Viewdate is not null,
-            WatchedDate = item.Viewdate is null ? null : DateTime.Parse(item.Viewdate).ToUniversalTime(),
-            MyListState = item.State,
-            MyListFileState = item.FileState,
-            Updated = DateTime.SpecifyKind(DateTime.Parse(item.Updated), DateTimeKind.Utc)
-        };
     }
 
     private async Task<HttpMyListResult?> GetMyList()

@@ -14,7 +14,7 @@ namespace Shizou.Server.Services;
 
 public class CommandService
 {
-    public static readonly IList<(CommandAttribute cmdAttr, Type type, Type argsType)> Commands =
+    public static readonly IList<(CommandAttribute Attr, Type Type, Type ArgsType)> Commands =
         (from type in Assembly.GetExecutingAssembly().GetTypes()
             let cmdAttr = type.GetCustomAttribute<CommandAttribute>()
             where cmdAttr is not null
@@ -67,15 +67,17 @@ public class CommandService
 
     public ICommand CommandFromRequest(CommandRequest commandRequest)
     {
-        var command = Commands.Single(x => commandRequest.Type == x.cmdAttr.Type);
-        var args = (CommandArgs)JsonSerializer.Deserialize(commandRequest.CommandArgs, command.argsType)!;
-        return (ICommand)ActivatorUtilities.CreateInstance(_serviceProvider, command.type, args);
+        var (_, type, argsType) = Commands.Single(x => commandRequest.Type == x.Attr.Type);
+        var args = (CommandArgs)JsonSerializer.Deserialize(commandRequest.CommandArgs, argsType)!;
+        var cmd = (ICommand)_serviceProvider.GetRequiredService(type);
+        cmd.SetParameters(args);
+        return cmd;
     }
 
     public CommandRequest RequestFromArgs(CommandArgs commandArgs)
     {
         var argType = commandArgs.GetType();
-        var commandAttr = Commands.Single(x => x.argsType == argType).cmdAttr;
+        var commandAttr = Commands.Single(x => x.ArgsType == argType).Attr;
         return new CommandRequest
         {
             Type = commandAttr.Type,

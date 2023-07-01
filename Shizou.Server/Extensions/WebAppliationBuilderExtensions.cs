@@ -16,6 +16,8 @@ using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.CommandProcessors;
+using Shizou.Server.Commands;
+using Shizou.Server.Commands.AniDb;
 using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
@@ -57,6 +59,13 @@ public static class WebAppliationBuilderExtensions
 
         builder.Services.AddScoped<AniDbFileResultCache>();
         builder.Services.AddScoped<HttpAnimeResultCache>();
+
+        builder.Services.AddTransient<HashCommand>();
+        builder.Services.AddTransient<NoopCommand>();
+        builder.Services.AddTransient<AnimeCommand>();
+        builder.Services.AddTransient<ProcessCommand>();
+        builder.Services.AddTransient<SyncMyListCommand>();
+        builder.Services.AddTransient<UpdateMyListCommand>();
 
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();

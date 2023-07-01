@@ -28,18 +28,17 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
     private readonly UdpRequestFactory _udpRequestFactory;
 
     public UpdateMyListCommand(
-        UpdateMyListArgs commandArgs,
         ILogger<UpdateMyListCommand> logger,
         ShizouContext context,
         UdpRequestFactory udpRequestFactory
-    ) : base(commandArgs)
+    )
     {
         _logger = logger;
         _context = context;
         _udpRequestFactory = udpRequestFactory;
     }
 
-    public override async Task Process()
+    public override async Task ProcessInner()
     {
         bool retry;
         do

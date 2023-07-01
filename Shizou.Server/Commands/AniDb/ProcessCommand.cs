@@ -28,28 +28,32 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
     private readonly CommandService _commandService;
     private readonly ILogger<ProcessCommand> _logger;
     private readonly ShizouContext _context;
-    private readonly string _fileResultCacheKey;
     private readonly AniDbFileResultCache _fileResultCache;
     private readonly UdpRequestFactory _udpRequestFactory;
+    private string _fileResultCacheKey = null!;
 
     public ProcessCommand(
-        ProcessArgs commandArgs,
         ILogger<ProcessCommand> logger,
         ShizouContext context,
         CommandService commandService,
         AniDbFileResultCache fileResultCache,
         UdpRequestFactory udpRequestFactory
-    ) : base(commandArgs)
+    )
     {
         _logger = logger;
         _context = context;
         _commandService = commandService;
         _fileResultCache = fileResultCache;
         _udpRequestFactory = udpRequestFactory;
-        _fileResultCacheKey = $"File_{CommandArgs.Id}.json";
     }
 
-    public override async Task Process()
+    public override void SetParameters(CommandArgs args)
+    {
+        _fileResultCacheKey = $"File_{CommandArgs.Id}.json";
+        base.SetParameters(args);
+    }
+
+    public override async Task ProcessInner()
     {
         var result = await GetFileResult();
 
@@ -61,6 +65,18 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         _commandService.Dispatch(new AnimeArgs(result.AnimeId!.Value));
 
         Completed = true;
+    }
+
+    private static AniDbMyListEntry FileResultToAniDbMyListEntry(AniDbFileResult result)
+    {
+        return new AniDbMyListEntry
+        {
+            Id = result.MyListId!.Value,
+            Watched = result.MyListViewed!.Value,
+            WatchedDate = result.MyListViewDate?.UtcDateTime,
+            MyListState = result.MyListState!.Value,
+            MyListFileState = result.MyListFileState!.Value
+        };
     }
 
     private void UpdateDatabase(AniDbFileResult result)
@@ -160,18 +176,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         _context.SaveChanges();
 
         UpdateEpRelations(result);
-    }
-
-    private static AniDbMyListEntry FileResultToAniDbMyListEntry(AniDbFileResult result)
-    {
-        return new AniDbMyListEntry
-        {
-            Id = result.MyListId!.Value,
-            Watched = result.MyListViewed!.Value,
-            WatchedDate = result.MyListViewDate?.UtcDateTime,
-            MyListState = result.MyListState!.Value,
-            MyListFileState = result.MyListFileState!.Value
-        };
     }
 
     private void UpdateGenericFile(AniDbFileResult result)

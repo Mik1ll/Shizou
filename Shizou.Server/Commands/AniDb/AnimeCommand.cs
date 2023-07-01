@@ -20,27 +20,31 @@ public record AnimeArgs(int AnimeId) : CommandArgs($"{nameof(AnimeCommand)}_{Ani
 public class AnimeCommand : BaseCommand<AnimeArgs>
 {
     private readonly ILogger<AnimeCommand> _logger;
-    private readonly string _animeResultCacheKey;
     private readonly ShizouContext _context;
     private readonly HttpAnimeResultCache _animeResultCache;
     private readonly HttpRequestFactory _httpRequestFactory;
+    private string _animeResultCacheKey = null!;
 
     public AnimeCommand(
-        AnimeArgs commandArgs,
         ILogger<AnimeCommand> logger,
         ShizouContext context,
         HttpAnimeResultCache animeResultCache,
         HttpRequestFactory httpRequestFactory
-    ) : base(commandArgs)
+    )
     {
         _logger = logger;
         _context = context;
         _animeResultCache = animeResultCache;
         _httpRequestFactory = httpRequestFactory;
-        _animeResultCacheKey = $"AnimeDoc_{CommandArgs.AnimeId}.xml";
     }
 
-    public override async Task Process()
+    public override void SetParameters(CommandArgs args)
+    {
+        _animeResultCacheKey = $"AnimeDoc_{((AnimeArgs)args).AnimeId}.xml";
+        base.SetParameters(args);
+    }
+
+    public override async Task ProcessInner()
     {
         if (Path.Exists(Path.Combine(_animeResultCache.BasePath, _animeResultCacheKey)) && _animeResultCache.InsideRetentionPeriod(_animeResultCacheKey))
         {
