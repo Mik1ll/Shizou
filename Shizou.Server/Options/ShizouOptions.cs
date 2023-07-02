@@ -36,6 +36,8 @@ public class ShizouOptions
 
         public string ServerHost { get; set; } = "api.anidb.net";
 
+        public string? ImageServerHost { get; set; }
+
         public ushort UdpServerPort { get; set; } = 9000;
 
         public ushort HttpServerPort { get; set; } = 9001;

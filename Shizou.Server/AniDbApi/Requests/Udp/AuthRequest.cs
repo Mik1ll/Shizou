@@ -1,16 +1,22 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shizou.Server.Exceptions;
+using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public class AuthRequest : AniDbUdpRequest
 {
+    private readonly IOptionsSnapshot<ShizouOptions> _optionsSnapshot;
+
     public AuthRequest(
         ILogger<AuthRequest> logger,
-        AniDbUdpState aniDbUdpState
+        AniDbUdpState aniDbUdpState,
+        IOptionsSnapshot<ShizouOptions> optionsSnapshot
     ) : base("AUTH", logger, aniDbUdpState)
     {
+        _optionsSnapshot = optionsSnapshot;
     }
 
     protected override Task HandleResponse()
@@ -22,7 +28,9 @@ public class AuthRequest : AniDbUdpRequest
                 AniDbUdpState.SessionKey = split?[0];
                 // ReSharper disable once UnusedVariable
                 var ipEndpoint = split?[1];
-                AniDbUdpState.ImageServerUrl = ResponseText?.Trim();
+                var options = _optionsSnapshot.Value;
+                options.AniDb.ImageServerHost = ResponseText?.Trim();
+                options.SaveToFile();
                 AniDbUdpState.LoggedIn = true;
                 break;
             case AniDbResponseCode.LoginFailed:

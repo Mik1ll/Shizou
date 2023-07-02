@@ -101,9 +101,7 @@ public sealed class AniDbUdpState : IDisposable
     public UdpClient UdpClient { get; }
     public UdpRateLimiter RateLimiter { get; }
     public string? SessionKey { get; set; }
-
-    public string? ImageServerUrl { get; set; }
-
+    
     public bool LoggedIn
     {
         get => _loggedIn;
