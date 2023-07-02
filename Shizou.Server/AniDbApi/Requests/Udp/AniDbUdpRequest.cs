@@ -166,8 +166,8 @@ public abstract class AniDbUdpRequest
                 AniDbUdpState.Banned = true;
                 AniDbUdpState.BanReason = ResponseText;
                 Logger.LogWarning("Banned: {BanReason}, waiting {Hours}hr {Minutes}min ({UnbanTime})", AniDbUdpState.BanReason, AniDbUdpState.BanPeriod.Hours,
-                    AniDbUdpState.BanPeriod.Minutes, AniDbUdpState.BanEndTime);
-                throw new ProcessorPauseException($"Udp banned, waiting until {AniDbUdpState.BanEndTime}");
+                    AniDbUdpState.BanPeriod.Minutes, DateTimeOffset.Now + AniDbUdpState.BanPeriod);
+                throw new ProcessorPauseException($"Udp banned, waiting until {DateTimeOffset.Now + AniDbUdpState.BanPeriod}");
             case AniDbResponseCode.InvalidSession:
                 Logger.LogWarning("Invalid session, reauth");
                 AniDbUdpState.LoggedIn = false;
