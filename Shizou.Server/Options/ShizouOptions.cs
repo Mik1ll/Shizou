@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using Shizou.Data;
@@ -40,11 +41,15 @@ public class ShizouOptions
         public ushort HttpServerPort { get; set; } = 9001;
 
         public ushort ClientPort { get; set; } = 4556;
+
+        public DateTimeOffset? HttpBannedUntil { get; set; }
+
+        public DateTimeOffset? UdpBannedUntil { get; set; }
     }
 
     public class MyListOptions
     {
-        public MyListState AbsentFileState = MyListState.Deleted;
-        public MyListState PresentFileState = MyListState.Internal;
+        public MyListState AbsentFileState { get; set; } = MyListState.Deleted;
+        public MyListState PresentFileState { get; set; } = MyListState.Internal;
     }
 }
