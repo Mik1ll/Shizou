@@ -69,7 +69,6 @@ public static class WebAppliationBuilderExtensions
 
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();
-        builder.Services.AddScoped<QueueService>();
         return builder;
     }
 

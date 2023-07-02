@@ -7,21 +7,21 @@ namespace Shizou.Server.Extensions;
 
 public static class CommandRequestExtensions
 {
-    public static CommandRequest? GetNextRequest(this DbSet<CommandRequest> commandRequests, QueueType queueType)
+    public static IQueryable<CommandRequest> ByQueue(this IQueryable<CommandRequest> queryable, QueueType queueType)
     {
-        return (from cq in commandRequests
+        return from cq in queryable
             where cq.QueueType == queueType
             orderby cq.Priority, cq.Id
-            select cq).FirstOrDefault();
+            select cq;
     }
 
-    public static int GetQueueCount(this DbSet<CommandRequest> commandRequests, QueueType queueType)
+    public static CommandRequest? NextRequest(this IQueryable<CommandRequest> commandRequests, QueueType queueType)
     {
-        return commandRequests.Count(cq => cq.QueueType == queueType);
+        return commandRequests.ByQueue(queueType).FirstOrDefault();
     }
 
     public static void ClearQueue(this DbSet<CommandRequest> commandRequests, QueueType queueType)
     {
-        commandRequests.RemoveRange(commandRequests.Where(cq => cq.QueueType == queueType));
+        commandRequests.RemoveRange(commandRequests.ByQueue(queueType));
     }
 }

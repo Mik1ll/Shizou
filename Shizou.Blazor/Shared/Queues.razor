@@ -11,7 +11,7 @@
         </tr>
         </thead>
         <tbody>
-        @foreach (var processor in _processors)
+        @foreach (var processor in Processors)
         {
             <tr>
                 <th scope="row">@Enum.GetName(processor.QueueType)</th>
@@ -22,7 +22,7 @@
                 <td>
                     @if (processor.Paused)
                     {
-                        <button class="btn oi oi-media-play" @onclick="@processor.Unpause"></button>
+                        <button class="btn oi oi-media-play" @onclick="@(() => processor.Unpause())"></button>
                     }
                     else
                     {

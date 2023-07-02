@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
-using Shizou.Server.Services;
+using Shizou.Server.CommandProcessors;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
@@ -13,11 +14,16 @@ namespace Shizou.Server.Controllers;
 [Route("[controller]")]
 public class QueueController : ControllerBase
 {
-    private readonly QueueService _queueService;
+    private readonly IList<CommandProcessor> _processors;
 
-    public QueueController(QueueService queueService)
+    public QueueController(IEnumerable<CommandProcessor> processors)
     {
-        _queueService = queueService;
+        _processors = processors.ToList();
+    }
+
+    private CommandProcessor GetProcessor(QueueType queueType)
+    {
+        return _processors.First(p => p.QueueType == queueType);
     }
 
     [HttpPut("{queueType}/[action]")]
@@ -25,7 +31,7 @@ public class QueueController : ControllerBase
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     public ActionResult Pause(QueueType queueType)
     {
-        _queueService.Pause(queueType);
+        GetProcessor(queueType).Pause();
         return Ok();
     }
 
@@ -35,10 +41,11 @@ public class QueueController : ControllerBase
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     public ActionResult Unpause(QueueType queueType)
     {
-        if (_queueService.Unpause(queueType))
+        var processor = GetProcessor(queueType);
+        if (processor.Unpause())
             return Ok();
         else
-            return Conflict($"Pause state locked: {_queueService.GetPauseReason(queueType)}");
+            return Conflict($"Pause state locked: {processor.PauseReason}");
     }
 
     [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]
@@ -50,7 +57,8 @@ public class QueueController : ControllerBase
     [Produces("application/json")]
     public ActionResult<PauseResult> PauseState(QueueType queueType)
     {
-        return Ok(new PauseResult(_queueService.GetPauseState(queueType), _queueService.GetPauseReason(queueType)));
+        var processor = GetProcessor(queueType);
+        return Ok(new PauseResult(processor.Paused, processor.PauseReason));
     }
 
 
@@ -61,7 +69,7 @@ public class QueueController : ControllerBase
     [Produces("application/json")]
     public ActionResult<CommandRequest?> Current(QueueType queueType)
     {
-        return Ok(_queueService.GetCurrentCommand(queueType));
+        return Ok(GetProcessor(queueType).CurrentCommand);
     }
 
     [HttpGet("{queueType}/[action]")]
@@ -70,6 +78,6 @@ public class QueueController : ControllerBase
     [Produces("application/json")]
     public ActionResult<IEnumerable<CommandRequest>> Queued(QueueType queueType)
     {
-        return Ok(_queueService.GetQueuedCommands(queueType));
+        return Ok(GetProcessor(queueType).GetQueuedCommands());
     }
 }

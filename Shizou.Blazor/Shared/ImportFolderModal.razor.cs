@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
+using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Shared;
 
@@ -19,6 +19,9 @@ public partial class ImportFolderModal
 
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+
+    [Inject]
+    private ImportService ImportService { get; set; } = default!;
 
     public void OnFolderPickerClose()
     {
@@ -61,22 +64,21 @@ public partial class ImportFolderModal
         if (accepted)
         {
             using var context = ContextFactory.CreateDbContext();
-            var myImportFolderModel = _myImportFolder;
             if (_isDelete)
             {
-                context.ImportFolders.Remove(myImportFolderModel);
+                context.ImportFolders.Remove(_myImportFolder);
             }
             else
             {
                 if (_myImportFolder.Id == 0)
                 {
-                    context.ImportFolders.Add(myImportFolderModel);
+                    context.ImportFolders.Add(_myImportFolder);
                 }
                 else
                 {
                     var importFolder = context.ImportFolders.Find(_myImportFolder.Id);
                     if (importFolder is not null)
-                        context.Entry(importFolder).CurrentValues.SetValues(myImportFolderModel);
+                        context.Entry(importFolder).CurrentValues.SetValues(_myImportFolder);
                 }
             }
             context.SaveChanges();

@@ -21,6 +21,7 @@ namespace Shizou.Server.CommandProcessors;
 public abstract class CommandProcessor : BackgroundService, INotifyPropertyChanged
 {
     protected readonly IServiceProvider Provider;
+    private readonly IDbContextFactory<ShizouContext> _contextFactory;
 
     private CancellationTokenSource? _wakeupTokenSource;
     private CommandRequest? _currentCommand;
@@ -28,10 +29,12 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     private bool _paused = true;
     private int _pollStep;
 
-    protected CommandProcessor(ILogger<CommandProcessor> logger, IServiceProvider provider, QueueType queueType)
+    protected CommandProcessor(ILogger<CommandProcessor> logger, IServiceProvider provider, QueueType queueType,
+        IDbContextFactory<ShizouContext> contextFactory)
     {
         Logger = logger;
         Provider = provider;
+        _contextFactory = contextFactory;
         QueueType = queueType;
     }
 
@@ -99,9 +102,10 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         Paused = true;
     }
 
-    public void Unpause()
+    public bool Unpause()
     {
         Paused = false;
+        return !Paused;
     }
 
     public virtual void Shutdown()
@@ -110,19 +114,24 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     public void UpdateCommandsInQueue()
     {
-        using var scope = Provider.CreateScope();
-        CommandsInQueue = scope.ServiceProvider.GetRequiredService<ShizouContext>().CommandRequests.GetQueueCount(QueueType);
+        using var context = _contextFactory.CreateDbContext();
+        CommandsInQueue = context.CommandRequests.ByQueue(QueueType).Count();
         _wakeupTokenSource?.Cancel();
     }
 
     public void ClearQueue()
     {
-        using var scope = Provider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
+        using var context = _contextFactory.CreateDbContext();
         context.CommandRequests.ClearQueue(QueueType);
         context.SaveChanges();
         UpdateCommandsInQueue();
         Logger.LogInformation("{QueueType} queue cleared", Enum.GetName(QueueType));
+    }
+
+    public List<CommandRequest> GetQueuedCommands()
+    {
+        using var context = _contextFactory.CreateDbContext();
+        return context.CommandRequests.AsNoTracking().ByQueue(QueueType).ToList();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -156,7 +165,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 }
                 continue;
             }
-            CurrentCommand = context.CommandRequests.GetNextRequest(QueueType);
+            CurrentCommand = context.CommandRequests.NextRequest(QueueType);
             Logger.LogDebug("Current command assigned");
             if (CurrentCommand is null)
                 continue;

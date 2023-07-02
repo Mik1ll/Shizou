@@ -1,34 +1,23 @@
 ﻿using System.ComponentModel;
 using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
-using Shizou.Data.Database;
 using Shizou.Server.CommandProcessors;
 
 namespace Shizou.Blazor.Shared;
 
 public partial class Queues : IDisposable
 {
-    private readonly List<CommandProcessor> _processors = new();
-
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
-
-    [Inject]
-    private ILogger<Queues> Logger { get; set; } = default!;
-
-    [Inject]
-    private IServiceProvider ServiceProvider { get; set; } = default!;
-
+    private IEnumerable<CommandProcessor> Processors { get; set; } = default!;
+    
     public void Dispose()
     {
-        foreach (var processor in _processors)
+        foreach (var processor in Processors)
             processor.PropertyChanged -= OnCommandChanged;
     }
 
     protected override void OnInitialized()
     {
-        _processors.AddRange(ServiceProvider.GetServices<CommandProcessor>());
-        foreach (var processor in _processors)
+        foreach (var processor in Processors)
             processor.PropertyChanged += OnCommandChanged;
     }
 

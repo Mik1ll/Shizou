@@ -1,5 +1,7 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi;
 
@@ -9,8 +11,9 @@ public class AniDbUdpProcessor : CommandProcessor
 {
     private readonly AniDbUdpState _aniDbUdpState;
 
-    public AniDbUdpProcessor(ILogger<AniDbUdpProcessor> logger, IServiceProvider provider, AniDbUdpState aniDbUdpState)
-        : base(logger, provider, QueueType.AniDbUdp)
+    public AniDbUdpProcessor(ILogger<AniDbUdpProcessor> logger, IServiceProvider provider, AniDbUdpState aniDbUdpState,
+        IDbContextFactory<ShizouContext> contextFactory)
+        : base(logger, provider, QueueType.AniDbUdp, contextFactory)
     {
         _aniDbUdpState = aniDbUdpState;
     }
