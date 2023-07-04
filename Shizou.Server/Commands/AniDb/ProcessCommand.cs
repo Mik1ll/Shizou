@@ -241,10 +241,12 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private void UpdateEpRelations(AniDbFileResult result)
     {
-        var resultRels = (result.OtherEpisodeIds ?? new List<int>()).Append(result.EpisodeId!.Value)
+        var eRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
+        var rels = (result.OtherEpisodeIds ?? new List<int>()).Append(result.EpisodeId!.Value)
             .Select(x => new AniDbEpisodeFileXref { AniDbEpisodeId = x, AniDbFileId = result.FileId }).ToList();
-        var dbRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
-        _context.ReplaceList(resultRels, dbRels, r => r.AniDbEpisodeId);
+
+        _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(rels.Select(x => x.AniDbEpisodeId), x => x.AniDbEpisodeId));
+        _context.AniDbEpisodeFileXrefs.AddRange(rels.ExceptBy(eRels.Select(x => x.AniDbEpisodeId), x => x.AniDbEpisodeId));
 
         _context.SaveChanges();
     }
