@@ -33,7 +33,7 @@ public class HashCommand : BaseCommand<HashArgs>
         _commandService = commandService;
     }
 
-    public override async Task ProcessInner()
+    protected override async Task ProcessInner()
     {
         var file = new FileInfo(CommandArgs.Path);
         ImportFolder? importFolder;

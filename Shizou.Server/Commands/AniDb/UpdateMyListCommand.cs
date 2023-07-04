@@ -38,7 +38,7 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
         _udpRequestFactory = udpRequestFactory;
     }
 
-    public override async Task ProcessInner()
+    protected override async Task ProcessInner()
     {
         bool retry;
         do

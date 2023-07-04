@@ -47,7 +47,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     public TimeSpan MyListRequestPeriod { get; } = TimeSpan.FromHours(24);
 
-    public override async Task ProcessInner()
+    protected override async Task ProcessInner()
     {
         var myListResult = await GetMyList();
 

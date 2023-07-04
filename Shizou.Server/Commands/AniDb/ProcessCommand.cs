@@ -53,7 +53,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         base.SetParameters(args);
     }
 
-    public override async Task ProcessInner()
+    protected override async Task ProcessInner()
     {
         var result = await GetFileResult();
 

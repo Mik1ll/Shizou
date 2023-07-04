@@ -44,7 +44,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         base.SetParameters(args);
     }
 
-    public override async Task ProcessInner()
+    protected override async Task ProcessInner()
     {
         if (Path.Exists(Path.Combine(_animeResultCache.BasePath, _animeResultCacheKey)) && _animeResultCache.InsideRetentionPeriod(_animeResultCacheKey))
         {

@@ -34,5 +34,5 @@ public abstract class BaseCommand<T> : ICommand where T : CommandArgs
         await ProcessInner();
     }
 
-    public abstract Task ProcessInner();
+    protected abstract Task ProcessInner();
 }
