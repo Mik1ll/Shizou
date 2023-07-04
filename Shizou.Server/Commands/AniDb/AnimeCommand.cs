@@ -64,6 +64,23 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
 
         var aniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes)
             .FirstOrDefault(a => a.Id == CommandArgs.AnimeId);
+        var newAniDbAnime = AnimeResultToAniDbAnime(animeResult);
+        if (aniDbAnime is null)
+        {
+            _context.AniDbAnimes.Add(newAniDbAnime);
+        }
+        else
+        {
+            _context.Entry(aniDbAnime).CurrentValues.SetValues(newAniDbAnime);
+            _context.ReplaceList(newAniDbAnime.AniDbEpisodes, aniDbAnime.AniDbEpisodes, e => e.Id);
+        }
+
+        _context.SaveChanges();
+        Completed = true;
+    }
+
+    private static AniDbAnime AnimeResultToAniDbAnime(HttpAnimeResult animeResult)
+    {
         var mainTitle = animeResult.Titles.First(t => t.Type == "main");
         var newAniDbAnime = new AniDbAnime
         {
@@ -93,18 +110,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
             }).ToList(),
             Updated = DateTime.UtcNow
         };
-        if (aniDbAnime is null)
-        {
-            _context.AniDbAnimes.Add(newAniDbAnime);
-        }
-        else
-        {
-            _context.Entry(aniDbAnime).CurrentValues.SetValues(newAniDbAnime);
-            _context.ReplaceList(newAniDbAnime.AniDbEpisodes, aniDbAnime.AniDbEpisodes, e => e.Id);
-        }
-
-        _context.SaveChanges();
-        Completed = true;
+        return newAniDbAnime;
     }
 
     private async Task<HttpAnimeResult?> GetAnimeHttp()

@@ -80,22 +80,9 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         };
     }
 
-    private void UpdateDatabase(AniDbFileResult result)
+    private static AniDbFile FileResultToAniDbFile(AniDbFileResult result)
     {
-        if (result.Ed2K is null && result.State == 0) // Generics also have .rl extension but don't know if it's exclusive
-            UpdateGenericFile(result);
-        else
-            UpdateFile(result);
-    }
-
-    private void UpdateFile(AniDbFileResult result)
-    {
-        var file = _context.AniDbFiles
-            .Include(f => f.AniDbGroup)
-            .Include(f => f.MyListEntry)
-            .AsSingleQuery()
-            .SingleOrDefault(f => f.Id == result.FileId);
-        var newFile = new AniDbFile
+        return new AniDbFile
         {
             Id = result.FileId,
             Ed2K = result.Ed2K!,
@@ -140,40 +127,83 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                     Url = null
                 }
         };
+    }
 
-        if (newFile.MyListEntry is not null)
+    private void UpdateDatabase(AniDbFileResult result)
+    {
+        if (result.Ed2K is null && result.State == 0) // Generics also have .rl extension but don't know if it's exclusive
+            UpdateGenericFile(result);
+        else
+            UpdateFile(result);
+    }
+
+    private void UpdateFile(AniDbFileResult result)
+    {
+        var eFile = _context.AniDbFiles
+            .Include(f => f.AniDbGroup)
+            .Include(f => f.MyListEntry)
+            .AsSingleQuery()
+            .SingleOrDefault(f => f.Id == result.FileId);
+        var file = FileResultToAniDbFile(result);
+
+        if (file.MyListEntry is not null)
         {
-            var eMyListEntry = _context.AniDbMyListEntries.Find(newFile.MyListEntryId);
+            var eMyListEntry = _context.AniDbMyListEntries.Find(file.MyListEntryId);
             if (eMyListEntry is null)
-                _context.AniDbMyListEntries.Add(newFile.MyListEntry);
+                _context.AniDbMyListEntries.Add(file.MyListEntry);
             else
-                _context.Entry(eMyListEntry).CurrentValues.SetValues(newFile.MyListEntry);
+                _context.Entry(eMyListEntry).CurrentValues.SetValues(file.MyListEntry);
         }
-        if (file?.MyListEntry is not null && file.MyListEntryId != newFile.MyListEntryId)
-            _context.AniDbMyListEntries.Remove(file.MyListEntry);
+        if (eFile?.MyListEntry is not null && eFile.MyListEntryId != file.MyListEntryId)
+            _context.AniDbMyListEntries.Remove(eFile.MyListEntry);
         _context.SaveChanges();
 
-        if (newFile.AniDbGroup is not null)
+        if (file.AniDbGroup is not null)
         {
-            var eAniDbGroup = _context.AniDbGroups.Find(newFile.AniDbGroupId);
+            var eAniDbGroup = _context.AniDbGroups.Find(file.AniDbGroupId);
             if (eAniDbGroup is null)
-                _context.AniDbGroups.Add(newFile.AniDbGroup);
+                _context.AniDbGroups.Add(file.AniDbGroup);
             else
-                _context.Entry(eAniDbGroup).CurrentValues.SetValues(newFile.AniDbGroup);
+                _context.Entry(eAniDbGroup).CurrentValues.SetValues(file.AniDbGroup);
         }
         _context.SaveChanges();
 
 
-        if (file is null)
+        if (eFile is null)
         {
-            _context.Entry(newFile).State = EntityState.Added;
+            _context.Entry(file).State = EntityState.Added;
+            if (file.Video is not null)
+                _context.Entry(file.Video).State = EntityState.Added;
+            foreach (var a in file.Audio)
+                _context.Entry(a).State = EntityState.Added;
+            foreach (var s in file.Subtitles)
+                _context.Entry(s).State = EntityState.Added;
         }
         else
         {
-            _context.ReplaceList(newFile.Audio, file.Audio, a => a.Id);
-            _context.ReplaceList(newFile.Subtitles, file.Subtitles, s => s.Id);
-            _context.Entry(file).CurrentValues.SetValues(newFile);
+            _context.Entry(eFile).CurrentValues.SetValues(file);
+            if (eFile.Video is not null && file.Video is not null)
+                _context.Entry(eFile.Video).CurrentValues.SetValues(file.Video);
+            else
+                eFile.Video = file.Video;
+
+            foreach (var a in eFile.Audio.ExceptBy(file.Audio.Select(a => a.Id), a => a.Id))
+                eFile.Audio.Remove(a);
+            foreach (var s in eFile.Subtitles.ExceptBy(file.Subtitles.Select(s => s.Id), s => s.Id))
+                eFile.Subtitles.Remove(s);
+
+            foreach (var a in file.Audio)
+                if (eFile.Audio.FirstOrDefault(x => x.Id == a.Id) is var ea && ea is null)
+                    eFile.Audio.Add(a);
+                else
+                    _context.Entry(ea).CurrentValues.SetValues(a);
+            foreach (var s in file.Subtitles)
+                if (eFile.Subtitles.FirstOrDefault(x => x.Id == s.Id) is var es && es is null)
+                    eFile.Subtitles.Add(s);
+                else
+                    _context.Entry(es).CurrentValues.SetValues(s);
         }
+
         _context.SaveChanges();
 
         UpdateEpRelations(result);
