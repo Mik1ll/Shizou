@@ -49,7 +49,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     public override void SetParameters(CommandArgs args)
     {
-        _fileResultCacheKey = $"File_{((ProcessArgs)args).Id}.json";
+        var pargs = (ProcessArgs)args;
+        _fileResultCacheKey = $"File_{pargs.IdType.ToString()}_{pargs.Id}.json";
         base.SetParameters(args);
     }
 
