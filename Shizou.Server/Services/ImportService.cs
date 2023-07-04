@@ -53,12 +53,4 @@ public class ImportService
 
         _commandService.DispatchRange(filesToHash.Select(e => new HashArgs(e.FullName)));
     }
-
-    public void CheckForMissingFiles()
-    {
-        using var context = _contextFactory.CreateDbContext();
-        var files = context.LocalFiles.Join(context.ImportFolders, e => e.ImportFolderId, e => e.Id,
-                (file, folder) => new { Path = Path.GetFullPath(Path.Combine(folder.Path, file.PathTail)), LocalFile = file })
-            .Where(e => !new FileInfo(e.Path).Exists).Select(e => e.LocalFile);
-    }
 }
