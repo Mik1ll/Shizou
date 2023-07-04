@@ -211,31 +211,31 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private void UpdateGenericFile(AniDbFileResult result)
     {
-        var genericFile = _context.AniDbGenericFiles.Include(f => f.MyListEntry)
+        var eGenericFile = _context.AniDbGenericFiles.Include(f => f.MyListEntry)
             .SingleOrDefault(f => f.Id == result.FileId);
-        var newGenericFile = new AniDbGenericFile
+        var genericFile = new AniDbGenericFile
         {
             Id = result.FileId,
             AniDbEpisodeId = result.EpisodeId!.Value,
             MyListEntryId = result.MyListId,
             MyListEntry = result.MyListId is null ? null : FileResultToAniDbMyListEntry(result)
         };
-        if (newGenericFile.MyListEntry is not null)
+        if (genericFile.MyListEntry is not null)
         {
-            var eMyListEntry = _context.AniDbMyListEntries.Find(newGenericFile.MyListEntryId);
+            var eMyListEntry = _context.AniDbMyListEntries.Find(genericFile.MyListEntryId);
             if (eMyListEntry is null)
-                _context.AniDbMyListEntries.Add(newGenericFile.MyListEntry);
+                _context.AniDbMyListEntries.Add(genericFile.MyListEntry);
             else
-                _context.Entry(eMyListEntry).CurrentValues.SetValues(newGenericFile.MyListEntry);
+                _context.Entry(eMyListEntry).CurrentValues.SetValues(genericFile.MyListEntry);
         }
-        if (genericFile?.MyListEntry is not null && genericFile.MyListEntryId != newGenericFile.MyListEntryId)
-            _context.AniDbMyListEntries.Remove(genericFile.MyListEntry);
+        if (eGenericFile?.MyListEntry is not null && eGenericFile.MyListEntryId != genericFile.MyListEntryId)
+            _context.AniDbMyListEntries.Remove(eGenericFile.MyListEntry);
         _context.SaveChanges();
 
-        if (genericFile is null)
-            _context.Entry(newGenericFile).State = EntityState.Added;
+        if (eGenericFile is null)
+            _context.Entry(genericFile).State = EntityState.Added;
         else
-            _context.Entry(genericFile).CurrentValues.SetValues(newGenericFile);
+            _context.Entry(eGenericFile).CurrentValues.SetValues(genericFile);
         _context.SaveChanges();
     }
 
