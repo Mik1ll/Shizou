@@ -44,28 +44,6 @@ public sealed class ShizouContext : IdentityDbContext
             select f;
     }
 
-    public void ReplaceList<T, TKey>(List<T> source, List<T> destination, Func<T, TKey> keySelector)
-        where TKey : IEquatable<TKey>
-        where T : notnull
-    {
-        var removeItems = destination.Where(x => !source.Any(a => keySelector(a).Equals(keySelector(x)))).ToList();
-        foreach (var item in removeItems)
-        {
-            Entry(item).State = EntityState.Deleted;
-            destination.Remove(item);
-        }
-        foreach (var item in source)
-            if (destination.FirstOrDefault(a => keySelector(a).Equals(keySelector(item))) is var eItem && eItem is null)
-            {
-                Entry(item).State = EntityState.Added;
-                destination.Add(item);
-            }
-            else
-            {
-                Entry(eItem).CurrentValues.SetValues(item);
-            }
-    }
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)

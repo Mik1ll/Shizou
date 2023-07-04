@@ -62,17 +62,23 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
             return;
         }
 
-        var aniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes)
+        var eAniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes)
             .FirstOrDefault(a => a.Id == CommandArgs.AnimeId);
-        var newAniDbAnime = AnimeResultToAniDbAnime(animeResult);
-        if (aniDbAnime is null)
+        var aniDbAnime = AnimeResultToAniDbAnime(animeResult);
+        if (eAniDbAnime is null)
         {
-            _context.AniDbAnimes.Add(newAniDbAnime);
+            _context.AniDbAnimes.Add(aniDbAnime);
         }
         else
         {
-            _context.Entry(aniDbAnime).CurrentValues.SetValues(newAniDbAnime);
-            _context.ReplaceList(newAniDbAnime.AniDbEpisodes, aniDbAnime.AniDbEpisodes, e => e.Id);
+            _context.Entry(eAniDbAnime).CurrentValues.SetValues(aniDbAnime);
+            foreach (var e in eAniDbAnime.AniDbEpisodes.ExceptBy(aniDbAnime.AniDbEpisodes.Select(x => x.Id), x => x.Id))
+                eAniDbAnime.AniDbEpisodes.Remove(e);
+            foreach (var e in aniDbAnime.AniDbEpisodes)
+                if (eAniDbAnime.AniDbEpisodes.FirstOrDefault(x => x.Id == e.Id) is var ee && ee is null)
+                    eAniDbAnime.AniDbEpisodes.Add(e);
+                else
+                    _context.Entry(ee).CurrentValues.SetValues(e);
         }
 
         _context.SaveChanges();
