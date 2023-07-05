@@ -63,7 +63,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
         UpdateDatabase(result);
 
-        _commandService.Dispatch(new AnimeArgs(result.AnimeId!.Value));
+        if (!_context.AniDbAnimes.Any(a => a.Id == result.AnimeId))
+            _commandService.Dispatch(new AnimeArgs(result.AnimeId!.Value));
 
         Completed = true;
     }
