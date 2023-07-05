@@ -146,17 +146,22 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             .SingleOrDefault(f => f.Id == result.FileId);
         var file = FileResultToAniDbFile(result);
 
-        if (file.MyListEntry is not null)
-        {
-            var eMyListEntry = _context.AniDbMyListEntries.Find(file.MyListEntryId);
-            if (eMyListEntry is null)
-                _context.AniDbMyListEntries.Add(file.MyListEntry);
-            else
-                _context.Entry(eMyListEntry).CurrentValues.SetValues(file.MyListEntry);
-        }
-        if (eFile?.MyListEntry is not null && eFile.MyListEntryId != file.MyListEntryId)
-            _context.AniDbMyListEntries.Remove(eFile.MyListEntry);
+        UpdateNavigations(file);
+
+        if (eFile is null)
+            _context.Entry(file).State = EntityState.Added;
+        else
+            _context.Entry(eFile).CurrentValues.SetValues(file);
         _context.SaveChanges();
+
+        UpdateOwnedNavigations(file, eFile);
+
+        UpdateEpRelations(result);
+    }
+
+    private void UpdateNavigations(AniDbFile file)
+    {
+        UpdateMyListEntry(file.MyListEntry);
 
         if (file.AniDbGroup is not null)
         {
@@ -167,11 +172,12 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                 _context.Entry(eAniDbGroup).CurrentValues.SetValues(file.AniDbGroup);
         }
         _context.SaveChanges();
+    }
 
-
+    private void UpdateOwnedNavigations(AniDbFile file, AniDbFile? eFile)
+    {
         if (eFile is null)
         {
-            _context.Entry(file).State = EntityState.Added;
             if (file.Video is not null)
                 _context.Entry(file.Video).State = EntityState.Added;
             foreach (var a in file.Audio)
@@ -181,7 +187,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         }
         else
         {
-            _context.Entry(eFile).CurrentValues.SetValues(file);
             if (eFile.Video is not null && file.Video is not null)
                 _context.Entry(eFile.Video).CurrentValues.SetValues(file.Video);
             else
@@ -203,10 +208,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                 else
                     _context.Entry(es).CurrentValues.SetValues(s);
         }
-
         _context.SaveChanges();
-
-        UpdateEpRelations(result);
     }
 
     private void UpdateGenericFile(AniDbFileResult result)
@@ -220,23 +222,27 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             MyListEntryId = result.MyListId,
             MyListEntry = result.MyListId is null ? null : FileResultToAniDbMyListEntry(result)
         };
-        if (genericFile.MyListEntry is not null)
-        {
-            var eMyListEntry = _context.AniDbMyListEntries.Find(genericFile.MyListEntryId);
-            if (eMyListEntry is null)
-                _context.AniDbMyListEntries.Add(genericFile.MyListEntry);
-            else
-                _context.Entry(eMyListEntry).CurrentValues.SetValues(genericFile.MyListEntry);
-        }
-        if (eGenericFile?.MyListEntry is not null && eGenericFile.MyListEntryId != genericFile.MyListEntryId)
-            _context.AniDbMyListEntries.Remove(eGenericFile.MyListEntry);
-        _context.SaveChanges();
 
+        UpdateMyListEntry(genericFile.MyListEntry);
+        
         if (eGenericFile is null)
             _context.Entry(genericFile).State = EntityState.Added;
         else
             _context.Entry(eGenericFile).CurrentValues.SetValues(genericFile);
         _context.SaveChanges();
+    }
+
+    private void UpdateMyListEntry(AniDbMyListEntry? entry)
+    {
+        if (entry is not null)
+        {
+            var eEntry = _context.AniDbMyListEntries.Find(entry.Id);
+            if (eEntry is null)
+                _context.AniDbMyListEntries.Add(entry);
+            else
+                _context.Entry(eEntry).CurrentValues.SetValues(entry);
+            _context.SaveChanges();
+        }
     }
 
     private void UpdateEpRelations(AniDbFileResult result)

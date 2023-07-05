@@ -49,7 +49,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         if (Path.Exists(Path.Combine(_animeResultCache.BasePath, _animeResultCacheKey)) && _animeResultCache.InsideRetentionPeriod(_animeResultCacheKey))
         {
             _logger.LogWarning("Ignoring HTTP anime request: {AnimeId}, already requested in last {Hours} hours", CommandArgs.AnimeId,
-                _animeResultCache.RetentionDuration);
+                _animeResultCache.RetentionDuration.TotalHours);
             Completed = true;
             return;
         }
