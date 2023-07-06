@@ -270,6 +270,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         {
             case IdType.LocalId:
             {
+                // ReSharper disable once MethodHasAsyncOverload
                 var localFile = _context.LocalFiles.Find(CommandArgs.Id);
                 if (localFile is null)
                 {

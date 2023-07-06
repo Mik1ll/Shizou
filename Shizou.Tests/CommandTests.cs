@@ -9,15 +9,14 @@ namespace Shizou.Tests;
 public class CommandTests
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly ServiceCollection _serviceCollection;
 
     public CommandTests()
     {
-        _serviceCollection = new ServiceCollection();
-        _serviceCollection.AddDbContext<ShizouContext>();
-        _serviceCollection.AddScoped<HttpAnimeResultCache>();
-        _serviceCollection.AddLogging();
-        _serviceProvider = _serviceCollection.BuildServiceProvider();
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddDbContext<ShizouContext>();
+        serviceCollection.AddScoped<HttpAnimeResultCache>();
+        serviceCollection.AddLogging();
+        _serviceProvider = serviceCollection.BuildServiceProvider();
     }
 
     [TestMethod]
@@ -25,7 +24,6 @@ public class CommandTests
     public void TestDI()
     {
         using var scope = _serviceProvider.CreateScope();
-        var command = ActivatorUtilities.CreateInstance(scope.ServiceProvider, typeof(AnimeCommand), new AnimeArgs(5));
-        ;
+        ActivatorUtilities.CreateInstance(scope.ServiceProvider, typeof(AnimeCommand), new AnimeArgs(5));
     }
 }
