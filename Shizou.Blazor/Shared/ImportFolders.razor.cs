@@ -10,7 +10,7 @@ public partial class ImportFolders
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JsRuntime.InvokeVoidAsync("loadTooltip", "scanButton");
+        await JsRuntime.InvokeVoidAsync("loadTooltip", "scan-button");
         await base.OnAfterRenderAsync(firstRender);
     }
 }

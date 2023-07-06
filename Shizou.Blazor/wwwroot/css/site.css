@@ -71,3 +71,8 @@ a, .btn-link {
 table .absorbing-column {
     width: 100%;
 }
+
+.white-tooltip {
+    --bs-tooltip-color: black;
+    --bs-tooltip-bg: white;
+}
