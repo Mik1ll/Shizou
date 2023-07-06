@@ -13,6 +13,7 @@ public class MyListAddRequest : AniDbUdpRequest
     public MyListState? State { get; set; }
     public MyListFileState? FileState { get; set; }
     public AniDbMyListAddResult? MyListResult { get; private set; }
+    public int EntriesAffected { get; set; }
 
     public MyListAddRequest(
         ILogger<MyListAddRequest> logger, AniDbUdpState aniDbUdpState
@@ -29,10 +30,18 @@ public class MyListAddRequest : AniDbUdpRequest
                 {
                     return Task.CompletedTask;
                 }
-                if (Args["edit"] == "0" && Args.ContainsKey("fid"))
+                if (Args.ContainsKey("fid") || Args.ContainsKey("ed2k"))
+                {
                     MyListResult = new AniDbMyListAddResult(int.Parse(ResponseText), DateTimeOffset.UtcNow, State, Watched, WatchedDate, FileState);
+                    EntriesAffected = 1;
+                }
+                else
+                {
+                    EntriesAffected = int.Parse(ResponseText);
+                }
                 break;
             case AniDbResponseCode.MyListEdited:
+                EntriesAffected = string.IsNullOrWhiteSpace(ResponseText) ? 1 : int.Parse(ResponseText);
                 break;
             case AniDbResponseCode.MultipleFilesFound:
                 break;
