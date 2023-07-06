@@ -69,15 +69,21 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         Completed = true;
     }
 
-    private static AniDbMyListEntry FileResultToAniDbMyListEntry(AniDbFileResult result)
+    private static AniDbMyListEntry? FileResultToAniDbMyListEntry(AniDbFileResult result)
     {
-        return new AniDbMyListEntry
+        return result.MyListId is null
+            ? null
+            : new AniDbMyListEntry
         {
-            Id = result.MyListId!.Value,
+            Id = result.MyListId.Value,
+            AnimeId = result.AnimeId!.Value,
+            EpisodeId = result.EpisodeId!.Value,
+            FileId = result.FileId,
             Watched = result.MyListViewed!.Value,
             WatchedDate = result.MyListViewDate?.UtcDateTime,
             MyListState = result.MyListState!.Value,
-            MyListFileState = result.MyListFileState!.Value
+            MyListFileState = result.MyListFileState!.Value,
+            Updated = DateTime.UtcNow
         };
     }
 
@@ -98,10 +104,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             Source = result.Source,
             FileVersion = result.State!.Value.FileVersion(),
             Updated = DateTime.UtcNow,
-            MyListEntryId = result.MyListId,
-            MyListEntry = result.MyListId is null
-                ? null
-                : FileResultToAniDbMyListEntry(result),
             Audio = result.AudioCodecs!.Zip(result.AudioBitRates!, (codec, bitrate) => (codec, bitrate))
                 .Zip(result.DubLanguages!, (tup, lang) => (tup.codec, tup.bitrate, lang)).Select((tuple, i) =>
                     new AniDbAudio { Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Id = i + 1, AniDbFileId = result.FileId }).ToList(),
@@ -136,17 +138,18 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             UpdateGenericFile(result);
         else
             UpdateFile(result);
+
+        UpdateMyListEntry(result);
     }
 
     private void UpdateFile(AniDbFileResult result)
     {
         var eFile = _context.AniDbFiles
             .Include(f => f.AniDbGroup)
-            .Include(f => f.MyListEntry)
             .AsSingleQuery()
             .SingleOrDefault(f => f.Id == result.FileId);
         var file = FileResultToAniDbFile(result);
-
+        
         UpdateNavigations(file);
 
         if (eFile is null)
@@ -162,8 +165,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private void UpdateNavigations(AniDbFile file)
     {
-        UpdateMyListEntry(file.MyListEntry);
-
         if (file.AniDbGroup is not null)
         {
             var eAniDbGroup = _context.AniDbGroups.Find(file.AniDbGroupId);
@@ -214,17 +215,14 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private void UpdateGenericFile(AniDbFileResult result)
     {
-        var eGenericFile = _context.AniDbGenericFiles.Include(f => f.MyListEntry)
+        var eGenericFile = _context.AniDbGenericFiles
             .SingleOrDefault(f => f.Id == result.FileId);
         var genericFile = new AniDbGenericFile
         {
             Id = result.FileId,
-            AniDbEpisodeId = result.EpisodeId!.Value,
-            MyListEntryId = result.MyListId,
-            MyListEntry = result.MyListId is null ? null : FileResultToAniDbMyListEntry(result)
+            AniDbEpisodeId = result.EpisodeId!.Value
         };
 
-        UpdateMyListEntry(genericFile.MyListEntry);
         
         if (eGenericFile is null)
             _context.Entry(genericFile).State = EntityState.Added;
@@ -233,8 +231,9 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         _context.SaveChanges();
     }
 
-    private void UpdateMyListEntry(AniDbMyListEntry? entry)
+    private void UpdateMyListEntry(AniDbFileResult result)
     {
+        var entry = FileResultToAniDbMyListEntry(result);
         if (entry is not null)
         {
             var eEntry = _context.AniDbMyListEntries.Find(entry.Id);

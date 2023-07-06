@@ -19,7 +19,7 @@ public class AniDbEpisode : IEntity
     public bool Watched { get; set; }
     public DateTime? WatchedUpdated { get; set; }
 
-    public DateTime? Updated { get; set; }
+    public required DateTime Updated { get; set; }
 
     public required int AniDbAnimeId { get; set; }
     [JsonIgnore] public AniDbAnime AniDbAnime { get; set; } = null!;

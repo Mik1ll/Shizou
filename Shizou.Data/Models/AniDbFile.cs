@@ -17,7 +17,7 @@ public class AniDbFile : IEntity
     public required long FileSize { get; set; }
     public required int? DurationSeconds { get; set; }
     public required string? Source { get; set; }
-    public DateTime? Updated { get; set; }
+    public required DateTime Updated { get; set; }
     public required int FileVersion { get; set; }
     public required string FileName { get; set; }
     public required bool? Censored { get; set; }
@@ -25,10 +25,8 @@ public class AniDbFile : IEntity
     public required bool Chaptered { get; set; }
     public bool Watched { get; set; }
     public DateTime? WatchedUpdated { get; set; }
-
-    public int? MyListEntryId { get; set; }
-    [JsonIgnore] public AniDbMyListEntry? MyListEntry { get; set; }
-
+    
+    
     public int? AniDbGroupId { get; set; }
     [JsonIgnore] public AniDbGroup? AniDbGroup { get; set; }
 

@@ -81,6 +81,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
                     _context.Entry(ee).CurrentValues.SetValues(e);
         }
 
+        // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
         Completed = true;
     }

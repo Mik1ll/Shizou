@@ -71,11 +71,14 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         return new AniDbMyListEntry
         {
             Id = item.Id,
+            AnimeId = item.Aid,
+            EpisodeId = item.Eid,
+            FileId = item.Fid,
             Watched = item.Viewdate is not null,
             WatchedDate = item.Viewdate is null ? null : DateTime.Parse(item.Viewdate).ToUniversalTime(),
             MyListState = item.State,
             MyListFileState = item.FileState,
-            Updated = DateTime.SpecifyKind(DateTime.Parse(item.Updated), DateTimeKind.Utc)
+            Updated = DateTime.UtcNow
         };
     }
 
@@ -123,22 +126,10 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         _context.AniDbMyListEntries.RemoveRange(toDelete);
         // Add new anidb entries that don't exist in local db
         var toAdd = remoteItems.ExceptBy(localEntries.Select(e => e.Id), e => e.Id).ToList();
-        var fileIds = _context.AniDbFiles.Select(f => f.Id).ToHashSet();
-        var genericFileIds = _context.AniDbGenericFiles.Select(e => e.Id).ToHashSet();
         foreach (var item in toAdd)
         {
             var newEntry = ItemToAniDbMyListEntry(item);
             _context.AniDbMyListEntries.Add(newEntry);
-            if (fileIds.Contains(item.Fid))
-            {
-                var relatedFile = _context.AniDbFiles.Include(f => f.MyListEntry).First(f => f.Id == item.Fid);
-                relatedFile.MyListEntry = newEntry;
-            }
-            else if (genericFileIds.Contains(item.Fid))
-            {
-                var relatedGenericFile = _context.AniDbGenericFiles.Include(f => f.MyListEntry).First(f => f.Id == item.Fid);
-                relatedGenericFile.MyListEntry = newEntry;
-            }
         }
         // Replace changed entries
         var toUpdate = myListResult.MyListItems.Except(toAdd);

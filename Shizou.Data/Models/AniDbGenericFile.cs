@@ -11,7 +11,4 @@ public class AniDbGenericFile : IEntity
     public int Id { get; set; }
 
     public int AniDbEpisodeId { get; set; }
-
-    public int? MyListEntryId { get; set; }
-    [JsonIgnore] public AniDbMyListEntry? MyListEntry { get; set; }
 }
