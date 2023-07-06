@@ -30,7 +30,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
     private readonly ShizouContext _context;
     private readonly AniDbFileResultCache _fileResultCache;
     private readonly UdpRequestFactory _udpRequestFactory;
-    private string _fileResultCacheKey = null!;
 
     public ProcessCommand(
         ILogger<ProcessCommand> logger,
@@ -47,13 +46,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         _udpRequestFactory = udpRequestFactory;
     }
 
-    public override void SetParameters(CommandArgs args)
-    {
-        var pargs = (ProcessArgs)args;
-        _fileResultCacheKey = $"File_{pargs.IdType.ToString()}_{pargs.Id}.json";
-        base.SetParameters(args);
-    }
-
     protected override async Task ProcessInner()
     {
         var result = await GetFileResult();
@@ -63,7 +55,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
         if (!_context.AniDbAnimes.Any(a => a.Id == result.AnimeId))
             _commandService.Dispatch(new AnimeArgs(result.AnimeId!.Value));
-        
+
         UpdateDatabase(result);
 
         Completed = true;
@@ -74,17 +66,17 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         return result.MyListId is null
             ? null
             : new AniDbMyListEntry
-        {
-            Id = result.MyListId.Value,
-            AnimeId = result.AnimeId!.Value,
-            EpisodeId = result.EpisodeId!.Value,
-            FileId = result.FileId,
-            Watched = result.MyListViewed!.Value,
-            WatchedDate = result.MyListViewDate?.UtcDateTime,
-            MyListState = result.MyListState!.Value,
-            MyListFileState = result.MyListFileState!.Value,
-            Updated = DateTime.UtcNow
-        };
+            {
+                Id = result.MyListId.Value,
+                AnimeId = result.AnimeId!.Value,
+                EpisodeId = result.EpisodeId!.Value,
+                FileId = result.FileId,
+                Watched = result.MyListViewed!.Value,
+                WatchedDate = result.MyListViewDate?.UtcDateTime,
+                MyListState = result.MyListState!.Value,
+                MyListFileState = result.MyListFileState!.Value,
+                Updated = DateTime.UtcNow
+            };
     }
 
     private static AniDbFile FileResultToAniDbFile(AniDbFileResult result)
@@ -149,7 +141,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             .AsSingleQuery()
             .SingleOrDefault(f => f.Id == result.FileId);
         var file = FileResultToAniDbFile(result);
-        
+
         UpdateNavigations(file);
 
         if (eFile is null)
@@ -223,7 +215,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             AniDbEpisodeId = result.EpisodeId!.Value
         };
 
-        
+
         if (eGenericFile is null)
             _context.Entry(genericFile).State = EntityState.Added;
         else
@@ -259,12 +251,9 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private async Task<AniDbFileResult?> GetFileResult()
     {
-        // Check if file was requested before and did not complete
-        var result = await _fileResultCache.Get(_fileResultCacheKey);
-        if (result is not null)
-            return result;
-
+        string? fileResultCacheKey;
         FileRequest? fileReq;
+        AniDbFileResult? result;
         switch (CommandArgs.IdType)
         {
             case IdType.LocalId:
@@ -277,11 +266,19 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                     _logger.LogWarning("Unable to process local file id: {LocalFileId} not found, skipping", CommandArgs.Id);
                     return null;
                 }
+                fileResultCacheKey = $"File_Ed2k={localFile.Ed2K}.json";
+                result = await _fileResultCache.Get(fileResultCacheKey);
+                if (result is not null)
+                    return result;
                 _logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2K);
                 fileReq = _udpRequestFactory.FileRequest(localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             }
             case IdType.FileId:
+                fileResultCacheKey = $"File_Id={CommandArgs.Id}.json";
+                result = await _fileResultCache.Get(fileResultCacheKey);
+                if (result is not null)
+                    return result;
                 _logger.LogInformation("Processing file id: {FileId}", CommandArgs.Id);
                 fileReq = _udpRequestFactory.FileRequest(CommandArgs.Id, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
@@ -302,7 +299,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         }
         else
         {
-            await _fileResultCache.Save(_fileResultCacheKey, result);
+            await _fileResultCache.Save(fileResultCacheKey, result);
         }
         return result;
     }
