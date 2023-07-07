@@ -8,17 +8,16 @@ using Shizou.Server.AniDbApi.Requests.Udp;
 namespace Shizou.Server.Commands.AniDb;
 
 public record UpdateMyListArgs(
-        int? Lid = null,
-        int? Fid = null,
-        int? Aid = null, string? EpNo = null,
-        bool? Edit = null,
+        bool Edit,
+        MyListState MyListState,
         bool? Watched = null,
         DateTimeOffset? WatchedDate = null,
-        MyListState? MyListState = null,
-        MyListFileState? MyListFileState = null
+        int? Lid = null,
+        int? Fid = null,
+        int? Aid = null, string? EpNo = null
     )
     : CommandArgs($"{nameof(UpdateMyListCommand)}_lid={Lid}_fid={Fid}_aid={Aid}_epno={EpNo}"
-                  + $"_edit={Edit}_watched={Watched}_state={MyListState}_filestate={MyListFileState}");
+                  + $"_edit={Edit}_watched={Watched}_state={MyListState}");
 
 [Command(CommandType.UpdateMyList, CommandPriority.Normal, QueueType.AniDbUdp)]
 public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
@@ -40,50 +39,53 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
 
     protected override async Task ProcessInner()
     {
-        bool retry;
-        do
-        {
-            retry = false;
-            var request = CommandArgs switch
-            {
-                { Lid: not null, Edit: true } and ({ Fid: not null } or { Aid: not null, EpNo: not null }) =>
-                    _udpRequestFactory.MyListAddRequest(CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState,
-                        CommandArgs.MyListFileState),
-                { Fid: not null, Edit: not null } =>
-                    _udpRequestFactory.MyListAddRequest(CommandArgs.Fid.Value, CommandArgs.Edit.Value, CommandArgs.Watched, CommandArgs.WatchedDate,
-                        CommandArgs.MyListState, CommandArgs.MyListFileState),
-                { Aid: not null, EpNo: not null, Edit: not null } =>
-                    _udpRequestFactory.MyListAddRequest(CommandArgs.Aid.Value, CommandArgs.EpNo, CommandArgs.Edit.Value, CommandArgs.Watched,
-                        CommandArgs.WatchedDate, CommandArgs.MyListState, CommandArgs.MyListFileState),
-                _ => null
-            };
-            if (request is null)
-            {
-                Completed = true;
-                _logger.LogError("Skipping, arguments are not valid");
-                return;
-            }
-            await request.Process();
-            switch (request.ResponseCode)
-            {
-                case AniDbResponseCode.MyListAdded:
-                    // check if less than number of episodes on aid add and run again with edit
-                    break;
-                case AniDbResponseCode.FileInMyList:
-                    break;
-                case AniDbResponseCode.MultipleMyListEntries:
-                    break;
-                case AniDbResponseCode.MyListEdited:
-                    // check if less than number of episodes on aid edit and run again with add
-                    break;
+        if (await ProcessRequest())
+            if (await ProcessRequest())
+                await ProcessRequest();
+        Completed = true;
+    }
 
-                case AniDbResponseCode.NoSuchMyListEntry:
+    private async Task<bool> ProcessRequest()
+    {
+        var request = CommandArgs switch
+        {
+            { Lid: not null, Fid: not null, Aid: null, EpNo: null, Edit: true, Watched: not null } =>
+                _udpRequestFactory.MyListAddRequest(CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState),
+            { Fid: not null, Aid: null, EpNo: null, Edit: false, Watched: not null } =>
+                _udpRequestFactory.MyListAddRequest(CommandArgs.Fid.Value, CommandArgs.Edit, CommandArgs.Watched, CommandArgs.WatchedDate,
+                    CommandArgs.MyListState),
+            { Aid: not null, EpNo: not null, Lid: null, Fid: null } =>
+                _udpRequestFactory.MyListAddRequest(CommandArgs.Aid.Value, CommandArgs.EpNo, CommandArgs.Edit, CommandArgs.Watched,
+                    CommandArgs.WatchedDate, CommandArgs.MyListState),
+            _ => throw new ArgumentException($"{nameof(UpdateMyListArgs)} not valid")
+        };
+        await request.Process();
+        var retry = false;
+        switch (request.ResponseCode)
+        {
+            case AniDbResponseCode.MyListAdded:
+                break;
+            case AniDbResponseCode.FileInMyList:
+                if (CommandArgs is { Fid: not null })
+                {
+                    CommandArgs = CommandArgs with { Lid = request.ExistingEntryResult!.ListId, Edit = true };
+                    retry = true;
+                    _logger.LogInformation("Mylist entry already exists, retrying with edit");
+                }
+                break;
+            case AniDbResponseCode.MultipleMyListEntries:
+                break;
+            case AniDbResponseCode.MyListEdited:
+                break;
+            case AniDbResponseCode.NoSuchMyListEntry:
+                if (CommandArgs is { Lid: not null })
+                {
                     CommandArgs = CommandArgs with { Lid = null, Edit = false };
                     retry = true;
                     _logger.LogInformation("Mylist entry not found, retrying with add");
-                    break;
-            }
-        } while (retry);
-        Completed = true;
+                }
+                break;
+        }
+        return retry;
     }
 }

@@ -75,7 +75,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             EpisodeId = item.Eid,
             FileId = item.Fid,
             Watched = item.Viewdate is not null,
-            WatchedDate = item.Viewdate is null ? null : DateTime.Parse(item.Viewdate).ToUniversalTime(),
+            WatchedDate = item.Viewdate is null ? null : DateTimeOffset.Parse(item.Viewdate).UtcDateTime,
             MyListState = item.State,
             MyListFileState = item.FileState,
             Updated = DateTime.UtcNow
@@ -114,7 +114,8 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             (filesWithoutLocal.Contains(item.Fid) || (filesWithoutManualLinks.Contains(item.Fid) &&
                                                       item.State != _options.MyList.AbsentFileState)));
         _commandService.DispatchRange(noLocalFiles.Select(item =>
-            new UpdateMyListArgs(item.Id, Edit: true, MyListState: _options.MyList.AbsentFileState)));
+            new UpdateMyListArgs(Lid: item.Id, Edit: true, MyListState: _options.MyList.AbsentFileState, Watched: item.Viewdate is not null,
+                WatchedDate: item.Viewdate is null ? null : DateTimeOffset.Parse(item.Viewdate).UtcDateTime)));
     }
 
     private void SyncMyListEntries(HttpMyListResult myListResult)

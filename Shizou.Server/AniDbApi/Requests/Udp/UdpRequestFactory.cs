@@ -120,14 +120,11 @@ public class UdpRequestFactory
     }
 
     private MyListAddRequest MyListAddRequest(
-        bool edit, bool? watched, DateTimeOffset? watchedDate, MyListState? state, MyListFileState? fileState
+        bool edit, bool? watched, DateTimeOffset? watchedDate, MyListState? state
     )
     {
         var request = _provider.GetRequiredService<MyListAddRequest>();
-        request.Watched = watched;
-        request.WatchedDate = watchedDate;
-        request.State = state;
-        request.FileState = fileState;
+        request.Args["filestate"] = ((int)MyListFileState.Normal).ToString();
         request.Args["edit"] = edit ? "1" : "0";
         if (watched is not null)
             request.Args["viewed"] = watched.Value ? "1" : "0";
@@ -135,36 +132,34 @@ public class UdpRequestFactory
             request.Args["viewdate"] = watchedDate.Value.ToUnixTimeSeconds().ToString();
         if (state is not null)
             request.Args["state"] = ((int)state).ToString();
-        if (fileState is not null)
-            request.Args["filestate"] = ((int)fileState).ToString();
         return request;
     }
 
     public MyListAddRequest MyListAddRequest(
-        int fid, bool edit, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null, MyListFileState? fileState = null
+        int fid, bool edit, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null
     )
     {
-        var request = MyListAddRequest(edit, watched, watchedDate, state, fileState);
+        var request = MyListAddRequest(edit, watched, watchedDate, state);
         request.Args["fid"] = fid.ToString();
         request.ParametersSet = true;
         return request;
     }
 
     public MyListAddRequest MyListAddRequest(
-        int lid, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null, MyListFileState? fileState = null
+        int lid, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null
     )
     {
-        var request = MyListAddRequest(true, watched, watchedDate, state, fileState);
+        var request = MyListAddRequest(true, watched, watchedDate, state);
         request.Args["lid"] = lid.ToString();
         request.ParametersSet = true;
         return request;
     }
 
     public MyListAddRequest MyListAddRequest(
-        int aid, string epno, bool edit, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null, MyListFileState? fileState = null
+        int aid, string epno, bool edit, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null
     )
     {
-        var request = MyListAddRequest(edit, watched, watchedDate, state, fileState);
+        var request = MyListAddRequest(edit, watched, watchedDate, state);
         request.Args["aid"] = aid.ToString();
         request.Args["epno"] = epno;
         request.Args["generic"] = "1";
