@@ -30,6 +30,14 @@ public class CommandController : ControllerBase
         _commandService.Dispatch(commandArgs);
     }
 
+    [HttpPut("SyncMyList")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [Consumes("application/json")]
+    public void SyncMyList()
+    {
+        _commandService.Dispatch(new SyncMyListArgs());
+    }
+
     [HttpPut("GenericUdpRequest")]
     [Produces("text/plain")]
     [Consumes("application/json")]

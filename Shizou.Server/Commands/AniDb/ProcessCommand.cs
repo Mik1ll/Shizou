@@ -68,8 +68,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             : new AniDbMyListEntry
             {
                 Id = result.MyListId.Value,
-                AnimeId = result.AnimeId!.Value,
-                EpisodeId = result.EpisodeId!.Value,
                 FileId = result.FileId,
                 Watched = result.MyListViewed!.Value,
                 WatchedDate = result.MyListViewDate?.UtcDateTime,
@@ -136,6 +134,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private void UpdateFile(AniDbFileResult result)
     {
+        _logger.LogInformation("Updating AniDb file information for file id {FileId}", result.FileId);
         var eFile = _context.AniDbFiles
             .Include(f => f.AniDbGroup)
             .AsSingleQuery()
@@ -207,6 +206,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private void UpdateGenericFile(AniDbFileResult result)
     {
+        _logger.LogInformation("Updating generic AniDb file information for file id {FileId}", result.FileId);
         var eGenericFile = _context.AniDbGenericFiles
             .SingleOrDefault(f => f.Id == result.FileId);
         var genericFile = new AniDbGenericFile

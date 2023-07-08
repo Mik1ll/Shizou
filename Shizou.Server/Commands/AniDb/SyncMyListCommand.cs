@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -57,13 +59,13 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             Completed = true;
             return;
         }
-        var myListEntries = myListResult.MyListItems.Select(ItemToAniDbMyListEntry).ToList();
+        var myListEntries = myListResult.MyListItems.DistinctBy(i => i.Id).Select(ItemToAniDbMyListEntry).ToList();
 
         SyncMyListEntries(myListEntries);
 
-        MarkAbsentFiles(myListEntries);
+        MarkAbsentFiles(myListResult.MyListItems);
 
-        FindGenericFiles(myListEntries);
+        FindGenericFiles(myListResult.MyListItems);
 
         Completed = true;
     }
@@ -73,8 +75,6 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         return new AniDbMyListEntry
         {
             Id = item.Id,
-            AnimeId = item.Aid,
-            EpisodeId = item.Eid,
             FileId = item.Fid,
             Watched = item.Viewdate is not null,
             WatchedDate = item.Viewdate is null ? null : DateTimeOffset.Parse(item.Viewdate).UtcDateTime,
@@ -84,7 +84,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         };
     }
 
-    private void FindGenericFiles(List<AniDbMyListEntry> myListEntries)
+    private void FindGenericFiles(List<MyListItem> myListItems)
     {
         var epsWithoutGenericFile = (from e in _context.AniDbEpisodes
             join f in _context.AniDbGenericFiles
@@ -92,35 +92,37 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             where !ef.Any()
             select e.Id).ToHashSet();
         var anidbFiles = _context.AniDbFiles.Select(f => f.Id).Union(_context.AniDbGenericFiles.Select(f => f.Id)).ToHashSet();
-        var commands = myListEntries.Where(item => epsWithoutGenericFile.Contains(item.EpisodeId) && !anidbFiles.Contains(item.FileId))
-            .Select(item => new ProcessArgs(item.FileId, IdType.FileId));
+        var commands = myListItems
+            .GroupBy(i => i.Id)
+            .Where(itemGroup => epsWithoutGenericFile.Intersect(itemGroup.Select(e => e.Eid)).Any() && !anidbFiles.Contains(itemGroup.First().Fid))
+            .Select(itemGroup => new ProcessArgs(itemGroup.First().Fid, IdType.FileId));
         _commandService.DispatchRange(commands);
     }
 
-    private void MarkAbsentFiles(List<AniDbMyListEntry> myListEntries)
+    private void MarkAbsentFiles(List<MyListItem> myListItems)
     {
         var animeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
-        var animeToBeMarkedAbsent = myListEntries.Where(i => !animeIds.Contains(i.AnimeId) && i.MyListState != _options.MyList.AbsentFileState)
-            .Select(item => item.AnimeId).ToHashSet();
+        var animeToBeMarkedAbsent = myListItems.Where(i => !animeIds.Contains(i.Aid) && i.State != _options.MyList.AbsentFileState)
+            .Select(item => item.Aid).ToHashSet();
         _commandService.DispatchRange(animeToBeMarkedAbsent.Select(aid =>
             new UpdateMyListArgs(Aid: aid, EpNo: "0", Edit: true, MyListState: _options.MyList.AbsentFileState)));
 
 
-        var filesWithoutLocal = _context.AniDbFiles
-            .ExceptBy(_context.LocalFiles.Select(l => l.Ed2K), f => f.Ed2K)
-            .Select(f => f.Id).ToHashSet();
+        var filesWithoutLocal = (from f in _context.AniDbFiles
+            where !_context.LocalFiles.Any(lf => lf.Ed2K == f.Ed2K)
+            select f.Id).ToHashSet();
         var filesWithoutManualLinks = _context.AniDbGenericFiles
             .Where(f => _context.AniDbEpisodes.Include(e => e.ManualLinkLocalFiles)
                 .Any(e => e.Id == f.AniDbEpisodeId && e.ManualLinkLocalFiles.Count == 0))
             .Select(f => f.Id).ToHashSet();
 
-        var noLocalFiles = myListEntries.Where(item =>
-            !animeToBeMarkedAbsent.Contains(item.AnimeId) &&
-            (filesWithoutLocal.Contains(item.FileId) || (filesWithoutManualLinks.Contains(item.FileId) &&
-                                                         item.MyListState != _options.MyList.AbsentFileState)));
-        _commandService.DispatchRange(noLocalFiles.Select(item =>
-            new UpdateMyListArgs(Lid: item.Id, Edit: true, MyListState: _options.MyList.AbsentFileState, Watched: item.Watched,
-                WatchedDate: item.WatchedDate)));
+        var noLocalFiles = myListItems.GroupBy(i => i.Id).Where(itemGroup =>
+            !animeToBeMarkedAbsent.Intersect(itemGroup.Select(i => i.Aid)).Any() &&
+            (filesWithoutLocal.Contains(itemGroup.First().Fid) || (filesWithoutManualLinks.Contains(itemGroup.First().Fid) &&
+                                                                   itemGroup.First().State != _options.MyList.AbsentFileState)));
+        _commandService.DispatchRange(noLocalFiles.Select(itemGroup => itemGroup.First()).Select(item =>
+            new UpdateMyListArgs(Lid: item.Id, Edit: true, MyListState: _options.MyList.AbsentFileState, Watched: item.Viewdate is not null,
+                WatchedDate: item.Viewdate is null ? null : DateTimeOffset.Parse(item.Viewdate).UtcDateTime)));
     }
 
     private void SyncMyListEntries(List<AniDbMyListEntry> myListEntries)
@@ -141,6 +143,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private async Task<HttpMyListResult?> GetMyList()
     {
+        return new XmlSerializer(typeof(HttpMyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as HttpMyListResult;
         var requestable = true;
         var fileInfo = new FileInfo(FilePaths.MyListPath);
         if (fileInfo.Exists)
