@@ -84,13 +84,15 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         };
     }
 
-    private void FindGenericFiles(List<AniDbMyListEntry> myListResult)
+    private void FindGenericFiles(List<AniDbMyListEntry> myListEntries)
     {
-        var epsWithoutGenericFile = _context.AniDbEpisodes.Where(e => !_context.AniDbGenericFiles
-                .Select(f => f.AniDbEpisodeId).Contains(e.Id))
-            .Select(a => a.Id).ToHashSet();
+        var epsWithoutGenericFile = (from e in _context.AniDbEpisodes
+            join f in _context.AniDbGenericFiles
+                on e.Id equals f.AniDbEpisodeId into ef
+            where !ef.Any()
+            select e.Id).ToHashSet();
         var anidbFiles = _context.AniDbFiles.Select(f => f.Id).Union(_context.AniDbGenericFiles.Select(f => f.Id)).ToHashSet();
-        var commands = myListResult.Where(item => epsWithoutGenericFile.Contains(item.EpisodeId) && !anidbFiles.Contains(item.FileId))
+        var commands = myListEntries.Where(item => epsWithoutGenericFile.Contains(item.EpisodeId) && !anidbFiles.Contains(item.FileId))
             .Select(item => new ProcessArgs(item.FileId, IdType.FileId));
         _commandService.DispatchRange(commands);
     }
