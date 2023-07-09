@@ -88,12 +88,14 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             join f in _context.AniDbGenericFiles
                 on e.Id equals f.AniDbEpisodeId into ef
             where !ef.Any()
-            select e.Id).ToHashSet();
-        var anidbFiles = _context.AniDbFiles.Select(f => f.Id).Union(_context.AniDbGenericFiles.Select(f => f.Id)).ToHashSet();
-        var commands = myListItems
-            .GroupBy(i => i.Id)
-            .Where(itemGroup => epsWithoutGenericFile.Intersect(itemGroup.Select(e => e.Eid)).Any() && !anidbFiles.Contains(itemGroup.First().Fid))
-            .Select(itemGroup => new ProcessArgs(itemGroup.First().Fid, IdType.FileId));
+            select e.Id).Distinct();
+        var anidbFileIds = _context.AniDbFiles.Select(f => f.Id).Union(_context.AniDbGenericFiles.Select(f => f.Id)).ToHashSet();
+
+        // Only retrieve files for episodes we have locally
+        var missingFileIds = (from item in myListItems
+            where !anidbFileIds.Contains(item.Fid) && epsWithoutGenericFile.Contains(item.Eid)
+            select item.Fid).Distinct();
+        var commands = missingFileIds.Select(fid => new ProcessArgs(fid, IdType.FileId)).ToList();
         _commandService.DispatchRange(commands);
     }
 
