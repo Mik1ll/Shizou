@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -111,16 +109,21 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         var filesWithoutLocal = (from f in _context.AniDbFiles
             where !_context.LocalFiles.Any(lf => lf.Ed2K == f.Ed2K)
             select f.Id).ToHashSet();
-        var filesWithoutManualLinks = _context.AniDbGenericFiles
-            .Where(f => _context.AniDbEpisodes.Include(e => e.ManualLinkLocalFiles)
-                .Any(e => e.Id == f.AniDbEpisodeId && e.ManualLinkLocalFiles.Count == 0))
-            .Select(f => f.Id).ToHashSet();
+        var genericFilesWithoutManualLinks = (from gf in _context.AniDbGenericFiles
+            join e in _context.AniDbEpisodes.Include(x => x.ManualLinkLocalFiles)
+                on gf.AniDbEpisodeId equals e.Id
+            where !e.ManualLinkLocalFiles.Any()
+            select gf.Id).ToHashSet();
 
-        var noLocalFiles = myListItems.GroupBy(i => i.Id).Where(itemGroup =>
-            !animeToBeMarkedAbsent.Intersect(itemGroup.Select(i => i.Aid)).Any() &&
-            (filesWithoutLocal.Contains(itemGroup.First().Fid) || (filesWithoutManualLinks.Contains(itemGroup.First().Fid) &&
-                                                                   itemGroup.First().State != _options.MyList.AbsentFileState)));
-        _commandService.DispatchRange(noLocalFiles.Select(itemGroup => itemGroup.First()).Select(item =>
+        var itemsToBeMarkedAbsent = from item in myListItems
+            where item.State != _options.MyList.AbsentFileState &&
+                  filesWithoutLocal.Union(genericFilesWithoutManualLinks).Contains(item.Fid)
+            group item by item.Id
+            into itemGroup
+            where !animeToBeMarkedAbsent.Intersect(itemGroup.Select(i => i.Aid)).Any()
+            select itemGroup.First();
+
+        _commandService.DispatchRange(itemsToBeMarkedAbsent.Select(item =>
             new UpdateMyListArgs(Lid: item.Id, Edit: true, MyListState: _options.MyList.AbsentFileState, Watched: item.Viewdate is not null,
                 WatchedDate: item.Viewdate is null ? null : DateTimeOffset.Parse(item.Viewdate).UtcDateTime)));
     }
@@ -143,14 +146,14 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private async Task<HttpMyListResult?> GetMyList()
     {
-        return new XmlSerializer(typeof(HttpMyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as HttpMyListResult;
+        //return new XmlSerializer(typeof(HttpMyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as HttpMyListResult;
         var requestable = true;
         var fileInfo = new FileInfo(FilePaths.MyListPath);
         if (fileInfo.Exists)
             requestable = DateTime.UtcNow - fileInfo.LastWriteTimeUtc > MyListRequestPeriod;
         if (!requestable)
         {
-            _logger.LogWarning("Failed to get mylist: already requested in last {Hours} hours", MyListRequestPeriod.Hours);
+            _logger.LogWarning("Failed to get mylist: already requested in last {Hours} hours", MyListRequestPeriod.TotalHours);
             return null;
         }
 
@@ -161,7 +164,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             if (!File.Exists(FilePaths.MyListPath))
                 File.Create(FilePaths.MyListPath).Dispose();
             File.SetLastWriteTimeUtc(FilePaths.MyListPath, DateTime.UtcNow);
-            _logger.LogWarning("Failed to get mylist data from AniDb, retry in {Hours} hours", MyListRequestPeriod.Hours);
+            _logger.LogWarning("Failed to get mylist data from AniDb, retry in {Hours} hours", MyListRequestPeriod.TotalHours);
         }
         else
         {
