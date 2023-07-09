@@ -61,7 +61,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
         SyncMyListEntries(myListEntries);
 
-        MarkAbsentFiles(myListResult.MyListItems);
+        UpdateFileStates(myListResult.MyListItems);
 
         FindGenericFiles(myListResult.MyListItems);
 
@@ -99,35 +99,46 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         _commandService.DispatchRange(commands);
     }
 
-    private void MarkAbsentFiles(List<MyListItem> myListItems)
+    private void UpdateFileStates(List<MyListItem> myListItems)
     {
         var animeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
-        var animeToBeMarkedAbsent = myListItems.Where(i => !animeIds.Contains(i.Aid) && i.State != _options.MyList.AbsentFileState)
+        var animeToMarkAbsent = myListItems.Where(i => !animeIds.Contains(i.Aid) && i.State != _options.MyList.AbsentFileState)
             .Select(item => item.Aid).ToHashSet();
-        _commandService.DispatchRange(animeToBeMarkedAbsent.Select(aid =>
+        _commandService.DispatchRange(animeToMarkAbsent.Select(aid =>
             new UpdateMyListArgs(Aid: aid, EpNo: "0", Edit: true, MyListState: _options.MyList.AbsentFileState)));
 
+        var itemsWithPresentFiles = from item in myListItems
+            join f in _context.AniDbFiles
+                on item.Fid equals f.Id
+            where _context.LocalFiles.Any(lf => lf.Ed2K == f.Ed2K)
+            select item;
+        var itemsWithPresentManualLinks = from item in myListItems
+            join e in _context.AniDbEpisodes.Include(e => e.ManualLinkLocalFiles)
+                on item.Eid equals e.Id
+            where e.ManualLinkLocalFiles.Any() && _context.AniDbGenericFiles.Any(x => x.Id == item.Fid)
+            select item;
 
-        var filesWithoutLocal = (from f in _context.AniDbFiles
-            where !_context.LocalFiles.Any(lf => lf.Ed2K == f.Ed2K)
-            select f.Id).ToHashSet();
-        var genericFilesWithoutManualLinks = (from gf in _context.AniDbGenericFiles
-            join e in _context.AniDbEpisodes.Include(x => x.ManualLinkLocalFiles)
-                on gf.AniDbEpisodeId equals e.Id
-            where !e.ManualLinkLocalFiles.Any()
-            select gf.Id).ToHashSet();
+        var itemsToMarkPresent = (from item in itemsWithPresentFiles.Union(itemsWithPresentManualLinks)
+            where item.State != _options.MyList.PresentFileState
+            select item).ToList();
 
-        var itemsToBeMarkedAbsent = from item in myListItems
-            where item.State != _options.MyList.AbsentFileState &&
-                  filesWithoutLocal.Union(genericFilesWithoutManualLinks).Contains(item.Fid)
+        var itemsToMarkAbsent = (from item in myListItems.Except(itemsToMarkPresent)
+            where item.State != _options.MyList.AbsentFileState
             group item by item.Id
             into itemGroup
-            where !animeToBeMarkedAbsent.Intersect(itemGroup.Select(i => i.Aid)).Any()
-            select itemGroup.First();
+            where !animeToMarkAbsent.Intersect(itemGroup.Select(i => i.Aid)).Any()
+            select itemGroup.First()).ToList();
 
-        _commandService.DispatchRange(itemsToBeMarkedAbsent.Select(item =>
-            new UpdateMyListArgs(Lid: item.Id, Edit: true, MyListState: _options.MyList.AbsentFileState, Watched: item.Viewdate is not null,
-                WatchedDate: item.Viewdate is null ? null : DateTimeOffset.Parse(item.Viewdate).UtcDateTime)));
+
+        UpdateMyListArgs NewUpdateMyListArgs(MyListItem myListItem, MyListState newState)
+        {
+            return new UpdateMyListArgs(Lid: myListItem.Id, Edit: true, MyListState: newState,
+                Watched: myListItem.Viewdate is not null,
+                WatchedDate: myListItem.Viewdate is null ? null : DateTimeOffset.Parse(myListItem.Viewdate).UtcDateTime);
+        }
+
+        _commandService.DispatchRange(itemsToMarkPresent.Select(item => NewUpdateMyListArgs(item, _options.MyList.PresentFileState)));
+        _commandService.DispatchRange(itemsToMarkAbsent.Select(item => NewUpdateMyListArgs(item, _options.MyList.AbsentFileState)));
     }
 
     private void SyncMyListEntries(List<AniDbMyListEntry> myListEntries)
