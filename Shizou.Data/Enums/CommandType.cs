@@ -9,5 +9,6 @@ public enum CommandType
     GetAnime = 3,
     SyncMyList = 5,
     UpdateMyList = 6,
+    AddMissingMyListEntries = 7,
     Noop = 99
 }

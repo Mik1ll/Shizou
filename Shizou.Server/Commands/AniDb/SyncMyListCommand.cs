@@ -65,8 +65,11 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
         FindGenericFiles(myListResult.MyListItems);
 
+        _commandService.Dispatch(new AddMissingMyListEntriesArgs());
+
         Completed = true;
     }
+
 
     private static AniDbMyListEntry ItemToAniDbMyListEntry(MyListItem item)
     {
@@ -88,15 +91,14 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             join f in _context.AniDbGenericFiles
                 on e.Id equals f.AniDbEpisodeId into ef
             where !ef.Any()
-            select e.Id).Distinct();
+            select e.Id).ToHashSet();
         var anidbFileIds = _context.AniDbFiles.Select(f => f.Id).Union(_context.AniDbGenericFiles.Select(f => f.Id)).ToHashSet();
 
         // Only retrieve files for episodes we have locally
         var missingFileIds = (from item in myListItems
             where !anidbFileIds.Contains(item.Fid) && epsWithoutGenericFile.Contains(item.Eid)
-            select item.Fid).Distinct();
-        var commands = missingFileIds.Select(fid => new ProcessArgs(fid, IdType.FileId)).ToList();
-        _commandService.DispatchRange(commands);
+            select item.Fid).ToHashSet();
+        _commandService.DispatchRange(missingFileIds.Select(fid => new ProcessArgs(fid, IdType.FileId)).ToList());
     }
 
     private void UpdateFileStates(List<MyListItem> myListItems)
@@ -107,16 +109,16 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         _commandService.DispatchRange(animeToMarkAbsent.Select(aid =>
             new UpdateMyListArgs(Aid: aid, EpNo: "0", Edit: true, MyListState: _options.MyList.AbsentFileState)));
 
-        var itemsWithPresentFiles = from item in myListItems
+        var itemsWithPresentFiles = (from item in myListItems
             join f in _context.AniDbFiles
                 on item.Fid equals f.Id
             where _context.LocalFiles.Any(lf => lf.Ed2K == f.Ed2K)
-            select item;
-        var itemsWithPresentManualLinks = from item in myListItems
+            select item).ToList();
+        var itemsWithPresentManualLinks = (from item in myListItems
             join e in _context.AniDbEpisodes.Include(e => e.ManualLinkLocalFiles)
                 on item.Eid equals e.Id
             where e.ManualLinkLocalFiles.Any() && _context.AniDbGenericFiles.Any(x => x.Id == item.Fid)
-            select item;
+            select item).ToList();
 
         var itemsToMarkPresent = (from item in itemsWithPresentFiles.Union(itemsWithPresentManualLinks)
             where item.State != _options.MyList.PresentFileState
@@ -159,7 +161,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private async Task<HttpMyListResult?> GetMyList()
     {
-        //return new XmlSerializer(typeof(HttpMyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as HttpMyListResult;
+        // return new XmlSerializer(typeof(HttpMyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as HttpMyListResult;
         var requestable = true;
         var fileInfo = new FileInfo(FilePaths.MyListPath);
         if (fileInfo.Exists)
