@@ -105,7 +105,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
                 AniDbAnimeId = animeResult.Id,
                 Id = e.Id,
                 DurationMinutes = e.Length,
-                Number = e.Epno.Text.ParseEpisode().number,
+                Number = EpisodeTypeExtensions.ParseEpisode(e.Epno.Text).number,
                 EpisodeType = e.Epno.Type,
                 AirDate = string.IsNullOrEmpty(e.Airdate) ? null : DateTime.Parse(e.Airdate, styles: DateTimeStyles.AssumeUniversal),
                 Updated = DateTime.UtcNow,

@@ -13,7 +13,7 @@ public sealed record AniDbEpisodeResult
         DurationMinutes = dataArr[1] != "0" ? int.Parse(dataArr[2]) : null;
         Rating = int.Parse(dataArr[3]);
         Votes = int.Parse(dataArr[4]);
-        (EpisodeNumber, Type) = dataArr[5].ParseEpisode();
+        (EpisodeNumber, Type) = EpisodeTypeExtensions.ParseEpisode(dataArr[5]);
         TitleEnglish = dataArr[6];
         TitleRomaji = dataArr[7];
         TitleKanji = dataArr[8];
