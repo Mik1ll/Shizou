@@ -6,4 +6,5 @@
     <button type="button" class="btn btn-primary" @onclick="@DispatchNoop">Add noops</button>
     <button type="button" class="btn btn-primary" @onclick="@RunImport">Run Import</button>
     <button type="button" class="btn btn-primary" @onclick="@(async () => await UdpRequestFactory.PingRequest().Process())">Ping AniDb</button>
+    <button type="button" class="btn btn-primary" @onclick="@DispatchMyListSync">Sync MyList</button>
 </section>

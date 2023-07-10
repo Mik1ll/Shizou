@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Shizou.Server.Commands;
+using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Shared;
@@ -17,5 +18,10 @@ public partial class Actions
     private void RunImport()
     {
         ServiceProvider.GetRequiredService<ImportService>().Import();
+    }
+
+    private void DispatchMyListSync()
+    {
+        ServiceProvider.GetRequiredService<CommandService>().Dispatch(new SyncMyListArgs());
     }
 }
