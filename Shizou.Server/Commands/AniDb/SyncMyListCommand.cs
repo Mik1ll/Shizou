@@ -122,7 +122,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             where item.State != _options.MyList.PresentFileState
             select item).ToList();
 
-        var itemsToMarkAbsent = (from item in myListItems.Except(itemsToMarkPresent)
+        var itemsToMarkAbsent = (from item in myListItems.Except(itemsWithPresentFiles.Union(itemsWithPresentManualLinks))
             where item.State != _options.MyList.AbsentFileState
             group item by item.Id
             into itemGroup
@@ -132,7 +132,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
         UpdateMyListArgs NewUpdateMyListArgs(MyListItem myListItem, MyListState newState)
         {
-            return new UpdateMyListArgs(Lid: myListItem.Id, Edit: true, MyListState: newState,
+            return new UpdateMyListArgs(Lid: myListItem.Id, Fid: myListItem.Fid, Edit: true, MyListState: newState,
                 Watched: myListItem.Viewdate is not null,
                 WatchedDate: myListItem.Viewdate is null ? null : DateTimeOffset.Parse(myListItem.Viewdate).UtcDateTime);
         }
