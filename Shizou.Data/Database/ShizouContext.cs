@@ -28,6 +28,8 @@ public sealed class ShizouContext : IdentityDbContext
     public DbSet<AniDbMyListEntry> AniDbMyListEntries { get; set; } = null!;
     public DbSet<AniDbGenericFile> AniDbGenericFiles { get; set; } = null!;
 
+    public DbSet<ManualLinkXref> ManualLinkXrefs { get; set; } = null!;
+
     public IQueryable<AniDbEpisode> AniDbEpisodesFromFile(int aniDbFileId)
     {
         return from e in AniDbEpisodes
@@ -63,7 +65,7 @@ public sealed class ShizouContext : IdentityDbContext
         modelBuilder.Entity<AniDbEpisode>()
             .HasMany(e => e.ManualLinkLocalFiles)
             .WithMany(e => e.ManualLinkEpisodes)
-            .UsingEntity(j => j.ToTable("ManualLinkXrefs"));
+            .UsingEntity<ManualLinkXref>();
 
         base.OnModelCreating(modelBuilder);
     }

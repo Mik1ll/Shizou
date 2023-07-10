@@ -22,4 +22,7 @@ public class LocalFile : IEntity
 
     [JsonIgnore]
     public List<AniDbEpisode> ManualLinkEpisodes { get; set; } = null!;
+
+    [JsonIgnore]
+    public List<ManualLinkXref> ManualLinkXrefs { get; set; } = null!;
 }
