@@ -19,6 +19,7 @@ public class AuthRequest : AniDbUdpRequest
         _optionsSnapshot = optionsSnapshot;
     }
 
+    /// <exception cref="AniDbUdpRequestException"></exception>
     protected override Task HandleResponse()
     {
         switch (ResponseCode)
@@ -34,13 +35,13 @@ public class AuthRequest : AniDbUdpRequest
                 AniDbUdpState.LoggedIn = true;
                 break;
             case AniDbResponseCode.LoginFailed:
-                throw new ProcessorPauseException("Login failed, change credentials");
+                throw new AniDbUdpRequestException("Login failed, change credentials", ResponseCode);
             case AniDbResponseCode.ClientOutdated:
-                throw new ProcessorPauseException("Login failed, client outdated");
+                throw new AniDbUdpRequestException("Login failed, client outdated", ResponseCode);
             case AniDbResponseCode.ClientBanned:
-                throw new ProcessorPauseException("Login failed, client banned");
+                throw new AniDbUdpRequestException("Login failed, client banned", ResponseCode);
             case null:
-                throw new ProcessorPauseException("No auth response");
+                throw new AniDbUdpRequestException("No auth response");
         }
         return Task.CompletedTask;
     }

@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
-using Shizou.Server.Exceptions;
 using Shizou.Server.Extensions;
 using Shizou.Server.Services;
 
@@ -183,12 +182,9 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                     // ReSharper disable once MethodSupportsCancellation
                     await Task.Delay(500);
             }
-            catch (ProcessorPauseException ex)
-            {
-                Pause(ex.Message);
-            }
             catch (Exception ex)
             {
+                Pause(ex.Message);
                 Logger.LogError(ex, "Error while processing command: {ExMessage}", ex.Message);
             }
             finally

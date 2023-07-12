@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shizou.Server.Exceptions;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Http;
@@ -21,7 +20,7 @@ public abstract class HttpRequest
     public bool ParametersSet { get; set; }
     public string? ResponseText { get; protected set; }
 
-    public HttpRequest(
+    protected HttpRequest(
         ILogger<HttpRequest> logger,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,
         AniDbHttpState httpState,
@@ -42,6 +41,8 @@ public abstract class HttpRequest
 
     protected abstract Task HandleResponse();
 
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
     public async Task Process()
     {
         if (!ParametersSet)
@@ -50,42 +51,36 @@ public abstract class HttpRequest
         await HandleResponse();
     }
 
+    /// <exception cref="HttpRequestException"></exception>
     private async Task SendRequest()
     {
         var url = QueryHelpers.AddQueryString(_builder.Uri.AbsoluteUri, Args);
-        try
+        await _httpState.RateLimiter.EnsureRate();
+        if (_httpState.Banned)
         {
-            await _httpState.RateLimiter.EnsureRate();
-            if (_httpState.Banned)
-            {
-                Logger.LogWarning("Banned, aborting HTTP request: {Url}", url);
-                return;
-            }
-            Logger.LogInformation("Sending HTTP request: {Url}", url);
-            ResponseText = await _httpClient.GetStringAsync(url);
-            if (string.IsNullOrWhiteSpace(ResponseText))
-            {
-                Logger.LogWarning("No http response, may be banned");
-                throw new ProcessorPauseException("No http response, may be banned");
-            }
-            else if (ResponseText.StartsWith("<error"))
-            {
-                if (ResponseText.Contains("Banned"))
-                {
-                    _httpState.Banned = true;
-                    Logger.LogWarning("HTTP Banned! waiting {BanPeriod}", _httpState.BanPeriod);
-                    throw new ProcessorPauseException($"HTTP Banned, wait {_httpState.BanPeriod}");
-                }
-                else
-                {
-                    Logger.LogError("Unknown error http response: {ErrText}", ResponseText);
-                    throw new ProcessorPauseException("Unknown error http response, check log");
-                }
-            }
+            Logger.LogWarning("Banned, aborting HTTP request: {Url}", url);
+            return;
         }
-        catch (HttpRequestException ex)
+        Logger.LogInformation("Sending HTTP request: {Url}", url);
+        ResponseText = await _httpClient.GetStringAsync(url);
+        if (string.IsNullOrWhiteSpace(ResponseText))
         {
-            Logger.LogWarning("Http request failed: {Message}", ex.Message);
+            Logger.LogWarning("No http response, may be banned");
+            throw new HttpRequestException("No http response, may be banned");
+        }
+        if (ResponseText.StartsWith("<error"))
+        {
+            if (ResponseText.Contains("Banned"))
+            {
+                _httpState.Banned = true;
+                Logger.LogWarning("HTTP Banned! waiting {BanPeriod}", _httpState.BanPeriod);
+                throw new HttpRequestException($"HTTP Banned, wait {_httpState.BanPeriod}");
+            }
+            else
+            {
+                Logger.LogError("Unknown error http response: {ErrText}", ResponseText);
+                throw new HttpRequestException("Unknown error http response, check log");
+            }
         }
     }
 }
