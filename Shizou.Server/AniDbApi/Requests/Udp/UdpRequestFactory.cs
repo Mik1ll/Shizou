@@ -198,4 +198,22 @@ public class UdpRequestFactory
         request.ParametersSet = true;
         return request;
     }
+
+    public MessageAckRequest MessageAckRequest(int id)
+    {
+        var request = _provider.GetRequiredService<MessageAckRequest>();
+        request.Args["type"] = "M";
+        request.Args["id"] = id.ToString();
+        request.ParametersSet = true;
+        return request;
+    }
+
+    public NotifyAckRequest NotifyAckRequest(int id)
+    {
+        var request = _provider.GetRequiredService<NotifyAckRequest>();
+        request.Args["type"] = "N";
+        request.Args["id"] = id.ToString();
+        request.ParametersSet = true;
+        return request;
+    }
 }

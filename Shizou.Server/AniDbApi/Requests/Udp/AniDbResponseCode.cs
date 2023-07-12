@@ -115,7 +115,7 @@ public enum AniDbResponseCode
     EncodingNotSupported = 519,
 
     // Notify
-    NotifyMessageAckSuccess = 281,
+    MessageAckSuccess = 281,
     NotifyAckSuccess = 282,
     Notification = 290,
     NotifyList = 291,
