@@ -173,4 +173,29 @@ public class UdpRequestFactory
         request.ParametersSet = true;
         return request;
     }
+
+    public NotifyListRequest NotifyListRequest()
+    {
+        var request = _provider.GetRequiredService<NotifyListRequest>();
+        request.ParametersSet = true;
+        return request;
+    }
+
+    public MessageGetRequest MessageGetRequest(int id)
+    {
+        var request = _provider.GetRequiredService<MessageGetRequest>();
+        request.Args["type"] = "M";
+        request.Args["id"] = id.ToString();
+        request.ParametersSet = true;
+        return request;
+    }
+
+    public NotifyGetRequest NotifyGetRequest(int id)
+    {
+        var request = _provider.GetRequiredService<NotifyGetRequest>();
+        request.Args["type"] = "N";
+        request.Args["id"] = id.ToString();
+        request.ParametersSet = true;
+        return request;
+    }
 }

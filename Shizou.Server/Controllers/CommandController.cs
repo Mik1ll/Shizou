@@ -32,7 +32,6 @@ public class CommandController : ControllerBase
 
     [HttpPut("SyncMyList")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [Consumes("application/json")]
     public void SyncMyList()
     {
         _commandService.Dispatch(new SyncMyListArgs());
@@ -46,5 +45,23 @@ public class CommandController : ControllerBase
         var req = _udpRequestFactory.GenericRequest(command, args);
         await req.Process();
         return req.ResponseCodeString + "\n" + req.ResponseText;
+    }
+
+    [HttpGet("NotifyList")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<NotifyListItem>?>> NotifyListRequest()
+    {
+        var req = _udpRequestFactory.NotifyListRequest();
+        await req.Process();
+        return Ok(req.Result);
+    }
+
+    [HttpGet("MessageGet")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    public async Task<ActionResult<string>> MessageGetRequest(int id)
+    {
+        var req = _udpRequestFactory.MessageGetRequest(id);
+        await req.Process();
+        return Ok(req.Result);
     }
 }

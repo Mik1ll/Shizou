@@ -108,6 +108,9 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddTransient<LogoutRequest>();
         builder.Services.AddTransient<MyListAddRequest>();
         builder.Services.AddTransient<PingRequest>();
+        builder.Services.AddTransient<NotifyListRequest>();
+        builder.Services.AddTransient<NotifyGetRequest>();
+        builder.Services.AddTransient<MessageGetRequest>();
 
         builder.Services.AddTransient<HttpAnimeRequest>();
         builder.Services.AddTransient<MyListRequest>();

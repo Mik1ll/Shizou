@@ -119,10 +119,10 @@ public enum AniDbResponseCode
     NotifyAckSuccess = 282,
     Notification = 290,
     NotifyList = 291,
-    NotifyMessageGet = 292,
+    MessageGet = 292,
     NotifyGet = 293,
 
-    NoSuchNotifyMessageAck = 381,
+    NoSuchMessageAck = 381,
     NoSuchNotifyAck = 382,
     NoSuchNotifyEntry = 392,
     NoSuchMessageEntry = 393

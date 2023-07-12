@@ -192,3 +192,19 @@ public enum FileQuality
     Corrupted,
     Eyecancer
 }
+
+public enum NotificationType
+{
+    All = 0,
+    New = 1,
+    Group = 2,
+    Complete = 3
+}
+
+public enum MessageType
+{
+    Normal = 0,
+    Anonymous = 1,
+    System = 2,
+    Mod = 3
+}
