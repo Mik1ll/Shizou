@@ -216,4 +216,12 @@ public class UdpRequestFactory
         request.ParametersSet = true;
         return request;
     }
+
+    public MyListExportRequest MyListExportRequest()
+    {
+        var request = _provider.GetRequiredService<MyListExportRequest>();
+        request.Args["template"] = "txt-udp-mylist";
+        request.ParametersSet = true;
+        return request;
+    }
 }

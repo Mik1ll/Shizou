@@ -101,7 +101,7 @@ public enum AniDbResponseCode
     AlreadyPermVoted = 364,
 
     // My List Export
-    ExportQueue = 217,
+    ExportQueued = 217,
     ExportCancelled = 218,
     ExportNoSuchTemplate = 317,
     ExportAlreadyInQueue = 318,
