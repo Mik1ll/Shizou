@@ -9,7 +9,6 @@ namespace Shizou.Server.AniDbApi.RateLimiters;
 public abstract class RateLimiter
 {
     private readonly Stopwatch _activeWatch = new();
-    private readonly object _lock = new();
     private readonly SemaphoreSlim _rateSemaphore = new(1, 1);
     private readonly Stopwatch _watch = new();
     protected readonly ILogger<RateLimiter> Logger;
@@ -30,25 +29,47 @@ public abstract class RateLimiter
 
     public DateTimeOffset NextAvailable { get; private set; } = DateTimeOffset.UtcNow;
 
-    public async Task EnsureRate()
+    public async Task<IDisposable> AcquireAsync()
     {
-        try
+        await _rateSemaphore.WaitAsync();
+        Logger.LogDebug("Got rate limiter");
+        if (!Available)
         {
-            await _rateSemaphore.WaitAsync();
-            if (!Available)
-            {
-                Logger.LogDebug("Time since last command: {WatchElapsed}, waiting for {NextAvailable}", _watch.Elapsed, NextAvailable - DateTimeOffset.UtcNow);
-                await Task.Delay(NextAvailable - DateTimeOffset.UtcNow);
-            }
-            if (_watch.Elapsed > ResetPeriod)
-                _activeWatch.Restart();
-            _watch.Restart();
-            NextAvailable = DateTimeOffset.UtcNow + (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay);
-            Logger.LogDebug("Got rate limiter");
+            Logger.LogDebug("Time since last command: {WatchElapsed}, waiting for {NextAvailable}", _watch.Elapsed, NextAvailable - DateTimeOffset.UtcNow);
+            await Task.Delay(NextAvailable - DateTimeOffset.UtcNow);
         }
-        finally
+
+        return new ReleaseWrapper(this);
+    }
+
+    public void Release()
+    {
+        if (_rateSemaphore.CurrentCount != 0)
+            return;
+        if (_watch.Elapsed > ResetPeriod)
+            _activeWatch.Restart();
+        _watch.Restart();
+        NextAvailable = DateTimeOffset.UtcNow + (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay);
+        Logger.LogDebug("Rate limiter released");
+        _rateSemaphore.Release();
+    }
+
+    private class ReleaseWrapper : IDisposable
+    {
+        private readonly RateLimiter _rateLimiter;
+        private bool _isDisposed;
+
+        public ReleaseWrapper(RateLimiter rateLimiter)
         {
-            _rateSemaphore.Release();
+            _rateLimiter = rateLimiter;
+        }
+
+        public void Dispose()
+        {
+            if (_isDisposed)
+                return;
+            _rateLimiter.Release();
+            _isDisposed = true;
         }
     }
 }

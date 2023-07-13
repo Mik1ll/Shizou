@@ -49,13 +49,20 @@ public abstract class AniDbUdpRequest
     {
         if (!ParametersSet)
             throw new ArgumentException($"Parameters not set before {nameof(Process)} called");
-        await BuildAndSendRequest();
-        await ReceiveResponse();
+        await PrepareRequest();
+        using (await AniDbUdpState.RateLimiter.AcquireAsync())
+        {
+            await SendRequest();
+            await ReceiveResponse();
+        }
         var retry = HandleSharedErrors();
         if (retry)
         {
-            await BuildAndSendRequest();
-            await ReceiveResponse();
+            using (await AniDbUdpState.RateLimiter.AcquireAsync())
+            {
+                await SendRequest();
+                await ReceiveResponse();
+            }
             HandleSharedErrors();
         }
         await HandleResponse();
@@ -66,7 +73,21 @@ public abstract class AniDbUdpRequest
     /// </summary>
     /// <returns>True if request sent</returns>
     /// <exception cref="AniDbUdpRequestException"></exception>
-    private async Task BuildAndSendRequest()
+    private async Task SendRequest()
+    {
+        var dgramBytes = Encoding.GetBytes(RequestText!);
+        if (AniDbUdpState.Banned)
+        {
+            Logger.LogWarning("Banned, aborting UDP request: {RequestText}", RequestText);
+            throw new AniDbUdpRequestException("Udp banned", AniDbResponseCode.Banned);
+        }
+        Logger.LogInformation("Sending AniDb UDP text: {RequestText}", RequestText);
+        if (!AniDbUdpState.UdpClient.Client.Connected)
+            AniDbUdpState.Connect();
+        await AniDbUdpState.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
+    }
+
+    private async Task PrepareRequest()
     {
         var requestBuilder = new StringBuilder(Command + " ");
         if (!new List<string> { "PING", "ENCRYPT", "AUTH", "VERSION" }.Contains(Command))
@@ -91,17 +112,6 @@ public abstract class AniDbUdpRequest
         // Removes the extra & at end of parameters
         requestBuilder.Length--;
         RequestText = requestBuilder.ToString();
-        var dgramBytes = Encoding.GetBytes(RequestText);
-        await AniDbUdpState.RateLimiter.EnsureRate();
-        if (AniDbUdpState.Banned)
-        {
-            Logger.LogWarning("Banned, aborting UDP request: {RequestText}", RequestText);
-            throw new AniDbUdpRequestException("Udp banned", AniDbResponseCode.Banned);
-        }
-        Logger.LogInformation("Sending AniDb UDP text: {RequestText}", RequestText);
-        if (!AniDbUdpState.UdpClient.Client.Connected)
-            AniDbUdpState.Connect();
-        await AniDbUdpState.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
     }
 
 

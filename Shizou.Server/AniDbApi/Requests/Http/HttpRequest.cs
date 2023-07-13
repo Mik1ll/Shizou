@@ -55,14 +55,16 @@ public abstract class HttpRequest
     private async Task SendRequest()
     {
         var url = QueryHelpers.AddQueryString(_builder.Uri.AbsoluteUri, Args);
-        await _httpState.RateLimiter.EnsureRate();
-        if (_httpState.Banned)
+        using (await _httpState.RateLimiter.AcquireAsync())
         {
-            Logger.LogWarning("Banned, aborting HTTP request: {Url}", url);
-            return;
+            if (_httpState.Banned)
+            {
+                Logger.LogWarning("Banned, aborting HTTP request: {Url}", url);
+                return;
+            }
+            Logger.LogInformation("Sending HTTP request: {Url}", url);
+            ResponseText = await _httpClient.GetStringAsync(url);
         }
-        Logger.LogInformation("Sending HTTP request: {Url}", url);
-        ResponseText = await _httpClient.GetStringAsync(url);
         if (string.IsNullOrWhiteSpace(ResponseText))
         {
             Logger.LogWarning("No http response, may be banned");
