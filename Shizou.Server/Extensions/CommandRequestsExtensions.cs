@@ -5,7 +5,7 @@ using Shizou.Data.Models;
 
 namespace Shizou.Server.Extensions;
 
-public static class CommandRequestExtensions
+public static class CommandRequestsExtensions
 {
     public static IQueryable<CommandRequest> ByQueue(this IQueryable<CommandRequest> queryable, QueueType queueType)
     {

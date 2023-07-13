@@ -111,11 +111,31 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     {
     }
 
-    public void UpdateCommandsInQueue()
+    public void UpdateCommandsInQueue(ShizouContext context)
     {
-        using var context = _contextFactory.CreateDbContext();
         CommandsInQueue = context.CommandRequests.ByQueue(QueueType).Count();
         _wakeupTokenSource?.Cancel();
+    }
+
+    private void GetScheduledCommands(ShizouContext context, CommandService commandService)
+    {
+        var scheduledCommands = context.ScheduledCommands.ByQueue(QueueType)
+            .Where(c => c.NextRunTime < DateTime.UtcNow && !context.CommandRequests.Any(cr => cr.CommandId == c.CommandId)).ToList();
+        if (scheduledCommands.Count == 0)
+            return;
+        var commandArgs = scheduledCommands.Select(commandService.ArgsFromScheduledCommand).ToList();
+        commandService.DispatchRange(commandArgs);
+        foreach (var cmd in scheduledCommands)
+            if (cmd.RunsLeft <= 1 || cmd.FrequencyMinutes is null)
+            {
+                context.ScheduledCommands.Remove(cmd);
+            }
+            else
+            {
+                cmd.RunsLeft -= 1;
+                cmd.NextRunTime = DateTime.UtcNow + TimeSpan.FromMinutes(cmd.FrequencyMinutes.Value);
+            }
+        context.SaveChanges();
     }
 
     public void ClearQueue()
@@ -123,7 +143,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         using var context = _contextFactory.CreateDbContext();
         context.CommandRequests.ClearQueue(QueueType);
         context.SaveChanges();
-        UpdateCommandsInQueue();
+        UpdateCommandsInQueue(context);
         Logger.LogInformation("{QueueType} queue cleared", Enum.GetName(QueueType));
     }
 
@@ -140,9 +160,10 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         while (!stoppingToken.IsCancellationRequested)
         {
             using var scope = Provider.CreateScope();
-            var commandManager = scope.ServiceProvider.GetRequiredService<CommandService>();
+            var commandService = scope.ServiceProvider.GetRequiredService<CommandService>();
             var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
-            UpdateCommandsInQueue();
+            GetScheduledCommands(context, commandService);
+            UpdateCommandsInQueue(context);
             if (Paused || CommandsInQueue == 0)
             {
                 _wakeupTokenSource = new CancellationTokenSource();
@@ -169,7 +190,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             if (CurrentCommand is null)
                 continue;
             PollStep = 0;
-            var command = commandManager.CommandFromRequest(CurrentCommand);
+            var command = commandService.CommandFromRequest(CurrentCommand);
             try
             {
                 Logger.LogDebug("Processing command: {CommandId}", command.CommandId);

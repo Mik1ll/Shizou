@@ -24,4 +24,9 @@ public partial class Actions
     {
         ServiceProvider.GetRequiredService<CommandService>().Dispatch(new SyncMyListArgs());
     }
+
+    private void ScheduleNoop()
+    {
+        ServiceProvider.GetRequiredService<CommandService>().ScheduleCommand(new NoopArgs(5), 3, DateTimeOffset.UtcNow, 1);
+    }
 }
