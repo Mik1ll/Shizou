@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Shizou.Server.AniDbApi.Requests.Udp.Results;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
@@ -29,7 +28,7 @@ public class FileRequest : AniDbUdpRequest
     {
     }
 
-    public AniDbFileResult? FileResult { get; private set; }
+    public FileResult? FileResult { get; private set; }
     public List<int>? MultipleFilesResult { get; private set; }
 
     protected override Task HandleResponse()
@@ -38,7 +37,7 @@ public class FileRequest : AniDbUdpRequest
         {
             case AniDbResponseCode.File:
                 if (!string.IsNullOrWhiteSpace(ResponseText))
-                    FileResult = new AniDbFileResult(ResponseText, FMask, AMask);
+                    FileResult = new FileResult(ResponseText, FMask, AMask);
                 break;
             case AniDbResponseCode.MultipleFilesFound:
                 if (ResponseText is not null)

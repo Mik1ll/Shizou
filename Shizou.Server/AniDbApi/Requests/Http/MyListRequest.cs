@@ -5,14 +5,13 @@ using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shizou.Server.AniDbApi.Requests.Http.Results;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Http;
 
 public class MyListRequest : HttpRequest
 {
-    public HttpMyListResult? MyListResult;
+    public MyListResult? MyListResult;
 
     public MyListRequest(
         ILogger<MyListRequest> logger,
@@ -27,10 +26,10 @@ public class MyListRequest : HttpRequest
     {
         if (ResponseText is not null)
         {
-            XmlSerializer serializer = new(typeof(HttpMyListResult));
+            XmlSerializer serializer = new(typeof(MyListResult));
             using var strReader = new StringReader(ResponseText);
             using var xmlReader = XmlReader.Create(strReader);
-            MyListResult = serializer.Deserialize(xmlReader) as HttpMyListResult;
+            MyListResult = serializer.Deserialize(xmlReader) as MyListResult;
         }
         return Task.CompletedTask;
     }

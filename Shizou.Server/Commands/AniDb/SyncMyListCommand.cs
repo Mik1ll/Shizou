@@ -12,8 +12,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
-using Shizou.Server.AniDbApi.Requests.Http.Results;
-using Shizou.Server.AniDbApi.Requests.Http.Results.SubElements;
+using Shizou.Server.AniDbApi.Requests.Http.SubElements;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -159,7 +158,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         _context.SaveChanges();
     }
 
-    private async Task<HttpMyListResult?> GetMyList()
+    private async Task<MyListResult?> GetMyList()
     {
         // return new XmlSerializer(typeof(HttpMyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as HttpMyListResult;
         var requestable = true;

@@ -1,14 +1,14 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Shizou.Server.AniDbApi.Requests.Udp;
+namespace Shizou.Server.AniDbApi.Requests.Udp.Notify;
 
-public class NotifyAckRequest : AniDbUdpRequest
+public class MessageAckRequest : AniDbUdpRequest
 {
     public bool? Success { get; set; }
 
-    public NotifyAckRequest(
-        ILogger<NotifyAckRequest> logger,
+    public MessageAckRequest(
+        ILogger<MessageAckRequest> logger,
         AniDbUdpState aniDbUdpState
     ) : base("NOTIFYACK", logger, aniDbUdpState)
     {
@@ -18,10 +18,10 @@ public class NotifyAckRequest : AniDbUdpRequest
     {
         switch (ResponseCode)
         {
-            case AniDbResponseCode.NotifyAckSuccess:
+            case AniDbResponseCode.MessageAckSuccess:
                 Success = true;
                 break;
-            case AniDbResponseCode.NoSuchNotifyAck:
+            case AniDbResponseCode.NoSuchMessageAck:
                 Success = false;
                 break;
         }

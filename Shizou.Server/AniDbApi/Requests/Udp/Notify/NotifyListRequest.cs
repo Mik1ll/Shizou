@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Shizou.Server.AniDbApi.Requests.Udp;
+namespace Shizou.Server.AniDbApi.Requests.Udp.Notify;
 
 public record NotifyListItem(string Type, int Id);
 

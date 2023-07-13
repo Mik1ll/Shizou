@@ -8,7 +8,6 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
-using Shizou.Server.AniDbApi.Requests.Udp.Results;
 using Shizou.Server.FileCaches;
 using Shizou.Server.Services;
 
@@ -61,7 +60,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         Completed = true;
     }
 
-    private static AniDbMyListEntry? FileResultToAniDbMyListEntry(AniDbFileResult result)
+    private static AniDbMyListEntry? FileResultToAniDbMyListEntry(FileResult result)
     {
         return result.MyListId is null
             ? null
@@ -77,7 +76,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             };
     }
 
-    private static AniDbFile FileResultToAniDbFile(AniDbFileResult result)
+    private static AniDbFile FileResultToAniDbFile(FileResult result)
     {
         return new AniDbFile
         {
@@ -122,7 +121,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         };
     }
 
-    private void UpdateDatabase(AniDbFileResult result)
+    private void UpdateDatabase(FileResult result)
     {
         if (result.Ed2K is null && result.State == 0) // Generics also have .rl extension but don't know if it's exclusive
             UpdateGenericFile(result);
@@ -132,7 +131,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         UpdateMyListEntry(result);
     }
 
-    private void UpdateFile(AniDbFileResult result)
+    private void UpdateFile(FileResult result)
     {
         _logger.LogInformation("Updating AniDb file information for file id {FileId}", result.FileId);
         var eFile = _context.AniDbFiles
@@ -204,7 +203,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         _context.SaveChanges();
     }
 
-    private void UpdateGenericFile(AniDbFileResult result)
+    private void UpdateGenericFile(FileResult result)
     {
         _logger.LogInformation("Updating generic AniDb file information for file id {FileId}", result.FileId);
         var eGenericFile = _context.AniDbGenericFiles
@@ -223,7 +222,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         _context.SaveChanges();
     }
 
-    private void UpdateMyListEntry(AniDbFileResult result)
+    private void UpdateMyListEntry(FileResult result)
     {
         var entry = FileResultToAniDbMyListEntry(result);
         if (entry is not null)
@@ -237,7 +236,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         }
     }
 
-    private void UpdateEpRelations(AniDbFileResult result)
+    private void UpdateEpRelations(FileResult result)
     {
         var eRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
         var rels = (result.OtherEpisodeIds ?? new List<int>()).Append(result.EpisodeId!.Value)
@@ -249,11 +248,11 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         _context.SaveChanges();
     }
 
-    private async Task<AniDbFileResult?> GetFileResult()
+    private async Task<FileResult?> GetFileResult()
     {
         string? fileResultCacheKey;
         FileRequest? fileReq;
-        AniDbFileResult? result;
+        FileResult? result;
         switch (CommandArgs.IdType)
         {
             case IdType.LocalId:

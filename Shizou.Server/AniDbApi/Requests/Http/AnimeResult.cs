@@ -2,16 +2,16 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
 using Shizou.Data.Enums;
-using Shizou.Server.AniDbApi.Requests.Http.Results.SubElements;
+using Shizou.Server.AniDbApi.Requests.Http.SubElements;
 
 // ReSharper disable RedundantNullableFlowAttribute
 
 #pragma warning disable 8618
 
-namespace Shizou.Server.AniDbApi.Requests.Http.Results
+namespace Shizou.Server.AniDbApi.Requests.Http
 {
     [XmlRoot("anime")]
-    public class HttpAnimeResult
+    public class AnimeResult
     {
         [XmlAttribute("id")]
         public int Id { get; set; }

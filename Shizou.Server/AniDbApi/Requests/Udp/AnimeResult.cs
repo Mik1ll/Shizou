@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Shizou.Data.Enums;
 
-namespace Shizou.Server.AniDbApi.Requests.Udp.Results;
+namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public sealed record AniDbAnimeResult
+public sealed record AnimeResult
 {
-    public AniDbAnimeResult(string responseText, AMaskAnime mask)
+    public AnimeResult(string responseText, AMaskAnime mask)
     {
         var dataArr = responseText.TrimEnd().Split('|');
         var dataIdx = 0;

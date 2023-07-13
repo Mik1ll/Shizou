@@ -2,17 +2,17 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
 using Shizou.Data.Enums;
-using Shizou.Server.AniDbApi.Requests.Http.Results.SubElements;
+using Shizou.Server.AniDbApi.Requests.Http.SubElements;
 
 // ReSharper disable RedundantNullableFlowAttribute
 
 #pragma warning disable CS8618
 
 
-namespace Shizou.Server.AniDbApi.Requests.Http.Results
+namespace Shizou.Server.AniDbApi.Requests.Http
 {
     [XmlRoot("mylist")]
-    public class HttpMyListResult
+    public class MyListResult
     {
         [XmlElement("mylistitem")]
         public List<MyListItem> MyListItems { get; set; }

@@ -15,6 +15,7 @@ using Shizou.Server.AniDbApi;
 using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Udp;
+using Shizou.Server.AniDbApi.Requests.Udp.Notify;
 using Shizou.Server.CommandProcessors;
 using Shizou.Server.Commands;
 using Shizou.Server.Commands.AniDb;
@@ -110,7 +111,10 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddTransient<PingRequest>();
         builder.Services.AddTransient<NotifyListRequest>();
         builder.Services.AddTransient<NotifyGetRequest>();
+        builder.Services.AddTransient<NotifyAckRequest>();
         builder.Services.AddTransient<MessageGetRequest>();
+        builder.Services.AddTransient<MessageAckRequest>();
+        builder.Services.AddTransient<MyListExportRequest>();
 
         builder.Services.AddTransient<HttpAnimeRequest>();
         builder.Services.AddTransient<MyListRequest>();

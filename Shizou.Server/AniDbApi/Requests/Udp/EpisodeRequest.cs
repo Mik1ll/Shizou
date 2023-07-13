@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Shizou.Server.AniDbApi.Requests.Udp.Results;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
@@ -10,7 +9,7 @@ public class EpisodeRequest : AniDbUdpRequest
     {
     }
 
-    public AniDbEpisodeResult? EpisodeResult { get; private set; }
+    public EpisodeResult? EpisodeResult { get; private set; }
 
     protected override Task HandleResponse()
     {
@@ -18,7 +17,7 @@ public class EpisodeRequest : AniDbUdpRequest
         {
             case AniDbResponseCode.Episode:
                 if (!string.IsNullOrWhiteSpace(ResponseText))
-                    EpisodeResult = new AniDbEpisodeResult(ResponseText);
+                    EpisodeResult = new EpisodeResult(ResponseText);
                 break;
             case AniDbResponseCode.NoSuchEpisode:
                 break;

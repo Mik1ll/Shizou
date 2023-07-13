@@ -9,7 +9,6 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
-using Shizou.Server.AniDbApi.Requests.Http.Results;
 using Shizou.Server.FileCaches;
 
 namespace Shizou.Server.Commands.AniDb;
@@ -86,7 +85,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         Completed = true;
     }
 
-    private static AniDbAnime AnimeResultToAniDbAnime(HttpAnimeResult animeResult)
+    private static AniDbAnime AnimeResultToAniDbAnime(AnimeResult animeResult)
     {
         var mainTitle = animeResult.Titles.First(t => t.Type == "main");
         var newAniDbAnime = new AniDbAnime
@@ -120,7 +119,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         return newAniDbAnime;
     }
 
-    private async Task<HttpAnimeResult?> GetAnimeHttp()
+    private async Task<AnimeResult?> GetAnimeHttp()
     {
         var request = _httpRequestFactory.AnimeRequest(CommandArgs.AnimeId);
         await request.Process();

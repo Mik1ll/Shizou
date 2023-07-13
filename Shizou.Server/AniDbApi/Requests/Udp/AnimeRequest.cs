@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Shizou.Server.AniDbApi.Requests.Udp.Results;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
@@ -11,7 +10,7 @@ public class AnimeRequest : AniDbUdpRequest
                                            AMaskAnime.Type |
                                            AMaskAnime.TitleEnglish | AMaskAnime.TitleKanji | AMaskAnime.AnimeId;
 
-    public AniDbAnimeResult? AnimeResult;
+    public AnimeResult? AnimeResult;
 
     public AMaskAnime AMask { get; set; }
 
@@ -25,7 +24,7 @@ public class AnimeRequest : AniDbUdpRequest
         {
             case AniDbResponseCode.Anime:
                 if (!string.IsNullOrWhiteSpace(ResponseText))
-                    AnimeResult = new AniDbAnimeResult(ResponseText, AMask);
+                    AnimeResult = new AnimeResult(ResponseText, AMask);
                 break;
             case AniDbResponseCode.NoSuchAnime:
                 break;

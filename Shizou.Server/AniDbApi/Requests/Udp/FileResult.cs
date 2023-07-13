@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Shizou.Data.Enums;
 
-namespace Shizou.Server.AniDbApi.Requests.Udp.Results;
+namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public sealed record AniDbFileResult
+public sealed record FileResult
 {
-    public AniDbFileResult()
+    public FileResult()
     {
     }
 
-    public AniDbFileResult(string responseText, FMask fMask, AMaskFile aMask)
+    public FileResult(string responseText, FMask fMask, AMaskFile aMask)
     {
         var dataArr = responseText.TrimEnd().Split('|');
         var dataIdx = 0;

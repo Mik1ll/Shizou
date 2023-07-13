@@ -1,11 +1,11 @@
 ﻿using System;
 using Shizou.Data.Enums;
 
-namespace Shizou.Server.AniDbApi.Requests.Udp.Results;
+namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public sealed record AniDbEpisodeResult
+public sealed record EpisodeResult
 {
-    public AniDbEpisodeResult(string responseText)
+    public EpisodeResult(string responseText)
     {
         var dataArr = responseText.Split('|');
         EpisodeId = int.Parse(dataArr[0]);

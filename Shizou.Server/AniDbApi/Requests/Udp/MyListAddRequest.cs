@@ -2,13 +2,12 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Enums;
-using Shizou.Server.AniDbApi.Requests.Udp.Results;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public class MyListAddRequest : AniDbUdpRequest
 {
-    public AniDbMyListAddResult? ExistingEntryResult { get; private set; }
+    public MyListAddResult? ExistingEntryResult { get; private set; }
     public int? AddedEntryId { get; private set; }
     public int EntriesAffected { get; private set; }
 
@@ -44,7 +43,7 @@ public class MyListAddRequest : AniDbUdpRequest
                     return Task.CompletedTask;
                 var dataArr = ResponseText.Split('|');
                 DateTimeOffset? watchedDate = dataArr[7] != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[7])) : null;
-                ExistingEntryResult = new AniDbMyListAddResult(int.Parse(dataArr[0]),
+                ExistingEntryResult = new MyListAddResult(int.Parse(dataArr[0]),
                     DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[5])),
                     Enum.Parse<MyListState>(dataArr[6]),
                     watchedDate is not null,
