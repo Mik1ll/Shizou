@@ -4,8 +4,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
 using Shizou.Server.CommandProcessors;
+using Shizou.Server.Options;
 
 // ReSharper disable UnusedVariable
 
@@ -26,6 +28,7 @@ public sealed class StartupService : BackgroundService
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
         var log = scope.ServiceProvider.GetRequiredService<ILogger<StartupService>>();
+        var options = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<ShizouOptions>>().Value;
         log.LogInformation("Started startup service");
         
         var processors = scope.ServiceProvider.GetServices<CommandProcessor>();

@@ -72,6 +72,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private static AniDbMyListEntry ItemToAniDbMyListEntry(MyListItem item)
     {
+        var updated = DateTime.UtcNow;
         return new AniDbMyListEntry
         {
             Id = item.Id,
@@ -80,7 +81,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             WatchedDate = item.Viewdate is null ? null : DateTimeOffset.Parse(item.Viewdate).UtcDateTime,
             MyListState = item.State,
             MyListFileState = item.FileState,
-            Updated = DateTime.UtcNow
+            Updated = updated
         };
     }
 

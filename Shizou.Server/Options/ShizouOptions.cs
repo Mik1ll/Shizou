@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Shizou.Data;
 using Shizou.Data.Enums;
 
@@ -20,7 +21,8 @@ public class ShizouOptions
     public void SaveToFile()
     {
         Dictionary<string, object> json = new() { { Shizou, this } };
-        var jsonSettings = JsonSerializer.Serialize(json, new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true });
+        var jsonSettings = JsonSerializer.Serialize(json,
+            new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true, Converters = { new JsonStringEnumConverter() } });
         File.WriteAllText(FilePaths.OptionsPath, jsonSettings);
     }
 
