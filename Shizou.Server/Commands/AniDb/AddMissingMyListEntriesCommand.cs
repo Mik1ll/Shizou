@@ -31,21 +31,26 @@ public class AddMissingMyListEntriesCommand : BaseCommand<AddMissingMyListEntrie
 
     protected override Task ProcessInner()
     {
-        var missingFileIds = (from f in _context.AniDbFiles
+        var missingFiles = (from f in _context.AniDbFiles
             where _context.LocalFiles.Any(lf => f.Ed2K == lf.Ed2K) && !_context.AniDbMyListEntries.Any(e => e.FileId == f.Id)
             select new { f.Id, f.Watched, f.WatchedUpdated }).ToList();
 
-        var missingEpisodes = (from e in _context.AniDbEpisodes.Include(e => e.ManualLinkXrefs)
-            where e.ManualLinkXrefs.Any() &&
-                  _context.AniDbGenericFiles.Any(gf =>
-                      gf.AniDbEpisodeId == e.Id && _context.AniDbMyListEntries.Any(mle => mle.FileId == gf.Id))
-            select new { e.Id, e.EpisodeType, e.Number, e.AniDbAnimeId, e.Watched, e.WatchedUpdated }).ToList();
+        var missingGenericFiles = (from gf in _context.AniDbGenericFiles
+            join e in _context.AniDbEpisodes.Include(e => e.ManualLinkXrefs)
+                on gf.AniDbEpisodeId equals e.Id
+            where e.ManualLinkXrefs.Any() && !_context.AniDbMyListEntries.Any(mle => mle.FileId == gf.Id)
+            select new { gf.Id, e.Watched, e.WatchedUpdated }).ToList();
 
-        _commandService.DispatchRange(missingFileIds.Select(f =>
+        var episodesWithMissingGenericFile = (from e in _context.AniDbEpisodes.Include(e => e.ManualLinkXrefs)
+            where e.ManualLinkXrefs.Any() && !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id)
+            select new { e.AniDbAnimeId, e.EpisodeType, e.Number, e.Watched, e.WatchedUpdated }).ToList();
+
+        _commandService.DispatchRange(missingFiles.Union(missingGenericFiles).Select(f =>
             new UpdateMyListArgs(false, _options.MyList.PresentFileState, f.Watched, f.WatchedUpdated, Fid: f.Id)));
-        _commandService.DispatchRange(missingEpisodes.Select(e =>
+        _commandService.DispatchRange(episodesWithMissingGenericFile.Select(e =>
             new UpdateMyListArgs(false, _options.MyList.PresentFileState, e.Watched, e.WatchedUpdated,
                 Aid: e.AniDbAnimeId, EpNo: EpisodeTypeExtensions.ToEpString(e.Number, e.EpisodeType))));
+
         Completed = true;
         return Task.CompletedTask;
     }

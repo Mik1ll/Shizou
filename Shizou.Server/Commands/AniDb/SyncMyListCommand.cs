@@ -104,7 +104,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
         var animeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
-        var animeToMarkAbsent = myListItems.Where(i => !animeIds.Contains(i.Aid) && i.State != _options.MyList.AbsentFileState)
+        var animeToMarkAbsent = myListItems.Where(i => !animeIds.Contains(i.Aid) && (i.State != _options.MyList.AbsentFileState || i.FileStateSpecified))
             .Select(item => item.Aid).ToHashSet();
         _commandService.DispatchRange(animeToMarkAbsent.Select(aid =>
             new UpdateMyListArgs(Aid: aid, EpNo: "0", Edit: true, MyListState: _options.MyList.AbsentFileState)));
@@ -121,11 +121,11 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             select item).ToList();
 
         var itemsToMarkPresent = (from item in itemsWithPresentFiles.Union(itemsWithPresentManualLinks)
-            where item.State != _options.MyList.PresentFileState
+            where item.State != _options.MyList.PresentFileState || item.FileStateSpecified
             select item).ToList();
 
         var itemsToMarkAbsent = (from item in myListItems.Except(itemsWithPresentFiles.Union(itemsWithPresentManualLinks))
-            where item.State != _options.MyList.AbsentFileState
+            where item.State != _options.MyList.AbsentFileState || item.FileStateSpecified
             group item by item.Id
             into itemGroup
             where !animeToMarkAbsent.Intersect(itemGroup.Select(i => i.Aid)).Any()
