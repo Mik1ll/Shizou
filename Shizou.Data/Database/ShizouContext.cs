@@ -32,21 +32,31 @@ public sealed class ShizouContext : IdentityDbContext
 
     public DbSet<ScheduledCommand> ScheduledCommands { get; set; } = null!;
 
-    public IQueryable<AniDbEpisode> AniDbEpisodesFromFile(int aniDbFileId)
+    public IQueryable<AniDbEpisode> EpisodesFromFile(int fileId)
     {
         return from e in AniDbEpisodes
             join r in AniDbEpisodeFileXrefs on e.Id equals r.AniDbEpisodeId
-            where r.AniDbFileId == aniDbFileId
+            where r.AniDbFileId == fileId
             select e;
     }
 
-    public IQueryable<AniDbFile> FilesFromAniDbEpisode(int episodeId)
+    public IQueryable<AniDbFile> FilesFromEpisode(int episodeId)
     {
         return from f in AniDbFiles
             join r in AniDbEpisodeFileXrefs on f.Id equals r.AniDbFileId
             where r.AniDbEpisodeId == episodeId
             select f;
     }
+
+    public IQueryable<AniDbFile> FilesWithLocal =>
+        from f in AniDbFiles
+        where LocalFiles.Any(lf => lf.Ed2K == f.Ed2K)
+        select f;
+
+    public IQueryable<AniDbEpisode> EpisodesWithLocal => from e in AniDbEpisodes
+            .Include(e => e.ManualLinkXrefs)
+        where e.ManualLinkXrefs.Any()
+        select e;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

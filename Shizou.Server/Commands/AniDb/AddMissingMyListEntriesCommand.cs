@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
@@ -31,18 +30,18 @@ public class AddMissingMyListEntriesCommand : BaseCommand<AddMissingMyListEntrie
 
     protected override Task ProcessInner()
     {
-        var missingFiles = (from f in _context.AniDbFiles
-            where _context.LocalFiles.Any(lf => f.Ed2K == lf.Ed2K) && !_context.AniDbMyListEntries.Any(e => e.FileId == f.Id)
+        var missingFiles = (from f in _context.FilesWithLocal
+            where !_context.AniDbMyListEntries.Any(e => e.FileId == f.Id)
             select new { f.Id, f.Watched, f.WatchedUpdated }).ToList();
 
         var missingGenericFiles = (from gf in _context.AniDbGenericFiles
-            join e in _context.AniDbEpisodes.Include(e => e.ManualLinkXrefs)
+            join e in _context.EpisodesWithLocal
                 on gf.AniDbEpisodeId equals e.Id
-            where e.ManualLinkXrefs.Any() && !_context.AniDbMyListEntries.Any(mle => mle.FileId == gf.Id)
+            where !_context.AniDbMyListEntries.Any(mle => mle.FileId == gf.Id)
             select new { gf.Id, e.Watched, e.WatchedUpdated }).ToList();
 
-        var episodesWithMissingGenericFile = (from e in _context.AniDbEpisodes.Include(e => e.ManualLinkXrefs)
-            where e.ManualLinkXrefs.Any() && !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id)
+        var episodesWithMissingGenericFile = (from e in _context.EpisodesWithLocal
+            where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id)
             select new { e.AniDbAnimeId, e.EpisodeType, e.Number, e.Watched, e.WatchedUpdated }).ToList();
 
         _commandService.DispatchRange(missingFiles.Union(missingGenericFiles).Select(f =>

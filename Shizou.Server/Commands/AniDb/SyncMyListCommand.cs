@@ -88,9 +88,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     private void FindGenericFiles(List<MyListItem> myListItems)
     {
         var epsWithoutGenericFile = (from e in _context.AniDbEpisodes
-            join f in _context.AniDbGenericFiles
-                on e.Id equals f.AniDbEpisodeId into ef
-            where !ef.Any()
+            where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id)
             select e.Id).ToHashSet();
         var anidbFileIds = _context.AniDbFiles.Select(f => f.Id).Union(_context.AniDbGenericFiles.Select(f => f.Id)).ToHashSet();
 
