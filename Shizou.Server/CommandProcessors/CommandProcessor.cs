@@ -162,8 +162,11 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             using var scope = Provider.CreateScope();
             var commandService = scope.ServiceProvider.GetRequiredService<CommandService>();
             var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
-            GetScheduledCommands(context, commandService);
-            UpdateCommandsInQueue(context);
+            using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
+            {
+                GetScheduledCommands(context, commandService);
+                UpdateCommandsInQueue(context);
+            }
             if (Paused || CommandsInQueue == 0)
             {
                 _wakeupTokenSource = new CancellationTokenSource();

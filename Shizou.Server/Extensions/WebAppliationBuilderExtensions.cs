@@ -48,7 +48,8 @@ public static class WebAppliationBuilderExtensions
             .WriteTo.Console(outputTemplate: logTemplate)
             .WriteTo.File(Path.Combine(FilePaths.LogsDir, ".log"), outputTemplate: logTemplate, rollingInterval: RollingInterval.Day)
             .WriteTo.Seq("http://localhost:5341")
-            .Enrich.FromLogContext());
+            .Enrich.FromLogContext()
+            .Filter.ByExcluding(logEvent => logEvent.IsSuppressed()));
         return builder;
     }
 
