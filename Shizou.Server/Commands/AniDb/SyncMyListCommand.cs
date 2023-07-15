@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data;
@@ -163,7 +162,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private async Task<MyListResult?> GetMyList()
     {
-        // return new XmlSerializer(typeof(HttpMyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as HttpMyListResult;
+        //return new XmlSerializer(typeof(MyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as MyListResult;
         var requestable = true;
         var fileInfo = new FileInfo(FilePaths.MyListPath);
         if (fileInfo.Exists)
