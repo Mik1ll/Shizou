@@ -32,7 +32,7 @@ public sealed class StartupService : BackgroundService
         log.LogInformation("Started startup service");
         
         var processors = scope.ServiceProvider.GetServices<CommandProcessor>();
-        foreach (var processor in processors) processor.Unpause();
+        //foreach (var processor in processors) processor.Unpause();
         
         log.LogInformation("Startup service finished");
     }
