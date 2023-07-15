@@ -102,32 +102,36 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
         var animeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
-        var animeToMarkAbsent = myListItems.Where(i => !animeIds.Contains(i.Aid) && (i.State != _options.MyList.AbsentFileState || i.FileStateSpecified))
-            .Select(item => item.Aid).ToHashSet();
-        _commandService.DispatchRange(animeToMarkAbsent.Select(aid =>
+        var animeIdsToMarkAbsent = (from item in myListItems
+            where !animeIds.Contains(item.Aid) && (item.State != _options.MyList.AbsentFileState || item.FileStateSpecified)
+            select item.Aid).ToHashSet();
+
+        _commandService.DispatchRange(animeIdsToMarkAbsent.Select(aid =>
             new UpdateMyListArgs(Aid: aid, EpNo: "0", Edit: true, MyListState: _options.MyList.AbsentFileState)));
 
+        var fileIdsWithLocal = _context.FilesWithLocal.Select(f => f.Id).ToHashSet();
+
         var itemsWithPresentFiles = (from item in myListItems
-            join f in _context.AniDbFiles
-                on item.Fid equals f.Id
-            where _context.LocalFiles.Any(lf => lf.Ed2K == f.Ed2K)
+            where fileIdsWithLocal.Contains(item.Fid)
             select item).ToList();
+
+        var epIdsWithLocal = _context.EpisodesWithLocal.Select(e => e.Id).ToHashSet();
+        var genericFileIds = _context.AniDbGenericFiles.Select(gf => gf.Id).ToHashSet();
+
         var itemsWithPresentManualLinks = (from item in myListItems
-            join e in _context.AniDbEpisodes.Include(e => e.ManualLinkLocalFiles)
-                on item.Eid equals e.Id
-            where e.ManualLinkLocalFiles.Any() && _context.AniDbGenericFiles.Any(x => x.Id == item.Fid)
+            where epIdsWithLocal.Contains(item.Eid) && genericFileIds.Contains(item.Fid)
             select item).ToList();
 
-        var itemsToMarkPresent = (from item in itemsWithPresentFiles.Union(itemsWithPresentManualLinks)
+        var presentItems = itemsWithPresentFiles.Union(itemsWithPresentManualLinks).ToList();
+
+        var itemsToMarkPresent = (from item in presentItems
             where item.State != _options.MyList.PresentFileState || item.FileStateSpecified
-            select item).ToList();
+            select item).DistinctBy(item => item.Id).ToList();
 
-        var itemsToMarkAbsent = (from item in myListItems.Except(itemsWithPresentFiles.Union(itemsWithPresentManualLinks))
+        var itemsToMarkAbsent = (from item in myListItems.ExceptBy(presentItems.Select(i => i.Id), i => i.Id)
             where item.State != _options.MyList.AbsentFileState || item.FileStateSpecified
-            group item by item.Id
-            into itemGroup
-            where !animeToMarkAbsent.Intersect(itemGroup.Select(i => i.Aid)).Any()
-            select itemGroup.First()).ToList();
+            where !animeIdsToMarkAbsent.Contains(item.Aid)
+            select item).DistinctBy(item => item.Id).ToList();
 
 
         UpdateMyListArgs NewUpdateMyListArgs(MyListItem myListItem, MyListState newState)
