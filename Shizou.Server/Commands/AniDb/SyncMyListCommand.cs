@@ -56,7 +56,8 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             Completed = true;
             return;
         }
-        var myListEntries = myListResult.MyListItems.DistinctBy(i => i.Id).Select(ItemToAniDbMyListEntry).ToList();
+        var updatedTime = DateTime.UtcNow;
+        var myListEntries = myListResult.MyListItems.DistinctBy(i => i.Id).Select(item => ItemToAniDbMyListEntry(item, updatedTime)).ToList();
 
         SyncMyListEntries(myListEntries);
 
@@ -70,9 +71,8 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     }
 
 
-    private static AniDbMyListEntry ItemToAniDbMyListEntry(MyListItem item)
+    private static AniDbMyListEntry ItemToAniDbMyListEntry(MyListItem item, DateTime updated)
     {
-        var updated = DateTime.UtcNow;
         return new AniDbMyListEntry
         {
             Id = item.Id,
