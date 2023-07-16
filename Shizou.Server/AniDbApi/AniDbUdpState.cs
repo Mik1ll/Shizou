@@ -96,7 +96,7 @@ public sealed class AniDbUdpState : IDisposable
 
 
     public TimeSpan BanPeriod { get; } = new(12, 0, 0);
-    public TimeSpan LogoutPeriod { get; } = new(0, 30, 0);
+    public TimeSpan LogoutPeriod { get; } = new(0, 5, 0);
 
     public UdpClient UdpClient { get; }
     public UdpRateLimiter RateLimiter { get; }
