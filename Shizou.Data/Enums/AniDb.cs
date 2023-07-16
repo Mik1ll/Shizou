@@ -49,7 +49,7 @@ public static class EpisodeTypeExtensions
         };
     }
 
-    public static string ToEpString(int number, EpisodeType type)
+    public static string ToEpString(EpisodeType type, int number)
     {
         return $"{type.GetPrefix()}{number}";
     }

@@ -48,7 +48,7 @@ public class AddMissingMyListEntriesCommand : BaseCommand<AddMissingMyListEntrie
             new UpdateMyListArgs(false, _options.MyList.PresentFileState, f.Watched, f.WatchedUpdated, Fid: f.Id)));
         _commandService.DispatchRange(episodesWithMissingGenericFile.Select(e =>
             new UpdateMyListArgs(false, _options.MyList.PresentFileState, e.Watched, e.WatchedUpdated,
-                Aid: e.AniDbAnimeId, EpNo: EpisodeTypeExtensions.ToEpString(e.Number, e.EpisodeType))));
+                Aid: e.AniDbAnimeId, EpNo: EpisodeTypeExtensions.ToEpString(e.EpisodeType, e.Number))));
 
         Completed = true;
         return Task.CompletedTask;

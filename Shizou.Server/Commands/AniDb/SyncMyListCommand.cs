@@ -14,6 +14,8 @@ using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.SubElements;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
+// using System.Xml;
+// using System.Xml.Serialization;
 
 namespace Shizou.Server.Commands.AniDb;
 
@@ -100,13 +102,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
-        var animeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
-        var animeIdsToMarkAbsent = (from item in myListItems
-            where !animeIds.Contains(item.Aid) && (item.State != _options.MyList.AbsentFileState || item.FileStateSpecified)
-            select item.Aid).ToHashSet();
-
-        _commandService.DispatchRange(animeIdsToMarkAbsent.Select(aid =>
-            new UpdateMyListArgs(Aid: aid, EpNo: "0", Edit: true, MyListState: _options.MyList.AbsentFileState)));
+        var (animeIdsToMarkAbsent, epIdsToMarkAbsent) = BulkMarkAbsent(myListItems);
 
         var fileIdsWithLocal = _context.FilesWithLocal.Select(f => f.Id).ToHashSet();
 
@@ -114,11 +110,10 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             where fileIdsWithLocal.Contains(item.Fid)
             select item).ToList();
 
-        var epIdsWithManualLinks = _context.EpisodesWithManualLinks.Select(e => e.Id).ToHashSet();
-        var genericFileIds = _context.AniDbGenericFiles.Select(gf => gf.Id).ToHashSet();
+        var genericFileIdsWithManualLinks = _context.GenericFilesWithManualLinks.Select(gf => gf.Id).ToHashSet();
 
         var itemsWithPresentManualLinks = (from item in myListItems
-            where epIdsWithManualLinks.Contains(item.Eid) && genericFileIds.Contains(item.Fid)
+            where genericFileIdsWithManualLinks.Contains(item.Fid)
             select item).ToList();
 
         var presentItems = itemsWithPresentFiles.Union(itemsWithPresentManualLinks).ToList();
@@ -129,7 +124,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
         var itemsToMarkAbsent = (from item in myListItems.ExceptBy(presentItems.Select(i => i.Id), i => i.Id)
             where item.State != _options.MyList.AbsentFileState || item.FileStateSpecified
-            where !animeIdsToMarkAbsent.Contains(item.Aid)
+            where !animeIdsToMarkAbsent.Contains(item.Aid) || !epIdsToMarkAbsent.Contains(item.Eid)
             select item).DistinctBy(item => item.Id).ToList();
 
 
@@ -142,6 +137,52 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
         _commandService.DispatchRange(itemsToMarkPresent.Select(item => NewUpdateMyListArgs(item, _options.MyList.PresentFileState)));
         _commandService.DispatchRange(itemsToMarkAbsent.Select(item => NewUpdateMyListArgs(item, _options.MyList.AbsentFileState)));
+    }
+
+    private (HashSet<int> animeIdsToMarkAbsent, HashSet<int> epIdsToMarkAbsent) BulkMarkAbsent(List<MyListItem> myListItems)
+    {
+        var animeIdsWithLocal = _context.AnimeWithLocal.Select(a => a.Id).ToHashSet();
+        var animeIdsToMarkAbsent = (from item in myListItems
+            where !animeIdsWithLocal.Contains(item.Aid) && (item.State != _options.MyList.AbsentFileState || item.FileStateSpecified)
+            select item.Aid).ToHashSet();
+
+        _commandService.DispatchRange(animeIdsToMarkAbsent.Select(aid =>
+            new UpdateMyListArgs(Aid: aid, EpNo: "0", Edit: true, MyListState: _options.MyList.AbsentFileState)));
+
+
+        var localEps = _context.AniDbEpisodes.Select(e => new { e.Id, e.EpisodeType, e.Number, e.AniDbAnimeId }).ToList();
+        var epIdsWithLocal = _context.EpisodesWithLocal.Select(e => e.Id).ToHashSet();
+        var epIdsToMarkAbsent = new HashSet<int>();
+        var epCommands = new List<UpdateMyListArgs>();
+
+        var myListItemsWithLocalEp = (from item in myListItems
+                // Just exclude any items with multi-episode relations, don't want to deal with them here
+                .GroupBy(x => x.Id).Where(x => x.Count() == 1).SelectMany(x => x)
+            where !animeIdsToMarkAbsent.Contains(item.Aid)
+            join e in localEps
+                on item.Eid equals e.Id
+            select new { Eid = e.Id, e.EpisodeType, e.Number, e.AniDbAnimeId, item.State, item.FileStateSpecified }).ToList();
+        foreach (var itemAnimeGroup in myListItemsWithLocalEp.GroupBy(item => item.AniDbAnimeId))
+        {
+            // Group by episode types because epno in mylistadd uses epno (has prefix)
+            var itemsGroupedByEpType = itemAnimeGroup.ToLookup(e => e.EpisodeType);
+            foreach (var itemEpTypeGroup in itemsGroupedByEpType)
+            {
+                var itemsGroupedByNumberOrdered = itemEpTypeGroup.GroupBy(g => g.Number)
+                    .OrderBy(e => e.Key).ToList();
+                var toMark = itemsGroupedByNumberOrdered.TakeWhile(itemGroup =>
+                        !epIdsWithLocal.Intersect(itemGroup.Select(item => item.Eid)).Any())
+                    .SelectMany(a => a).ToList();
+                if (toMark.Count == 0 || toMark.All(x => x.State == _options.MyList.AbsentFileState && !x.FileStateSpecified))
+                    continue;
+                var epno = "-" + EpisodeTypeExtensions.ToEpString(itemEpTypeGroup.Key, toMark.Last().Number);
+                epIdsToMarkAbsent.UnionWith(toMark.Select(ep => ep.Eid));
+                epCommands.Add(new UpdateMyListArgs(true, _options.MyList.AbsentFileState, Aid: itemAnimeGroup.Key, EpNo: epno));
+            }
+        }
+
+        _commandService.DispatchRange(epCommands);
+        return (animeIdsToMarkAbsent, epIdsToMarkAbsent);
     }
 
     private void SyncMyListEntries(List<AniDbMyListEntry> myListEntries)
