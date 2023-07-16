@@ -35,12 +35,12 @@ public class AddMissingMyListEntriesCommand : BaseCommand<AddMissingMyListEntrie
             select new { f.Id, f.Watched, f.WatchedUpdated }).ToList();
 
         var missingGenericFiles = (from gf in _context.AniDbGenericFiles
-            join e in _context.EpisodesWithLocal
+            join e in _context.EpisodesWithManualLinks
                 on gf.AniDbEpisodeId equals e.Id
             where !_context.AniDbMyListEntries.Any(mle => mle.FileId == gf.Id)
             select new { gf.Id, e.Watched, e.WatchedUpdated }).ToList();
 
-        var episodesWithMissingGenericFile = (from e in _context.EpisodesWithLocal
+        var episodesWithMissingGenericFile = (from e in _context.EpisodesWithManualLinks
             where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id)
             select new { e.AniDbAnimeId, e.EpisodeType, e.Number, e.Watched, e.WatchedUpdated }).ToList();
 

@@ -114,11 +114,11 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             where fileIdsWithLocal.Contains(item.Fid)
             select item).ToList();
 
-        var epIdsWithLocal = _context.EpisodesWithLocal.Select(e => e.Id).ToHashSet();
+        var epIdsWithManualLinks = _context.EpisodesWithManualLinks.Select(e => e.Id).ToHashSet();
         var genericFileIds = _context.AniDbGenericFiles.Select(gf => gf.Id).ToHashSet();
 
         var itemsWithPresentManualLinks = (from item in myListItems
-            where epIdsWithLocal.Contains(item.Eid) && genericFileIds.Contains(item.Fid)
+            where epIdsWithManualLinks.Contains(item.Eid) && genericFileIds.Contains(item.Fid)
             select item).ToList();
 
         var presentItems = itemsWithPresentFiles.Union(itemsWithPresentManualLinks).ToList();
