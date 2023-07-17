@@ -80,4 +80,13 @@ public class QueueController : ControllerBase
     {
         return Ok(GetProcessor(queueType).GetQueuedCommands());
     }
+
+    [HttpPut("{queueType}/[action]")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    public ActionResult Clear(QueueType queueType)
+    {
+        GetProcessor(queueType).ClearQueue();
+        return Ok();
+    }
 }
