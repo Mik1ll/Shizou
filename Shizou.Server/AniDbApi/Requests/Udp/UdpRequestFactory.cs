@@ -221,7 +221,7 @@ public class UdpRequestFactory
     public MyListExportRequest MyListExportRequest()
     {
         var request = _provider.GetRequiredService<MyListExportRequest>();
-        request.Args["template"] = "txt-udp-mylist";
+        request.Args["template"] = Udp.MyListExportRequest.TemplateName;
         request.ParametersSet = true;
         return request;
     }

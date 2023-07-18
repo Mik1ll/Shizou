@@ -69,6 +69,8 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddTransient<SyncMyListCommand>();
         builder.Services.AddTransient<UpdateMyListCommand>();
         builder.Services.AddTransient<AddMissingMyListEntriesCommand>();
+        builder.Services.AddTransient<ScheduleExportCommand>();
+        builder.Services.AddTransient<ExportPollingCommand>();
 
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();

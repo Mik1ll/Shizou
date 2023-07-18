@@ -5,6 +5,8 @@ namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public class MyListExportRequest : AniDbUdpRequest
 {
+    public const string TemplateName = "txt-udp-mylist";
+    
     public MyListExportRequest(
         ILogger<MyListExportRequest> logger,
         AniDbUdpState aniDbUdpState

@@ -37,6 +37,20 @@ public class CommandController : ControllerBase
         _commandService.Dispatch(new SyncMyListArgs());
     }
 
+    [HttpPut("ScheduleExport")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    public void ScheduleExport()
+    {
+        _commandService.Dispatch(new ScheduleExportArgs());
+    }
+
+    [HttpPut("PollExport")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    public void PollExport()
+    {
+        _commandService.Dispatch(new ExportPollingArgs());
+    }
+
     [HttpPut("GenericUdpRequest")]
     [Produces("text/plain")]
     [Consumes("application/json")]

@@ -69,7 +69,7 @@ public class CommandService
             processor.UpdateCommandsInQueue(context);
     }
 
-    public void ScheduleCommand<TArgs>(TArgs commandArgs, int? runTimes, DateTimeOffset nextRun, double? frequencyMinutes)
+    public void ScheduleCommand<TArgs>(TArgs commandArgs, int? runTimes, DateTimeOffset nextRun, TimeSpan? frequency)
         where TArgs : CommandArgs
     {
         using var context = _contextFactory.CreateDbContext();
@@ -78,7 +78,7 @@ public class CommandService
         {
             NextRunTime = nextRun.UtcDateTime,
             RunsLeft = runTimes,
-            FrequencyMinutes = frequencyMinutes,
+            FrequencyMinutes = frequency?.TotalMinutes,
             Type = cmdRequest.Type,
             Priority = cmdRequest.Priority,
             QueueType = cmdRequest.QueueType,
@@ -89,7 +89,7 @@ public class CommandService
         {
             context.ScheduledCommands.Add(scheduledCommand);
             _logger.LogInformation("Command with commandId={CommandId} scheduled for {RunTimes} runs, starting at {NextRun}, every {Frequency} minutes",
-                scheduledCommand.CommandId, runTimes, nextRun.LocalDateTime, frequencyMinutes);
+                scheduledCommand.CommandId, runTimes, nextRun.LocalDateTime, frequency?.TotalMinutes);
         }
         else
         {
