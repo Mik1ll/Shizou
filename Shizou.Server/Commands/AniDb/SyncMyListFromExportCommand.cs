@@ -18,8 +18,6 @@ public class SyncMyListFromExportCommand : BaseCommand<SyncMyListFromExportArgs>
     private static readonly string MyListName = "mylist.txt";
     private static readonly string ChangelogName = "changelog.txt";
     private readonly ILogger<SyncMyListFromExportCommand> _logger;
-    private string? _myList;
-    private string? _changelog;
     private DateTimeOffset _exportTime;
 
     public SyncMyListFromExportCommand(ILogger<SyncMyListFromExportCommand> logger)
@@ -38,25 +36,15 @@ public class SyncMyListFromExportCommand : BaseCommand<SyncMyListFromExportArgs>
             return;
         }
 
-
         _logger.LogInformation("Starting MyList sync from export file \"{Filename}\"", CommandArgs.Filename);
-        await using var gzip = new GZipStream(file.OpenRead(), CompressionMode.Decompress);
-        using var unzippedStream = new MemoryStream();
-        await gzip.CopyToAsync(unzippedStream);
-        unzippedStream.Seek(0, SeekOrigin.Begin);
-        await using var reader = new TarReader(unzippedStream);
-        while (await reader.GetNextEntryAsync() is { DataStream: not null } entry)
-            if (entry.Name == MyListName)
-                _myList = await new StreamReader(entry.DataStream).ReadToEndAsync();
-            else if (entry.Name == ChangelogName)
-                _changelog = await new StreamReader(entry.DataStream).ReadToEndAsync();
-        if (_myList is null || _changelog is null)
+        var (mylist, changelog) = await UnzipAndRead(file);
+        if (mylist is null || changelog is null)
         {
             _logger.LogError("{MyListName} or {ChangelogName} were not found in the archive, aborting sync", MyListName, ChangelogName);
             Completed = true;
             return;
         }
-        if (!_changelog.StartsWith($"Simple Text MYLIST Export Format - ChangeLog\nVersion: {MyListExportRequest.TemplateVersion}"))
+        if (!changelog.StartsWith($"Simple Text MYLIST Export Format - ChangeLog\nVersion: {MyListExportRequest.TemplateVersion}"))
         {
             _logger.LogError("MyList export did not get expected header/version in changelog, aborting sync");
             Completed = true;
@@ -64,5 +52,22 @@ public class SyncMyListFromExportCommand : BaseCommand<SyncMyListFromExportArgs>
         }
 
         Completed = true;
+    }
+
+    private async Task<(string? myList, string? changelog)> UnzipAndRead(FileInfo file)
+    {
+        await using var gzip = new GZipStream(file.OpenRead(), CompressionMode.Decompress);
+        using var unzippedStream = new MemoryStream();
+        await gzip.CopyToAsync(unzippedStream);
+        unzippedStream.Seek(0, SeekOrigin.Begin);
+        await using var reader = new TarReader(unzippedStream);
+        string? myList = null;
+        string? changelog = null;
+        while (await reader.GetNextEntryAsync() is { DataStream: not null } entry)
+            if (entry.Name == MyListName)
+                myList = await new StreamReader(entry.DataStream).ReadToEndAsync();
+            else if (entry.Name == ChangelogName)
+                changelog = await new StreamReader(entry.DataStream).ReadToEndAsync();
+        return (myList, changelog);
     }
 }
