@@ -12,26 +12,30 @@ using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.AniDbApi.Requests.Udp.Notify;
+using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
-public record ExportPollingArgs() : CommandArgs($"{nameof(ExportPollingCommand)}");
+public record ExportPollArgs() : CommandArgs($"{nameof(ExportPollCommand)}");
 
-[Command(CommandType.ExportPolling, CommandPriority.High, QueueType.AniDbUdp)]
-public class ExportPollingCommand : BaseCommand<ExportPollingArgs>
+[Command(CommandType.ExportPoll, CommandPriority.High, QueueType.AniDbUdp)]
+public class ExportPollCommand : BaseCommand<ExportPollArgs>
 {
-    private readonly ILogger<ExportPollingCommand> _logger;
+    private readonly ILogger<ExportPollCommand> _logger;
     private readonly UdpRequestFactory _udpRequestFactory;
     private readonly ShizouContext _context;
+    private readonly CommandService _commandService;
 
-    public ExportPollingCommand(
-        ILogger<ExportPollingCommand> logger,
+    public ExportPollCommand(
+        ILogger<ExportPollCommand> logger,
         UdpRequestFactory udpRequestFactory,
-        ShizouContext context)
+        ShizouContext context,
+        CommandService commandService)
     {
         _logger = logger;
         _udpRequestFactory = udpRequestFactory;
         _context = context;
+        _commandService = commandService;
     }
 
     protected override async Task ProcessInner()
@@ -69,9 +73,7 @@ public class ExportPollingCommand : BaseCommand<ExportPollingArgs>
                 return;
             }
             if (messageRequest.Result.Title.StartsWith("[EXPORT]"))
-            {
                 exportMessages.Add(messageRequest.Result);
-            }
             else
             {
                 _context.IgnoredMessages.Add(new IgnoredMessage { Id = messageId });
@@ -95,8 +97,10 @@ public class ExportPollingCommand : BaseCommand<ExportPollingArgs>
             requestMessage.Headers.Add("User-Agent", "Shizou");
             var result = await client.SendAsync(requestMessage);
             await using var resultStream = await result.Content.ReadAsStreamAsync();
+            Directory.CreateDirectory(FilePaths.MyListBackupDir);
             await using var fileStream = File.Create(Path.Combine(FilePaths.MyListBackupDir, exportFileName));
             await resultStream.CopyToAsync(fileStream);
+            _commandService.Dispatch(new SyncMyListFromExportArgs(exportFileName));
         }
         foreach (var exportMessage in exportMessages)
         {

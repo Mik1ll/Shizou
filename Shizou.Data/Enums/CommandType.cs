@@ -10,7 +10,8 @@ public enum CommandType
     SyncMyList = 5,
     UpdateMyList = 6,
     AddMissingMyListEntries = 7,
-    ScheduleExport = 8,
-    ExportPolling = 9,
+    Export = 8,
+    ExportPoll = 9,
+    SyncMyListFromExport = 10,
     Noop = 99
 }

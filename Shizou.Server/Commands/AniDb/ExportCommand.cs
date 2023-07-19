@@ -7,17 +7,17 @@ using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
-public record ScheduleExportArgs() : CommandArgs($"{nameof(ScheduleExportCommand)}");
+public record ExportArgs() : CommandArgs($"{nameof(ExportCommand)}");
 
-[Command(CommandType.ScheduleExport, CommandPriority.Normal, QueueType.AniDbUdp)]
-public class ScheduleExportCommand : BaseCommand<ScheduleExportArgs>
+[Command(CommandType.Export, CommandPriority.Normal, QueueType.AniDbUdp)]
+public class ExportCommand : BaseCommand<ExportArgs>
 {
-    private readonly ILogger<ScheduleExportCommand> _logger;
+    private readonly ILogger<ExportCommand> _logger;
     private readonly UdpRequestFactory _udpRequestFactory;
     private readonly CommandService _commandService;
 
-    public ScheduleExportCommand(
-        ILogger<ScheduleExportCommand> logger,
+    public ExportCommand(
+        ILogger<ExportCommand> logger,
         UdpRequestFactory udpRequestFactory,
         CommandService commandService)
     {
@@ -33,7 +33,7 @@ public class ScheduleExportCommand : BaseCommand<ScheduleExportArgs>
 
         void SchedulePolling()
         {
-            _commandService.ScheduleCommand(new ExportPollingArgs(), 24,
+            _commandService.ScheduleCommand(new ExportPollArgs(), 24,
                 DateTimeOffset.UtcNow + TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
         }
 
