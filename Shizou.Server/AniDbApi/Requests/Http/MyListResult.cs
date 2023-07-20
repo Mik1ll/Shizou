@@ -15,7 +15,7 @@ namespace Shizou.Server.AniDbApi.Requests.Http
     public class MyListResult
     {
         [XmlElement("mylistitem")]
-        public List<MyListItem> MyListItems { get; set; }
+        public List<MyListItemResult> MyListItems { get; set; }
 
         [XmlAttribute("uid")]
         public int Uid { get; set; }
@@ -23,7 +23,7 @@ namespace Shizou.Server.AniDbApi.Requests.Http
 
     namespace SubElements
     {
-        public class MyListItem
+        public class MyListItemResult
         {
             [XmlElement("state")]
             public MyListState State { get; set; }
