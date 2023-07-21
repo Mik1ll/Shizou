@@ -11,6 +11,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
+using Shizou.Server.Extensions;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -115,41 +116,68 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
-        var animeIdsToMarkAbsent = BulkMarkAbsent(myListItems);
+        // var animeIdsToMarkAbsent = BulkMarkAbsent(myListItems);
+        var dbFiles = _context.AniDbFiles.Select(f => new { f.Id, f.Watched, f.WatchedUpdated })
+            .Union(from gf in _context.AniDbGenericFiles
+                join e in _context.AniDbEpisodes
+                    on gf.AniDbEpisodeId equals e.Id
+                select new { gf.Id, e.Watched, e.WatchedUpdated }).ToDictionary(f => f.Id);
+        var dbFilesWithLocal = _context.FilesWithLocal.Select(f => f.Id).ToHashSet();
+        var dbEpIdsWithoutGenericFile = _context.AniDbEpisodes.Where(e =>
+                !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id))
+            .Select(e => e.Id).ToHashSet();
 
-        var fileIdsWithLocal = _context.FilesWithLocal.Select(f => f.Id).ToHashSet();
+        List<UpdateMyListArgs> toUpdate = new();
+        List<ProcessArgs> toProcess = new();
 
-        var itemsWithPresentFiles = (from item in myListItems
-            where fileIdsWithLocal.Contains(item.Fid)
-            select item).ToList();
+        // case 1: matching file id with local regular file
+        //         sync with file watch state and file state with present if there are local files
+        // case 2: matching file id with local generic file
+        //         sync with episode watch state and file state with present if there are manual links
+        // case 3: file id doesn't match any local file/generic file
+        //         3a: it only has one episode relation and matching local episode that does not have a generic file
+        //             don't update it, dispatch a process command
+        //         3b: default
+        //             don't update watch state, file state to absent
 
-        var genericFileIdsWithManualLinks = _context.GenericFilesWithManualLinks.Select(gf => gf.Id).ToHashSet();
-
-        var itemsWithPresentManualLinks = (from item in myListItems
-            where genericFileIdsWithManualLinks.Contains(item.Fid)
-            select item).ToList();
-
-        var presentItems = itemsWithPresentFiles.Union(itemsWithPresentManualLinks).ToList();
-        var presentItemIds = presentItems.Select(i => i.Id).ToHashSet();
-
-        var itemsToMarkPresent = (from item in presentItems
-            where item.State != _options.MyList.PresentFileState || item.FileState != MyListFileState.Normal
-            select item).ToList();
-
-        var itemsToMarkAbsent = (from item in myListItems
-            where (!presentItemIds.Contains(item.Id) &&
-                   !animeIdsToMarkAbsent.Intersect(item.Aids).Any() &&
-                   item.State != _options.MyList.AbsentFileState) || item.FileState != MyListFileState.Normal
-            select item).ToList();
-
-        IEnumerable<UpdateMyListArgs> NewUpdateMyListArgs(List<MyListItem> items, MyListState newState)
-        {
-            return items.Select(myListItem => new UpdateMyListArgs(Lid: myListItem.Id, Fid: myListItem.Fid, Edit: true, MyListState: newState,
-                Watched: myListItem.Viewdate is not null, WatchedDate: myListItem.Viewdate?.UtcDateTime));
-        }
-
-        _commandService.DispatchRange(NewUpdateMyListArgs(itemsToMarkPresent, _options.MyList.PresentFileState));
-        _commandService.DispatchRange(NewUpdateMyListArgs(itemsToMarkAbsent, _options.MyList.AbsentFileState));
+        foreach (var item in myListItems)
+            if (dbFiles.TryGetValue(item.Fid, out var dbFile))
+            {
+                var expectedState = dbFilesWithLocal.Contains(dbFile.Id) ? _options.MyList.PresentFileState : _options.MyList.AbsentFileState;
+                var (syncedWatched, syncedWatchedDateTime) =
+                    dbFile.WatchedUpdated is null || DateOnly.FromDateTime(dbFile.WatchedUpdated.Value) < item.Updated
+                        ? (item.Viewdate is not null, item.Viewdate)
+                        : (dbFile.Watched, dbFile.WatchedUpdated);
+                if (item.State != expectedState || item.FileState != MyListFileState.Normal || item.Viewdate is not null != syncedWatched) toUpdate.Add(new UpdateMyListArgs(true, expectedState, syncedWatched, syncedWatchedDateTime, item.Id, item.Fid));
+                if (dbFile.Watched != syncedWatched)
+                {
+                    var file = _context.AniDbFiles.Find(dbFile.Id);
+                    if (file is not null)
+                    {
+                        file.Watched = syncedWatched;
+                        file.WatchedUpdated = syncedWatchedDateTime?.UtcDateTime;
+                    }
+                    else
+                    {
+                        var episode = _context.AniDbEpisodes.GetEpisodeByGenericFileId(_context.AniDbGenericFiles, dbFile.Id);
+                        if (episode is not null)
+                        {
+                            episode.Watched = syncedWatched;
+                            episode.WatchedUpdated = syncedWatchedDateTime?.UtcDateTime;
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("Tried to update the watched state of a missing file or generic file with a missing episode");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (item.Eids.Count == 1 && dbEpIdsWithoutGenericFile.Contains(item.Eids.First()))
+                    toProcess.Add(new ProcessArgs(item.Fid, IdType.FileId));
+                else if (item.State != _options.MyList.AbsentFileState || item.FileState != MyListFileState.Normal) toUpdate.Add(new UpdateMyListArgs(true, _options.MyList.AbsentFileState, item.Viewdate is not null, item.Viewdate, item.Id, item.Fid));
+            }
     }
 
     private HashSet<int> BulkMarkAbsent(List<MyListItem> myListItems)
