@@ -144,18 +144,19 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             if (dbFiles.TryGetValue(item.Fid, out var dbFile))
             {
                 var expectedState = dbFilesWithLocal.Contains(dbFile.Id) ? _options.MyList.PresentFileState : _options.MyList.AbsentFileState;
-                var (syncedWatched, syncedWatchedDateTime) =
-                    dbFile.WatchedUpdated is null || DateOnly.FromDateTime(dbFile.WatchedUpdated.Value) < item.Updated
-                        ? (item.Viewdate is not null, item.Viewdate)
-                        : (dbFile.Watched, dbFile.WatchedUpdated);
-                if (item.State != expectedState || item.FileState != MyListFileState.Normal || item.Viewdate is not null != syncedWatched) toUpdate.Add(new UpdateMyListArgs(true, expectedState, syncedWatched, syncedWatchedDateTime, item.Id, item.Fid));
+                var useAniDbWatchedState = dbFile.WatchedUpdated is null || DateOnly.FromDateTime(dbFile.WatchedUpdated.Value) < item.Updated;
+                var (syncedWatched, syncedWatchedDateTime) = useAniDbWatchedState
+                    ? (item.Viewdate is not null, item.Viewdate)
+                    : (dbFile.Watched, dbFile.WatchedUpdated);
+                if (item.State != expectedState || item.FileState != MyListFileState.Normal || item.Viewdate is not null != syncedWatched)
+                    toUpdate.Add(new UpdateMyListArgs(true, expectedState, syncedWatched, syncedWatchedDateTime, item.Id, item.Fid));
                 if (dbFile.Watched != syncedWatched)
                 {
                     var file = _context.AniDbFiles.Find(dbFile.Id);
                     if (file is not null)
                     {
                         file.Watched = syncedWatched;
-                        file.WatchedUpdated = syncedWatchedDateTime?.UtcDateTime;
+                        file.WatchedUpdated = null;
                     }
                     else
                     {
@@ -163,7 +164,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                         if (episode is not null)
                         {
                             episode.Watched = syncedWatched;
-                            episode.WatchedUpdated = syncedWatchedDateTime?.UtcDateTime;
+                            episode.WatchedUpdated = null;
                         }
                         else
                         {
@@ -176,7 +177,8 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             {
                 if (item.Eids.Count == 1 && dbEpIdsWithoutGenericFile.Contains(item.Eids.First()))
                     toProcess.Add(new ProcessArgs(item.Fid, IdType.FileId));
-                else if (item.State != _options.MyList.AbsentFileState || item.FileState != MyListFileState.Normal) toUpdate.Add(new UpdateMyListArgs(true, _options.MyList.AbsentFileState, item.Viewdate is not null, item.Viewdate, item.Id, item.Fid));
+                else if (item.State != _options.MyList.AbsentFileState || item.FileState != MyListFileState.Normal)
+                    toUpdate.Add(new UpdateMyListArgs(true, _options.MyList.AbsentFileState, item.Viewdate is not null, item.Viewdate, item.Id, item.Fid));
             }
     }
 
@@ -221,7 +223,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private async Task<MyListResult?> GetMyList()
     {
-        //return new XmlSerializer(typeof(MyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as MyListResult;
+        // return new XmlSerializer(typeof(MyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as MyListResult;
         var requestable = true;
         var fileInfo = new FileInfo(FilePaths.MyListPath);
         if (fileInfo.Exists)
