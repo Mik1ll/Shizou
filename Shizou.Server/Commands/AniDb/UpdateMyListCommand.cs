@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
+using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
 
 namespace Shizou.Server.Commands.AniDb;
@@ -69,8 +70,28 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
             case AniDbResponseCode.FileInMyList:
                 if (CommandArgs is { Fid: not null })
                 {
-                    CommandArgs = CommandArgs with { Lid = request.ExistingEntryResult!.ListId, Edit = true };
+                    var result = request.ExistingEntryResult!;
+                    CommandArgs = CommandArgs with { Lid = result.MyListId, Edit = true };
                     retry = true;
+
+                    var entry = new AniDbMyListEntry
+                    {
+                        Id = result.MyListId,
+                        FileId = result.FileId,
+                        Watched = result.ViewDate is not null,
+                        WatchedDate = result.ViewDate?.UtcDateTime,
+                        MyListState = result.State,
+                        MyListFileState = result.FileState,
+                        Updated = DateTime.UtcNow
+                    };
+                    // ReSharper disable once MethodHasAsyncOverload
+                    var eEntry = _context.AniDbMyListEntries.Find(entry.Id);
+                    if (eEntry is null)
+                        _context.AniDbMyListEntries.Add(entry);
+                    else
+                        _context.Entry(eEntry).CurrentValues.SetValues(entry);
+                    // ReSharper disable once MethodHasAsyncOverload
+                    _context.SaveChanges();
                     _logger.LogInformation("Mylist entry already exists, retrying with edit");
                 }
                 break;

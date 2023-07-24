@@ -1,13 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Shizou.Data.Enums;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public class MyListAddRequest : AniDbUdpRequest
 {
-    public MyListAddResult? ExistingEntryResult { get; private set; }
+    public MyListEntryResult? ExistingEntryResult { get; private set; }
     public int? AddedEntryId { get; private set; }
     public int EntriesAffected { get; private set; }
 
@@ -41,15 +39,8 @@ public class MyListAddRequest : AniDbUdpRequest
             case AniDbResponseCode.FileInMyList:
                 if (string.IsNullOrWhiteSpace(ResponseText))
                     return Task.CompletedTask;
-                var dataArr = ResponseText.Split('|');
-                DateTimeOffset? watchedDate = dataArr[7] != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[7])) : null;
-                ExistingEntryResult = new MyListAddResult(int.Parse(dataArr[0]),
-                    DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[5])),
-                    Enum.Parse<MyListState>(dataArr[6]),
-                    watchedDate is not null,
-                    watchedDate,
-                    Enum.Parse<MyListFileState>(dataArr[11])
-                );
+                var data = ResponseText.Split('|');
+                ExistingEntryResult = new MyListEntryResult(data);
                 break;
             case AniDbResponseCode.NoSuchFile:
                 break;
