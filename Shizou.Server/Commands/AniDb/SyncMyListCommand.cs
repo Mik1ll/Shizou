@@ -117,11 +117,11 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
         // var animeIdsToMarkAbsent = BulkMarkAbsent(myListItems);
-        var dbFiles = _context.AniDbFiles.Select(f => new { f.Id, f.Watched, f.WatchedUpdated })
+        var dbFiles = _context.AniDbFiles.Select(f => new { f.Id, f.Watched, f.WatchedUpdatedLocally })
             .Union(from gf in _context.AniDbGenericFiles
                 join e in _context.AniDbEpisodes
                     on gf.AniDbEpisodeId equals e.Id
-                select new { gf.Id, e.Watched, e.WatchedUpdated }).ToDictionary(f => f.Id);
+                select new { gf.Id, e.Watched, e.WatchedUpdatedLocally }).ToDictionary(f => f.Id);
         var dbFilesWithLocal = _context.FilesWithLocal.Select(f => f.Id).ToHashSet();
         var dbEpIdsWithoutGenericFile = _context.AniDbEpisodes.Where(e =>
                 !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id))
@@ -144,10 +144,10 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             if (dbFiles.TryGetValue(item.Fid, out var dbFile))
             {
                 var expectedState = dbFilesWithLocal.Contains(dbFile.Id) ? _options.MyList.PresentFileState : _options.MyList.AbsentFileState;
-                var useAniDbWatchedState = dbFile.WatchedUpdated is null || DateOnly.FromDateTime(dbFile.WatchedUpdated.Value) < item.Updated;
+                var useAniDbWatchedState = dbFile.WatchedUpdatedLocally is null || DateOnly.FromDateTime(dbFile.WatchedUpdatedLocally.Value) < item.Updated;
                 var (syncedWatched, syncedWatchedDateTime) = useAniDbWatchedState
                     ? (item.Viewdate is not null, item.Viewdate)
-                    : (dbFile.Watched, dbFile.WatchedUpdated);
+                    : (dbFile.Watched, dbFile.WatchedUpdatedLocally);
                 if (item.State != expectedState || item.FileState != MyListFileState.Normal || item.Viewdate is not null != syncedWatched)
                     toUpdate.Add(new UpdateMyListArgs(true, expectedState, syncedWatched, syncedWatchedDateTime, item.Id, item.Fid));
                 if (dbFile.Watched != syncedWatched)
@@ -156,7 +156,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                     if (file is not null)
                     {
                         file.Watched = syncedWatched;
-                        file.WatchedUpdated = null;
+                        file.WatchedUpdatedLocally = null;
                     }
                     else
                     {
@@ -164,7 +164,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                         if (episode is not null)
                         {
                             episode.Watched = syncedWatched;
-                            episode.WatchedUpdated = null;
+                            episode.WatchedUpdatedLocally = null;
                         }
                         else
                         {
@@ -180,6 +180,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                 else if (item.State != _options.MyList.AbsentFileState || item.FileState != MyListFileState.Normal)
                     toUpdate.Add(new UpdateMyListArgs(true, _options.MyList.AbsentFileState, item.Viewdate is not null, item.Viewdate, item.Id, item.Fid));
             }
+        _context.SaveChanges();
     }
 
     private HashSet<int> BulkMarkAbsent(List<MyListItem> myListItems)

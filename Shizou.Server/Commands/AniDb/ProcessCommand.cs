@@ -93,6 +93,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             Source = result.Source,
             FileVersion = result.State!.Value.FileVersion(),
             Updated = DateTime.UtcNow,
+            Watched = result.MyListViewed ?? false,
+            WatchedUpdatedLocally = null,
             Audio = result.AudioCodecs!.Zip(result.AudioBitRates!, (codec, bitrate) => (codec, bitrate))
                 .Zip(result.DubLanguages!, (tup, lang) => (tup.codec, tup.bitrate, lang)).Select((tuple, i) =>
                     new AniDbAudio { Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Id = i + 1, AniDbFileId = result.FileId }).ToList(),

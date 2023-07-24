@@ -24,7 +24,7 @@ public class AniDbFile : IEntity
     public required bool Deprecated { get; set; }
     public required bool Chaptered { get; set; }
     public bool Watched { get; set; }
-    public DateTime? WatchedUpdated { get; set; }
+    public DateTime? WatchedUpdatedLocally { get; set; }
     
     
     public int? AniDbGroupId { get; set; }
