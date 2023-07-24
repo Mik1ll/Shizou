@@ -13,13 +13,7 @@ using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
-public enum IdType
-{
-    LocalId = 1,
-    FileId = 2
-}
-
-public sealed record ProcessArgs(int Id, IdType IdType) : CommandArgs($"{nameof(ProcessCommand)}_id={Id}_type={IdType}");
+public sealed record ProcessArgs(int Id, IdTypeLocalFile IdType) : CommandArgs($"{nameof(ProcessCommand)}_id={Id}_type={IdType}");
 
 [Command(CommandType.GetFile, CommandPriority.Normal, QueueType.AniDbUdp)]
 public class ProcessCommand : BaseCommand<ProcessArgs>
@@ -97,7 +91,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             WatchedUpdatedLocally = null,
             Audio = result.AudioCodecs!.Zip(result.AudioBitRates!, (codec, bitrate) => (codec, bitrate))
                 .Zip(result.DubLanguages!, (tup, lang) => (tup.codec, tup.bitrate, lang)).Select((tuple, i) =>
-                    new AniDbAudio { Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Id = i + 1, AniDbFileId = result.FileId }).ToList(),
+                    new AniDbAudio { Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Id = i + 1, AniDbFileId = result.FileId })
+                .ToList(),
             Video = result.VideoCodec is null
                 ? null
                 : new AniDbVideo
@@ -257,7 +252,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         FileResult? result;
         switch (CommandArgs.IdType)
         {
-            case IdType.LocalId:
+            case IdTypeLocalFile.LocalId:
             {
                 // ReSharper disable once MethodHasAsyncOverload
                 var localFile = _context.LocalFiles.Find(CommandArgs.Id);
@@ -275,7 +270,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                 fileReq = _udpRequestFactory.FileRequest(localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             }
-            case IdType.FileId:
+            case IdTypeLocalFile.FileId:
                 fileResultCacheKey = $"File_Id={CommandArgs.Id}.json";
                 result = await _fileResultCache.Get(fileResultCacheKey);
                 if (result is not null)
@@ -284,7 +279,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                 fileReq = _udpRequestFactory.FileRequest(CommandArgs.Id, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             default:
-                throw new ArgumentException("Idtype does not exist");
+                throw new ArgumentOutOfRangeException(nameof(CommandArgs.IdType), CommandArgs.IdType, null);
         }
 
         await fileReq.Process();

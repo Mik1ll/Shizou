@@ -119,6 +119,7 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddTransient<MessageGetRequest>();
         builder.Services.AddTransient<MessageAckRequest>();
         builder.Services.AddTransient<MyListExportRequest>();
+        builder.Services.AddTransient<MyListEntryRequest>();
 
         builder.Services.AddTransient<HttpAnimeRequest>();
         builder.Services.AddTransient<MyListRequest>();

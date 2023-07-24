@@ -225,4 +225,26 @@ public class UdpRequestFactory
         request.ParametersSet = true;
         return request;
     }
+
+    public MyListEntryRequest MyListEntryRequest(int aid, string epno)
+    {
+        var request = _provider.GetRequiredService<MyListEntryRequest>();
+        request.Args["aid"] = aid.ToString();
+        request.Args["epno"] = epno;
+        request.ParametersSet = true;
+        return request;
+    }
+
+    public MyListEntryRequest MyListEntryRequest(int id, IdTypeFileMyList idType)
+    {
+        var request = _provider.GetRequiredService<MyListEntryRequest>();
+        request.Args[idType switch
+        {
+            IdTypeFileMyList.FileId => "fid",
+            IdTypeFileMyList.MyListId => "lid",
+            _ => throw new ArgumentOutOfRangeException(nameof(idType), idType, null)
+        }] = id.ToString();
+        request.ParametersSet = true;
+        return request;
+    }
 }

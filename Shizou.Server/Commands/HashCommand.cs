@@ -86,7 +86,7 @@ public class HashCommand : BaseCommand<HashArgs>
         }
         _context.SaveChanges();
         if (_context.AniDbFiles.GetByEd2K(localFile.Ed2K) is null)
-            _commandService.Dispatch(new ProcessArgs(localFile.Id, IdType.LocalId));
+            _commandService.Dispatch(new ProcessArgs(localFile.Id, IdTypeLocalFile.LocalId));
         Completed = true;
     }
 }

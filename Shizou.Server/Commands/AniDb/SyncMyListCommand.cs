@@ -111,7 +111,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         var missingFileIds = (from item in myListItems
             where !anidbFileIds.Contains(item.Fid) && item.Eids.Count == 1 && epsWithoutGenericFile.Contains(item.Eids.First())
             select item.Fid).ToHashSet();
-        _commandService.DispatchRange(missingFileIds.Select(fid => new ProcessArgs(fid, IdType.FileId)).ToList());
+        _commandService.DispatchRange(missingFileIds.Select(fid => new ProcessArgs(fid, IdTypeLocalFile.FileId)).ToList());
     }
 
     private void UpdateFileStates(List<MyListItem> myListItems)
@@ -176,7 +176,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             else
             {
                 if (item.Eids.Count == 1 && dbEpIdsWithoutGenericFile.Contains(item.Eids.First()))
-                    toProcess.Add(new ProcessArgs(item.Fid, IdType.FileId));
+                    toProcess.Add(new ProcessArgs(item.Fid, IdTypeLocalFile.FileId));
                 else if (item.State != _options.MyList.AbsentFileState || item.FileState != MyListFileState.Normal)
                     toUpdate.Add(new UpdateMyListArgs(true, _options.MyList.AbsentFileState, item.Viewdate is not null, item.Viewdate, item.Id, item.Fid));
             }
