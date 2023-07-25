@@ -216,6 +216,13 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             _context.Entry(genericFile).State = EntityState.Added;
         else
             _context.Entry(eGenericFile).CurrentValues.SetValues(genericFile);
+
+        var eEpisode = _context.AniDbEpisodes.Find(result.EpisodeId!.Value);
+        if (eEpisode is not null)
+        {
+            eEpisode.Watched = result.MyListViewed ?? false;
+            eEpisode.WatchedUpdatedLocally = null;
+        }
         _context.SaveChanges();
     }
 
