@@ -67,8 +67,6 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
         UpdateFileStates(myListItems);
 
-        FindGenericFiles(myListItems);
-
         _commandService.Dispatch(new AddMissingMyListEntriesArgs());
 
         Completed = true;
@@ -100,20 +98,6 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         }).ToList();
     }
 
-    private void FindGenericFiles(List<MyListItem> myListItems)
-    {
-        var epsWithoutGenericFile = (from e in _context.AniDbEpisodes
-            where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id)
-            select e.Id).ToHashSet();
-        var anidbFileIds = _context.AniDbFiles.Select(f => f.Id).Union(_context.AniDbGenericFiles.Select(f => f.Id)).ToHashSet();
-
-        // Only retrieve files for episodes we have locally
-        var missingFileIds = (from item in myListItems
-            where !anidbFileIds.Contains(item.Fid) && item.Eids.Count == 1 && epsWithoutGenericFile.Contains(item.Eids.First())
-            select item.Fid).ToHashSet();
-        _commandService.DispatchRange(missingFileIds.Select(fid => new ProcessArgs(fid, IdTypeLocalFile.FileId)).ToList());
-    }
-
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
         // var animeIdsToMarkAbsent = BulkMarkAbsent(myListItems);
@@ -123,9 +107,9 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                     on gf.AniDbEpisodeId equals e.Id
                 select new { gf.Id, e.Watched, e.WatchedUpdatedLocally }).ToDictionary(f => f.Id);
         var dbFilesWithLocal = _context.FilesWithLocal.Select(f => f.Id).ToHashSet();
-        var dbEpIdsWithoutGenericFile = _context.AniDbEpisodes.Where(e =>
-                !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id))
-            .Select(e => e.Id).ToHashSet();
+        var dbEpIdsWithoutGenericFile = (from e in _context.AniDbEpisodes
+            where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id)
+            select e.Id).ToHashSet();
 
         List<UpdateMyListArgs> toUpdate = new();
         List<ProcessArgs> toProcess = new();
@@ -181,29 +165,39 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                     toUpdate.Add(new UpdateMyListArgs(true, _options.MyList.AbsentFileState, item.Viewdate is not null, item.Viewdate, item.Id, item.Fid));
             }
         _context.SaveChanges();
+
+        CombineUpdates(myListItems, toUpdate);
+
+        _commandService.DispatchRange(toUpdate);
+        _commandService.DispatchRange(toProcess);
     }
 
-    private HashSet<int> BulkMarkAbsent(List<MyListItem> myListItems)
+    private static void CombineUpdates(List<MyListItem> myListItems, List<UpdateMyListArgs> toUpdate)
     {
-        var epIdsWithManualLinks = _context.EpisodesWithManualLinks.Select(e => e.Id).ToHashSet();
-        var fileIdsWithLocal = _context.FilesWithLocal.Select(f => f.Id).ToHashSet();
-
-        // What if local file is missing an episode relation to another anime?
-        //     If file id is not checked, the file could be marked absent.
-        // Checking file ids will cover all regular files, but not manual links, so check for episodes with manual links too
-        var animeIdsToMarkAbsent = (from item in myListItems
-            from aid in item.Aids
-            group item by aid
-            into animeGroup
-            where !fileIdsWithLocal.Intersect(animeGroup.Select(i => i.Fid)).Any() &&
-                  !epIdsWithManualLinks.Intersect(animeGroup.SelectMany(i => i.Eids)).Any() &&
-                  animeGroup.Any(i => i.State != _options.MyList.AbsentFileState || i.FileState != MyListFileState.Normal)
-            select animeGroup.Key).ToHashSet();
-
-        _commandService.DispatchRange(animeIdsToMarkAbsent.Select(aid =>
-            new UpdateMyListArgs(Aid: aid, EpNo: "0", Edit: true, MyListState: _options.MyList.AbsentFileState)));
-
-        return animeIdsToMarkAbsent;
+        foreach (var aGroup in from i in myListItems
+                 where i.Aids.Count == 1
+                 group i by i.Aids.First())
+        {
+            var items = aGroup.ToList();
+            var ids = items.Select(i => i.Id).ToHashSet();
+            var updates = toUpdate.Where(u => ids.Contains(u.Lid!.Value)).ToList();
+            if (updates is [])
+                continue;
+            var updateIds = updates.Select(u => u.Lid!.Value).ToHashSet();
+            var itemsWithoutUpdates = items.Where(i => !updateIds.Contains(i.Id)).ToList();
+            var firstUpdate = updates.First();
+            if (updates.Select(u => u.MyListState).Concat(itemsWithoutUpdates.Select(i => i.State)).Any(s => s != firstUpdate.MyListState))
+                continue;
+            var updateItems = (from u in updates
+                join i in items
+                    on u.Lid equals i.Id
+                select new { u, i }).ToList();
+            if (!updateItems.All(ui => ui.u.Watched == ui.i.Viewdate is not null && ui.u.WatchedDate == ui.i.Viewdate))
+                continue;
+            foreach (var u in updates)
+                toUpdate.Remove(u);
+            toUpdate.Add(new UpdateMyListArgs(Aid: aGroup.Key, EpNo: "0", Edit: true, MyListState: firstUpdate.MyListState));
+        }
     }
 
     private void SyncMyListEntries(List<AniDbMyListEntry> myListEntries)
