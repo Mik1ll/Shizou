@@ -66,6 +66,22 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
         switch (request.ResponseCode)
         {
             case AniDbResponseCode.MyListAdded:
+                if (CommandArgs is { Aid: { } aid, EpNo: { } epno } && epno != "0" && !epno.StartsWith("-"))
+                {
+                    var entryRequest = _udpRequestFactory.MyListEntryRequest(aid, epno);
+                    await entryRequest.Process();
+                    if (entryRequest.MyListEntryResult is { } result)
+                    {
+                        SaveMyListResult(result);
+                        // ReSharper disable once MethodHasAsyncOverload
+                        if (_context.AniDbGenericFiles.Find(result.FileId) is null)
+                        {
+                            _context.AniDbGenericFiles.Add(new AniDbGenericFile { Id = result.FileId, AniDbEpisodeId = result.EpisodeId });
+                            // ReSharper disable once MethodHasAsyncOverload
+                            _context.SaveChanges();
+                        }
+                    }
+                }
                 break;
             case AniDbResponseCode.FileInMyList:
                 if (CommandArgs is { Fid: not null })
@@ -74,24 +90,7 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
                     CommandArgs = CommandArgs with { Lid = result.MyListId, Edit = true };
                     retry = true;
 
-                    var entry = new AniDbMyListEntry
-                    {
-                        Id = result.MyListId,
-                        FileId = result.FileId,
-                        Watched = result.ViewDate is not null,
-                        WatchedDate = result.ViewDate?.UtcDateTime,
-                        MyListState = result.State,
-                        MyListFileState = result.FileState,
-                        Updated = DateTime.UtcNow
-                    };
-                    // ReSharper disable once MethodHasAsyncOverload
-                    var eEntry = _context.AniDbMyListEntries.Find(entry.Id);
-                    if (eEntry is null)
-                        _context.AniDbMyListEntries.Add(entry);
-                    else
-                        _context.Entry(eEntry).CurrentValues.SetValues(entry);
-                    // ReSharper disable once MethodHasAsyncOverload
-                    _context.SaveChanges();
+                    SaveMyListResult(result);
                     _logger.LogInformation("Mylist entry already exists, retrying with edit");
                 }
                 break;
@@ -109,5 +108,27 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
                 break;
         }
         return retry;
+    }
+
+    private void SaveMyListResult(MyListEntryResult result)
+    {
+        var entry = new AniDbMyListEntry
+        {
+            Id = result.MyListId,
+            FileId = result.FileId,
+            Watched = result.ViewDate is not null,
+            WatchedDate = result.ViewDate?.UtcDateTime,
+            MyListState = result.State,
+            MyListFileState = result.FileState,
+            Updated = DateTime.UtcNow
+        };
+        // ReSharper disable once MethodHasAsyncOverload
+        var eEntry = _context.AniDbMyListEntries.Find(entry.Id);
+        if (eEntry is null)
+            _context.AniDbMyListEntries.Add(entry);
+        else
+            _context.Entry(eEntry).CurrentValues.SetValues(entry);
+        // ReSharper disable once MethodHasAsyncOverload
+        _context.SaveChanges();
     }
 }
