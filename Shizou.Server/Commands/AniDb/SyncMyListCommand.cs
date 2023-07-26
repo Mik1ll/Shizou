@@ -175,28 +175,35 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     private static void CombineUpdates(List<MyListItem> myListItems, List<UpdateMyListArgs> toUpdate)
     {
         foreach (var aGroup in from i in myListItems
-                 where i.Aids.Count == 1
-                 group i by i.Aids.First())
+                 group i by i.Aids.First()
+                 into aGroup
+                 where aGroup.All(i => i.Aids.Count == 1)
+                 select aGroup)
         {
             var items = aGroup.ToList();
-            var ids = items.Select(i => i.Id).ToHashSet();
-            var updates = toUpdate.Where(u => u.Lid is not null && ids.Contains(u.Lid.Value)).ToList();
-            if (updates.Count <= 1)
-                continue;
-            var updateIds = updates.Select(u => u.Lid!.Value).ToHashSet();
-            var itemsWithoutUpdates = items.Where(i => !updateIds.Contains(i.Id)).ToList();
-            var firstUpdate = updates.First();
-            if (updates.Select(u => u.MyListState).Concat(itemsWithoutUpdates.Select(i => i.State)).Any(s => s != firstUpdate.MyListState))
-                continue;
-            var updateItems = (from u in updates
+            var updateItems = (from u in toUpdate
                 join i in items
                     on u.Lid equals i.Id
                 select new { u, i }).ToList();
-            if (!updateItems.All(ui => ui.u.Watched == ui.i.Viewdate is not null && ui.u.WatchedDate == ui.i.Viewdate))
+            var itemsWithoutUpdates = items.Except(updateItems.Select(ui => ui.i)).ToList();
+            if (updateItems.Count <= 1)
                 continue;
-            foreach (var u in updates)
-                toUpdate.Remove(u);
-            toUpdate.Add(new UpdateMyListArgs(Aid: aGroup.Key, EpNo: "0", Edit: true, MyListState: firstUpdate.MyListState));
+            var firstUpdate = updateItems.First().u;
+            var newStates = updateItems.Select(ui => new { State = ui.u.MyListState, Watched = ui.u.Watched!.Value, ui.u.WatchedDate })
+                .Concat(itemsWithoutUpdates.Select(i => new { i.State, Watched = i.Viewdate is not null, WatchedDate = i.Viewdate })).ToList();
+            if (newStates.All(s => s.State == firstUpdate.MyListState) &&
+                updateItems.All(ui => ui.u.Watched!.Value == ui.i.Viewdate is not null && ui.u.WatchedDate == ui.i.Viewdate))
+            {
+                foreach (var ui in updateItems)
+                    toUpdate.Remove(ui.u);
+                toUpdate.Add(new UpdateMyListArgs(true, firstUpdate.MyListState, Aid: aGroup.Key, EpNo: "0"));
+            }
+            else if (newStates.All(s => s.State == firstUpdate.MyListState && s.Watched == firstUpdate.Watched && s.WatchedDate == firstUpdate.WatchedDate))
+            {
+                foreach (var ui in updateItems)
+                    toUpdate.Remove(ui.u);
+                toUpdate.Add(new UpdateMyListArgs(true, firstUpdate.MyListState, firstUpdate.Watched, firstUpdate.WatchedDate, Aid: aGroup.Key, EpNo: "0"));
+            }
         }
     }
 
