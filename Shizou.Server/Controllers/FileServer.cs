@@ -34,6 +34,7 @@ public class FileServer : ControllerBase
     [HttpGet("{localFileId:int}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status416RangeNotSatisfiable)]
+    [SwaggerResponse(StatusCodes.Status409Conflict)]
     [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: "application/octet-stream")]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
     public ActionResult Get(int localFileId)
@@ -41,9 +42,14 @@ public class FileServer : ControllerBase
         var localDbFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
         if (localDbFile is null)
             return NotFound();
+        if (localDbFile.ImportFolder is null)
+        {
+            _logger.LogWarning("Tried to get local file with no import folder");
+            return Conflict("Import folder does not exist");
+        }
         var localFile = new FileInfo(Path.GetFullPath(Path.Combine(localDbFile.ImportFolder.Path, localDbFile.PathTail)));
         if (!localFile.Exists)
-            return NotFound();
+            return Conflict("Local file path does not exist");
         if (!new FileExtensionContentTypeProvider().TryGetContentType(localFile.Name, out var mimeType))
             mimeType = "application/octet-stream";
         var fileStream = new FileStream(localFile.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 19, FileOptions.Asynchronous);

@@ -36,8 +36,8 @@ public class HashCommand : BaseCommand<HashArgs>
     protected override async Task ProcessInner()
     {
         var file = new FileInfo(CommandArgs.Path);
-        ImportFolder? importFolder;
-        if (!file.Exists || (importFolder = _context.ImportFolders.GetByPath(file.FullName)) is null)
+        var importFolder = _context.ImportFolders.GetByPath(file.FullName);
+        if (!file.Exists || importFolder is null)
         {
             _logger.LogWarning("File not found or not inside an import folder: \"{Path}\"", file.FullName);
             return;
@@ -50,7 +50,7 @@ public class HashCommand : BaseCommand<HashArgs>
         if (localFile is not null && localFile.Signature == signature)
         {
             _logger.LogInformation("Found local file by signature: {Signature} \"{Path}\"", signature, file.FullName);
-            var oldPath = Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
+            var oldPath = localFile.ImportFolder is null ? null : Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
             if (file.FullName != oldPath)
             {
                 if (File.Exists(oldPath))
@@ -65,6 +65,7 @@ public class HashCommand : BaseCommand<HashArgs>
         }
         else
         {
+            // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (localFile is not null)
                 _logger.LogInformation("Found local file with mismatched signature, rehashing: \"{Path}\"", file.FullName);
             else
@@ -84,6 +85,7 @@ public class HashCommand : BaseCommand<HashArgs>
             _logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasherService.HashIds.Ed2K],
                 hashes[RHasherService.HashIds.Crc32]);
         }
+        // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
         if (_context.AniDbFiles.GetByEd2K(localFile.Ed2K) is null)
             _commandService.Dispatch(new ProcessArgs(localFile.Id, IdTypeLocalFile.LocalId));

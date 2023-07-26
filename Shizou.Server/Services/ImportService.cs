@@ -52,7 +52,8 @@ public class ImportService
         }
         var allFiles = dir.GetFiles("*", SearchOption.AllDirectories);
         var dbFiles = context.LocalFiles.Include(lf => lf.ImportFolder)
-            .ToDictionary(lf => Path.Combine(lf.ImportFolder.Path, lf.PathTail));
+            .Where(lf => lf.ImportFolder != null)
+            .ToDictionary(lf => Path.Combine(lf.ImportFolder!.Path, lf.PathTail));
         var filesToHash = allFiles.Where(f =>
             !dbFiles.TryGetValue(f.FullName, out var lf) || (!lf.Ignored && (forceRescan || f.Length != lf.FileSize)));
 
@@ -63,13 +64,15 @@ public class ImportService
     {
         using var context = _contextFactory.CreateDbContext();
         var toRemove = (from file in context.LocalFiles.Include(lf => lf.ImportFolder).ToList()
-            let fullPath = Path.Combine(file.ImportFolder.Path, file.PathTail)
-            where !new FileInfo(fullPath).Exists
-            select new { file, fullPath }).ToList();
-        foreach (var lf in toRemove)
+            where file.ImportFolder is null || !new FileInfo(Path.Combine(file.ImportFolder.Path, file.PathTail)).Exists
+            select file).ToList();
+        foreach (var file in toRemove)
         {
-            _logger.LogInformation("Removing missing local file: {FilePath}", lf.fullPath);
-            context.LocalFiles.Remove(lf.file);
+            if (file.ImportFolder is null)
+                _logger.LogInformation("Removing local file with missing import folder: \"{FileName}\"", Path.GetFileName(file.PathTail));
+            else
+                _logger.LogInformation("Removing missing local file: \"{FilePath}\"", Path.Combine(file.ImportFolder.Path, file.PathTail));
+            context.LocalFiles.Remove(file);
         }
         context.SaveChanges();
     }

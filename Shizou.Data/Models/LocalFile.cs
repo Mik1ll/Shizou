@@ -17,8 +17,8 @@ public class LocalFile : IEntity
     public required string PathTail { get; set; }
     public DateTime? Updated { get; set; }
 
-    public required int ImportFolderId { get; set; }
-    [JsonIgnore] public ImportFolder ImportFolder { get; set; } = null!;
+    public int? ImportFolderId { get; set; }
+    [JsonIgnore] public ImportFolder? ImportFolder { get; set; }
 
     [JsonIgnore]
     public List<AniDbEpisode> ManualLinkEpisodes { get; set; } = null!;
