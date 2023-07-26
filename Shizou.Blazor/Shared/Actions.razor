@@ -5,6 +5,7 @@
 <section class="actions">
     <button type="button" class="btn btn-primary" @onclick="@DispatchNoop">Add noops</button>
     <button type="button" class="btn btn-primary" @onclick="@RunImport">Run Import</button>
+    <button type="button" class="btn btn-primary" @onclick="@RemoveMissingFiles">Remove Missing Files</button>
     <button type="button" class="btn btn-primary" @onclick="@(async () => await UdpRequestFactory.PingRequest().Process())">Ping AniDb</button>
     <button type="button" class="btn btn-primary" @onclick="@DispatchMyListSync">Sync MyList</button>
     <button type="button" class="btn btn-primary" @onclick="@ScheduleNoop">Schedule Noop</button>

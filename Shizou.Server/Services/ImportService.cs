@@ -45,6 +45,11 @@ public class ImportService
             throw new InvalidOperationException($"Import folder id {importFolderId} not found");
         _logger.LogInformation("Beginning scan on import folder \"{ImportFolderPath}\"", importFolder.Path);
         var dir = new DirectoryInfo(importFolder.Path);
+        if (!dir.Exists)
+        {
+            _logger.LogError("Import folder path \"{ImportPath}\" does not exist", importFolder.Path);
+            return;
+        }
         var allFiles = dir.GetFiles("*", SearchOption.AllDirectories);
         var dbFiles = context.LocalFiles.Include(lf => lf.ImportFolder)
             .ToDictionary(lf => Path.Combine(lf.ImportFolder.Path, lf.PathTail));
@@ -52,5 +57,20 @@ public class ImportService
             !dbFiles.TryGetValue(f.FullName, out var lf) || (!lf.Ignored && (forceRescan || f.Length != lf.FileSize)));
 
         _commandService.DispatchRange(filesToHash.Select(e => new HashArgs(e.FullName)));
+    }
+
+    public void RemoveMissingFiles()
+    {
+        using var context = _contextFactory.CreateDbContext();
+        var toRemove = (from file in context.LocalFiles.Include(lf => lf.ImportFolder).ToList()
+            let fullPath = Path.Combine(file.ImportFolder.Path, file.PathTail)
+            where !new FileInfo(fullPath).Exists
+            select new { file, fullPath }).ToList();
+        foreach (var lf in toRemove)
+        {
+            _logger.LogInformation("Removing missing local file: {FilePath}", lf.fullPath);
+            context.LocalFiles.Remove(lf.file);
+        }
+        context.SaveChanges();
     }
 }

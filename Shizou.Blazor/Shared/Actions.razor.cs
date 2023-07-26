@@ -20,6 +20,11 @@ public partial class Actions
         ServiceProvider.GetRequiredService<ImportService>().Import();
     }
 
+    private void RemoveMissingFiles()
+    {
+        ServiceProvider.GetRequiredService<ImportService>().RemoveMissingFiles();
+    }
+
     private void DispatchMyListSync()
     {
         ServiceProvider.GetRequiredService<CommandService>().Dispatch(new SyncMyListArgs());
