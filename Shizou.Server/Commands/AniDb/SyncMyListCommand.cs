@@ -180,8 +180,8 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         {
             var items = aGroup.ToList();
             var ids = items.Select(i => i.Id).ToHashSet();
-            var updates = toUpdate.Where(u => ids.Contains(u.Lid!.Value)).ToList();
-            if (updates is [])
+            var updates = toUpdate.Where(u => u.Lid is not null && ids.Contains(u.Lid.Value)).ToList();
+            if (updates.Count <= 1)
                 continue;
             var updateIds = updates.Select(u => u.Lid!.Value).ToHashSet();
             var itemsWithoutUpdates = items.Where(i => !updateIds.Contains(i.Id)).ToList();
@@ -234,7 +234,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         if (request.MyListResult is null)
         {
             if (!File.Exists(FilePaths.MyListPath))
-                File.Create(FilePaths.MyListPath).Dispose();
+                await File.Create(FilePaths.MyListPath).DisposeAsync();
             File.SetLastWriteTimeUtc(FilePaths.MyListPath, DateTime.UtcNow);
             _logger.LogWarning("Failed to get mylist data from AniDb, retry in {Hours} hours", MyListRequestPeriod.TotalHours);
         }
