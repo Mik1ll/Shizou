@@ -4,11 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.FileCaches;
+using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
@@ -23,20 +25,22 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
     private readonly ShizouContext _context;
     private readonly AniDbFileResultCache _fileResultCache;
     private readonly UdpRequestFactory _udpRequestFactory;
+    private readonly ShizouOptions _options;
 
     public ProcessCommand(
         ILogger<ProcessCommand> logger,
         ShizouContext context,
         CommandService commandService,
         AniDbFileResultCache fileResultCache,
-        UdpRequestFactory udpRequestFactory
-    )
+        UdpRequestFactory udpRequestFactory,
+        IOptionsSnapshot<ShizouOptions> optionsSnapshot)
     {
         _logger = logger;
         _context = context;
         _commandService = commandService;
         _fileResultCache = fileResultCache;
         _udpRequestFactory = udpRequestFactory;
+        _options = optionsSnapshot.Value;
     }
 
     protected override async Task ProcessInner()
@@ -50,6 +54,12 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             _commandService.Dispatch(new AnimeArgs(result.AnimeId!.Value));
 
         UpdateDatabase(result);
+
+        if (result.MyListId is null)
+            _commandService.Dispatch(new UpdateMyListArgs(false, _options.MyList.PresentFileState, false, Fid: result.FileId));
+        else if (result.MyListState != _options.MyList.PresentFileState || result.MyListFileState != MyListFileState.Normal)
+            _commandService.Dispatch(new UpdateMyListArgs(true, _options.MyList.PresentFileState, result.MyListViewed!, Lid: result.MyListId!,
+                Fid: result.FileId));
 
         Completed = true;
     }

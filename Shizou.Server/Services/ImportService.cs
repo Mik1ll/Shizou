@@ -62,6 +62,7 @@ public class ImportService
 
     public void RemoveMissingFiles()
     {
+        _logger.LogInformation("Removing missing local files");
         using var context = _contextFactory.CreateDbContext();
         var toRemove = (from file in context.LocalFiles.Include(lf => lf.ImportFolder).ToList()
             where file.ImportFolder is null || !new FileInfo(Path.Combine(file.ImportFolder.Path, file.PathTail)).Exists
