@@ -9,6 +9,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
+using Shizou.Server.Extensions;
 using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
@@ -55,13 +56,20 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
         UpdateDatabase(result);
 
-        if (result.MyListId is null)
-            _commandService.Dispatch(new UpdateMyListArgs(false, _options.MyList.PresentFileState, false, Fid: result.FileId));
-        else if (result.MyListState != _options.MyList.PresentFileState || result.MyListFileState != MyListFileState.Normal)
-            _commandService.Dispatch(new UpdateMyListArgs(true, _options.MyList.PresentFileState, result.MyListViewed!, Lid: result.MyListId!,
-                Fid: result.FileId));
+        UpdateAniDb(result);
 
         Completed = true;
+    }
+
+    private void UpdateAniDb(FileResult result)
+    {
+        if ((FileIsGeneric(result) && _context.EpisodesWithManualLinks.Any(e => e.Id == result.EpisodeId!.Value)) ||
+            _context.LocalFiles.GetByEd2K(result.Ed2K!) is not null)
+            if (result.MyListId is null)
+                _commandService.Dispatch(new UpdateMyListArgs(false, _options.MyList.PresentFileState, false, Fid: result.FileId));
+            else if (result.MyListState != _options.MyList.PresentFileState || result.MyListFileState != MyListFileState.Normal)
+                _commandService.Dispatch(new UpdateMyListArgs(true, _options.MyList.PresentFileState, result.MyListViewed!, Lid: result.MyListId!,
+                    Fid: result.FileId));
     }
 
     private static AniDbMyListEntry? FileResultToAniDbMyListEntry(FileResult result)
@@ -130,12 +138,17 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
 
     private void UpdateDatabase(FileResult result)
     {
-        if (result.Ed2K is null && result.State == 0) // Generics also have .rl extension but don't know if it's exclusive
+        if (FileIsGeneric(result)) // Generics also have .rl extension but don't know if it's exclusive
             UpdateGenericFile(result);
         else
             UpdateFile(result);
 
         UpdateMyListEntry(result);
+    }
+
+    private static bool FileIsGeneric(FileResult result)
+    {
+        return result.Ed2K is null && result.State == 0;
     }
 
     private void UpdateFile(FileResult result)
