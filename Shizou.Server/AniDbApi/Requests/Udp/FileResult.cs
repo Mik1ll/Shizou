@@ -31,7 +31,7 @@ public sealed record FileResult
                         EpisodeId = int.Parse(data);
                         break;
                     case FMask.GroupId:
-                        GroupId = int.Parse(data);
+                        GroupId = data != "0" ? int.Parse(data) : null;
                         break;
                     case FMask.MyListId:
                         MyListId = data != "0" ? int.Parse(data) : null;
