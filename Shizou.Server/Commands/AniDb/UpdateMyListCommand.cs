@@ -53,6 +53,8 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
         {
             { Lid: not null, Fid: not null, Aid: null, EpNo: null, Edit: true, Watched: not null } =>
                 _udpRequestFactory.MyListAddRequest(CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState),
+            { Lid: not null, Fid: not null, Aid: null, EpNo: null, Edit: true, Watched: null } =>
+                _udpRequestFactory.MyListAddRequest(CommandArgs.Lid.Value, state: CommandArgs.MyListState),
             { Fid: not null, Aid: null, EpNo: null, Edit: false, Watched: not null } =>
                 _udpRequestFactory.MyListAddRequest(CommandArgs.Fid.Value, CommandArgs.Edit, CommandArgs.Watched, CommandArgs.WatchedDate,
                     CommandArgs.MyListState),

@@ -4,11 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Extensions;
+using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands;
@@ -21,16 +23,19 @@ public class HashCommand : BaseCommand<HashArgs>
     private readonly ILogger<HashCommand> _logger;
     private readonly CommandService _commandService;
     private readonly ShizouContext _context;
+    private readonly ShizouOptions _options;
 
     public HashCommand(
         ILogger<HashCommand> logger,
         ShizouContext context,
-        CommandService commandService
+        CommandService commandService,
+        IOptionsSnapshot<ShizouOptions> optionsSnapshot
     )
     {
         _logger = logger;
         _context = context;
         _commandService = commandService;
+        _options = optionsSnapshot.Value;
     }
 
     protected override async Task ProcessInner()
@@ -87,8 +92,19 @@ public class HashCommand : BaseCommand<HashArgs>
         }
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
-        if (_context.AniDbFiles.GetByEd2K(localFile.Ed2K) is null)
+        var eAniDbFileId = _context.AniDbFiles.Where(f => f.Ed2K == localFile.Ed2K).Select(f => (int?)f.Id).FirstOrDefault();
+        if (eAniDbFileId is null)
+        {
             _commandService.Dispatch(new ProcessArgs(localFile.Id, IdTypeLocalFile.LocalId));
+        }
+        else
+        {
+            var eEntry = _context.AniDbMyListEntries.Select(e => new { e.Id, e.MyListState }).FirstOrDefault(e => e.Id == eAniDbFileId.Value);
+            if (eEntry is null)
+                _commandService.Dispatch(new UpdateMyListArgs(false, _options.MyList.PresentFileState, false, Fid: eAniDbFileId));
+            else if (eEntry.MyListState != _options.MyList.PresentFileState)
+                _commandService.Dispatch(new UpdateMyListArgs(true, _options.MyList.PresentFileState, Lid: eEntry.Id, Fid: eAniDbFileId));
+        }
         Completed = true;
     }
 }
