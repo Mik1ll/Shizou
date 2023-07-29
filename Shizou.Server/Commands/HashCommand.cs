@@ -94,15 +94,13 @@ public class HashCommand : BaseCommand<HashArgs>
         _context.SaveChanges();
         var eAniDbFileId = _context.AniDbFiles.Where(f => f.Ed2K == localFile.Ed2K).Select(f => (int?)f.Id).FirstOrDefault();
         if (eAniDbFileId is null)
-        {
             _commandService.Dispatch(new ProcessArgs(localFile.Id, IdTypeLocalFile.LocalId));
-        }
         else
         {
-            var eEntry = _context.AniDbMyListEntries.Select(e => new { e.Id, e.MyListState }).FirstOrDefault(e => e.Id == eAniDbFileId.Value);
+            var eEntry = _context.AniDbMyListEntries.AsNoTracking().FirstOrDefault(e => e.Id == eAniDbFileId.Value);
             if (eEntry is null)
                 _commandService.Dispatch(new UpdateMyListArgs(false, _options.MyList.PresentFileState, false, Fid: eAniDbFileId));
-            else if (eEntry.MyListState != _options.MyList.PresentFileState)
+            else if (eEntry.MyListState != _options.MyList.PresentFileState || eEntry.MyListFileState != MyListFileState.Normal)
                 _commandService.Dispatch(new UpdateMyListArgs(true, _options.MyList.PresentFileState, Lid: eEntry.Id, Fid: eAniDbFileId));
         }
         Completed = true;
