@@ -41,21 +41,11 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
 
     protected override async Task ProcessInner()
     {
-        if (await ProcessRequest())
-            if (await ProcessRequest())
-                await ProcessRequest();
-        Completed = true;
-    }
-
-    private async Task<bool> ProcessRequest()
-    {
         var request = CommandArgs switch
         {
-            { Lid: not null, Fid: not null, Aid: null, EpNo: null, Edit: true, Watched: not null } =>
+            { Lid: not null, Fid: null, Aid: null, EpNo: null, Edit: true } =>
                 _udpRequestFactory.MyListAddRequest(CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState),
-            { Lid: not null, Fid: not null, Aid: null, EpNo: null, Edit: true, Watched: null } =>
-                _udpRequestFactory.MyListAddRequest(CommandArgs.Lid.Value, state: CommandArgs.MyListState),
-            { Fid: not null, Aid: null, EpNo: null, Edit: false, Watched: not null } =>
+            { Fid: not null, Lid: null, Aid: null, EpNo: null, Edit: false } =>
                 _udpRequestFactory.MyListAddRequest(CommandArgs.Fid.Value, CommandArgs.Edit, CommandArgs.Watched, CommandArgs.WatchedDate,
                     CommandArgs.MyListState),
             { Aid: not null, EpNo: not null, Lid: null, Fid: null } =>
@@ -64,7 +54,6 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
             _ => throw new ArgumentException($"{nameof(UpdateMyListArgs)} not valid")
         };
         await request.Process();
-        var retry = false;
         switch (request.ResponseCode)
         {
             case AniDbResponseCode.MyListAdded:
@@ -78,6 +67,7 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
                         // ReSharper disable once MethodHasAsyncOverload
                         if (_context.AniDbGenericFiles.Find(result.FileId) is null)
                         {
+                            _logger.LogDebug("Adding new generic file {GenericId}", result.FileId);
                             _context.AniDbGenericFiles.Add(new AniDbGenericFile { Id = result.FileId, AniDbEpisodeId = result.EpisodeId });
                             // ReSharper disable once MethodHasAsyncOverload
                             _context.SaveChanges();
@@ -89,11 +79,7 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
                 if (CommandArgs is { Fid: not null })
                 {
                     var result = request.ExistingEntryResult!;
-                    CommandArgs = CommandArgs with { Lid = result.MyListId, Edit = true };
-                    retry = true;
-
                     SaveMyListResult(result);
-                    _logger.LogInformation("Mylist entry already exists, retrying with edit");
                 }
                 break;
             case AniDbResponseCode.MultipleMyListEntries:
@@ -101,19 +87,14 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
             case AniDbResponseCode.MyListEdited:
                 break;
             case AniDbResponseCode.NoSuchMyListEntry:
-                if (CommandArgs is { Lid: not null })
-                {
-                    CommandArgs = CommandArgs with { Lid = null, Edit = false };
-                    retry = true;
-                    _logger.LogInformation("Mylist entry not found, retrying with add");
-                }
                 break;
         }
-        return retry;
+        Completed = true;
     }
 
     private void SaveMyListResult(MyListEntryResult result)
     {
+        _logger.LogDebug("Saving mylist entry {MyListId}", result.MyListId);
         var entry = new AniDbMyListEntry
         {
             Id = result.MyListId,

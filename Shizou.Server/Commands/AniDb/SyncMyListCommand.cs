@@ -106,7 +106,8 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                 join e in _context.AniDbEpisodes
                     on gf.AniDbEpisodeId equals e.Id
                 select new { gf.Id, e.Watched, e.WatchedUpdatedLocally }).ToDictionary(f => f.Id);
-        var dbFilesWithLocal = _context.FilesWithLocal.Select(f => f.Id).ToHashSet();
+        var dbFilesWithLocal = _context.FilesWithLocal.Select(f => f.Id)
+            .Union(_context.GenericFilesWithManualLinks.Select(f => f.Id)).ToHashSet();
         var dbEpIdsWithoutGenericFile = (from e in _context.AniDbEpisodes
             where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id)
             select e.Id).ToHashSet();
@@ -128,18 +129,20 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             if (dbFiles.TryGetValue(item.Fid, out var dbFile))
             {
                 var expectedState = dbFilesWithLocal.Contains(dbFile.Id) ? _options.MyList.PresentFileState : _options.MyList.AbsentFileState;
-                var useAniDbWatchedState = dbFile.WatchedUpdatedLocally is null || DateOnly.FromDateTime(dbFile.WatchedUpdatedLocally.Value) < item.Updated;
-                var (syncedWatched, syncedWatchedDateTime) = useAniDbWatchedState
-                    ? (item.Viewdate is not null, item.Viewdate)
-                    : (dbFile.Watched, dbFile.WatchedUpdatedLocally);
-                if (item.State != expectedState || item.FileState != MyListFileState.Normal || item.Viewdate is not null != syncedWatched)
-                    toUpdate.Add(new UpdateMyListArgs(true, expectedState, syncedWatched, syncedWatchedDateTime, item.Id, item.Fid));
-                if (dbFile.Watched != syncedWatched)
+                var itemWatched = item.Viewdate is not null;
+                var updateWatched = dbFile.WatchedUpdatedLocally is not null &&
+                                    DateOnly.FromDateTime(dbFile.WatchedUpdatedLocally.Value) >= item.Updated
+                                    && dbFile.Watched != itemWatched;
+                if (updateWatched)
+                    toUpdate.Add(new UpdateMyListArgs(true, expectedState, dbFile.Watched, dbFile.WatchedUpdatedLocally, item.Id));
+                else if (item.State != expectedState || item.FileState != MyListFileState.Normal)
+                    toUpdate.Add(new UpdateMyListArgs(true, expectedState, Lid: item.Id));
+                if (!updateWatched && dbFile.Watched != itemWatched)
                 {
                     var file = _context.AniDbFiles.Find(dbFile.Id);
                     if (file is not null)
                     {
-                        file.Watched = syncedWatched;
+                        file.Watched = itemWatched;
                         file.WatchedUpdatedLocally = null;
                     }
                     else
@@ -147,7 +150,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                         var episode = _context.AniDbEpisodes.GetEpisodeByGenericFileId(_context.AniDbGenericFiles, dbFile.Id);
                         if (episode is not null)
                         {
-                            episode.Watched = syncedWatched;
+                            episode.Watched = itemWatched;
                             episode.WatchedUpdatedLocally = null;
                         }
                         else
@@ -162,7 +165,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                 if (item.Eids.Count == 1 && dbEpIdsWithoutGenericFile.Contains(item.Eids.First()))
                     toProcess.Add(new ProcessArgs(item.Fid, IdTypeLocalFile.FileId));
                 else if (item.State != _options.MyList.AbsentFileState || item.FileState != MyListFileState.Normal)
-                    toUpdate.Add(new UpdateMyListArgs(true, _options.MyList.AbsentFileState, item.Viewdate is not null, item.Viewdate, item.Id, item.Fid));
+                    toUpdate.Add(new UpdateMyListArgs(true, _options.MyList.AbsentFileState, Lid: item.Id));
             }
         _context.SaveChanges();
 
@@ -189,10 +192,13 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             if (updateItems.Count <= 1)
                 continue;
             var firstUpdate = updateItems.First().u;
-            var newStates = updateItems.Select(ui => new { State = ui.u.MyListState, Watched = ui.u.Watched!.Value, ui.u.WatchedDate })
+            var newStates = updateItems.Select(ui => new
+                {
+                    State = ui.u.MyListState, Watched = ui.u.Watched ?? ui.i.Viewdate is not null,
+                    WatchedDate = ui.u.Watched is null ? ui.i.Viewdate : ui.u.WatchedDate
+                })
                 .Concat(itemsWithoutUpdates.Select(i => new { i.State, Watched = i.Viewdate is not null, WatchedDate = i.Viewdate })).ToList();
-            if (newStates.All(s => s.State == firstUpdate.MyListState) &&
-                updateItems.All(ui => ui.u.Watched!.Value == ui.i.Viewdate is not null && ui.u.WatchedDate == ui.i.Viewdate))
+            if (newStates.All(s => s.State == firstUpdate.MyListState) && updateItems.All(ui => ui.u.Watched is null))
             {
                 foreach (var ui in updateItems)
                     toUpdate.Remove(ui.u);

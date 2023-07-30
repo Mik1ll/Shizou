@@ -66,9 +66,9 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         if ((FileIsGeneric(result) && _context.EpisodesWithManualLinks.Any(e => e.Id == result.EpisodeId!.Value)) ||
             _context.LocalFiles.GetByEd2K(result.Ed2K!) is not null)
             if (result.MyListId is null)
-                _commandService.Dispatch(new UpdateMyListArgs(false, _options.MyList.PresentFileState, false, Fid: result.FileId));
+                _commandService.Dispatch(new UpdateMyListArgs(false, _options.MyList.PresentFileState, Fid: result.FileId));
             else if (result.MyListState != _options.MyList.PresentFileState || result.MyListFileState != MyListFileState.Normal)
-                _commandService.Dispatch(new UpdateMyListArgs(true, _options.MyList.PresentFileState, Lid: result.MyListId!, Fid: result.FileId));
+                _commandService.Dispatch(new UpdateMyListArgs(true, _options.MyList.PresentFileState, Lid: result.MyListId!));
     }
 
     private static AniDbMyListEntry? FileResultToAniDbMyListEntry(FileResult result)
