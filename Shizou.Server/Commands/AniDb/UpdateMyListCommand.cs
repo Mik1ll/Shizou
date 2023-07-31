@@ -11,7 +11,7 @@ namespace Shizou.Server.Commands.AniDb;
 
 public record UpdateMyListArgs(
         bool Edit,
-        MyListState MyListState,
+        MyListState? MyListState = null,
         bool? Watched = null,
         DateTimeOffset? WatchedDate = null,
         int? Lid = null,

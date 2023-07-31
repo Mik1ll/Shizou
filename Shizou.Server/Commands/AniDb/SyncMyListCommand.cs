@@ -194,7 +194,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             var firstUpdate = updateItems.First().u;
             var newStates = updateItems.Select(ui => new
                 {
-                    State = ui.u.MyListState, Watched = ui.u.Watched ?? ui.i.Viewdate is not null,
+                    State = ui.u.MyListState!.Value, Watched = ui.u.Watched ?? ui.i.Viewdate is not null,
                     WatchedDate = ui.u.Watched is null ? ui.i.Viewdate : ui.u.WatchedDate
                 })
                 .Concat(itemsWithoutUpdates.Select(i => new { i.State, Watched = i.Viewdate is not null, WatchedDate = i.Viewdate })).ToList();

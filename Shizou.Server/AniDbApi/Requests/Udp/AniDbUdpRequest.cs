@@ -81,7 +81,7 @@ public abstract class AniDbUdpRequest
             Logger.LogWarning("Banned, aborting UDP request: {RequestText}", RequestText);
             throw new AniDbUdpRequestException("Udp banned", AniDbResponseCode.Banned);
         }
-        Logger.LogInformation("Sending AniDb UDP text: {RequestText}", RequestText);
+        Logger.LogDebug("Sending AniDb UDP text: {RequestText}", RequestText);
         if (!AniDbUdpState.UdpClient.Client.Connected)
             AniDbUdpState.Connect();
         await AniDbUdpState.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
@@ -134,7 +134,7 @@ public abstract class AniDbUdpRequest
         ResponseText = reader.ReadToEnd();
         if (string.IsNullOrWhiteSpace(codeLine) || codeLine.Length <= 2)
             throw new AniDbUdpRequestException("AniDB response is empty");
-        Logger.LogInformation("Received AniDB UDP response {CodeString}", codeLine);
+        Logger.LogDebug("Received AniDB UDP response {CodeString}", codeLine);
         ResponseCode = (AniDbResponseCode)int.Parse(codeLine[..3]);
         if (codeLine.Length >= 5)
             ResponseCodeString = codeLine[4..];
