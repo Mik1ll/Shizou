@@ -164,7 +164,15 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         if (eFile is null)
             _context.Entry(file).State = EntityState.Added;
         else
+        {
+            // Only update local watched state if it wasn't set by user, we can wait for a mylist sync
+            if (eFile.WatchedUpdatedLocally is not null)
+            {
+                file.Watched = eFile.Watched;
+                file.WatchedUpdatedLocally = eFile.WatchedUpdatedLocally;
+            }
             _context.Entry(eFile).CurrentValues.SetValues(file);
+        }
         _context.SaveChanges();
 
         UpdateOwnedNavigations(file, eFile);
@@ -240,7 +248,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             _context.Entry(eGenericFile).CurrentValues.SetValues(genericFile);
 
         var eEpisode = _context.AniDbEpisodes.Find(result.EpisodeId!.Value);
-        if (eEpisode is not null)
+        // Only update local watched state if it wasn't set by user, we can wait for a mylist sync
+        if (eEpisode is not null && eEpisode.WatchedUpdatedLocally is null)
         {
             eEpisode.Watched = result.MyListViewed ?? false;
             eEpisode.WatchedUpdatedLocally = null;
