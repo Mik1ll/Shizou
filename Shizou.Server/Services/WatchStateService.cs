@@ -27,7 +27,7 @@ public class WatchStateService
         _optionsMonitor = optionsMonitor;
     }
 
-    public void Mark(int fileId, bool watched)
+    public bool MarkFile(int fileId, bool watched)
     {
         using var context = _contextFactory.CreateDbContext();
         var updatedTime = DateTime.UtcNow;
@@ -49,15 +49,16 @@ public class WatchStateService
         else
         {
             _logger.LogWarning("File Id {FileId} not found, not marking", fileId);
-            return;
+            return false;
         }
         var eEntryId = context.AniDbMyListEntries.AsNoTracking().FirstOrDefault(e => e.FileId == eitherId.Value)?.Id;
         _commandService.Dispatch(eEntryId is not null
             ? new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Lid: eEntryId)
             : new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Fid: eitherId));
+        return true;
     }
 
-    public void MarkEpisode(int episodeId, bool watched)
+    public bool MarkEpisode(int episodeId, bool watched)
     {
         using var context = _contextFactory.CreateDbContext();
         var updatedTime = DateTime.UtcNow;
@@ -67,7 +68,7 @@ public class WatchStateService
         if (eEpisode is null)
         {
             _logger.LogWarning("Episode Id {EpisodeId} not found, not marking", episodeId);
-            return;
+            return false;
         }
         eEpisode.Watched = watched;
         eEpisode.WatchedUpdatedLocally = updatedTime;
@@ -88,5 +89,6 @@ public class WatchStateService
             _commandService.Dispatch(new UpdateMyListArgs(false, state, watched, updatedTime, Aid: eEpisode.AniDbAnimeId,
                 EpNo: EpisodeTypeExtensions.ToEpString(eEpisode.EpisodeType, eEpisode.Number)));
         }
+        return true;
     }
 }
