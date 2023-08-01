@@ -33,10 +33,10 @@ public abstract class RateLimiter
     {
         await _rateSemaphore.WaitAsync();
         Logger.LogDebug("Got rate limiter");
-        if (!Available)
+        if (!Available && NextAvailable - DateTimeOffset.UtcNow is var timeUntilNext && timeUntilNext > TimeSpan.Zero)
         {
-            Logger.LogDebug("Time since last command: {WatchElapsed}, waiting for {NextAvailable}", _watch.Elapsed, NextAvailable - DateTimeOffset.UtcNow);
-            await Task.Delay(NextAvailable - DateTimeOffset.UtcNow);
+            Logger.LogDebug("Time since last command: {WatchElapsed}, waiting for {TimeUntilNext}", _watch.Elapsed, timeUntilNext);
+            await Task.Delay(timeUntilNext);
         }
 
         return new ReleaseWrapper(this);
