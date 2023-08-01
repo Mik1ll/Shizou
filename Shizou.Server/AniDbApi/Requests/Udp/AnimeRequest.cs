@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Shizou.Server.AniDbApi.RateLimiters;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
@@ -14,7 +15,8 @@ public class AnimeRequest : AniDbUdpRequest
 
     public AMaskAnime AMask { get; set; }
 
-    public AnimeRequest(ILogger<AnimeRequest> logger, AniDbUdpState aniDbUdpState) : base("ANIME", logger, aniDbUdpState)
+    public AnimeRequest(ILogger<AnimeRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("ANIME", logger, aniDbUdpState,
+        rateLimiter)
     {
     }
 

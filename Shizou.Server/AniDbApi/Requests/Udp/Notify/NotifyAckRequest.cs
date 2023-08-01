@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Shizou.Server.AniDbApi.RateLimiters;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp.Notify;
 
@@ -7,10 +8,8 @@ public class NotifyAckRequest : AniDbUdpRequest
 {
     public bool? Success { get; set; }
 
-    public NotifyAckRequest(
-        ILogger<NotifyAckRequest> logger,
-        AniDbUdpState aniDbUdpState
-    ) : base("NOTIFYACK", logger, aniDbUdpState)
+    public NotifyAckRequest(ILogger<NotifyAckRequest> logger,
+        AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("NOTIFYACK", logger, aniDbUdpState, rateLimiter)
     {
     }
 

@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
-using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.Options;
 
@@ -27,14 +26,13 @@ public sealed class AniDbUdpState : IDisposable
     private readonly IServiceScopeFactory _scopeFactory;
 
     public AniDbUdpState(IOptionsMonitor<ShizouOptions> optionsMonitor,
-        ILogger<AniDbUdpState> logger, UdpRateLimiter rateLimiter, IServiceScopeFactory scopeFactory)
+        ILogger<AniDbUdpState> logger, IServiceScopeFactory scopeFactory)
     {
         _optionsMonitor = optionsMonitor;
         _scopeFactory = scopeFactory;
         var options = optionsMonitor.CurrentValue;
         _serverHost = options.AniDb.ServerHost;
         _serverPort = options.AniDb.UdpServerPort;
-        RateLimiter = rateLimiter;
         UdpClient = new UdpClient(options.AniDb.ClientPort, AddressFamily.InterNetwork);
         _logger = logger;
 
@@ -99,7 +97,6 @@ public sealed class AniDbUdpState : IDisposable
     public TimeSpan LogoutPeriod { get; } = new(0, 10, 0);
 
     public UdpClient UdpClient { get; }
-    public UdpRateLimiter RateLimiter { get; }
     public string? SessionKey { get; set; }
     
     public bool LoggedIn

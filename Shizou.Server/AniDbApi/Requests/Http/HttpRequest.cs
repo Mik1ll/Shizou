@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Http;
@@ -15,21 +16,21 @@ public abstract class HttpRequest
     private readonly UriBuilder _builder;
     protected readonly ILogger<HttpRequest> Logger;
     private readonly AniDbHttpState _httpState;
+    private readonly HttpRateLimiter _rateLimiter;
 
     public Dictionary<string, string?> Args { get; } = new();
     public bool ParametersSet { get; set; }
     public string? ResponseText { get; protected set; }
 
-    protected HttpRequest(
-        ILogger<HttpRequest> logger,
+    protected HttpRequest(ILogger<HttpRequest> logger,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,
         AniDbHttpState httpState,
-        IHttpClientFactory httpClientFactory
-    )
+        IHttpClientFactory httpClientFactory, HttpRateLimiter rateLimiter)
     {
         var options = optionsSnapshot.Value;
         Logger = logger;
         _httpState = httpState;
+        _rateLimiter = rateLimiter;
         _httpClient = httpClientFactory.CreateClient("gzip");
         _builder = new UriBuilder("http", options.AniDb.ServerHost, options.AniDb.HttpServerPort, "httpapi");
         Args["client"] = "shizouhttp";
@@ -55,7 +56,7 @@ public abstract class HttpRequest
     private async Task SendRequest()
     {
         var url = QueryHelpers.AddQueryString(_builder.Uri.AbsoluteUri, Args);
-        using (await _httpState.RateLimiter.AcquireAsync())
+        using (await _rateLimiter.AcquireAsync())
         {
             if (_httpState.Banned)
             {

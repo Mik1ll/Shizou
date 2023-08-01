@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Shizou.Server.AniDbApi.RateLimiters;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
@@ -7,7 +8,8 @@ public class MyListEntryRequest : AniDbUdpRequest
 {
     public MyListEntryResult? MyListEntryResult { get; private set; }
 
-    public MyListEntryRequest(ILogger<MyListEntryRequest> logger, AniDbUdpState aniDbUdpState) : base("MYLIST", logger, aniDbUdpState)
+    public MyListEntryRequest(ILogger<MyListEntryRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("MYLIST", logger,
+        aniDbUdpState, rateLimiter)
     {
     }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Shizou.Server.AniDbApi.RateLimiters;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp.Notify;
 
@@ -12,10 +13,8 @@ public class NotifyListRequest : AniDbUdpRequest
 {
     public List<NotifyListItem>? Result { get; set; }
 
-    public NotifyListRequest(
-        ILogger<NotifyListRequest> logger,
-        AniDbUdpState aniDbUdpState
-    ) : base("NOTIFYLIST", logger, aniDbUdpState)
+    public NotifyListRequest(ILogger<NotifyListRequest> logger,
+        AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("NOTIFYLIST", logger, aniDbUdpState, rateLimiter)
     {
     }
 

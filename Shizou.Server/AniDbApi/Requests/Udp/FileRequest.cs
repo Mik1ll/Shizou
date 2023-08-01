@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Shizou.Server.AniDbApi.RateLimiters;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
@@ -22,9 +23,7 @@ public class FileRequest : AniDbUdpRequest
     public AMaskFile AMask { get; set; }
     public FMask FMask { get; set; }
 
-    public FileRequest(
-        ILogger<FileRequest> logger, AniDbUdpState aniDbUdpState
-    ) : base("FILE", logger, aniDbUdpState)
+    public FileRequest(ILogger<FileRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("FILE", logger, aniDbUdpState, rateLimiter)
     {
     }
 

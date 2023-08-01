@@ -2,7 +2,6 @@
 using System.Timers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi;
@@ -15,11 +14,10 @@ public class AniDbHttpState : IDisposable
     private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
     private bool _banned;
 
-    public AniDbHttpState(ILogger<AniDbHttpState> logger, HttpRateLimiter limiter, IOptionsMonitor<ShizouOptions> optionsMonitor)
+    public AniDbHttpState(ILogger<AniDbHttpState> logger, IOptionsMonitor<ShizouOptions> optionsMonitor)
     {
         _logger = logger;
         _optionsMonitor = optionsMonitor;
-        RateLimiter = limiter;
 
         _bannedTimer = new Timer(BanPeriod);
         _bannedTimer.Elapsed += (_, _) =>
@@ -45,8 +43,6 @@ public class AniDbHttpState : IDisposable
                 options.SaveToFile();
             }
     }
-
-    public HttpRateLimiter RateLimiter { get; }
 
     public bool Banned
     {

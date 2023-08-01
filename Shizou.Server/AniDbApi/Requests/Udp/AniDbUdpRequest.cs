@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.Exceptions;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
@@ -14,13 +15,15 @@ namespace Shizou.Server.AniDbApi.Requests.Udp;
 public abstract class AniDbUdpRequest
 {
     protected readonly AniDbUdpState AniDbUdpState;
+    private readonly UdpRateLimiter _rateLimiter;
     protected readonly ILogger<AniDbUdpRequest> Logger;
 
-    protected AniDbUdpRequest(string command, ILogger<AniDbUdpRequest> logger, AniDbUdpState aniDbUdpState)
+    protected AniDbUdpRequest(string command, ILogger<AniDbUdpRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter)
     {
         Command = command;
         Logger = logger;
         AniDbUdpState = aniDbUdpState;
+        _rateLimiter = rateLimiter;
     }
 
     public string Command { get; set; }
@@ -50,7 +53,7 @@ public abstract class AniDbUdpRequest
         if (!ParametersSet)
             throw new ArgumentException($"Parameters not set before {nameof(Process)} called");
         await PrepareRequest();
-        using (await AniDbUdpState.RateLimiter.AcquireAsync())
+        using (await _rateLimiter.AcquireAsync())
         {
             await SendRequest();
             await ReceiveResponse();
@@ -58,7 +61,7 @@ public abstract class AniDbUdpRequest
         var retry = HandleSharedErrors();
         if (retry)
         {
-            using (await AniDbUdpState.RateLimiter.AcquireAsync())
+            using (await _rateLimiter.AcquireAsync())
             {
                 await SendRequest();
                 await ReceiveResponse();

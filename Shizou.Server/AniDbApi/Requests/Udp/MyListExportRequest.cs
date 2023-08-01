@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Shizou.Server.AniDbApi.RateLimiters;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
@@ -7,11 +8,9 @@ public class MyListExportRequest : AniDbUdpRequest
 {
     public const string TemplateName = "txt-udp-mylist";
     public const string TemplateVersion = "0.72";
-    
-    public MyListExportRequest(
-        ILogger<MyListExportRequest> logger,
-        AniDbUdpState aniDbUdpState
-    ) : base("MYLISTEXPORT", logger, aniDbUdpState)
+
+    public MyListExportRequest(ILogger<MyListExportRequest> logger,
+        AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("MYLISTEXPORT", logger, aniDbUdpState, rateLimiter)
     {
     }
 

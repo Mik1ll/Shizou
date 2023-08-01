@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Enums;
+using Shizou.Server.AniDbApi.RateLimiters;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp.Notify;
 
@@ -9,10 +10,8 @@ public class MessageGetRequest : AniDbUdpRequest
 {
     public MessageGetResult? Result { get; set; }
 
-    public MessageGetRequest(
-        ILogger<MessageGetRequest> logger,
-        AniDbUdpState aniDbUdpState
-    ) : base("NOTIFYGET", logger, aniDbUdpState)
+    public MessageGetRequest(ILogger<MessageGetRequest> logger,
+        AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("NOTIFYGET", logger, aniDbUdpState, rateLimiter)
     {
     }
 

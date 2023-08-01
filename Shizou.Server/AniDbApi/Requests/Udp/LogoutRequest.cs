@@ -1,13 +1,13 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Shizou.Server.AniDbApi.RateLimiters;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public class LogoutRequest : AniDbUdpRequest
 {
-    public LogoutRequest(
-        ILogger<LogoutRequest> logger, AniDbUdpState aniDbUdpState
-    ) : base("LOGOUT", logger, aniDbUdpState)
+    public LogoutRequest(ILogger<LogoutRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("LOGOUT", logger, aniDbUdpState,
+        rateLimiter)
     {
     }
 

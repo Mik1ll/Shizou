@@ -1,11 +1,13 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Shizou.Server.AniDbApi.RateLimiters;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public class EpisodeRequest : AniDbUdpRequest
 {
-    public EpisodeRequest(ILogger<EpisodeRequest> logger, AniDbUdpState aniDbUdpState) : base("EPISODE", logger, aniDbUdpState)
+    public EpisodeRequest(ILogger<EpisodeRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("EPISODE", logger, aniDbUdpState,
+        rateLimiter)
     {
     }
 

@@ -5,18 +5,17 @@ using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Http;
 
 public class AnimeRequest : HttpRequest
 {
-    public AnimeRequest(
-        ILogger<AnimeRequest> logger,
+    public AnimeRequest(ILogger<AnimeRequest> logger,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,
         AniDbHttpState httpState,
-        IHttpClientFactory httpClientFactory
-    ) : base(logger, optionsSnapshot, httpState, httpClientFactory)
+        IHttpClientFactory httpClientFactory, HttpRateLimiter rateLimiter) : base(logger, optionsSnapshot, httpState, httpClientFactory, rateLimiter)
     {
     }
 

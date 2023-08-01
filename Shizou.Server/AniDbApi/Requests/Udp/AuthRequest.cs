@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.Exceptions;
 using Shizou.Server.Options;
 
@@ -10,11 +11,9 @@ public class AuthRequest : AniDbUdpRequest
 {
     private readonly IOptionsSnapshot<ShizouOptions> _optionsSnapshot;
 
-    public AuthRequest(
-        ILogger<AuthRequest> logger,
+    public AuthRequest(ILogger<AuthRequest> logger,
         AniDbUdpState aniDbUdpState,
-        IOptionsSnapshot<ShizouOptions> optionsSnapshot
-    ) : base("AUTH", logger, aniDbUdpState)
+        IOptionsSnapshot<ShizouOptions> optionsSnapshot, UdpRateLimiter rateLimiter) : base("AUTH", logger, aniDbUdpState, rateLimiter)
     {
         _optionsSnapshot = optionsSnapshot;
     }
@@ -30,8 +29,12 @@ public class AuthRequest : AniDbUdpRequest
                 // ReSharper disable once UnusedVariable
                 var ipEndpoint = split?[1];
                 var options = _optionsSnapshot.Value;
-                options.AniDb.ImageServerHost = ResponseText?.Trim();
-                options.SaveToFile();
+                var imageServer = ResponseText?.Trim();
+                if (imageServer is not null && options.AniDb.ImageServerHost != imageServer)
+                {
+                    options.AniDb.ImageServerHost = imageServer;
+                    options.SaveToFile();
+                }
                 AniDbUdpState.LoggedIn = true;
                 break;
             case AniDbResponseCode.LoginFailed:
