@@ -14,6 +14,7 @@ using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi;
 using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Http;
+using Shizou.Server.AniDbApi.Requests.Image;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.AniDbApi.Requests.Udp.Notify;
 using Shizou.Server.CommandProcessors;
@@ -72,10 +73,12 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddTransient<ExportCommand>();
         builder.Services.AddTransient<ExportPollCommand>();
         builder.Services.AddTransient<SyncMyListFromExportCommand>();
+        builder.Services.AddTransient<GetImageCommand>();
 
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();
         builder.Services.AddScoped<WatchStateService>();
+        builder.Services.AddScoped<ImageService>();
         return builder;
     }
 
@@ -96,6 +99,10 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddSingleton<CommandProcessor, GeneralProcessor>();
         builder.Services.AddSingleton(p => (GeneralProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.General));
         builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.General));
+
+        builder.Services.AddSingleton<CommandProcessor, ImageProcessor>();
+        builder.Services.AddSingleton(p => (ImageProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Image));
+        builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Image));
         return builder;
     }
 
@@ -105,6 +112,7 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddSingleton<UdpRateLimiter>();
         builder.Services.AddSingleton<AniDbHttpState>();
         builder.Services.AddSingleton<HttpRateLimiter>();
+        builder.Services.AddSingleton<ImageRateLimiter>();
 
         builder.Services.AddTransient<UdpAnimeRequest>();
         builder.Services.AddTransient<AuthRequest>();
@@ -125,6 +133,8 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddTransient<HttpAnimeRequest>();
         builder.Services.AddTransient<MyListRequest>();
 
+        builder.Services.AddTransient<ImageRequest>();
+        
         builder.Services.AddScoped<HttpRequestFactory>();
         builder.Services.AddScoped<UdpRequestFactory>();
 

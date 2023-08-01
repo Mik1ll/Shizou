@@ -9,4 +9,6 @@ public static class FilePaths
     public static readonly string MyListBackupDir = Path.Combine(ApplicationDataDir, "MyListBackup");
     public static readonly string OptionsPath = Path.Combine(ApplicationDataDir, "shizou-settings.json");
     public static readonly string LogsDir = Path.Combine(ApplicationDataDir, "Logs");
+    public static readonly string ImagesDir = Path.Combine(ApplicationDataDir, "Images");
+    public static readonly string AnimePostersDir = Path.Combine(ImagesDir, "AnimePosters");
 }

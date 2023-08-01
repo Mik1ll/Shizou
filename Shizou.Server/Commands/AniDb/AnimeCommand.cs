@@ -5,11 +5,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.FileCaches;
+using Shizou.Server.Options;
+using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
@@ -22,19 +26,24 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
     private readonly ShizouContext _context;
     private readonly HttpAnimeResultCache _animeResultCache;
     private readonly HttpRequestFactory _httpRequestFactory;
+    private readonly CommandService _commandService;
     private string _animeResultCacheKey = null!;
+    private readonly string? _imageServer;
 
     public AnimeCommand(
         ILogger<AnimeCommand> logger,
         ShizouContext context,
         HttpAnimeResultCache animeResultCache,
-        HttpRequestFactory httpRequestFactory
-    )
+        HttpRequestFactory httpRequestFactory,
+        CommandService commandService,
+        IOptionsSnapshot<ShizouOptions> optionsSnapshot)
     {
         _logger = logger;
         _context = context;
         _animeResultCache = animeResultCache;
         _httpRequestFactory = httpRequestFactory;
+        _commandService = commandService;
+        _imageServer = optionsSnapshot.Value.AniDb.ImageServerHost;
     }
 
     public override void SetParameters(CommandArgs args)
@@ -82,6 +91,10 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
 
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
+
+        if (_imageServer is not null && aniDbAnime.ImagePath is not null)
+            _commandService.Dispatch(new GetImageCommandArgs(new UriBuilder("http", _imageServer, 80, aniDbAnime.ImagePath).Uri.AbsoluteUri,
+                Path.Combine(FilePaths.AnimePostersDir, aniDbAnime.ImagePath)));
         Completed = true;
     }
 
