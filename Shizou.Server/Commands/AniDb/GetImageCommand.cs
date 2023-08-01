@@ -28,8 +28,9 @@ public class GetImageCommand : BaseCommand<GetImageCommandArgs>
 
         var fileInfo = new FileInfo(CommandArgs.SavePath);
         if (fileInfo is { Exists: true, Length: > 4 })
-            _logger.LogInformation("Got image for url \"{Url}\"", CommandArgs.Url);
+            _logger.LogInformation("Got image for url \"{Url}\", saved to \"{SavePath}\"", CommandArgs.Url, CommandArgs.SavePath);
         else
             _logger.LogError("Unable to get image for url \"{Url}\"", CommandArgs.Url);
+        Completed = true;
     }
 }
