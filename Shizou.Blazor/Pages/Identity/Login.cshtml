@@ -2,7 +2,7 @@
 @model Login
 
 @{
-    ViewData["Title"] = "Log In";
+    ViewData["Title"] = "Shizou Login";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -20,7 +20,7 @@ else
                     <div class="form-floating" style="margin:10px">
                         <input asp-for="Input.Password" class="form-control" autocomplete="password" aria-required="true">
                         <label asp-for="Input.Password" class="form-label"></label>
-                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        <span asp-validation-for="Input.Password" class="text-danger fs-3"></span>
                     </div>
                     <div style="margin:10px">
                         <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log In</button>

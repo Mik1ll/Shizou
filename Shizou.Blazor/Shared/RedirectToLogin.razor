@@ -1,0 +1,22 @@
+﻿@code {
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthState;
+        if (authState.User.Identity == null || !authState.User.Identity.IsAuthenticated)
+        {
+            var returnUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+            if (string.IsNullOrEmpty(returnUrl))
+                NavigationManager.NavigateTo("/Identity/Login", true);
+            else
+                NavigationManager.NavigateTo("/Identity/Login?returnUrl=" + returnUrl, true);
+        }
+    }
+
+}
