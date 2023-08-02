@@ -1,12 +1,6 @@
-﻿@using Shizou.Data.Database
-@using Shizou.Server.Services
-@using Microsoft.EntityFrameworkCore
-@inject IDbContextFactory<ShizouContext> ContextFactory
-@inject ImportService ImportService
-
-<section class="import-folders">
+﻿<section class="import-folders">
     <h3>ImportFolders</h3>
-    <ImportFolderModal @ref="@_importFolderModal" OnClose="@StateHasChanged"></ImportFolderModal>
+    <ImportFolderModal @ref="@_importFolderModal" OnClose="@ImportFolderModalClosed"></ImportFolderModal>
     <table class="table table-hover align-middle">
         <thead>
         <tr>
@@ -18,44 +12,37 @@
         </tr>
         </thead>
         <tbody>
-        @using (var context = ContextFactory.CreateDbContext())
+        @foreach (var importFolder in _importFolders)
         {
-            foreach (var importFolder in context.ImportFolders)
-            {
-                <tr>
-                    <td class="text-center">
-                        <i role="button" class="scan-button oi oi-magnifying-glass"
-                           data-bs-toggle="tooltip"
-                           data-bs-title="Hold shift to force scan"
-                           data-bs-custom-class="white-tooltip"
-                           @onclick="@(e => ImportService.ScanImportFolder(importFolder.Id, e.ShiftKey))">
-                        </i>
-                    </td>
-                    <td class="absorbing-column">@(importFolder.Name)</td>
-                    <td class="text-center">
-                        @if (importFolder.ScanOnImport)
-                        {
-                            <i class="oi oi-circle-check"></i>
-                        }
-                        else
-                        {
-                            <i class="oi oi-circle-x"></i>
-                        }
-                    </td>
-                    <td class="text-center">
-                        <i role="button" class="oi oi-pencil" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))"></i>
-                    </td>
-                    <td class="text-center">
-                        <i role="button" class="oi oi-trash" @onclick="@(() => _importFolderModal?.DeleteDialog(importFolder))"></i>
-                    </td>
-                </tr>
-            }
+            <tr @key="@importFolder">
+                <td class="text-center">
+                    <i role="button" class="scan-button oi oi-magnifying-glass"
+                       data-bs-toggle="tooltip"
+                       data-bs-title="Hold shift to force scan"
+                       data-bs-custom-class="white-tooltip"
+                       @onclick="@(e => ImportService.ScanImportFolder(importFolder.Id, e.ShiftKey))">
+                    </i>
+                </td>
+                <td class="absorbing-column">@importFolder.Name</td>
+                <td class="text-center">
+                    @if (importFolder.ScanOnImport)
+                    {
+                        <i class="oi oi-circle-check"></i>
+                    }
+                    else
+                    {
+                        <i class="oi oi-circle-x"></i>
+                    }
+                </td>
+                <td class="text-center">
+                    <i role="button" class="oi oi-pencil" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))"></i>
+                </td>
+                <td class="text-center">
+                    <i role="button" class="oi oi-trash" @onclick="@(() => _importFolderModal?.DeleteDialog(importFolder))"></i>
+                </td>
+            </tr>
         }
         </tbody>
     </table>
     <button type="button" class="btn btn-primary" @onclick="@(() => _importFolderModal?.NewDialog())">Add Import Folder</button>
 </section>
-
-@code {
-    private ImportFolderModal? _importFolderModal;
-}
