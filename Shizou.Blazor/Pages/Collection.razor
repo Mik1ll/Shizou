@@ -1,2 +1,13 @@
 ﻿@page "/Collection"
 <h3>Collection</h3>
+<div class="d-flex align-content-start flex-wrap">
+    @foreach (var anime in _anime)
+    {
+        <div>
+            @if (anime.ImagePath is not null)
+            {
+                <img class="img-thumbnail" src="@($"{WebPaths.AnimePostersDir}/{anime.ImagePath}")">
+            }
+        </div>
+    }
+</div>

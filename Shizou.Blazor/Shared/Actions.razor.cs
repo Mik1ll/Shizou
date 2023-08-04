@@ -34,4 +34,9 @@ public partial class Actions
     {
         ServiceProvider.GetRequiredService<CommandService>().ScheduleCommand(new NoopArgs(5), 3, DateTimeOffset.UtcNow, TimeSpan.FromMinutes(1));
     }
+
+    private void GetMissingPosters()
+    {
+        ServiceProvider.GetRequiredService<ImageService>().GetMissingAnimePosters();
+    }
 }

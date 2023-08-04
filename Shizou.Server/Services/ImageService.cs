@@ -46,7 +46,7 @@ public class ImageService
 
         foreach (var (uri, name) in animeImageNames.Select(p => (GetAnimePosterUri(imageServer, p), p)))
         {
-            var path = Path.Combine(FilePaths.AnimePostersDir, name);
+            var path = GetAnimePosterPath(name);
             if (!File.Exists(path))
                 _commandService.Dispatch(new GetImageCommandArgs(uri, path));
         }
@@ -67,8 +67,13 @@ public class ImageService
             _logger.LogWarning("Anime image for anime {AnimeId} does not exist, aborting", animeId);
             return;
         }
-        var path = Path.Combine(FilePaths.AnimePostersDir, imageName);
+        var path = GetAnimePosterPath(imageName);
         var uri = GetAnimePosterUri(imageServer, imageName);
         _commandService.Dispatch(new GetImageCommandArgs(uri, path));
+    }
+
+    public string GetAnimePosterPath(string imageName)
+    {
+        return Path.Combine(FilePaths.AnimePostersDir, imageName);
     }
 }

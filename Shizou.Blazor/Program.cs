@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.FileProviders;
 using Serilog;
+using Shizou.Blazor;
+using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Server.Extensions;
 
@@ -45,6 +48,11 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(FilePaths.ImagesDir),
+    RequestPath = WebPaths.ImagesDir
+});
 
 app.UseRouting();
 
