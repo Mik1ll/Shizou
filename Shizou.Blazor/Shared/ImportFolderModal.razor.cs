@@ -35,7 +35,6 @@ public partial class ImportFolderModal
         _dialogIsOpen = true;
     }
 
-
     public void EditDialog(ImportFolder importFolder)
     {
         _isDelete = false;

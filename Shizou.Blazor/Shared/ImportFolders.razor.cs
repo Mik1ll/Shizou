@@ -23,13 +23,13 @@ public partial class ImportFolders
 
     protected override void OnInitialized()
     {
-        _importFolders = ContextFactory.CreateDbContext().ImportFolders.ToList();
+        RefreshFolders();
     }
 
-    private void ImportFolderModalClosed()
+    private void RefreshFolders()
     {
-        _importFolders = ContextFactory.CreateDbContext().ImportFolders.ToList();
-        StateHasChanged();
+        using var context = ContextFactory.CreateDbContext();
+        _importFolders = context.ImportFolders.ToList();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
