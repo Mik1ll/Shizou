@@ -86,7 +86,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
 
-        if (aniDbAnime.ImagePath is not null)
+        if (aniDbAnime.ImageFilename is not null)
             _imageService.GetAnimePoster(aniDbAnime.Id);
         Completed = true;
     }
@@ -103,7 +103,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
             EndDate = animeResult.Enddate,
             AnimeType = animeResult.Type,
             EpisodeCount = animeResult.Episodecount,
-            ImagePath = animeResult.Picture,
+            ImageFilename = animeResult.Picture,
             Title = mainTitle.Text,
             AniDbEpisodes = animeResult.Episodes.Select(e => new AniDbEpisode
             {

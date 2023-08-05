@@ -16,7 +16,7 @@ public class AniDbAnime : IEntity
     public required string? EndDate { get; set; }
     public required string? Description { get; set; }
     public required bool Restricted { get; set; }
-    public required string? ImagePath { get; set; }
+    public required string? ImageFilename { get; set; }
     public required DateTime Updated { get; set; }
     public DateTime? AniDbUpdated { get; set; }
 

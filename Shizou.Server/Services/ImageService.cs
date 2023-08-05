@@ -30,7 +30,7 @@ public class ImageService
 
     private string GetAnimePosterUri(string imageServer, string filename)
     {
-        return new UriBuilder("https", imageServer, 443, Path.Combine("images/main", filename)).Uri.AbsoluteUri;
+        return new UriBuilder("https", imageServer, 443, $"images/main/{filename}").Uri.AbsoluteUri;
     }
 
     public void GetMissingAnimePosters()
@@ -42,9 +42,9 @@ public class ImageService
             return;
         }
         using var context = _contextFactory.CreateDbContext();
-        var animeImageNames = context.AniDbAnimes.Where(a => a.ImagePath != null).Select(a => a.ImagePath!).ToList();
+        var filenames = context.AniDbAnimes.Where(a => a.ImageFilename != null).Select(a => a.ImageFilename!).ToList();
 
-        foreach (var (uri, name) in animeImageNames.Select(p => (GetAnimePosterUri(imageServer, p), p)))
+        foreach (var (uri, name) in filenames.Select(p => (GetAnimePosterUri(imageServer, p), p)))
         {
             var path = GetAnimePosterPath(name);
             if (!File.Exists(path))
@@ -61,19 +61,19 @@ public class ImageService
             return;
         }
         using var context = _contextFactory.CreateDbContext();
-        var imageName = context.AniDbAnimes.Where(a => a.Id == animeId).Select(a => a.ImagePath).FirstOrDefault();
-        if (imageName is null)
+        var filename = context.AniDbAnimes.Where(a => a.Id == animeId).Select(a => a.ImageFilename).FirstOrDefault();
+        if (filename is null)
         {
             _logger.LogWarning("Anime image for anime {AnimeId} does not exist, aborting", animeId);
             return;
         }
-        var path = GetAnimePosterPath(imageName);
-        var uri = GetAnimePosterUri(imageServer, imageName);
+        var path = GetAnimePosterPath(filename);
+        var uri = GetAnimePosterUri(imageServer, filename);
         _commandService.Dispatch(new GetImageCommandArgs(uri, path));
     }
 
-    public string GetAnimePosterPath(string imageName)
+    public string GetAnimePosterPath(string imageFilename)
     {
-        return Path.Combine(FilePaths.AnimePostersDir, imageName);
+        return Path.Combine(FilePaths.AnimePostersDir, imageFilename);
     }
 }

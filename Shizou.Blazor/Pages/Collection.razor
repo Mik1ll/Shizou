@@ -6,9 +6,9 @@
         {
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-5 col-xs-6">
                 <div class="card text-center p-2 mt-2">
-                    @if (anime.ImagePath is not null)
+                    @if (anime.ImageFilename is not null)
                     {
-                        <img class="card-img" src="@($"{WebPaths.AnimePostersDir}/{anime.ImagePath}")">
+                        <img class="card-img" src="@($"{WebPaths.AnimePostersDir}/{anime.ImageFilename}")">
                     }
                     <div class="card-img-overlay d-flex flex-column justify-content-end">
                         <h4 class="card-title bg-black bg-opacity-50">@anime.Title</h4>
