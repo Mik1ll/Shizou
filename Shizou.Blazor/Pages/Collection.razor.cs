@@ -16,6 +16,9 @@ public partial class Collection
     [Inject]
     public ImageService ImageService { get; set; } = default!;
 
+    [Inject]
+    public NavigationManager NavigationManager { get; set; } = default!;
+
     protected override void OnInitialized()
     {
         RefreshAnime();
@@ -26,5 +29,9 @@ public partial class Collection
         using var context = ContextFactory.CreateDbContext();
         _anime = context.AniDbAnimes.ToList();
     }
-    
+
+    private void GoToAnime(int animeId)
+    {
+        NavigationManager.NavigateTo($"/Collection/{animeId}");
+    }
 }

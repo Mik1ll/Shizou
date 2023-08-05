@@ -5,13 +5,13 @@
         @foreach (var anime in _anime)
         {
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-5 col-xs-6">
-                <div class="card text-center p-2 mt-2">
+                <div class="card text-center p-2 mt-2" role="button" @onclick="@(() => GoToAnime(anime.Id))">
                     @if (anime.ImageFilename is not null)
                     {
-                        <img class="card-img" src="@($"{WebPaths.AnimePostersDir}/{anime.ImageFilename}")">
+                        <img class="card-img img-fluid" style="height: 25vh; object-fit: contain; width: 100%;" src="@($"{WebPaths.AnimePostersDir}/{anime.ImageFilename}")">
                     }
-                    <div class="card-img-overlay d-flex flex-column justify-content-end">
-                        <h4 class="card-title bg-black bg-opacity-50">@anime.Title</h4>
+                    <div class="card-footer">
+                        <span>@(anime.Title.Length > 35 ? anime.Title.Substring(0, 35).Trim() + "..." : anime.Title)</span>
                     </div>
                 </div>
             </div>
