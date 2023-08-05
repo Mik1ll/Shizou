@@ -1,13 +1,20 @@
 ﻿@page "/Collection"
 <h3>Collection</h3>
-<div class="d-flex align-content-start flex-wrap">
-    @foreach (var anime in _anime)
-    {
-        <div>
-            @if (anime.ImagePath is not null)
-            {
-                <img class="img-thumbnail" src="@($"{WebPaths.AnimePostersDir}/{anime.ImagePath}")">
-            }
-        </div>
-    }
+<div class="container-fluid">
+    <div class="row gx-2 align-items-end">
+        @foreach (var anime in _anime)
+        {
+            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-5 col-xs-6">
+                <div class="card text-center p-2 mt-2">
+                    @if (anime.ImagePath is not null)
+                    {
+                        <img class="card-img" src="@($"{WebPaths.AnimePostersDir}/{anime.ImagePath}")">
+                    }
+                    <div class="card-img-overlay d-flex flex-column justify-content-end">
+                        <h4 class="card-title bg-black bg-opacity-50">@anime.Title</h4>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>
