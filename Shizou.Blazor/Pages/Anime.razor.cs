@@ -5,7 +5,7 @@ using Shizou.Data.Models;
 
 namespace Shizou.Blazor.Pages;
 
-public partial class Anime : ComponentBase
+public partial class Anime
 {
     [Parameter]
     public int AnimeId { get; set; }
