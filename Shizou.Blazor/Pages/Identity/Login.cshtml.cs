@@ -17,7 +17,6 @@ public class Login : PageModel
     [BindProperty]
     public required InputModel Input { get; set; }
 
-    [BindProperty]
     public string ReturnUrl { get; set; } = "";
 
     public void OnGet(string returnUrl = "")
