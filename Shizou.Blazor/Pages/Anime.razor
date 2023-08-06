@@ -4,13 +4,41 @@
     @if (_anime is not null)
     {
         <div class="row">
-            <div class="col-6">
+            <div class="col-6 d-flex justify-content-end">
                 @if (_anime.ImageFilename is not null)
                 {
                     <img class="card-flex" src="@($"{WebPaths.AnimePostersDir}/{_anime.ImageFilename}")">
                 }
             </div>
-            <div class="col-6">
+            <div class="col-6 d-flex justify-content-start">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">@_anime.Title</h4>
+                        <p class="card-text">
+                            @foreach (var s in _splitRegex.Split(_anime.Description ?? ""))
+                            {
+                                var res = _matchRegex.Match(s);
+                                if (res.Success)
+                                {
+                                    <a href="@res.Groups[1]">@res.Groups[2]</a>
+                                }
+                                else
+                                {
+                                    @s
+                                }
+                            }
+                        </p>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Aired: @(_anime.AirDate ?? "??") - @(_anime.EndDate ?? "??")</li>
+                            <li class="list-group-item">Type: @(_anime.AnimeType.ToString())</li>
+                            @if (_anime.Restricted)
+                            {
+                                <li class="list-group-item">Hentai</li>
+                            }
+                            <li class="list-group-item">@(_anime.EpisodeCount) Episode@(_anime.EpisodeCount == 1 ? "" : "s")</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     }
