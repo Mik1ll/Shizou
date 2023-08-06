@@ -1,10 +1,10 @@
-﻿<nav class="top-row ps-3 navbar navbar-dark navbar-expand-md">
+﻿<nav class="top-row navbar navbar-expand-md bg-secondary z-3">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Shizou</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="@ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="navbar-collapse @NavMenuCssClass" @onclick="@ToggleNavMenu">
+        <div class="navbar-collapse @NavMenuCssClass bg-secondary" @onclick="@ToggleNavMenu">
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
                     <NavLink class="nav-link" href="/Dashboard" Match="NavLinkMatch.All">
@@ -13,18 +13,29 @@
                 </li>
                 <li class="nav-item">
                     <NavLink class="nav-link" href="/Collection" Match="NavLinkMatch.All">
-                        <span class="oi oi-home" aria-hidden="true"></span> Collection
+                        <span class="oi oi-grid-three-up" aria-hidden="true"></span> Collection
                     </NavLink>
                 </li>
+
             </ul>
-            <AuthorizeView>
-                <Authorized>
-                    <a href="/Identity/Logout">Logout</a>
-                </Authorized>
-                <NotAuthorized>
-                    <a href="/Identity/Login">Login</a>
-                </NotAuthorized>
-            </AuthorizeView>
+            <ul class="navbar-nav mb-2 mb-md-0">
+                <AuthorizeView>
+                    <Authorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/Identity/Logout" Match="NavLinkMatch.All">
+                                <span class="oi oi-account-logout" aria-hidden="true"></span> Logout
+                            </NavLink>
+                        </li>
+                    </Authorized>
+                    <NotAuthorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/Identity/Login" Match="NavLinkMatch.All">
+                                <span class="oi oi-account-logout" aria-hidden="true"></span> Login
+                            </NavLink>
+                        </li>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </ul>
         </div>
     </div>
 </nav>
