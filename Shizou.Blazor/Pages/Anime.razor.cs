@@ -22,6 +22,6 @@ public partial class Anime
     protected override void OnInitialized()
     {
         using var context = ContextFactory.CreateDbContext();
-        _anime = context.AniDbAnimes.Find(AnimeId);
+        _anime = context.AniDbAnimes.Include(a => a.AniDbEpisodes).FirstOrDefault(a => a.Id == AnimeId);
     }
 }

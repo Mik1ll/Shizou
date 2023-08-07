@@ -1,4 +1,5 @@
 ﻿@page "/Collection/{AnimeId:int}"
+@using Shizou.Data.Enums
 
 <div class="container-fluid">
     @if (_anime is not null)
@@ -38,6 +39,51 @@
                             <li class="list-group-item">@(_anime.EpisodeCount) Episode@(_anime.EpisodeCount == 1 ? "" : "s")</li>
                         </ul>
                     </div>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-xl-6 col-lg-8 col-md-10 col-sm-12">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <td>Ep</td>
+                            <td>Title</td>
+                            <td>Dur</td>
+                            <td>Air Date</td>
+                            <td>Watch</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var ep in _anime.AniDbEpisodes.OrderBy(e => e.EpisodeType).ThenBy(e => e.Number))
+                        {
+                            <tr>
+                                <td>
+                                    @EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number)
+                                </td>
+                                <td class="flex-grow-1 pe-1">
+                                    @(ep.TitleRomaji ?? ep.TitleEnglish)
+                                </td>
+                                <td>
+                                    @($"{(ep.DurationMinutes is null ? "??" : ep.DurationMinutes.ToString())} min")
+                                </td>
+                                <td >
+                                    @(ep.AirDate?.ToString("yyyy-MM-dd"))
+                                </td>
+                                <td>
+                                    @if (ep.Watched)
+                                    {
+                                        <button class="btn bi bi-eye-slash"></button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn bi bi-eye"></button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
