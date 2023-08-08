@@ -5,13 +5,13 @@
     @if (_anime is not null)
     {
         <div class="row justify-content-center">
-            <div class="col-xl-3 col-lg-4 col-md-5 col-sm-6 d-flex justify-content-end">
+            <div class="col-xl-3 col-lg-4 col-md-5 col-sm-6 d-flex justify-content-end anime-poster">
                 @if (_anime.ImageFilename is not null)
                 {
-                    <img class="card-flex" style="width: 100%;object-fit: contain;" src="@($"{WebPaths.AnimePostersDir}/{_anime.ImageFilename}")">
+                    <img src="@($"{WebPaths.AnimePostersDir}/{_anime.ImageFilename}")">
                 }
             </div>
-            <div class="col-xl-3 col-lg-4 col-md-5 col-sm-6 d-flex justify-content-start">
+            <div class="col-xl-3 col-lg-4 col-md-5 col-sm-6 d-flex justify-content-start align-items-start">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">@_anime.Title</h4>

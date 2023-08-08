@@ -10,8 +10,8 @@
                     {
                         <img class="card-img img-fluid collection-card-img" src="@($"{WebPaths.AnimePostersDir}/{anime.ImageFilename}")">
                     }
-                    <div class="card-footer">
-                        <span>@(anime.Title.Length > 35 ? anime.Title.Substring(0, 35).Trim() + "..." : anime.Title)</span>
+                    <div class="card-footer collection-card-footer">
+                        @(anime.Title)
                     </div>
                 </div>
             </div>
