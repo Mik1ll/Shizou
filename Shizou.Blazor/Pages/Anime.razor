@@ -73,11 +73,11 @@
                                 <td>
                                     @if (ep.Watched)
                                     {
-                                        <button class="btn bi bi-eye-slash"></button>
+                                        <button class="btn bi bi-eye-slash" @onclick="@(() => MarkEpisode(ep, false))"></button>
                                     }
                                     else
                                     {
-                                        <button class="btn bi bi-eye"></button>
+                                        <button class="btn bi bi-eye" @onclick="@(() => MarkEpisode(ep, true))"></button>
                                     }
                                 </td>
                             </tr>
