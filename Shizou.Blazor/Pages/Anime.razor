@@ -102,10 +102,25 @@
                                                         </div>
                                                     </li>
                                                     <li class="list-group-item">
-                                                        <span>@(f.AniDbGroup?.ShortName)</span>
-                                                        <span>@(f.Video is not null ? $"{f.Video.Height}x{f.Video.Width}" : null)</span>
-                                                        <span>@(f.Source)</span>
-                                                        <span>@(lf.Crc)</span>
+                                                        <span>
+                                                            <strong>
+                                                                @if (f.AniDbGroup is not null)
+                                                                {
+                                                                    <a href="https://anidb.net/group/@(f.AniDbGroupId)">[@(f.AniDbGroup.ShortName)]</a>
+                                                                    <text>&nbsp;</text>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <text>No Group&nbsp;</text>
+                                                                }
+                                                            </strong>
+                                                            @if (f.Video is not null)
+                                                            {
+                                                                <text>@(f.Video.Height)x@(f.Video.Width) @(f.Video.ColorDepth)bit&nbsp;</text>
+                                                            }
+                                                            <strong>@(f.Source)</strong>
+                                                            @(lf.Crc)
+                                                        </span>
                                                     </li>
                                                     <li class="list-group-item">
                                                         @(Path.GetFileName(lf.PathTail))
