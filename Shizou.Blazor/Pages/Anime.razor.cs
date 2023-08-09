@@ -25,6 +25,9 @@ public partial class Anime
 
     private readonly Dictionary<int, bool> _episodeExpanded = new();
 
+    private readonly HashSet<LocalFile> _localFiles = new();
+    private readonly HashSet<AniDbFile> _files = new();
+
     protected override void OnInitialized()
     {
         using var context = ContextFactory.CreateDbContext();
@@ -54,15 +57,23 @@ public partial class Anime
     private List<LocalFile> GetManualLinksForEpisode(AniDbEpisode ep)
     {
         using var context = ContextFactory.CreateDbContext();
-        return context.LocalFiles.Include(lf => lf.ManualLinkXrefs).Where(lf => lf.ManualLinkXrefs.Any(x => x.AniDbEpisodeId == ep.Id)).ToList();
+        context.AttachRange(_localFiles);
+        var res = context.LocalFiles.Include(lf => lf.ManualLinkXrefs).Where(lf => lf.ManualLinkXrefs.Any(x => x.AniDbEpisodeId == ep.Id)).ToList();
+        _localFiles.UnionWith(res);
+        return res;
     }
 
     private List<(AniDbFile, LocalFile)> GetFilesForEpisode(AniDbEpisode ep)
     {
         using var context = ContextFactory.CreateDbContext();
-        return context.FilesFromEpisode(ep.Id).Include(f => f.AniDbGroup)
+        context.AttachRange(_files);
+        context.AttachRange(_localFiles);
+        var res = context.FilesFromEpisode(ep.Id).Include(f => f.AniDbGroup)
             .Join(context.LocalFiles, f => f.Ed2K, lf => lf.Ed2K,
                 (f, lf) => new { f, lf }).ToList()
             .Select(f => (f.f, f.lf)).ToList();
+        _localFiles.UnionWith(res.Select(r => r.lf));
+        _files.UnionWith(res.Select(r => r.f));
+        return res;
     }
 }
