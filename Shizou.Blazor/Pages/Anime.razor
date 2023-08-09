@@ -74,60 +74,69 @@
                             {
                                 <tr>
                                     <td colspan="5">
-                                        <table class="table table-striped table-hover">
-                                            <thead>
-                                            <tr>
-                                                <td>Group</td>
-                                                <td>Size</td>
-                                                <td>Res</td>
-                                                <td>Source</td>
-                                                <td>Hash</td>
-                                                <td>Watch</td>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            @foreach (var (f, lf) in GetFilesForEpisode(ep))
-                                            {
-                                                <tr>
-                                                    <td>@(f.AniDbGroup?.ShortName)</td>
-                                                    <td>@(lf.FileSize)</td>
-                                                    <td>@(f.Video is not null ? $"{f.Video.Height}x{f.Video.Width}" : null)</td>
-                                                    <td>@(f.Source)</td>
-                                                    <td>@(lf.Crc)</td>
-                                                    <td>
-                                                        @if (f.Watched)
-                                                        {
-                                                            <button class="btn bi bi-eye-slash" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(f, false))"></button>
-                                                        }
-                                                        else
-                                                        {
-                                                            <button class="btn bi bi-eye" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(f, true))"></button>
-                                                        }
-                                                    </td>
-                                                </tr>
-                                            }
-                                            @foreach (var ml in GetManualLinksForEpisode(ep))
-                                            {
-                                                <tr>
-                                                    <td>Manual Link</td>
-                                                    <td>@(ml.FileSize)</td>
-                                                    <td>0x0</td>
-                                                    <td>???</td>
-                                                    <td>@(ml.Crc)</td>
-                                                    <td>
-                                                        @if (ep.Watched)
-                                                        {
-                                                            <button class="btn bi bi-eye-slash" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, false))"></button>
-                                                        }
-                                                        else
-                                                        {
-                                                            <button class="btn bi bi-eye" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, true))"></button>
-                                                        }
-                                                    </td>
-                                                </tr>
-                                            }
-                                            </tbody>
-                                        </table>
+                                        @foreach (var (f, lf) in GetFilesForEpisode(ep))
+                                        {
+                                            <div class="card">
+                                                <ul class="list-group list-group-flush">
+                                                    <li class="list-group-item">
+                                                        <div class="d-flex justify-content-between">
+                                                            <div>
+                                                                <button class="btn btn-primary me-2" type="button">
+                                                                    <i class="bi bi-play"></i> Play
+                                                                </button>
+                                                            </div>
+                                                            <div>
+                                                                @if (f.Watched)
+                                                                {
+                                                                    <button class="btn btn-outline-danger me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(f, false))">
+                                                                        <i class="bi bi-eye-slash"></i> Unwatch
+                                                                    </button>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <button class="btn btn-outline-success me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(f, true))">
+                                                                        <i class="bi bi-eye"></i> Watch
+                                                                    </button>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    <li class="list-group-item">
+                                                        <span>@(f.AniDbGroup?.ShortName)</span>
+                                                        <span>@(f.Video is not null ? $"{f.Video.Height}x{f.Video.Width}" : null)</span>
+                                                        <span>@(f.Source)</span>
+                                                        <span>@(lf.Crc)</span>
+                                                    </li>
+                                                    <li class="list-group-item">
+                                                        @(f.FileName)
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        }
+                                        @foreach (var ml in GetManualLinksForEpisode(ep))
+                                        {
+                                            <div class="card">
+                                                <ul class="list-group list-group-flush">
+                                                    <li class="list-group-item">
+                                                        <td>Manual Link</td>
+                                                        <td>@(ml.FileSize)</td>
+                                                        <td>0x0</td>
+                                                        <td>???</td>
+                                                        <td>@(ml.Crc)</td>
+                                                        <td>
+                                                            @if (ep.Watched)
+                                                            {
+                                                                <button class="btn bi bi-eye-slash" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, false))"></button>
+                                                            }
+                                                            else
+                                                            {
+                                                                <button class="btn bi bi-eye" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, true))"></button>
+                                                            }
+                                                        </td>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        }
                                     </td>
                                 </tr>
                             }
