@@ -108,31 +108,44 @@
                                                         <span>@(lf.Crc)</span>
                                                     </li>
                                                     <li class="list-group-item">
-                                                        @(f.FileName)
+                                                        @(Path.GetFileName(lf.PathTail))
                                                     </li>
                                                 </ul>
                                             </div>
                                         }
-                                        @foreach (var ml in GetManualLinksForEpisode(ep))
+                                        @foreach (var lf in GetManualLinksForEpisode(ep))
                                         {
                                             <div class="card">
                                                 <ul class="list-group list-group-flush">
                                                     <li class="list-group-item">
-                                                        <td>Manual Link</td>
-                                                        <td>@(ml.FileSize)</td>
-                                                        <td>0x0</td>
-                                                        <td>???</td>
-                                                        <td>@(ml.Crc)</td>
-                                                        <td>
-                                                            @if (ep.Watched)
-                                                            {
-                                                                <button class="btn bi bi-eye-slash" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, false))"></button>
-                                                            }
-                                                            else
-                                                            {
-                                                                <button class="btn bi bi-eye" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, true))"></button>
-                                                            }
-                                                        </td>
+                                                        <div class="d-flex justify-content-between">
+                                                            <div>
+                                                                <button class="btn btn-primary me-2" type="button">
+                                                                    <i class="bi bi-play"></i> Play
+                                                                </button>
+                                                            </div>
+                                                            <div>
+                                                                @if (ep.Watched)
+                                                                {
+                                                                    <button class="btn btn-outline-danger me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, false))">
+                                                                        <i class="bi bi-eye-slash"></i> Unwatch
+                                                                    </button>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <button class="btn btn-outline-success me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, true))">
+                                                                        <i class="bi bi-eye"></i> Watch
+                                                                    </button>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    <li class="list-group-item">
+                                                        <span>Manual Link</span>
+                                                        <span>@(lf.Crc)</span>
+                                                    </li>
+                                                    <li class="list-group-item">
+                                                        @(Path.GetFileName(lf.PathTail))
                                                     </li>
                                                 </ul>
                                             </div>
