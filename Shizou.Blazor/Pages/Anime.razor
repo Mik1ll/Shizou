@@ -51,7 +51,6 @@
                             <td>Title</td>
                             <td>Dur</td>
                             <td>Air Date</td>
-                            <td>Watch</td>
                         </tr>
                         </thead>
                         <tbody>
@@ -69,16 +68,6 @@
                                 </td>
                                 <td >
                                     @(ep.AirDate?.ToString("yyyy-MM-dd"))
-                                </td>
-                                <td>
-                                    @if (ep.Watched)
-                                    {
-                                        <button class="btn bi bi-eye-slash" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, false))"></button>
-                                    }
-                                    else
-                                    {
-                                        <button class="btn bi bi-eye" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, true))"></button>
-                                    }
                                 </td>
                             </tr>
                             @if (_episodeExpanded.TryGetValue(ep.Id, out var expanded) && expanded)
@@ -108,11 +97,11 @@
                                                     <td>
                                                         @if (f.Watched)
                                                         {
-                                                            <button class="btn bi bi-eye-slash" @onclick="@(() => MarkFile(f, false))"></button>
+                                                            <button class="btn bi bi-eye-slash" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(f, false))"></button>
                                                         }
                                                         else
                                                         {
-                                                            <button class="btn bi bi-eye" @onclick="@(() => MarkFile(f, true))"></button>
+                                                            <button class="btn bi bi-eye" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(f, true))"></button>
                                                         }
                                                     </td>
                                                 </tr>
@@ -125,7 +114,16 @@
                                                     <td>0x0</td>
                                                     <td>???</td>
                                                     <td>@(ml.Crc)</td>
-                                                    <td></td>
+                                                    <td>
+                                                        @if (ep.Watched)
+                                                        {
+                                                            <button class="btn bi bi-eye-slash" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, false))"></button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <button class="btn bi bi-eye" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, true))"></button>
+                                                        }
+                                                    </td>
                                                 </tr>
                                             }
                                             </tbody>
