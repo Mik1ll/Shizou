@@ -91,4 +91,41 @@ public class WatchStateService
         }
         return true;
     }
+
+    public bool MarkAnime(int animeId, bool watched)
+    {
+        using var context = _contextFactory.CreateDbContext();
+        var updatedTime = DateTime.UtcNow;
+        var eAnime = context.AniDbAnimes.Include(a => a.AniDbEpisodes).FirstOrDefault(a => a.Id == animeId);
+        if (eAnime is null)
+        {
+            _logger.LogWarning("Anime Id {AnimeId} not found, not marking", animeId);
+            return false;
+        }
+
+        var filesWithLocal = (from f in context.FilesWithLocal
+            join xref in context.AniDbEpisodeFileXrefs
+                on f.Id equals xref.AniDbFileId
+            join e in context.AniDbEpisodes
+                on xref.AniDbEpisodeId equals e.Id
+            where e.AniDbAnimeId == animeId
+            select f).ToList();
+        var epsWithmanualLinks = (from ep in context.EpisodesWithManualLinks
+            where ep.AniDbAnimeId == animeId
+            select ep).ToList();
+        foreach (var f in filesWithLocal)
+        {
+            f.Watched = watched;
+            f.WatchedUpdatedLocally = updatedTime;
+        }
+        foreach (var ep in epsWithmanualLinks)
+        {
+            ep.Watched = watched;
+            ep.WatchedUpdatedLocally = updatedTime;
+        }
+        context.SaveChanges();
+        _commandService.Dispatch(new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Aid: animeId, EpNo: "0"));
+
+        return true;
+    }
 }

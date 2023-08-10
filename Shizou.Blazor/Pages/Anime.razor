@@ -1,5 +1,6 @@
 ﻿@page "/Collection/{AnimeId:int}"
 @using Shizou.Data.Enums
+@using Shizou.Data.Models
 
 <div class="container-fluid">
     @if (_anime is not null)
@@ -37,6 +38,11 @@
                                 <li class="list-group-item">Hentai</li>
                             }
                             <li class="list-group-item">@(_anime.EpisodeCount) Episode@(_anime.EpisodeCount == 1 ? "" : "s")</li>
+                            <li class="list-group-item">
+                                <button class="btn btn-outline-success me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkAllWatched(_anime))">
+                                    <i class="bi bi-eye"></i> Mark All Watched
+                                </button>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -74,7 +80,7 @@
                             {
                                 <tr>
                                     <td colspan="5">
-                                        @foreach (var (f, lf) in GetFilesForEpisode(ep))
+                                        @foreach (var (f, lf) in _files.GetValueOrDefault(ep.Id, new List<(AniDbFile, LocalFile)>()))
                                         {
                                             <div class="card">
                                                 <ul class="list-group list-group-flush">
@@ -128,7 +134,7 @@
                                                 </ul>
                                             </div>
                                         }
-                                        @foreach (var lf in GetManualLinksForEpisode(ep))
+                                        @foreach (var lf in ep.ManualLinkLocalFiles)
                                         {
                                             <div class="card">
                                                 <ul class="list-group list-group-flush">
