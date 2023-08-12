@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -57,6 +58,16 @@ public static class WebAppliationBuilderExtensions
     public static WebApplicationBuilder AddShizouServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddDbContext<ShizouContext>(optionsLifetime: ServiceLifetime.Singleton);
+        builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            {
+                options.SignIn.RequireConfirmedEmail = false;
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+            })
+            .AddEntityFrameworkStores<ShizouContext>()
+            .AddDefaultTokenProviders();
 
         builder.Services.AddDbContextFactory<ShizouContext>();
 

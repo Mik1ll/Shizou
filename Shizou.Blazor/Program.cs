@@ -23,17 +23,6 @@ builder.AddShizouOptions()
     .AddShizouProcessors()
     .AddShizouLogging(logTemplate);
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-    {
-        options.SignIn.RequireConfirmedEmail = false;
-        options.Password.RequireDigit = false;
-        options.Password.RequireLowercase = false;
-        options.Password.RequireUppercase = false;
-        options.Password.RequireNonAlphanumeric = false;
-    })
-    .AddEntityFrameworkStores<ShizouContext>()
-    .AddDefaultTokenProviders();
-
 
 var app = builder.Build();
 

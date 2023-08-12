@@ -28,12 +28,19 @@ try
         .AddAniDbServices()
         .AddShizouProcessors();
 
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("HttpScheme",
+            policy => { policy.WithOrigins("http://localhost:5000"); });
+    });
+
     builder.Services.AddHostedService<StartupService>();
 
 
     var app = builder.Build();
 
-    if (!app.Environment.IsDevelopment()) app.UseHsts();
+    if (!app.Environment.IsDevelopment())
+        app.UseHsts();
 
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -42,8 +49,13 @@ try
 
     app.UseHttpsRedirection();
 
+    app.UseRouting();
+
+    app.UseCors("HttpScheme");
+
+    app.UseAuthentication();
     app.UseAuthorization();
-    app.MapControllers();
+    app.MapControllers().RequireAuthorization();
 
 
     using (var scope = app.Services.CreateScope())
