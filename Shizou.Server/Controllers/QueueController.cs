@@ -11,7 +11,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class QueueController : ControllerBase
 {
     private readonly IList<CommandProcessor> _processors;

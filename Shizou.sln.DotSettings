@@ -228,4 +228,5 @@
   &lt;/TypePattern&gt;
 &lt;/Patterns&gt;
 </s:String>
-	<s:Boolean x:Key="/Default/CodeStyle/Naming/CSharpNaming/ApplyAutoDetectedRules/@EntryValue">False</s:Boolean></wpf:ResourceDictionary>
+	<s:Boolean x:Key="/Default/CodeStyle/Naming/CSharpNaming/ApplyAutoDetectedRules/@EntryValue">False</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Shizou/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

@@ -13,7 +13,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class FileServer : ControllerBase
 {
     private readonly ShizouContext _context;

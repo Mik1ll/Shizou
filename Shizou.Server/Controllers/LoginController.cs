@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class LoginController : ControllerBase
 {
     private readonly SignInManager<IdentityUser> _signInManager;

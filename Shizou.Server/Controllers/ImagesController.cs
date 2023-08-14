@@ -6,7 +6,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class ImagesController : ControllerBase
 {
     private readonly ImageService _imageService;

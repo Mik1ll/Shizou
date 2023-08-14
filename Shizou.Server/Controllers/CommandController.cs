@@ -10,7 +10,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class CommandController : ControllerBase
 {
     private readonly CommandService _commandService;

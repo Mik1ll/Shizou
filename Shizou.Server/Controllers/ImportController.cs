@@ -6,7 +6,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class ImportController : ControllerBase
 {
     private readonly ImportService _importService;

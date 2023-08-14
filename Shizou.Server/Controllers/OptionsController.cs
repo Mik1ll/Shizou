@@ -7,7 +7,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class OptionsController : ControllerBase
 {
     private readonly ShizouOptions _options;
