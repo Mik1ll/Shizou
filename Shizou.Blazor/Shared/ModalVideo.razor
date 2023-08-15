@@ -1,0 +1,9 @@
+﻿<div class="modal modal-xl fade show modal-fullscreen-lg-down" tabindex="-1" aria-modal="true" @onclick="@(() => OnClose.InvokeAsync())">
+    <div class="modal-dialog" @onclick:stopPropagation="true">
+        <div class="modal-content">
+            <div class="modal-body">
+                <video class="object-fit-contain h-100 w-100" controls src="api/FileServer/@LocalFileId"></video>
+            </div>
+        </div>
+    </div>
+</div>

@@ -2,6 +2,11 @@
 @using Shizou.Data.Enums
 @using Shizou.Data.Models
 
+
+@if (_videoOpen is not null)
+{
+    <ModalVideo LocalFileId="@(_videoOpen.Value)" OnClose="@CloseVideo"></ModalVideo>
+}
 <div class="container-fluid">
     @if (_anime is not null)
     {
@@ -87,7 +92,7 @@
                                                     <li class="list-group-item">
                                                         <div class="d-flex justify-content-between">
                                                             <div>
-                                                                <button class="btn btn-primary me-2" type="button">
+                                                                <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideo(lf.Id))">
                                                                     <i class="bi bi-play"></i> Play
                                                                 </button>
                                                             </div>
@@ -141,7 +146,7 @@
                                                     <li class="list-group-item">
                                                         <div class="d-flex justify-content-between">
                                                             <div>
-                                                                <button class="btn btn-primary me-2" type="button">
+                                                                <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideo(lf.Id))">
                                                                     <i class="bi bi-play"></i> Play
                                                                 </button>
                                                             </div>

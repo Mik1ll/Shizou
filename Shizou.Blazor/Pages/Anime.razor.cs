@@ -9,14 +9,11 @@ namespace Shizou.Blazor.Pages;
 
 public partial class Anime
 {
-    [Parameter]
-    public int AnimeId { get; set; }
+    [Parameter] public int AnimeId { get; set; }
 
-    [Inject]
-    public IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    [Inject] public IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
-    [Inject]
-    public WatchStateService WatchStateService { get; set; } = default!;
+    [Inject] public WatchStateService WatchStateService { get; set; } = default!;
 
     private AniDbAnime? _anime;
 
@@ -26,6 +23,8 @@ public partial class Anime
     private readonly Dictionary<int, bool> _episodeExpanded = new();
 
     private Dictionary<int, List<(AniDbFile File, LocalFile LocalFile)>> _files = new();
+
+    private int? _videoOpen;
 
     protected override void OnInitialized()
     {
@@ -73,4 +72,15 @@ public partial class Anime
                 ep.Watched = true;
         }
     }
+
+    private void OpenVideo(int localFileId)
+    {
+        _videoOpen = localFileId;
+    }
+
+    private void CloseVideo()
+    {
+        _videoOpen = null;
+    }
+    
 }
