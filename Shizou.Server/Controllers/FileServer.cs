@@ -27,19 +27,20 @@ public class FileServer : ControllerBase
 
 
     /// <summary>
-    ///     Get file by local Id
+    ///     Get file by local Id, can optionally end in arbitrary extension
     /// </summary>
     /// <param name="localFileId"></param>
     /// <returns></returns>
-    [HttpGet("{localFileId:int}")]
+    [HttpGet("{localFileId}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status416RangeNotSatisfiable)]
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: "application/octet-stream")]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
-    public ActionResult Get(int localFileId)
+    public ActionResult Get(string localFileId)
     {
-        var localDbFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
+        var id = int.Parse(localFileId.Split('.')[0]);
+        var localDbFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == id);
         if (localDbFile is null)
             return NotFound();
         if (localDbFile.ImportFolder is null)
