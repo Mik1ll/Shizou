@@ -3,7 +3,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,7 +31,7 @@ using HttpAnimeRequest = Shizou.Server.AniDbApi.Requests.Http.AnimeRequest;
 
 namespace Shizou.Server.Extensions;
 
-public static class WebAppliationBuilderExtensions
+public static class WebApplicationBuilderExtensions
 {
     public static WebApplicationBuilder AddShizouOptions(this WebApplicationBuilder builder)
     {
@@ -68,6 +70,25 @@ public static class WebAppliationBuilderExtensions
             })
             .AddEntityFrameworkStores<ShizouContext>()
             .AddDefaultTokenProviders();
+
+        builder.Services.ConfigureApplicationCookie(opts =>
+        {
+            opts.LoginPath = "/Account/Login";
+            opts.LogoutPath = "/Account/Logout";
+            opts.Events.OnRedirectToLogin = context =>
+            {
+                if (context.Request.Path.StartsWithSegments("/api")
+                    && context.Response.StatusCode == StatusCodes.Status200OK)
+                {
+                    context.Response.Clear();
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return Task.CompletedTask;
+                }
+
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            };
+        });
 
         builder.Services.AddDbContextFactory<ShizouContext>();
 
@@ -145,7 +166,7 @@ public static class WebAppliationBuilderExtensions
         builder.Services.AddTransient<MyListRequest>();
 
         builder.Services.AddTransient<ImageRequest>();
-        
+
         builder.Services.AddScoped<HttpRequestFactory>();
         builder.Services.AddScoped<UdpRequestFactory>();
 
