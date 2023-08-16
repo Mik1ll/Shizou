@@ -13,9 +13,9 @@
         {
             var returnUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
             if (string.IsNullOrEmpty(returnUrl))
-                NavigationManager.NavigateTo("/Identity/Login", true);
+                NavigationManager.NavigateTo("/Account/Login", true);
             else
-                NavigationManager.NavigateTo("/Identity/Login?returnUrl=" + returnUrl, true);
+                NavigationManager.NavigateTo("/Account/Login?ReturnUrl=" + returnUrl, true);
         }
     }
 

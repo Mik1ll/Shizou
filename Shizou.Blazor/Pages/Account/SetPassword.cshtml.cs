@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
-namespace Shizou.Blazor.Pages.Identity;
+namespace Shizou.Blazor.Pages.Account;
 
 public class SetPassword : PageModel
 {
