@@ -43,7 +43,7 @@ try
         app.UseHsts();
 
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(opt => opt.EnablePersistAuthorization());
 
     app.UseSerilogRequestLogging();
 

@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -10,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using Shizou.Data;
 using Shizou.Data.Database;
@@ -26,6 +29,7 @@ using Shizou.Server.Commands.AniDb;
 using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
+using Shizou.Server.SwaggerFilters;
 using UdpAnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.AnimeRequest;
 using HttpAnimeRequest = Shizou.Server.AniDbApi.Requests.Http.AnimeRequest;
 
@@ -185,6 +189,22 @@ public static class WebApplicationBuilderExtensions
             opt.OrderActionsBy(apiDesc =>
                 $"{apiDesc.ActionDescriptor.RouteValues["controller"]}_{apiDesc.RelativePath?.Length ?? 0:d3}_{apiDesc.HttpMethod switch { "GET" => "0", "PUT" => "1", "POST" => "2", "DELETE" => "3", _ => "4" }}");
             opt.EnableAnnotations();
+            opt.AddSecurityDefinition("AspIdentity", new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.ApiKey,
+                Name = ".AspNetCore.Identity.Application",
+                In = ParameterLocation.Cookie,
+                Description = "Asp Identity token",
+                Flows = new OpenApiOAuthFlows
+                {
+                    Implicit = new OpenApiOAuthFlow
+                    {
+                        AuthorizationUrl = new Uri("/api/Account/Login", UriKind.Relative),
+                        Scopes = new Dictionary<string, string>()
+                    }
+                }
+            });
+            opt.OperationFilter<SecurityOperationFilter>();
         });
         return builder;
     }

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -29,9 +30,10 @@ public class AccountController : ControllerBase
     public async Task<ActionResult> Login([FromBody] string? password)
     {
         if (password is null) return BadRequest("Password not supplied");
-        var result = await _signInManager.PasswordSignInAsync("Admin", password, true, false);
-        if (result.Succeeded)
-            return Ok();
+        var signInResult = await _signInManager.PasswordSignInAsync("Admin", password, true, false);
+        var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == ".AspNetCore.Identity.Application");
+        if (signInResult.Succeeded && token is not null) return Ok(token.Value.Value);
+
         return BadRequest();
     }
 
@@ -59,9 +61,10 @@ public class AccountController : ControllerBase
 
         if (result.Succeeded)
         {
-            await _signInManager.SignInAsync(identity, true);
-            if (_signInManager.IsSignedIn(HttpContext.User))
-                return Ok();
+            var signInResult = await _signInManager.PasswordSignInAsync("Admin", password, true, false);
+            var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == ".AspNetCore.Identity.Application");
+            if (signInResult.Succeeded && token is not null) return Ok(token.Value.Value);
+
             return StatusCode(StatusCodes.Status500InternalServerError, "Something went wrong when logging in after changing password");
         }
 
