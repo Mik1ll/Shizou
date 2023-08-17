@@ -18,8 +18,7 @@ public class SetPassword : PageModel
         _userManager = userManager;
     }
 
-    [BindProperty]
-    public required InputModel Input { get; set; }
+    [BindProperty] public required InputModel Input { get; set; }
 
     public void OnGet()
     {
@@ -38,21 +37,16 @@ public class SetPassword : PageModel
                 result = await _userManager.CreateAsync(identity, Input.Password!);
             }
             else
-            {
                 result = await _userManager.ResetPasswordAsync(identity, await _userManager.GeneratePasswordResetTokenAsync(identity), Input.Password!);
-            }
+
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(identity, true);
                 return LocalRedirect(returnUrl);
             }
         }
-        return Page();
-    }
 
-    public static bool IsLoopBackAddress(HttpContext context)
-    {
-        return (context.Connection.RemoteIpAddress?.ToString(), context.Connection.LocalIpAddress?.ToString()) is ("127.0.0.1", "127.0.0.1") or ("::1", "::1");
+        return Page();
     }
 
     [SuppressMessage("ReSharper", "UnusedMember.Global")]

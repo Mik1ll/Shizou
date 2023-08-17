@@ -77,11 +77,10 @@ public static class WebApplicationBuilderExtensions
             opts.LogoutPath = "/Account/Logout";
             opts.Events.OnRedirectToLogin = context =>
             {
-                if (context.Request.Path.StartsWithSegments("/api")
-                    && context.Response.StatusCode == StatusCodes.Status200OK)
+                if (context.Request.Path.StartsWithSegments("/api"))
                 {
                     context.Response.Clear();
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
                     return Task.CompletedTask;
                 }
 
