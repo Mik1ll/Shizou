@@ -39,7 +39,7 @@ if (!app.Environment.IsDevelopment())
 
 
 app.UseSwagger();
-app.UseSwaggerUI(opt => opt.EnablePersistAuthorization());
+app.UseSwaggerUI();
 
 app.UseSerilogRequestLogging();
 
