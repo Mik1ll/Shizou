@@ -4,7 +4,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
 
-namespace Shizou.Blazor.Shared;
+namespace Shizou.Blazor.Features.Components;
 
 public partial class ImportFolderModal
 {

@@ -3,7 +3,7 @@ using Shizou.Server.Commands;
 using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Services;
 
-namespace Shizou.Blazor.Shared;
+namespace Shizou.Blazor.Features.Dashboard.Components;
 
 public partial class Actions
 {

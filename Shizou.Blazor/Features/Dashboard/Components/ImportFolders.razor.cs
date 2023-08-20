@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
+using Shizou.Blazor.Features.Components;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
 
-namespace Shizou.Blazor.Shared;
+namespace Shizou.Blazor.Features.Dashboard.Components;
 
 public partial class ImportFolders
 {

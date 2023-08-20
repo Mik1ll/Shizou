@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Shizou.Server.CommandProcessors;
 
-namespace Shizou.Blazor.Shared;
+namespace Shizou.Blazor.Features.Dashboard.Components;
 
 public partial class Queues : IDisposable
 {

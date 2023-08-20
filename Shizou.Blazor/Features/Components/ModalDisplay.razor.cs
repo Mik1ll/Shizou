@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 
-namespace Shizou.Blazor.Shared;
+namespace Shizou.Blazor.Features.Components;
 
 public partial class ModalDisplay
 {

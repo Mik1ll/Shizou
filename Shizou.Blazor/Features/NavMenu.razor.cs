@@ -1,4 +1,4 @@
-﻿namespace Shizou.Blazor.Shared;
+﻿namespace Shizou.Blazor.Features;
 
 public partial class NavMenu
 {

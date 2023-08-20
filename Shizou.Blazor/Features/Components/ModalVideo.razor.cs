@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Shizou.Blazor.Shared;
+namespace Shizou.Blazor.Features.Components;
 
 public partial class ModalVideo
 {

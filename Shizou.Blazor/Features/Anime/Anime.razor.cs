@@ -5,7 +5,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
 
-namespace Shizou.Blazor.Pages;
+namespace Shizou.Blazor.Features.Anime;
 
 public partial class Anime
 {
