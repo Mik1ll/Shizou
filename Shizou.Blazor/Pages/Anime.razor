@@ -10,6 +10,7 @@
 <div class="container-fluid">
     @if (_anime is not null)
     {
+        <PageTitle>@_anime.Title</PageTitle>
         <div class="row justify-content-center">
             <div class="col-xl-3 col-lg-4 col-md-5 col-sm-6 d-flex justify-content-end anime-poster">
                 @if (_anime.ImageFilename is not null)
@@ -188,6 +189,7 @@
     }
     else
     {
+        <PageTitle>Anime not Found</PageTitle>
         <h1>Anime not found</h1>
     }
 </div>
