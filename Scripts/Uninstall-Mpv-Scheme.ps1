@@ -1,0 +1,1 @@
+Remove-Item -Path 'HKCU:\SOFTWARE\Classes\mpv' -Recurse
