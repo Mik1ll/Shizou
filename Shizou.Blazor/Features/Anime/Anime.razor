@@ -96,6 +96,9 @@
                                                                 <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideo(lf.Id))">
                                                                     <i class="bi bi-play"></i> Play
                                                                 </button>
+                                                                <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenInMpv(lf))">
+                                                                    <i class="bi bi-play"></i> Play in Mpv
+                                                                </button>
                                                             </div>
                                                             <div>
                                                                 @if (f.Watched)

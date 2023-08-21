@@ -91,6 +91,7 @@ public static class WebApplicationBuilderExtensions
                 context.Response.Redirect(context.RedirectUri);
                 return Task.CompletedTask;
             };
+            opts.Cookie.Name = Constants.IdentityCookieName;
         });
 
         builder.Services.AddDbContextFactory<ShizouContext>();

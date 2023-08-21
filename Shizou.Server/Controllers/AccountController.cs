@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Shizou.Data;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
@@ -31,7 +32,7 @@ public class AccountController : ControllerBase
     {
         if (password is null) return BadRequest("Password not supplied");
         var signInResult = await _signInManager.PasswordSignInAsync("Admin", password, true, false);
-        var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == ".AspNetCore.Identity.Application");
+        var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == Constants.IdentityCookieName);
         if (signInResult.Succeeded && token is not null) return Ok(token.Value.Value);
 
         return BadRequest();
@@ -62,7 +63,7 @@ public class AccountController : ControllerBase
         if (result.Succeeded)
         {
             var signInResult = await _signInManager.PasswordSignInAsync("Admin", password, true, false);
-            var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == ".AspNetCore.Identity.Application");
+            var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == Constants.IdentityCookieName);
             if (signInResult.Succeeded && token is not null) return Ok(token.Value.Value);
 
             return StatusCode(StatusCodes.Status500InternalServerError, "Something went wrong when logging in after changing password");

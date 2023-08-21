@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
@@ -11,9 +12,14 @@ public partial class Anime
 {
     [Parameter] public int AnimeId { get; set; }
 
+    [CascadingParameter(Name = "IdentityCookie")]
+    public string? IdentityCookie { get; set; }
+
     [Inject] public IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
     [Inject] public WatchStateService WatchStateService { get; set; } = default!;
+
+    [Inject] public NavigationManager NavigationManager { get; set; } = default!;
 
     private AniDbAnime? _anime;
 
@@ -82,5 +88,12 @@ public partial class Anime
     {
         _videoOpen = null;
     }
-    
+
+    private void OpenInMpv(LocalFile file)
+    {
+        if (IdentityCookie is null)
+            return;
+        NavigationManager.NavigateTo(
+            $"mpv:{NavigationManager.BaseUri}api/FileServer/{file.Id}{Path.GetExtension(file.PathTail)}?{Constants.IdentityCookieName}__{IdentityCookie}");
+    }
 }
