@@ -193,7 +193,7 @@ public static class WebApplicationBuilderExtensions
             opt.AddSecurityDefinition("AspIdentity", new OpenApiSecurityScheme
             {
                 Type = SecuritySchemeType.ApiKey,
-                Name = ".AspNetCore.Identity.Application",
+                Name = Constants.IdentityCookieName,
                 In = ParameterLocation.Cookie,
                 Description = "Asp Identity token",
                 Flows = new OpenApiOAuthFlows
