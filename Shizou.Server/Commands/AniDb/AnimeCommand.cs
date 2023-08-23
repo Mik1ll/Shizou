@@ -141,13 +141,14 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
 
     private void UpdateMalXrefs(AnimeResult animeResult)
     {
-        var xrefs = _context.MalAniDbXrefs.Where(xref => xref.AniDbId == CommandArgs.AnimeId).ToList();
-        _context.RemoveRange(xrefs);
+        var eXrefs = _context.MalAniDbXrefs.Where(xref => xref.AniDbId == CommandArgs.AnimeId).ToList();
 
-        var malIds = animeResult.Resources.Where(r => (ResourceType)r.Type == ResourceType.Mal)
-            .SelectMany(r => r.ExternalEntities.SelectMany(e => e.Identifiers).Select(int.Parse)).ToList();
+        var xrefs = animeResult.Resources.Where(r => (ResourceType)r.Type == ResourceType.Mal)
+            .SelectMany(r => r.ExternalEntities.SelectMany(e => e.Identifiers)
+                .Select(id => new MalAniDbXref { AniDbId = CommandArgs.AnimeId, MalId = int.Parse(id) })).ToList();
+        _context.RemoveRange(eXrefs.ExceptBy(xrefs.Select(x => x.MalId), x => x.MalId));
+        _context.AddRange(xrefs.ExceptBy(eXrefs.Select(x => x.MalId), x => x.MalId));
 
-        _context.MalAniDbXrefs.AddRange(malIds.Select(id => new MalAniDbXref { AniDbId = CommandArgs.AnimeId, MalId = id }));
         _context.SaveChanges();
     }
 }
