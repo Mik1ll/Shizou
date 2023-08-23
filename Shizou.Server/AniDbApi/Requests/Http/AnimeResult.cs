@@ -41,7 +41,7 @@ namespace Shizou.Server.AniDbApi.Requests.Http
         public List<SimilarAnime> Similaranime { get; set; }
 
         [XmlElement("recommendations")]
-        public Recommendations? Recommendations { get; set; }
+        public RecommendationsRoot? Recommendations { get; set; }
 
         [XmlElement("url")]
         public string? Url { get; set; }
@@ -147,10 +147,10 @@ namespace Shizou.Server.AniDbApi.Requests.Http
         }
 
         [XmlRoot("recommendations")]
-        public class Recommendations
+        public class RecommendationsRoot
         {
             [XmlElement("recommendation")]
-            public List<Recommendation> Recommendation { get; set; }
+            public List<Recommendation> Recommendations { get; set; }
 
             [XmlAttribute("total")]
             public int Total { get; set; }
@@ -186,10 +186,10 @@ namespace Shizou.Server.AniDbApi.Requests.Http
         }
 
         [XmlRoot("externalentity")]
-        public class Externalentity
+        public class ExternalEntity
         {
             [XmlElement("identifier")]
-            public List<string> Identifier { get; set; }
+            public List<string> Identifiers { get; set; }
 
             [XmlElement("url")]
             public string? Url { get; set; }
@@ -199,7 +199,7 @@ namespace Shizou.Server.AniDbApi.Requests.Http
         public class Resource
         {
             [XmlElement("externalentity")]
-            public Externalentity Externalentity { get; set; }
+            public List<ExternalEntity> ExternalEntities { get; set; }
 
             [XmlAttribute("type")]
             public int Type { get; set; }
