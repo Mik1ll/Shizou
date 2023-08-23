@@ -6,14 +6,19 @@ public enum AnimeType
 {
     [XmlEnum("Movie")]
     Movie = 1,
+
     [XmlEnum("OVA")]
     Ova = 2,
+
     [XmlEnum("TV Series")]
     TvSeries = 3,
+
     [XmlEnum("TV Special")]
     TvSpecial = 4,
+
     [XmlEnum("Web")]
     Web = 5,
+
     [XmlEnum("Other")]
     Other = 6
 }
@@ -22,18 +27,22 @@ public enum EpisodeType
 {
     [XmlEnum("1")]
     Episode = 1,
+
     [XmlEnum("2")]
     Credits = 2,
+
     [XmlEnum("3")]
     Special = 3,
+
     [XmlEnum("4")]
     Trailer = 4,
+
     [XmlEnum("5")]
     Parody = 5,
+
     [XmlEnum("6")]
     Other = 6
 }
-
 
 public static class EpisodeTypeExtensions
 {
@@ -103,12 +112,16 @@ public enum MyListState
 {
     [XmlEnum("0")]
     Unknown = 0,
+
     [XmlEnum("1")]
     Internal = 1,
+
     [XmlEnum("2")]
     External = 2,
+
     [XmlEnum("3")]
     Deleted = 3,
+
     [XmlEnum("4")]
     Remote = 4
 }
@@ -117,32 +130,43 @@ public enum MyListFileState
 {
     [XmlEnum("0")]
     Normal = 0,
+
     [XmlEnum("1")]
     InvalidCrc = 1,
+
     [XmlEnum("2")]
     SelfEdited = 2,
+
     [XmlEnum("10")]
     SelfRipped = 10,
+
     [XmlEnum("11")]
     Dvd = 11,
+
     [XmlEnum("12")]
     Vhs = 12,
+
     [XmlEnum("13")]
     Tv = 13,
+
     [XmlEnum("14")]
     Theater = 14,
+
     [XmlEnum("15")]
     Streamed = 15,
+
     /// <summary>
     ///     Doesn't work in mylist add
     /// </summary>
     [XmlEnum("16")]
     BluRay = 16,
+
     /// <summary>
     ///     Doesn't work in mylist add
     /// </summary>
     [XmlEnum("17")]
     Www = 17,
+
     [XmlEnum("100")]
     Other = 100
 }
@@ -190,7 +214,7 @@ public enum FileQuality
     Low,
     VeryLow,
     Corrupted,
-    Eyecancer
+    EyeCancer
 }
 
 public enum NotificationType
@@ -207,4 +231,25 @@ public enum MessageType
     Anonymous = 1,
     System = 2,
     Mod = 3
+}
+
+public enum ResourceType
+{
+    Ann = 1,
+    Mal = 2,
+    AnimeNfo = 3,
+    OfficialJapanese = 4,
+    OfficialEnglish = 5,
+    WikiEnglish = 6,
+    WikiJapanese = 7,
+    Syoboi = 8,
+    AllCinema = 9,
+    Anison = 10,
+    DotLain = 11,
+    Vndb = 14,
+    Crunchyroll = 28,
+    Amazon = 32,
+    Funimation = 34,
+    Bangumi = 38,
+    HiDive = 42
 }

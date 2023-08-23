@@ -55,6 +55,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
             Completed = true;
             return;
         }
+
         var animeResult = await _animeResultCache.Get(_animeResultCacheKey) ?? await GetAnimeHttp();
 
         if (animeResult is null)
@@ -88,6 +89,9 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
 
         if (aniDbAnime.ImageFilename is not null)
             _imageService.GetAnimePoster(aniDbAnime.Id);
+
+        UpdateMalXrefs(animeResult);
+
         Completed = true;
     }
 
@@ -133,5 +137,17 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         if (request.AnimeResult is null)
             _logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", _animeResultCache.RetentionDuration.Hours);
         return request.AnimeResult;
+    }
+
+    private void UpdateMalXrefs(AnimeResult animeResult)
+    {
+        var xrefs = _context.MalAniDbXrefs.Where(xref => xref.AniDbId == CommandArgs.AnimeId).ToList();
+        _context.RemoveRange(xrefs);
+
+        var malIds = animeResult.Resources.Where(r => (ResourceType)r.Type == ResourceType.Mal)
+            .SelectMany(r => r.ExternalEntities.SelectMany(e => e.Identifiers).Select(int.Parse)).ToList();
+
+        _context.MalAniDbXrefs.AddRange(malIds.Select(id => new MalAniDbXref { AniDbId = CommandArgs.AnimeId, MalId = id }));
+        _context.SaveChanges();
     }
 }
