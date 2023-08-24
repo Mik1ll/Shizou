@@ -22,7 +22,9 @@ public class AniDbEpisode : IEntity
     public required DateTime Updated { get; set; }
 
     public required int AniDbAnimeId { get; set; }
-    [JsonIgnore] public AniDbAnime AniDbAnime { get; set; } = null!;
+
+    [JsonIgnore]
+    public AniDbAnime AniDbAnime { get; set; } = null!;
 
     [JsonIgnore]
     public List<LocalFile> ManualLinkLocalFiles { get; set; } = null!;

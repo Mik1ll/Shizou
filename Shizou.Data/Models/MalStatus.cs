@@ -6,7 +6,7 @@ namespace Shizou.Data.Models;
 [Owned]
 public class MalStatus
 {
-    public AnimeState State { get; set; }
-    public int WatchedEpisodes { get; set; }
-    public DateTime Updated { get; set; }
+    public required AnimeState State { get; set; }
+    public required int WatchedEpisodes { get; set; }
+    public required DateTime Updated { get; set; }
 }

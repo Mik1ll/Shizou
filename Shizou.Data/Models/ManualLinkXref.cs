@@ -2,6 +2,6 @@
 
 public class ManualLinkXref
 {
-    public int AniDbEpisodeId { get; set; }
-    public int LocalFileId { get; set; }
+    public required int AniDbEpisodeId { get; set; }
+    public required int LocalFileId { get; set; }
 }

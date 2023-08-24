@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Data.Models;
@@ -8,7 +7,7 @@ namespace Shizou.Data.Models;
 public class AniDbGenericFile : IEntity
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public int Id { get; set; }
+    public required int Id { get; set; }
 
-    public int AniDbEpisodeId { get; set; }
+    public required int AniDbEpisodeId { get; set; }
 }
