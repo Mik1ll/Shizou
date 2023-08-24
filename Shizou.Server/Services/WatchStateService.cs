@@ -32,7 +32,7 @@ public class WatchStateService
         using var context = _contextFactory.CreateDbContext();
         var updatedTime = DateTime.UtcNow;
         int? eitherId;
-        if (context.AniDbFiles.Find(fileId) is { } eFile)
+        if (context.FileWatchedStates.Find(fileId) is { } eFile)
         {
             eitherId = eFile.Id;
             eFile.Watched = watched;
@@ -51,6 +51,7 @@ public class WatchStateService
             _logger.LogWarning("File Id {FileId} not found, not marking", fileId);
             return false;
         }
+
         var eEntryId = context.AniDbMyListEntries.AsNoTracking().FirstOrDefault(e => e.FileId == eitherId.Value)?.Id;
         _commandService.Dispatch(eEntryId is not null
             ? new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Lid: eEntryId)
@@ -70,6 +71,7 @@ public class WatchStateService
             _logger.LogWarning("Episode Id {EpisodeId} not found, not marking", episodeId);
             return false;
         }
+
         eEpisode.Watched = watched;
         eEpisode.WatchedUpdatedLocally = updatedTime;
         context.SaveChanges();
@@ -89,6 +91,7 @@ public class WatchStateService
             _commandService.Dispatch(new UpdateMyListArgs(false, state, watched, updatedTime, Aid: eEpisode.AniDbAnimeId,
                 EpNo: EpisodeTypeExtensions.ToEpString(eEpisode.EpisodeType, eEpisode.Number)));
         }
+
         return true;
     }
 
@@ -103,7 +106,8 @@ public class WatchStateService
             return false;
         }
 
-        var filesWithLocal = (from f in context.FilesWithLocal
+        var filesWithLocal = (from f in context.FileWatchedStates
+            where context.LocalFiles.Any(lf => lf.Ed2k == f.Ed2k)
             join xref in context.AniDbEpisodeFileXrefs
                 on f.Id equals xref.AniDbFileId
             join e in context.AniDbEpisodes
@@ -118,11 +122,13 @@ public class WatchStateService
             f.Watched = watched;
             f.WatchedUpdatedLocally = updatedTime;
         }
+
         foreach (var ep in epsWithmanualLinks)
         {
             ep.Watched = watched;
             ep.WatchedUpdatedLocally = updatedTime;
         }
+
         context.SaveChanges();
         _commandService.Dispatch(new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Aid: animeId, EpNo: "0"));
 

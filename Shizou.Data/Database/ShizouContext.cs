@@ -32,6 +32,7 @@ public sealed class ShizouContext : IdentityDbContext
     public DbSet<IgnoredMessage> IgnoredMessages { get; set; } = null!;
     public DbSet<MalAniDbXref> MalAniDbXrefs { get; set; } = null!;
     public DbSet<MalAnime> MalAnimes { get; set; } = null!;
+    public DbSet<FileWatchedState> FileWatchedStates { get; set; } = null!;
 
     public IQueryable<AniDbEpisode> EpisodesFromFile(int fileId)
     {
@@ -50,7 +51,7 @@ public sealed class ShizouContext : IdentityDbContext
     }
 
     public IQueryable<AniDbFile> FilesWithLocal => from f in AniDbFiles
-        where LocalFiles.Any(lf => lf.Ed2K == f.Ed2K)
+        where LocalFiles.Any(lf => lf.Ed2k == f.Ed2k)
         select f;
 
     public IQueryable<AniDbGenericFile> GenericFilesWithManualLinks => from f in AniDbGenericFiles

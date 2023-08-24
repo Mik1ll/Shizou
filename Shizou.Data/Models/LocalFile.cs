@@ -1,15 +1,19 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Data.Models;
 
-[Index(nameof(Ed2K), IsUnique = true)]
+[Index(nameof(Ed2k), IsUnique = true)]
 [Index(nameof(Signature), IsUnique = true)]
 [Index(nameof(ImportFolderId), nameof(PathTail), IsUnique = true)]
 public class LocalFile : IEntity
 {
     public int Id { get; set; }
-    public required string Ed2K { get; set; }
+
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
+    public required string Ed2k { get; set; }
+
     public required string Crc { get; set; }
     public required long FileSize { get; set; }
     public required string Signature { get; set; }
@@ -18,7 +22,9 @@ public class LocalFile : IEntity
     public DateTime? Updated { get; set; }
 
     public int? ImportFolderId { get; set; }
-    [JsonIgnore] public ImportFolder? ImportFolder { get; set; }
+
+    [JsonIgnore]
+    public ImportFolder? ImportFolder { get; set; }
 
     [JsonIgnore]
     public List<AniDbEpisode> ManualLinkEpisodes { get; set; } = null!;

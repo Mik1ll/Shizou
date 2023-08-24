@@ -75,24 +75,24 @@ public class HashCommand : BaseCommand<HashArgs>
                 _logger.LogInformation("Found local file with mismatched signature, rehashing: \"{Path}\"", file.FullName);
             else
                 _logger.LogInformation("Hashing new file: \"{Path}\"", file.FullName);
-            var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2K | RHasherService.HashIds.Crc32);
+            var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2k | RHasherService.HashIds.Crc32);
             localFile ??= _context.LocalFiles.Add(new LocalFile
             {
                 Signature = signature,
                 Crc = hashes[RHasherService.HashIds.Crc32],
-                Ed2K = hashes[RHasherService.HashIds.Ed2K],
+                Ed2k = hashes[RHasherService.HashIds.Ed2k],
                 FileSize = file.Length,
                 Updated = DateTime.UtcNow,
                 PathTail = pathTail,
                 Ignored = false,
                 ImportFolderId = importFolder.Id
             }).Entity;
-            _logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasherService.HashIds.Ed2K],
+            _logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasherService.HashIds.Ed2k],
                 hashes[RHasherService.HashIds.Crc32]);
         }
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
-        var eAniDbFileId = _context.AniDbFiles.Where(f => f.Ed2K == localFile.Ed2K).Select(f => (int?)f.Id).FirstOrDefault();
+        var eAniDbFileId = _context.AniDbFiles.Where(f => f.Ed2k == localFile.Ed2k).Select(f => (int?)f.Id).FirstOrDefault();
         if (eAniDbFileId is null)
             _commandService.Dispatch(new ProcessArgs(localFile.Id, IdTypeLocalFile.LocalId));
         else

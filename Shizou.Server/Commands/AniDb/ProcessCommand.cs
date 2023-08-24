@@ -92,7 +92,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         return new AniDbFile
         {
             Id = result.FileId,
-            Ed2K = result.Ed2K!,
+            Ed2k = result.Ed2K!,
             Md5 = result.Md5,
             Crc = result.Crc32,
             Sha1 = result.Sha1,
@@ -104,8 +104,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             Source = result.Source,
             FileVersion = result.State!.Value.FileVersion(),
             Updated = DateTime.UtcNow,
-            Watched = result.MyListViewed ?? false,
-            WatchedUpdatedLocally = null,
             Audio = result.AudioCodecs!.Zip(result.AudioBitRates!, (codec, bitrate) => (codec, bitrate))
                 .Zip(result.DubLanguages!, (tup, lang) => (tup.codec, tup.bitrate, lang)).Select((tuple, i) =>
                     new AniDbAudio { Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Id = i + 1, AniDbFileId = result.FileId })
@@ -143,6 +141,20 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             UpdateFile(result);
 
         UpdateMyListEntry(result);
+        UpdateWatchedState(result);
+    }
+
+    private void UpdateWatchedState(FileResult result)
+    {
+        var eState = _context.FileWatchedStates.Find(result.FileId);
+        if (eState is null)
+            _context.FileWatchedStates.Add(new FileWatchedState
+            {
+                Id = result.FileId,
+                Ed2k = result.Ed2K!,
+                Watched = result.MyListId is not null && result.MyListViewed!.Value,
+                WatchedUpdatedLocally = null
+            });
     }
 
     private static bool FileIsGeneric(FileResult result)
@@ -164,15 +176,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         if (eFile is null)
             _context.Entry(file).State = EntityState.Added;
         else
-        {
-            // Only update local watched state if it wasn't set by user, we can wait for a mylist sync
-            if (eFile.WatchedUpdatedLocally is not null)
-            {
-                file.Watched = eFile.Watched;
-                file.WatchedUpdatedLocally = eFile.WatchedUpdatedLocally;
-            }
             _context.Entry(eFile).CurrentValues.SetValues(file);
-        }
         _context.SaveChanges();
 
         UpdateOwnedNavigations(file, eFile);
@@ -190,6 +194,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             else
                 _context.Entry(eAniDbGroup).CurrentValues.SetValues(file.AniDbGroup);
         }
+
         _context.SaveChanges();
     }
 
@@ -227,6 +232,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                 else
                     _context.Entry(es).CurrentValues.SetValues(s);
         }
+
         _context.SaveChanges();
     }
 
@@ -254,6 +260,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             eEpisode.Watched = result.MyListViewed ?? false;
             eEpisode.WatchedUpdatedLocally = null;
         }
+
         _context.SaveChanges();
     }
 
@@ -300,12 +307,13 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                     _logger.LogWarning("Unable to process local file id: {LocalFileId} not found, skipping", CommandArgs.Id);
                     return null;
                 }
-                fileResultCacheKey = $"File_Ed2k={localFile.Ed2K}.json";
+
+                fileResultCacheKey = $"File_Ed2k={localFile.Ed2k}.json";
                 result = await _fileResultCache.Get(fileResultCacheKey);
                 if (result is not null)
                     return result;
-                _logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2K);
-                fileReq = _udpRequestFactory.FileRequest(localFile.FileSize, localFile.Ed2K, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                _logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2k);
+                fileReq = _udpRequestFactory.FileRequest(localFile.FileSize, localFile.Ed2k, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             }
             case IdTypeLocalFile.FileId:
@@ -335,6 +343,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         {
             await _fileResultCache.Save(fileResultCacheKey, result);
         }
+
         return result;
     }
 }

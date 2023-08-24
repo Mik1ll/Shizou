@@ -13,8 +13,8 @@ public sealed record AddMissingMyListEntriesArgs() : CommandArgs($"{nameof(AddMi
 [Command(CommandType.AddMissingMyListEntries, CommandPriority.Low, QueueType.AniDbUdp)]
 public class AddMissingMyListEntriesCommand : BaseCommand<AddMissingMyListEntriesArgs>
 {
-    private readonly ShizouContext _context;
     private readonly CommandService _commandService;
+    private readonly ShizouContext _context;
     private readonly ShizouOptions _options;
 
     public AddMissingMyListEntriesCommand(
@@ -30,8 +30,9 @@ public class AddMissingMyListEntriesCommand : BaseCommand<AddMissingMyListEntrie
 
     protected override Task ProcessInner()
     {
-        var missingFiles = (from f in _context.FilesWithLocal
-            where !_context.AniDbMyListEntries.Any(e => e.FileId == f.Id)
+        var missingFiles = (from f in _context.FileWatchedStates
+            where _context.LocalFiles.Any(lf => f.Ed2k == lf.Ed2k) &&
+                  !_context.AniDbMyListEntries.Any(e => e.FileId == f.Id)
             select new { f.Id, f.Watched, f.WatchedUpdatedLocally }).ToList();
 
         var missingGenericFiles = (from gf in _context.AniDbGenericFiles

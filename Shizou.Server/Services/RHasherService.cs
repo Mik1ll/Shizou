@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -20,7 +21,9 @@ public class RHasherService
         Tiger = 1 << 4, /* Tiger hash. */
         Tth = 1 << 5, /* Tiger tree hash */
         Btih = 1 << 6, /* BitTorrent info hash. */
-        Ed2K = 1 << 7, /* EDonkey 2000 hash. */
+
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        Ed2k = 1 << 7, /* EDonkey 2000 hash. */
         Aich = 1 << 8, /* eMule AICH. */
         Whirlpool = 1 << 9, /* Whirlpool hash. */
         RipeMd160 = 1 << 10, /* RIPEMD-160 hash. */

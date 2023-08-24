@@ -101,7 +101,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
         // var animeIdsToMarkAbsent = BulkMarkAbsent(myListItems);
-        var dbFiles = _context.AniDbFiles.Select(f => new { f.Id, f.Watched, f.WatchedUpdatedLocally })
+        var dbFiles = _context.FileWatchedStates.Select(f => new { f.Id, f.Watched, f.WatchedUpdatedLocally })
             .Union(from gf in _context.AniDbGenericFiles
                 join e in _context.AniDbEpisodes
                     on gf.AniDbEpisodeId equals e.Id
@@ -139,7 +139,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                     toUpdate.Add(new UpdateMyListArgs(true, expectedState, Lid: item.Id));
                 if (!updateWatched && dbFile.Watched != itemWatched)
                 {
-                    var file = _context.AniDbFiles.Find(dbFile.Id);
+                    var file = _context.FileWatchedStates.Find(dbFile.Id);
                     if (file is not null)
                     {
                         file.Watched = itemWatched;

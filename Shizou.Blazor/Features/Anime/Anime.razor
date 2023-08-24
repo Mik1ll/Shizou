@@ -86,7 +86,7 @@
                             {
                                 <tr>
                                     <td colspan="5">
-                                        @foreach (var (f, lf) in _files.GetValueOrDefault(ep.Id, new List<(AniDbFile, LocalFile)>()))
+                                        @foreach (var (f, lf, ws) in _files.GetValueOrDefault(ep.Id, new List<(AniDbFile, LocalFile, FileWatchedState)>()))
                                         {
                                             <div class="card">
                                                 <ul class="list-group list-group-flush">
@@ -101,15 +101,15 @@
                                                                 </button>
                                                             </div>
                                                             <div>
-                                                                @if (f.Watched)
+                                                                @if (ws.Watched)
                                                                 {
-                                                                    <button class="btn btn-outline-danger me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(f, false))">
+                                                                    <button class="btn btn-outline-danger me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(ws, false))">
                                                                         <i class="bi bi-eye-slash"></i> Unwatch
                                                                     </button>
                                                                 }
                                                                 else
                                                                 {
-                                                                    <button class="btn btn-outline-success me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(f, true))">
+                                                                    <button class="btn btn-outline-success me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(ws, true))">
                                                                         <i class="bi bi-eye"></i> Watch
                                                                     </button>
                                                                 }

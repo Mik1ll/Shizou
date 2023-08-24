@@ -1,16 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Data.Models;
 
-[Index(nameof(Ed2K), IsUnique = true)]
+[Index(nameof(Ed2k), IsUnique = true)]
 public class AniDbFile : IEntity
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required int Id { get; set; }
 
-    public required string Ed2K { get; set; }
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
+    public required string Ed2k { get; set; }
+
     public required string? Crc { get; set; }
     public required string? Md5 { get; set; }
     public required string? Sha1 { get; set; }
@@ -23,12 +26,11 @@ public class AniDbFile : IEntity
     public required bool? Censored { get; set; }
     public required bool Deprecated { get; set; }
     public required bool Chaptered { get; set; }
-    public bool Watched { get; set; }
-    public DateTime? WatchedUpdatedLocally { get; set; }
-    
-    
+
     public int? AniDbGroupId { get; set; }
-    [JsonIgnore] public AniDbGroup? AniDbGroup { get; set; }
+
+    [JsonIgnore]
+    public AniDbGroup? AniDbGroup { get; set; }
 
     public AniDbVideo? Video { get; set; }
     public List<AniDbAudio> Audio { get; set; } = null!;

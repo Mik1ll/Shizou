@@ -28,7 +28,7 @@ public partial class Anime
 
     private readonly Dictionary<int, bool> _episodeExpanded = new();
 
-    private Dictionary<int, List<(AniDbFile File, LocalFile LocalFile)>> _files = new();
+    private Dictionary<int, List<(AniDbFile File, LocalFile LocalFile, FileWatchedState WatchedState)>> _files = new();
 
     private int? _videoOpen;
 
@@ -39,13 +39,15 @@ public partial class Anime
             .FirstOrDefault(a => a.Id == AnimeId);
         _files = (from f in context.AniDbFiles.Include(f => f.AniDbGroup).AsSingleQuery()
             join lf in context.LocalFiles
-                on f.Ed2K equals lf.Ed2K
+                on f.Ed2k equals lf.Ed2k
+            join ws in context.FileWatchedStates
+                on f.Ed2k equals ws.Ed2k
             join xref in context.AniDbEpisodeFileXrefs
                 on f.Id equals xref.AniDbFileId
             join ep in context.AniDbEpisodes
                 on xref.AniDbEpisodeId equals ep.Id
             where ep.AniDbAnimeId == AnimeId
-            group new { f, lf } by ep.Id).ToDictionary(g => g.Key, g => g.Select(x => (File: x.f, LocalFile: x.lf)).ToList());
+            group new { f, lf, ws } by ep.Id).ToDictionary(g => g.Key, g => g.Select(x => (File: x.f, LocalFile: x.lf, LocalAniDbFile: x.ws)).ToList());
     }
 
     private void MarkEpisode(AniDbEpisode ep, bool watched)
@@ -54,7 +56,7 @@ public partial class Anime
             ep.Watched = watched;
     }
 
-    private void MarkFile(AniDbFile f, bool watched)
+    private void MarkFile(FileWatchedState f, bool watched)
     {
         if (WatchStateService.MarkFile(f.Id, watched))
             f.Watched = watched;
@@ -72,7 +74,7 @@ public partial class Anime
     {
         if (WatchStateService.MarkAnime(anime.Id, true))
         {
-            foreach (var f in _files.Values.SelectMany(i => i).Select(i => i.File).Distinct())
+            foreach (var f in _files.Values.SelectMany(i => i).Select(i => i.WatchedState).Distinct())
                 f.Watched = true;
             foreach (var ep in anime.AniDbEpisodes.Where(e => e.ManualLinkLocalFiles.Any()))
                 ep.Watched = true;
