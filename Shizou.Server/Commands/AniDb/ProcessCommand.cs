@@ -141,10 +141,9 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             UpdateFile(result);
 
         UpdateMyListEntry(result);
-        UpdateWatchedState(result);
     }
 
-    private void UpdateWatchedState(FileResult result)
+    private void UpdateFileWatchedState(FileResult result)
     {
         var eState = _context.FileWatchedStates.Find(result.FileId);
         if (eState is null)
@@ -152,9 +151,25 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             {
                 Id = result.FileId,
                 Ed2k = result.Ed2K!,
-                Watched = result.MyListId is not null && result.MyListViewed!.Value,
-                WatchedUpdatedLocally = null
+                Watched = result.MyListViewed ?? false,
+                WatchedUpdated = null
             });
+        else if (eState.WatchedUpdated is null)
+            eState.Watched = result.MyListViewed ?? false;
+    }
+
+    private void UpdateEpisodeWatchedState(FileResult result)
+    {
+        var eState = _context.EpisodeWatchedStates.Find(result.EpisodeId!.Value);
+        if (eState is null)
+            _context.EpisodeWatchedStates.Add(new EpisodeWatchedState
+            {
+                Id = result.EpisodeId!.Value,
+                Watched = result.MyListViewed ?? false,
+                WatchedUpdated = null
+            });
+        else if (eState.WatchedUpdated is null)
+            eState.Watched = result.MyListViewed ?? false;
     }
 
     private static bool FileIsGeneric(FileResult result)
@@ -182,6 +197,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         UpdateOwnedNavigations(file, eFile);
 
         UpdateEpRelations(result);
+
+        UpdateFileWatchedState(result);
     }
 
     private void UpdateNavigations(AniDbFile file)
@@ -253,15 +270,9 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         else
             _context.Entry(eGenericFile).CurrentValues.SetValues(genericFile);
 
-        var eEpisode = _context.AniDbEpisodes.Find(result.EpisodeId!.Value);
-        // Only update local watched state if it wasn't set by user, we can wait for a mylist sync
-        if (eEpisode is not null && eEpisode.WatchedUpdatedLocally is null)
-        {
-            eEpisode.Watched = result.MyListViewed ?? false;
-            eEpisode.WatchedUpdatedLocally = null;
-        }
-
         _context.SaveChanges();
+
+        UpdateEpisodeWatchedState(result);
     }
 
     private void UpdateMyListEntry(FileResult result)

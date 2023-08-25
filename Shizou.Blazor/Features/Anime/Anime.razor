@@ -1,6 +1,5 @@
 ﻿@page "/Collection/{AnimeId:int}"
 @using Shizou.Data.Enums
-@using Shizou.Data.Models
 
 
 @if (_videoOpen is not null)
@@ -68,6 +67,7 @@
                         <tbody>
                         @foreach (var ep in _anime.AniDbEpisodes.OrderBy(e => e.EpisodeType).ThenBy(e => e.Number))
                         {
+                            var epWatchedState = _epWatchedStates!.First(ws => ep.Id == ws.Id);
                             <tr role="button" @onclick="@(() => ToggleEpExpand(ep))">
                                 <td>
                                     @EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number)
@@ -86,30 +86,32 @@
                             {
                                 <tr>
                                     <td colspan="5">
-                                        @foreach (var (f, lf, ws) in _files.GetValueOrDefault(ep.Id, new List<(AniDbFile, LocalFile, FileWatchedState)>()))
+                                        @foreach (var file in _filesGroupedByEpId![ep.Id])
                                         {
+                                            var localFile = _regularLocalFiles!.First(lf => file.Ed2k == lf.Ed2k);
+                                            var fileWatchedState = _fileWatchedStates!.First(ws => ws.Id == file.Id);
                                             <div class="card">
                                                 <ul class="list-group list-group-flush">
                                                     <li class="list-group-item">
                                                         <div class="d-flex justify-content-between">
                                                             <div>
-                                                                <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideo(lf.Id))">
+                                                                <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideo(localFile.Id))">
                                                                     <i class="bi bi-play"></i> Play
                                                                 </button>
-                                                                <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenInMpv(lf))">
+                                                                <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenInMpv(localFile))">
                                                                     <i class="bi bi-play"></i> Play in Mpv
                                                                 </button>
                                                             </div>
                                                             <div>
-                                                                @if (ws.Watched)
+                                                                @if (fileWatchedState.Watched)
                                                                 {
-                                                                    <button class="btn btn-outline-danger me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(ws, false))">
+                                                                    <button class="btn btn-outline-danger me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(fileWatchedState, false))">
                                                                         <i class="bi bi-eye-slash"></i> Unwatch
                                                                     </button>
                                                                 }
                                                                 else
                                                                 {
-                                                                    <button class="btn btn-outline-success me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(ws, true))">
+                                                                    <button class="btn btn-outline-success me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkFile(fileWatchedState, true))">
                                                                         <i class="bi bi-eye"></i> Watch
                                                                     </button>
                                                                 }
@@ -119,9 +121,9 @@
                                                     <li class="list-group-item">
                                                         <span>
                                                             <strong>
-                                                                @if (f.AniDbGroup is not null)
+                                                                @if (file.AniDbGroup is not null)
                                                                 {
-                                                                    <a href="https://anidb.net/group/@(f.AniDbGroupId)">[@(f.AniDbGroup.ShortName)]</a>
+                                                                    <a href="https://anidb.net/group/@(file.AniDbGroupId)">[@(file.AniDbGroup.ShortName)]</a>
                                                                     <text>&nbsp;</text>
                                                                 }
                                                                 else
@@ -129,16 +131,16 @@
                                                                     <text>No Group&nbsp;</text>
                                                                 }
                                                             </strong>
-                                                            @if (f.Video is not null)
+                                                            @if (file.Video is not null)
                                                             {
-                                                                <text>@(f.Video.Height)x@(f.Video.Width) @(f.Video.ColorDepth)bit&nbsp;</text>
+                                                                <text>@(file.Video.Height)x@(file.Video.Width) @(file.Video.ColorDepth)bit&nbsp;</text>
                                                             }
-                                                            <strong>@(f.Source)</strong>
-                                                            @(lf.Crc)
+                                                            <strong>@(file.Source)</strong>
+                                                            @(localFile.Crc)
                                                         </span>
                                                     </li>
                                                     <li class="list-group-item">
-                                                        @(Path.GetFileName(lf.PathTail))
+                                                        @(Path.GetFileName(localFile.PathTail))
                                                     </li>
                                                 </ul>
                                             </div>
@@ -155,15 +157,15 @@
                                                                 </button>
                                                             </div>
                                                             <div>
-                                                                @if (ep.Watched)
+                                                                @if (epWatchedState.Watched)
                                                                 {
-                                                                    <button class="btn btn-outline-danger me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, false))">
+                                                                    <button class="btn btn-outline-danger me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(epWatchedState, false))">
                                                                         <i class="bi bi-eye-slash"></i> Unwatch
                                                                     </button>
                                                                 }
                                                                 else
                                                                 {
-                                                                    <button class="btn btn-outline-success me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(ep, true))">
+                                                                    <button class="btn btn-outline-success me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkEpisode(epWatchedState, true))">
                                                                         <i class="bi bi-eye"></i> Watch
                                                                     </button>
                                                                 }

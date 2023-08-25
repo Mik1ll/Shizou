@@ -16,8 +16,6 @@ public class AniDbEpisode : IEntity
     public required EpisodeType EpisodeType { get; set; }
     public required int? DurationMinutes { get; set; }
     public required DateTime? AirDate { get; set; }
-    public bool Watched { get; set; }
-    public DateTime? WatchedUpdatedLocally { get; set; }
 
     public required DateTime Updated { get; set; }
 

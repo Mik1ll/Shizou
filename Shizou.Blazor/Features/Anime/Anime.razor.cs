@@ -10,25 +10,31 @@ namespace Shizou.Blazor.Features.Anime;
 
 public partial class Anime
 {
-    [Parameter] public int AnimeId { get; set; }
+    [Parameter]
+    public int AnimeId { get; set; }
 
     [CascadingParameter(Name = "IdentityCookie")]
     public string? IdentityCookie { get; set; }
 
-    [Inject] public IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    [Inject]
+    public IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
-    [Inject] public WatchStateService WatchStateService { get; set; } = default!;
+    [Inject]
+    public WatchStateService WatchStateService { get; set; } = default!;
 
-    [Inject] public NavigationManager NavigationManager { get; set; } = default!;
+    [Inject]
+    public NavigationManager NavigationManager { get; set; } = default!;
 
     private AniDbAnime? _anime;
+    private ILookup<int, AniDbFile>? _filesGroupedByEpId;
+    private HashSet<LocalFile>? _regularLocalFiles;
+    private HashSet<FileWatchedState>? _fileWatchedStates;
+    private HashSet<EpisodeWatchedState>? _epWatchedStates;
 
     private readonly Regex _splitRegex = new(@"(?<=https?:\/\/\S*? \[.*?\])|(?=https?:\/\/\S*? \[.*?\])", RegexOptions.Compiled);
     private readonly Regex _matchRegex = new(@"(https?:\/\/\S*?) \[(.*?)\]", RegexOptions.Compiled);
 
     private readonly Dictionary<int, bool> _episodeExpanded = new();
-
-    private Dictionary<int, List<(AniDbFile File, LocalFile LocalFile, FileWatchedState WatchedState)>> _files = new();
 
     private int? _videoOpen;
 
@@ -37,23 +43,33 @@ public partial class Anime
         using var context = ContextFactory.CreateDbContext();
         _anime = context.AniDbAnimes.AsSingleQuery().Include(a => a.AniDbEpisodes).ThenInclude(e => e.ManualLinkLocalFiles)
             .FirstOrDefault(a => a.Id == AnimeId);
-        _files = (from f in context.AniDbFiles.Include(f => f.AniDbGroup).AsSingleQuery()
-            join lf in context.LocalFiles
-                on f.Ed2k equals lf.Ed2k
-            join ws in context.FileWatchedStates
-                on f.Ed2k equals ws.Ed2k
+        var filesQuery = from f in context.AniDbFiles
             join xref in context.AniDbEpisodeFileXrefs
                 on f.Id equals xref.AniDbFileId
             join ep in context.AniDbEpisodes
                 on xref.AniDbEpisodeId equals ep.Id
-            where ep.AniDbAnimeId == AnimeId
-            group new { f, lf, ws } by ep.Id).ToDictionary(g => g.Key, g => g.Select(x => (File: x.f, LocalFile: x.lf, LocalAniDbFile: x.ws)).ToList());
+            where ep.AniDbAnimeId == _anime.Id
+            select new { EpId = ep.Id, File = f };
+        _filesGroupedByEpId = filesQuery.ToLookup(x => x.EpId, x => x.File);
+        _regularLocalFiles = (from lf in context.LocalFiles
+            join f in filesQuery.Select(x => x.File)
+                on lf.Ed2k equals f.Ed2k
+            select lf).ToHashSet();
+        _fileWatchedStates = (from ws in context.FileWatchedStates
+            join f in filesQuery.Select(x => x.File)
+                on ws.Id equals f.Id
+            select ws).ToHashSet();
+        _epWatchedStates = (from ws in context.EpisodeWatchedStates
+            join ep in context.AniDbEpisodes
+                on ws.Id equals ep.Id
+            where ep.AniDbAnimeId == _anime.Id
+            select ws).ToHashSet();
     }
 
-    private void MarkEpisode(AniDbEpisode ep, bool watched)
+    private void MarkEpisode(EpisodeWatchedState watchedState, bool watched)
     {
-        if (WatchStateService.MarkEpisode(ep.Id, watched))
-            ep.Watched = watched;
+        if (WatchStateService.MarkEpisode(watchedState.Id, watched))
+            watchedState.Watched = watched;
     }
 
     private void MarkFile(FileWatchedState f, bool watched)
@@ -74,10 +90,14 @@ public partial class Anime
     {
         if (WatchStateService.MarkAnime(anime.Id, true))
         {
-            foreach (var f in _files.Values.SelectMany(i => i).Select(i => i.WatchedState).Distinct())
-                f.Watched = true;
-            foreach (var ep in anime.AniDbEpisodes.Where(e => e.ManualLinkLocalFiles.Any()))
-                ep.Watched = true;
+            foreach (var ws in _fileWatchedStates!)
+                ws.Watched = true;
+            foreach (var ws in from ws in _epWatchedStates
+                     join ep in _anime!.AniDbEpisodes
+                         on ws.Id equals ep.Id
+                     where ep.ManualLinkLocalFiles.Any()
+                     select ws)
+                ws.Watched = true;
         }
     }
 

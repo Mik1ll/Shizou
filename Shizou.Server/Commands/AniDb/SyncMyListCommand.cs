@@ -11,7 +11,6 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
-using Shizou.Server.Extensions;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -60,6 +59,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             Completed = true;
             return;
         }
+
         var myListItems = MyListResultToMyListItems(myListResult);
         var myListEntries = MyListItemsToMyListEntries(myListItems, DateTime.UtcNow);
 
@@ -101,11 +101,11 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
         // var animeIdsToMarkAbsent = BulkMarkAbsent(myListItems);
-        var dbFiles = _context.FileWatchedStates.Select(f => new { f.Id, f.Watched, f.WatchedUpdatedLocally })
+        var dbFiles = _context.FileWatchedStates.Select(f => new { f.Id, f.Watched, f.WatchedUpdated })
             .Union(from gf in _context.AniDbGenericFiles
-                join e in _context.AniDbEpisodes
+                join e in _context.EpisodeWatchedStates
                     on gf.AniDbEpisodeId equals e.Id
-                select new { gf.Id, e.Watched, e.WatchedUpdatedLocally }).ToDictionary(f => f.Id);
+                select new { gf.Id, e.Watched, e.WatchedUpdated }).ToDictionary(f => f.Id);
         var dbFilesWithLocal = _context.FilesWithLocal.Select(f => f.Id)
             .Union(_context.GenericFilesWithManualLinks.Select(f => f.Id)).ToHashSet();
         var dbEpIdsWithoutGenericFile = (from e in _context.AniDbEpisodes
@@ -130,28 +130,34 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             {
                 var expectedState = dbFilesWithLocal.Contains(dbFile.Id) ? _options.MyList.PresentFileState : _options.MyList.AbsentFileState;
                 var itemWatched = item.Viewdate is not null;
-                var updateWatched = dbFile.WatchedUpdatedLocally is not null &&
-                                    DateOnly.FromDateTime(dbFile.WatchedUpdatedLocally.Value) >= item.Updated
+                var updateWatched = dbFile.WatchedUpdated is not null &&
+                                    DateOnly.FromDateTime(dbFile.WatchedUpdated.Value) >= item.Updated
                                     && dbFile.Watched != itemWatched;
                 if (updateWatched)
-                    toUpdate.Add(new UpdateMyListArgs(true, expectedState, dbFile.Watched, dbFile.WatchedUpdatedLocally, item.Id));
+                    toUpdate.Add(new UpdateMyListArgs(true, expectedState, dbFile.Watched, dbFile.WatchedUpdated, item.Id));
                 else if (item.State != expectedState || item.FileState != MyListFileState.Normal)
                     toUpdate.Add(new UpdateMyListArgs(true, expectedState, Lid: item.Id));
                 if (!updateWatched && dbFile.Watched != itemWatched)
                 {
-                    var file = _context.FileWatchedStates.Find(dbFile.Id);
-                    if (file is not null)
+                    var fileWatchedState = _context.FileWatchedStates.Find(dbFile.Id);
+                    if (fileWatchedState is not null)
                     {
-                        file.Watched = itemWatched;
-                        file.WatchedUpdatedLocally = null;
+                        fileWatchedState.Watched = itemWatched;
+                        fileWatchedState.WatchedUpdated = null;
                     }
                     else
                     {
-                        var episode = _context.AniDbEpisodes.GetEpisodeByGenericFileId(_context.AniDbGenericFiles, dbFile.Id);
-                        if (episode is not null)
+                        var episodeWatchedState = (from gf in _context.AniDbGenericFiles
+                            join ep in _context.AniDbEpisodes
+                                on gf.AniDbEpisodeId equals ep.Id
+                            join ws in _context.EpisodeWatchedStates
+                                on ep.Id equals ws.Id
+                            where gf.Id == dbFile.Id
+                            select ws).FirstOrDefault();
+                        if (episodeWatchedState is not null)
                         {
-                            episode.Watched = itemWatched;
-                            episode.WatchedUpdatedLocally = null;
+                            episodeWatchedState.Watched = itemWatched;
+                            episodeWatchedState.WatchedUpdated = null;
                         }
                         else
                         {
@@ -167,6 +173,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                 else if (item.State != _options.MyList.AbsentFileState || item.FileState != MyListFileState.Normal)
                     toUpdate.Add(new UpdateMyListArgs(true, _options.MyList.AbsentFileState, Lid: item.Id));
             }
+
         _context.SaveChanges();
 
         CombineUpdates(myListItems, toUpdate);
@@ -261,6 +268,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             await File.WriteAllTextAsync(backupFilePath, request.ResponseText, Encoding.UTF8);
             _logger.LogInformation("HTTP Get mylist succeeded");
         }
+
         return request.MyListResult;
     }
 }

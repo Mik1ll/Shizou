@@ -33,6 +33,7 @@ public sealed class ShizouContext : IdentityDbContext
     public DbSet<MalAniDbXref> MalAniDbXrefs { get; set; } = null!;
     public DbSet<MalAnime> MalAnimes { get; set; } = null!;
     public DbSet<FileWatchedState> FileWatchedStates { get; set; } = null!;
+    public DbSet<EpisodeWatchedState> EpisodeWatchedStates { get; set; } = null!;
 
     public IQueryable<AniDbEpisode> EpisodesFromFile(int fileId)
     {
