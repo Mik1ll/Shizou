@@ -59,21 +59,10 @@ public sealed class ShizouContext : IdentityDbContext
         where EpisodesWithManualLinks.Any(e => e.Id == f.AniDbEpisodeId)
         select f;
 
-    public IQueryable<AniDbEpisode> EpisodesWithLocal => EpisodesWithManualLinks.Union(from e in AniDbEpisodes
-            .Include(e => e.ManualLinkXrefs)
-        join x in AniDbEpisodeFileXrefs
-            on e.Id equals x.AniDbEpisodeId into xrefs
-        where xrefs.Any(xr => FilesWithLocal.Any(f => f.Id == xr.AniDbFileId))
-        select e);
-
     public IQueryable<AniDbEpisode> EpisodesWithManualLinks => from e in AniDbEpisodes
             .Include(e => e.ManualLinkXrefs)
         where e.ManualLinkXrefs.Any()
         select e;
-
-    public IQueryable<AniDbAnime> AnimeWithLocal => from a in AniDbAnimes
-        where EpisodesWithLocal.Any(e => e.AniDbAnimeId == a.Id)
-        select a;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
