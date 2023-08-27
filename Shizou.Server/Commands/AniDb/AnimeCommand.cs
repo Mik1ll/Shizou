@@ -70,19 +70,20 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         var aniDbAnime = AnimeResultToAniDbAnime(animeResult);
         if (eAniDbAnime is null)
         {
-            _context.AniDbAnimes.Add(aniDbAnime);
+            _context.Entry(aniDbAnime).State = EntityState.Added;
         }
         else
         {
             _context.Entry(eAniDbAnime).CurrentValues.SetValues(aniDbAnime);
             foreach (var ep in eAniDbAnime.AniDbEpisodes.ExceptBy(aniDbAnime.AniDbEpisodes.Select(x => x.Id), x => x.Id))
                 eAniDbAnime.AniDbEpisodes.Remove(ep);
-            foreach (var ep in aniDbAnime.AniDbEpisodes)
-                if (eAniDbAnime.AniDbEpisodes.FirstOrDefault(x => x.Id == ep.Id) is var eEp && eEp is null)
-                    eAniDbAnime.AniDbEpisodes.Add(ep);
-                else
-                    _context.Entry(eEp).CurrentValues.SetValues(ep);
         }
+
+        foreach (var ep in aniDbAnime.AniDbEpisodes)
+            if (eAniDbAnime?.AniDbEpisodes.FirstOrDefault(x => x.Id == ep.Id) is var eEp && eEp is null)
+                _context.AniDbEpisodes.Add(ep);
+            else
+                _context.Entry(eEp).CurrentValues.SetValues(ep);
 
         foreach (var ep in aniDbAnime.AniDbEpisodes
                      .ExceptBy(_context.EpisodeWatchedStates.Select(ws => ws.Id).ToList(), ep => ep.Id))
