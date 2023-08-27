@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Shizou.Data.Models;
 
 [Index(nameof(Ed2k), IsUnique = true)]
+[Index(nameof(MyListId))]
 public class FileWatchedState : IEntity
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -15,4 +16,5 @@ public class FileWatchedState : IEntity
 
     public required bool Watched { get; set; }
     public required DateTime? WatchedUpdated { get; set; }
+    public int? MyListId { get; set; }
 }

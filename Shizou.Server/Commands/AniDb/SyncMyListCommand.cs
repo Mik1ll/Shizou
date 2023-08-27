@@ -61,9 +61,6 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         }
 
         var myListItems = MyListResultToMyListItems(myListResult);
-        var myListEntries = MyListItemsToMyListEntries(myListItems, DateTime.UtcNow);
-
-        SyncMyListEntries(myListEntries);
 
         UpdateFileStates(myListItems);
 
@@ -84,23 +81,8 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         }).ToList();
     }
 
-    private static List<AniDbMyListEntry> MyListItemsToMyListEntries(List<MyListItem> items, DateTime updated)
-    {
-        return items.Select(item => new AniDbMyListEntry
-        {
-            Id = item.Id,
-            FileId = item.Fid,
-            Watched = item.Viewdate is not null,
-            WatchedDate = item.Viewdate?.UtcDateTime,
-            MyListState = item.State,
-            MyListFileState = item.FileState,
-            Updated = updated
-        }).ToList();
-    }
-
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
-        // var animeIdsToMarkAbsent = BulkMarkAbsent(myListItems);
         var dbFiles = _context.FileWatchedStates.Select(f => new { f.Id, f.Watched, f.WatchedUpdated })
             .Union(from gf in _context.AniDbGenericFiles
                 join e in _context.EpisodeWatchedStates
@@ -218,22 +200,6 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
                 toUpdate.Add(new UpdateMyListArgs(true, firstUpdate.MyListState, firstUpdate.Watched, firstUpdate.WatchedDate, Aid: aGroup.Key, EpNo: "0"));
             }
         }
-    }
-
-    private void SyncMyListEntries(List<AniDbMyListEntry> myListEntries)
-    {
-        var eMyListEntries = _context.AniDbMyListEntries.ToList();
-
-        var toDelete = eMyListEntries.ExceptBy(myListEntries.Select(e => e.Id), e => e.Id).ToList();
-        _context.AniDbMyListEntries.RemoveRange(toDelete);
-
-        foreach (var entry in myListEntries)
-            if (_context.AniDbMyListEntries.FirstOrDefault(e => e.Id == entry.Id) is var ee && ee is null)
-                _context.AniDbMyListEntries.Add(entry);
-            else
-                _context.Entry(ee).CurrentValues.SetValues(entry);
-
-        _context.SaveChanges();
     }
 
     private async Task<MyListResult?> GetMyList()

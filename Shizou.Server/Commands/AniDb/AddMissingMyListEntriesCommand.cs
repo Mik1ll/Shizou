@@ -30,23 +30,23 @@ public class AddMissingMyListEntriesCommand : BaseCommand<AddMissingMyListEntrie
 
     protected override Task ProcessInner()
     {
-        var missingFiles = (from f in _context.FileWatchedStates
-            where _context.LocalFiles.Any(lf => f.Ed2k == lf.Ed2k) &&
-                  !_context.AniDbMyListEntries.Any(e => e.FileId == f.Id)
-            select new { f.Id, f.Watched, f.WatchedUpdated }).ToList();
+        var missingFiles = (from ws in _context.FileWatchedStates
+            where _context.LocalFiles.Any(lf => ws.Ed2k == lf.Ed2k) &&
+                  ws.MyListId == null
+            select new { ws.Id, ws.Watched, ws.WatchedUpdated }).ToList();
 
         var missingGenericFiles = (from gf in _context.AniDbGenericFiles
             join ws in _context.EpisodeWatchedStates
                 on gf.AniDbEpisodeId equals ws.Id
             where _context.ManualLinkXrefs.Any(x => x.AniDbEpisodeId == gf.AniDbEpisodeId) &&
-                  !_context.AniDbMyListEntries.Any(mle => mle.FileId == gf.Id)
+                  ws.MyListId == null
             select new { gf.Id, ws.Watched, ws.WatchedUpdated }).ToList();
 
-        var episodesWithMissingGenericFile = (from e in _context.EpisodesWithManualLinks
+        var episodesWithMissingGenericFile = (from ep in _context.EpisodesWithManualLinks
             join ws in _context.EpisodeWatchedStates
-                on e.Id equals ws.Id
-            where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id)
-            select new { e.AniDbAnimeId, e.EpisodeType, e.Number, ws.Watched, ws.WatchedUpdated }).ToList();
+                on ep.Id equals ws.Id
+            where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == ep.Id)
+            select new { ep.AniDbAnimeId, ep.EpisodeType, ep.Number, ws.Watched, ws.WatchedUpdated }).ToList();
 
         _commandService.DispatchRange(missingFiles.Union(missingGenericFiles).Select(f =>
             new UpdateMyListArgs(false, _options.MyList.PresentFileState, f.Watched, f.WatchedUpdated, Fid: f.Id)));

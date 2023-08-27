@@ -25,7 +25,6 @@ public sealed class ShizouContext : IdentityDbContext
     public DbSet<AniDbSubtitle> AniDbSubtitles { get; set; } = null!;
     public DbSet<LocalFile> LocalFiles { get; set; } = null!;
     public DbSet<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; set; } = null!;
-    public DbSet<AniDbMyListEntry> AniDbMyListEntries { get; set; } = null!;
     public DbSet<AniDbGenericFile> AniDbGenericFiles { get; set; } = null!;
     public DbSet<ManualLinkXref> ManualLinkXrefs { get; set; } = null!;
     public DbSet<ScheduledCommand> ScheduledCommands { get; set; } = null!;

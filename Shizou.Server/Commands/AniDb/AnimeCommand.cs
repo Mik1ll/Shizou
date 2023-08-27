@@ -75,14 +75,18 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         else
         {
             _context.Entry(eAniDbAnime).CurrentValues.SetValues(aniDbAnime);
-            foreach (var e in eAniDbAnime.AniDbEpisodes.ExceptBy(aniDbAnime.AniDbEpisodes.Select(x => x.Id), x => x.Id))
-                eAniDbAnime.AniDbEpisodes.Remove(e);
-            foreach (var e in aniDbAnime.AniDbEpisodes)
-                if (eAniDbAnime.AniDbEpisodes.FirstOrDefault(x => x.Id == e.Id) is var ee && ee is null)
-                    eAniDbAnime.AniDbEpisodes.Add(e);
+            foreach (var ep in eAniDbAnime.AniDbEpisodes.ExceptBy(aniDbAnime.AniDbEpisodes.Select(x => x.Id), x => x.Id))
+                eAniDbAnime.AniDbEpisodes.Remove(ep);
+            foreach (var ep in aniDbAnime.AniDbEpisodes)
+                if (eAniDbAnime.AniDbEpisodes.FirstOrDefault(x => x.Id == ep.Id) is var eEp && eEp is null)
+                    eAniDbAnime.AniDbEpisodes.Add(ep);
                 else
-                    _context.Entry(ee).CurrentValues.SetValues(e);
+                    _context.Entry(eEp).CurrentValues.SetValues(ep);
         }
+
+        foreach (var ep in aniDbAnime.AniDbEpisodes
+                     .ExceptBy(_context.EpisodeWatchedStates.Select(ws => ws.Id).ToList(), ep => ep.Id))
+            _context.EpisodeWatchedStates.Add(new EpisodeWatchedState { Id = ep.Id, Watched = false, WatchedUpdated = null });
 
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();

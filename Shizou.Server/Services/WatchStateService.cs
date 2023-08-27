@@ -52,9 +52,8 @@ public class WatchStateService
 
         context.SaveChanges();
 
-        var entryId = context.AniDbMyListEntries.AsNoTracking().FirstOrDefault(e => e.FileId == fileId)?.Id;
-        _commandService.Dispatch(entryId is not null
-            ? new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Lid: entryId)
+        _commandService.Dispatch(watchedState?.MyListId is not null
+            ? new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Lid: watchedState.MyListId)
             : new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Fid: fileId));
         return true;
     }
@@ -88,9 +87,8 @@ public class WatchStateService
         var fileId = context.AniDbGenericFiles.AsNoTracking().FirstOrDefault(gf => gf.AniDbEpisodeId == episodeId)?.Id;
         if (fileId is not null)
         {
-            var entryId = context.AniDbMyListEntries.AsNoTracking().FirstOrDefault(e => e.FileId == fileId)?.Id;
-            _commandService.Dispatch(entryId is not null
-                ? new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Lid: entryId)
+            _commandService.Dispatch(watchedState?.MyListId is not null
+                ? new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Lid: watchedState.MyListId)
                 : new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Fid: fileId));
         }
         else

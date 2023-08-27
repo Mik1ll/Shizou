@@ -71,22 +71,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                 _commandService.Dispatch(new UpdateMyListArgs(true, _options.MyList.PresentFileState, Lid: result.MyListId!));
     }
 
-    private static AniDbMyListEntry? FileResultToAniDbMyListEntry(FileResult result)
-    {
-        return result.MyListId is null
-            ? null
-            : new AniDbMyListEntry
-            {
-                Id = result.MyListId.Value,
-                FileId = result.FileId,
-                Watched = result.MyListViewed!.Value,
-                WatchedDate = result.MyListViewDate?.UtcDateTime,
-                MyListState = result.MyListState!.Value,
-                MyListFileState = result.MyListFileState!.Value,
-                Updated = DateTime.UtcNow
-            };
-    }
-
     private static AniDbFile FileResultToAniDbFile(FileResult result)
     {
         return new AniDbFile
@@ -139,8 +123,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             UpdateGenericFile(result);
         else
             UpdateFile(result);
-
-        UpdateMyListEntry(result);
     }
 
     private void UpdateFileWatchedState(FileResult result)
@@ -273,20 +255,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         _context.SaveChanges();
 
         UpdateEpisodeWatchedState(result);
-    }
-
-    private void UpdateMyListEntry(FileResult result)
-    {
-        var entry = FileResultToAniDbMyListEntry(result);
-        if (entry is not null)
-        {
-            var eEntry = _context.AniDbMyListEntries.Find(entry.Id);
-            if (eEntry is null)
-                _context.AniDbMyListEntries.Add(entry);
-            else
-                _context.Entry(eEntry).CurrentValues.SetValues(entry);
-            _context.SaveChanges();
-        }
     }
 
     private void UpdateEpRelations(FileResult result)

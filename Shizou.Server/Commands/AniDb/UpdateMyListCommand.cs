@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
@@ -24,8 +25,8 @@ public record UpdateMyListArgs(
 [Command(CommandType.UpdateMyList, CommandPriority.Normal, QueueType.AniDbUdp)]
 public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
 {
-    private readonly ILogger<UpdateMyListCommand> _logger;
     private readonly ShizouContext _context;
+    private readonly ILogger<UpdateMyListCommand> _logger;
     private readonly UdpRequestFactory _udpRequestFactory;
 
     public UpdateMyListCommand(
@@ -63,7 +64,6 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
                     await entryRequest.Process();
                     if (entryRequest.MyListEntryResult is { } result)
                     {
-                        SaveMyListResult(result);
                         // ReSharper disable once MethodHasAsyncOverload
                         if (_context.AniDbGenericFiles.Find(result.FileId) is null)
                         {
@@ -72,15 +72,19 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
                             // ReSharper disable once MethodHasAsyncOverload
                             _context.SaveChanges();
                         }
+
+                        SaveMyListId(result.FileId, result.MyListId);
                     }
                 }
+                else if (request.AddedEntryId is not null && CommandArgs.Fid is not null)
+                {
+                    SaveMyListId(request.AddedEntryId.Value, CommandArgs.Fid.Value);
+                }
+
                 break;
             case AniDbResponseCode.FileInMyList:
                 if (CommandArgs is { Fid: not null })
-                {
-                    var result = request.ExistingEntryResult!;
-                    SaveMyListResult(result);
-                }
+                    SaveMyListId(request.ExistingEntryResult!.FileId, request.ExistingEntryResult!.MyListId);
                 break;
             case AniDbResponseCode.MultipleMyListEntries:
                 break;
@@ -89,29 +93,21 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
             case AniDbResponseCode.NoSuchMyListEntry:
                 break;
         }
+
         Completed = true;
     }
 
-    private void SaveMyListResult(MyListEntryResult result)
+    private void SaveMyListId(int fileId, int myListId)
     {
-        _logger.LogDebug("Saving mylist entry {MyListId}", result.MyListId);
-        var entry = new AniDbMyListEntry
-        {
-            Id = result.MyListId,
-            FileId = result.FileId,
-            Watched = result.ViewDate is not null,
-            WatchedDate = result.ViewDate?.UtcDateTime,
-            MyListState = result.State,
-            MyListFileState = result.FileState,
-            Updated = DateTime.UtcNow
-        };
-        // ReSharper disable once MethodHasAsyncOverload
-        var eEntry = _context.AniDbMyListEntries.Find(entry.Id);
-        if (eEntry is null)
-            _context.AniDbMyListEntries.Add(entry);
-        else
-            _context.Entry(eEntry).CurrentValues.SetValues(entry);
-        // ReSharper disable once MethodHasAsyncOverload
+        if (_context.FileWatchedStates.Find(fileId) is { } fileWatchedState)
+            fileWatchedState.MyListId = myListId;
+        else if ((from ws in _context.EpisodeWatchedStates
+                     join gf in _context.AniDbGenericFiles
+                         on ws.Id equals gf.AniDbEpisodeId
+                     where gf.Id == fileId
+                     select ws).FirstOrDefault() is { } epWatchedState)
+            epWatchedState.MyListId = myListId;
+
         _context.SaveChanges();
     }
 }
