@@ -75,15 +75,15 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         else
         {
             _context.Entry(eAniDbAnime).CurrentValues.SetValues(aniDbAnime);
-            foreach (var ep in eAniDbAnime.AniDbEpisodes.ExceptBy(aniDbAnime.AniDbEpisodes.Select(x => x.Id), x => x.Id))
+            foreach (var ep in eAniDbAnime.AniDbEpisodes.ExceptBy(aniDbAnime.AniDbEpisodes.Select(ep => ep.Id), ep => ep.Id))
                 eAniDbAnime.AniDbEpisodes.Remove(ep);
         }
 
         foreach (var ep in aniDbAnime.AniDbEpisodes)
-            if (eAniDbAnime?.AniDbEpisodes.FirstOrDefault(x => x.Id == ep.Id) is var eEp && eEp is null)
-                _context.AniDbEpisodes.Add(ep);
-            else
+            if (eAniDbAnime?.AniDbEpisodes.FirstOrDefault(x => x.Id == ep.Id) is { } eEp)
                 _context.Entry(eEp).CurrentValues.SetValues(ep);
+            else
+                _context.AniDbEpisodes.Add(ep);
 
         foreach (var ep in aniDbAnime.AniDbEpisodes
                      .ExceptBy(_context.EpisodeWatchedStates.Select(ws => ws.Id).ToList(), ep => ep.Id))
