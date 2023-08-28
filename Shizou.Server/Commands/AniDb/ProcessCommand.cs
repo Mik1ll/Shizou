@@ -134,7 +134,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                 Id = result.FileId,
                 Ed2k = result.Ed2K!,
                 Watched = result.MyListViewed ?? false,
-                WatchedUpdated = null
+                WatchedUpdated = null,
+                MyListId = result.MyListId
             });
         else if (eState.WatchedUpdated is null)
             eState.Watched = result.MyListViewed ?? false;
@@ -148,7 +149,8 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
             {
                 Id = result.EpisodeId!.Value,
                 Watched = result.MyListViewed ?? false,
-                WatchedUpdated = null
+                WatchedUpdated = null,
+                MyListId = result.MyListId
             });
         else if (eState.WatchedUpdated is null)
             eState.Watched = result.MyListViewed ?? false;

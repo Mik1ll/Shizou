@@ -202,9 +202,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                     LastThreeCommands.Dequeue();
                 ProcessingCommand = true;
                 var task = command.Process();
-                while (!stoppingToken.IsCancellationRequested && !task.IsCompleted)
-                    // ReSharper disable once MethodSupportsCancellation
-                    await Task.Delay(500);
+                await task.WaitAsync(stoppingToken);
             }
             catch (Exception ex)
             {
