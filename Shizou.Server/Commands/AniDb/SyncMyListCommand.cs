@@ -83,11 +83,11 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
-        var dbFiles = _context.FileWatchedStates.Select(f => new { f.Id, f.Watched, f.WatchedUpdated })
+        var dbFiles = _context.FileWatchedStates.Select(ws => new { FileId = ws.Id, WatchedState = (IWatchedState)ws })
             .Union(from gf in _context.AniDbGenericFiles
-                join e in _context.EpisodeWatchedStates
-                    on gf.AniDbEpisodeId equals e.Id
-                select new { gf.Id, e.Watched, e.WatchedUpdated }).ToDictionary(f => f.Id);
+                join ws in _context.EpisodeWatchedStates
+                    on gf.AniDbEpisodeId equals ws.Id
+                select new { FileId = gf.Id, WatchedState = (IWatchedState)ws }).ToDictionary(f => f.FileId);
         var dbFilesWithLocal = _context.FilesWithLocal.Select(f => f.Id)
             .Union(_context.GenericFilesWithManualLinks.Select(f => f.Id)).ToHashSet();
         var dbEpIdsWithoutGenericFile = (from e in _context.AniDbEpisodes
@@ -110,42 +110,22 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         foreach (var item in myListItems)
             if (dbFiles.TryGetValue(item.Fid, out var dbFile))
             {
-                var expectedState = dbFilesWithLocal.Contains(dbFile.Id) ? _options.MyList.PresentFileState : _options.MyList.AbsentFileState;
+                var watchedState = dbFile.WatchedState;
+                var expectedState = dbFilesWithLocal.Contains(dbFile.FileId) ? _options.MyList.PresentFileState : _options.MyList.AbsentFileState;
                 var itemWatched = item.Viewdate is not null;
-                var updateWatched = dbFile.WatchedUpdated is not null &&
-                                    DateOnly.FromDateTime(dbFile.WatchedUpdated.Value) >= item.Updated
-                                    && dbFile.Watched != itemWatched;
+                var updateWatched = watchedState.WatchedUpdated is not null &&
+                                    DateOnly.FromDateTime(watchedState.WatchedUpdated.Value) >= item.Updated
+                                    && watchedState.Watched != itemWatched;
                 if (updateWatched)
-                    toUpdate.Add(new UpdateMyListArgs(true, expectedState, dbFile.Watched, dbFile.WatchedUpdated, item.Id));
+                    toUpdate.Add(new UpdateMyListArgs(true, expectedState, watchedState.Watched, watchedState.WatchedUpdated, item.Id));
                 else if (item.State != expectedState || item.FileState != MyListFileState.Normal)
                     toUpdate.Add(new UpdateMyListArgs(true, expectedState, Lid: item.Id));
-                if (!updateWatched && dbFile.Watched != itemWatched)
+
+                watchedState.MyListId = item.Id;
+                if (!updateWatched && watchedState.Watched != itemWatched)
                 {
-                    var fileWatchedState = _context.FileWatchedStates.Find(dbFile.Id);
-                    if (fileWatchedState is not null)
-                    {
-                        fileWatchedState.Watched = itemWatched;
-                        fileWatchedState.WatchedUpdated = null;
-                    }
-                    else
-                    {
-                        var episodeWatchedState = (from gf in _context.AniDbGenericFiles
-                            join ep in _context.AniDbEpisodes
-                                on gf.AniDbEpisodeId equals ep.Id
-                            join ws in _context.EpisodeWatchedStates
-                                on ep.Id equals ws.Id
-                            where gf.Id == dbFile.Id
-                            select ws).FirstOrDefault();
-                        if (episodeWatchedState is not null)
-                        {
-                            episodeWatchedState.Watched = itemWatched;
-                            episodeWatchedState.WatchedUpdated = null;
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException("Tried to update the watched state of a missing file or generic file with a missing episode");
-                        }
-                    }
+                    watchedState.Watched = itemWatched;
+                    watchedState.WatchedUpdated = null;
                 }
             }
             else

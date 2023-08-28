@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Shizou.Data.Models;
 
 [Index(nameof(MyListId))]
-public class EpisodeWatchedState : IEntity
+public class EpisodeWatchedState : IWatchedState
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required int Id { get; set; }

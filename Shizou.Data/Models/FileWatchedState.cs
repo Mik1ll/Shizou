@@ -6,7 +6,7 @@ namespace Shizou.Data.Models;
 
 [Index(nameof(Ed2k), IsUnique = true)]
 [Index(nameof(MyListId))]
-public class FileWatchedState : IEntity
+public class FileWatchedState : IWatchedState
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required int Id { get; set; }
