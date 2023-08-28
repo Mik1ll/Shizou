@@ -51,10 +51,11 @@ public class WatchStateService
         }
 
         context.SaveChanges();
-
+        var myListOptions = _optionsMonitor.CurrentValue.MyList;
+        var state = myListOptions.PresentFileState;
         _commandService.Dispatch(watchedState?.MyListId is not null
-            ? new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Lid: watchedState.MyListId)
-            : new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Fid: fileId));
+            ? new UpdateMyListArgs(true, state, watched, updatedTime, watchedState.MyListId)
+            : new UpdateMyListArgs(false, state, watched, updatedTime, Fid: fileId));
         return true;
     }
 
@@ -83,18 +84,20 @@ public class WatchStateService
 
         context.SaveChanges();
 
+
+        var myListOptions = _optionsMonitor.CurrentValue.MyList;
+        var state = episode.ManualLinkXrefs.Any() ? myListOptions.PresentFileState : myListOptions.AbsentFileState;
+        
         // Don't use generic episode mylist edit, because it edits all files not just generic
         var fileId = context.AniDbGenericFiles.AsNoTracking().FirstOrDefault(gf => gf.AniDbEpisodeId == episodeId)?.Id;
         if (fileId is not null)
         {
             _commandService.Dispatch(watchedState?.MyListId is not null
-                ? new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Lid: watchedState.MyListId)
-                : new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Fid: fileId));
+                ? new UpdateMyListArgs(true, state, watched, updatedTime, watchedState.MyListId)
+                : new UpdateMyListArgs(false, state, watched, updatedTime, Fid: fileId));
         }
         else
         {
-            var myListOptions = _optionsMonitor.CurrentValue.MyList;
-            var state = episode.ManualLinkXrefs.Any() ? myListOptions.PresentFileState : myListOptions.AbsentFileState;
             _commandService.Dispatch(new UpdateMyListArgs(false, state, watched, updatedTime, Aid: episode.AniDbAnimeId,
                 EpNo: EpisodeTypeExtensions.ToEpString(episode.EpisodeType, episode.Number)));
         }
