@@ -16,7 +16,7 @@
             <tr>
                 <th scope="row">@Enum.GetName(processor.QueueType)</th>
                 <td class="absorbing-column">
-                    @(processor.CurrentCommand?.CommandId ?? (processor.Paused ? processor.PauseReason : ""))
+                    @(processor.CurrentCommand?.CommandId ?? (processor.Paused && !string.IsNullOrWhiteSpace(processor.PauseReason) ? $"Paused Reason: {processor.PauseReason}" : ""))
                 </td>
                 <td class="text-center">@processor.CommandsInQueue</td>
                 <td>
