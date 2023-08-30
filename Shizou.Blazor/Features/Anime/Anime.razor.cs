@@ -43,6 +43,8 @@ public partial class Anime
         using var context = ContextFactory.CreateDbContext();
         _anime = context.AniDbAnimes.AsSingleQuery().Include(a => a.AniDbEpisodes).ThenInclude(e => e.ManualLinkLocalFiles)
             .FirstOrDefault(a => a.Id == AnimeId);
+        if (_anime is null)
+            return;
         var filesQuery = from f in context.AniDbFiles
             join xref in context.AniDbEpisodeFileXrefs
                 on f.Id equals xref.AniDbFileId

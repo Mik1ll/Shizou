@@ -88,19 +88,22 @@
                                     <td colspan="5">
                                         @foreach (var file in _filesGroupedByEpId![ep.Id])
                                         {
-                                            var localFile = _regularLocalFiles!.First(lf => file.Ed2k == lf.Ed2k);
+                                            var localFile = _regularLocalFiles!.FirstOrDefault(lf => file.Ed2k == lf.Ed2k);
                                             var fileWatchedState = _fileWatchedStates!.First(ws => ws.Id == file.Id);
                                             <div class="card">
                                                 <ul class="list-group list-group-flush">
                                                     <li class="list-group-item">
                                                         <div class="d-flex justify-content-between">
                                                             <div>
-                                                                <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideo(localFile.Id))">
-                                                                    <i class="bi bi-play"></i> Play
-                                                                </button>
-                                                                <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenInMpv(localFile))">
-                                                                    <i class="bi bi-play"></i> Play in Mpv
-                                                                </button>
+                                                                @if (localFile is not null)
+                                                                {
+                                                                    <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideo(localFile.Id))">
+                                                                        <i class="bi bi-play"></i> Play
+                                                                    </button>
+                                                                    <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenInMpv(localFile))">
+                                                                        <i class="bi bi-play"></i> Play in Mpv
+                                                                    </button>
+                                                                }
                                                             </div>
                                                             <div>
                                                                 @if (fileWatchedState.Watched)
@@ -136,11 +139,18 @@
                                                                 <text>@(file.Video.Height)x@(file.Video.Width) @(file.Video.ColorDepth)bit&nbsp;</text>
                                                             }
                                                             <strong>@(file.Source)</strong>
-                                                            @(localFile.Crc)
+                                                            @(file.Crc)
                                                         </span>
                                                     </li>
                                                     <li class="list-group-item">
-                                                        @(Path.GetFileName(localFile.PathTail))
+                                                        @if (localFile is not null)
+                                                        {
+                                                            @(Path.GetFileName(localFile.PathTail))
+                                                        }
+                                                        else
+                                                        {
+                                                            @("Local file not found")
+                                                        }
                                                     </li>
                                                 </ul>
                                             </div>
