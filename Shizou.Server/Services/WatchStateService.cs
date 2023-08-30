@@ -27,10 +27,10 @@ public class WatchStateService
         _optionsMonitor = optionsMonitor;
     }
 
-    public bool MarkFile(int fileId, bool watched)
+    public bool MarkFile(int fileId, bool watched, DateTime? updatedTime = null)
     {
+        updatedTime ??= DateTime.UtcNow;
         using var context = _contextFactory.CreateDbContext();
-        var updatedTime = DateTime.UtcNow;
         if (context.AniDbFiles.Select(f => new { f.Id, f.Ed2k }).FirstOrDefault() is not { } file)
         {
             if (context.AniDbGenericFiles.Find(fileId) is { } genericFile)
@@ -59,10 +59,10 @@ public class WatchStateService
         return true;
     }
 
-    public bool MarkEpisode(int episodeId, bool watched)
+    public bool MarkEpisode(int episodeId, bool watched, DateTime? updatedTime = null)
     {
+        updatedTime ??= DateTime.UtcNow;
         using var context = _contextFactory.CreateDbContext();
-        var updatedTime = DateTime.UtcNow;
         if (context.AniDbEpisodes.AsNoTracking().Include(ep => ep.ManualLinkXrefs)
                 .FirstOrDefault(ep => ep.Id == episodeId) is not { } episode)
         {
@@ -87,7 +87,7 @@ public class WatchStateService
 
         var myListOptions = _optionsMonitor.CurrentValue.MyList;
         var state = episode.ManualLinkXrefs.Any() ? myListOptions.PresentFileState : myListOptions.AbsentFileState;
-        
+
         // Don't use generic episode mylist edit, because it edits all files not just generic
         var fileId = context.AniDbGenericFiles.AsNoTracking().FirstOrDefault(gf => gf.AniDbEpisodeId == episodeId)?.Id;
         if (fileId is not null)
@@ -107,55 +107,21 @@ public class WatchStateService
 
     public bool MarkAnime(int animeId, bool watched)
     {
-        using var context = _contextFactory.CreateDbContext();
         var updatedTime = DateTime.UtcNow;
+        using var context = _contextFactory.CreateDbContext();
 
-        var files = (from file in context.FilesWithLocal
-            join ws in context.FileWatchedStates
-                on file.Id equals ws.Id into ws
-            join xref in context.AniDbEpisodeFileXrefs
-                on file.Id equals xref.AniDbFileId
-            join ep in context.AniDbEpisodes
-                on xref.AniDbEpisodeId equals ep.Id
-            where ep.AniDbAnimeId == animeId
-            select new { file, ws }).ToList();
-        var episodes = (from episode in context.EpisodesWithManualLinks
-            join ws in context.EpisodeWatchedStates
-                on episode.Id equals ws.Id into ws
-            where episode.AniDbAnimeId == animeId
-            select new { episode, ws }).ToList();
+        var filesWithLocal = (from file in context.FilesFromAnime(animeId)
+            where context.LocalFiles.Any(lf => lf.Ed2k == file.Ed2k)
+            select file).ToList();
+        var epsWithManualLink = (from episode in context.AniDbEpisodes.Include(ep => ep.ManualLinkXrefs)
+            where episode.AniDbAnimeId == animeId && episode.ManualLinkXrefs.Any()
+            select episode).ToList();
 
-        foreach (var f in files)
-        {
-            var watchedState = f.ws.FirstOrDefault();
-            if (watchedState is null)
-            {
-                context.FileWatchedStates.Add(new FileWatchedState { Id = f.file.Id, Ed2k = f.file.Ed2k, Watched = watched, WatchedUpdated = updatedTime });
-            }
-            else
-            {
-                watchedState.Watched = watched;
-                watchedState.WatchedUpdated = updatedTime;
-            }
-        }
+        foreach (var f in filesWithLocal)
+            MarkFile(f.Id, watched, updatedTime);
 
-        foreach (var ep in episodes)
-        {
-            var watchedState = ep.ws.FirstOrDefault();
-            if (watchedState is null)
-            {
-                context.EpisodeWatchedStates.Add(new EpisodeWatchedState { Id = ep.episode.Id, Watched = watched, WatchedUpdated = updatedTime });
-            }
-            else
-            {
-                watchedState.Watched = watched;
-                watchedState.WatchedUpdated = updatedTime;
-            }
-        }
-
-        context.SaveChanges();
-        _commandService.Dispatch(new UpdateMyListArgs(true, Watched: watched, WatchedDate: updatedTime, Aid: animeId, EpNo: "0"));
-
+        foreach (var ep in epsWithManualLink)
+            MarkEpisode(ep.Id, watched, updatedTime);
         return true;
     }
 }

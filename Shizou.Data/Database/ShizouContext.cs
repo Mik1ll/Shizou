@@ -50,6 +50,17 @@ public sealed class ShizouContext : IdentityDbContext
             select f;
     }
 
+    public IQueryable<AniDbFile> FilesFromAnime(int animeId)
+    {
+        return from f in AniDbFiles
+            join xref in AniDbEpisodeFileXrefs
+                on f.Id equals xref.AniDbFileId
+            join ep in AniDbEpisodes
+                on xref.AniDbEpisodeId equals ep.Id
+            where ep.AniDbAnimeId == animeId
+            select f;
+    }
+
     public IQueryable<AniDbFile> FilesWithLocal => from f in AniDbFiles
         where LocalFiles.Any(lf => lf.Ed2k == f.Ed2k)
         select f;
