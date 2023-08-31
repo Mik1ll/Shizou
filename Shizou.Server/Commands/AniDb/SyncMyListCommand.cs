@@ -83,11 +83,11 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
-        var dbFiles = _context.FileWatchedStates.Select(ws => new { FileId = ws.Id, WatchedState = (IWatchedState)ws })
-            .Union(from gf in _context.AniDbGenericFiles
+        var dbFiles = _context.FileWatchedStates.Select(ws => new { FileId = ws.Id, WatchedState = (IWatchedState)ws }).ToList()
+            .Union((from gf in _context.AniDbGenericFiles
                 join ws in _context.EpisodeWatchedStates
                     on gf.AniDbEpisodeId equals ws.Id
-                select new { FileId = gf.Id, WatchedState = (IWatchedState)ws }).ToDictionary(f => f.FileId);
+                select new { FileId = gf.Id, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId);
         var dbFilesWithLocal = _context.FilesWithLocal.Select(f => f.Id)
             .Union(_context.GenericFilesWithManualLinks.Select(f => f.Id)).ToHashSet();
         var dbEpIdsWithoutGenericFile = (from e in _context.AniDbEpisodes
@@ -183,7 +183,6 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private async Task<MyListResult?> GetMyList()
     {
-        // return new XmlSerializer(typeof(MyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as MyListResult;
         var requestable = true;
         var fileInfo = new FileInfo(FilePaths.MyListPath);
         if (fileInfo.Exists)
