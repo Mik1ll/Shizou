@@ -14,5 +14,6 @@ public enum CommandType
     ExportPoll = 9,
     SyncMyListFromExport = 10,
     GetImage = 11,
+    RestoreMyListBackup = 12,
     Noop = 99
 }

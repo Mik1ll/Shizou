@@ -77,7 +77,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             var first = list.First();
             return new MyListItem(first.State, first.FileState, first.Id, list.Select(i => i.Aid).ToHashSet(),
                 list.Select(i => i.Eid).ToHashSet(), first.Fid, DateOnly.ParseExact(first.Updated, "yyyy-MM-dd"),
-                first.Viewdate is not null ? DateTimeOffset.Parse(first.Viewdate) : null);
+                first.Viewdate is null ? null : DateTimeOffset.Parse(first.Viewdate));
         }).ToList();
     }
 
@@ -183,6 +183,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
     private async Task<MyListResult?> GetMyList()
     {
+        // return new XmlSerializer(typeof(MyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as MyListResult;
         var requestable = true;
         var fileInfo = new FileInfo(FilePaths.MyListPath);
         if (fileInfo.Exists)

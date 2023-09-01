@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -66,5 +67,12 @@ public class CommandController : ControllerBase
         var req = _udpRequestFactory.GenericRequest(command, args);
         await req.Process();
         return req.ResponseCodeString + "\n" + req.ResponseText;
+    }
+
+    [HttpPut("RestoreMyListBackup")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    public void RestoreMyListBackup(string date)
+    {
+        _commandService.Dispatch(new RestoreMyListBackupArgs(DateOnly.Parse(date)));
     }
 }

@@ -110,6 +110,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddTransient<ExportPollCommand>();
         builder.Services.AddTransient<SyncMyListFromExportCommand>();
         builder.Services.AddTransient<GetImageCommand>();
+        builder.Services.AddTransient<RestoreMyListBackupCommand>();
 
         builder.Services.AddScoped<CommandService>();
         builder.Services.AddScoped<ImportService>();
