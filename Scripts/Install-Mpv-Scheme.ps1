@@ -30,9 +30,8 @@ rem Work around echo on not activating inside if block
 set "echo_on=echo on&for %%. in (.) do"
 
 if /i "%url:~0,8%"=="https://" (
-  %echo_on% `"$mpvPath`" --no-ytdl "--http-header-fields=Cookie: %cookie%" %url%
+  %echo_on% start "" /B `"$mpvPath`" "--no-terminal" "--no-ytdl" "--http-header-fields=Cookie: %cookie%" "%url%"
 )
-
 "@
 
 New-Item -ItemType Directory -Path "$env:APPDATA\Shizou" -Force
