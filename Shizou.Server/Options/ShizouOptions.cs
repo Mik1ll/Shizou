@@ -63,6 +63,7 @@ public class MyListOptions
 
 public class MyAnimeListOptions
 {
+    public string ClientId { get; set; } = string.Empty;
     public MyAnimeListToken? MyAnimeListToken { get; set; }
 }
 
