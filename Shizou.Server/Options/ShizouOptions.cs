@@ -16,7 +16,8 @@ public class ShizouOptions
 
     public AniDbOptions AniDb { get; set; } = new();
 
-    public MyListOptions MyList { get; set; } = new();
+    public MyAnimeListOptions MyAnimeList { get; set; } = new();
+
 
     public void SaveToFile()
     {
@@ -25,35 +26,44 @@ public class ShizouOptions
             new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true, Converters = { new JsonStringEnumConverter() } });
         File.WriteAllText(FilePaths.OptionsPath, jsonSettings);
     }
-
-    public class ImportOptions
-    {
-    }
-
-    public class AniDbOptions
-    {
-        public string Username { get; set; } = string.Empty;
-
-        public string Password { get; set; } = string.Empty;
-
-        public string ServerHost { get; set; } = "api.anidb.net";
-
-        public string? ImageServerHost { get; set; }
-
-        public ushort UdpServerPort { get; set; } = 9000;
-
-        public ushort HttpServerPort { get; set; } = 9001;
-
-        public ushort ClientPort { get; set; } = 4556;
-
-        public DateTimeOffset? HttpBannedUntil { get; set; }
-
-        public DateTimeOffset? UdpBannedUntil { get; set; }
-    }
-
-    public class MyListOptions
-    {
-        public MyListState AbsentFileState { get; set; } = MyListState.Deleted;
-        public MyListState PresentFileState { get; set; } = MyListState.Internal;
-    }
 }
+
+public class ImportOptions
+{
+}
+
+public class AniDbOptions
+{
+    public string Username { get; set; } = string.Empty;
+
+    public string Password { get; set; } = string.Empty;
+
+    public string ServerHost { get; set; } = "api.anidb.net";
+
+    public string? ImageServerHost { get; set; }
+
+    public ushort UdpServerPort { get; set; } = 9000;
+
+    public ushort HttpServerPort { get; set; } = 9001;
+
+    public ushort ClientPort { get; set; } = 4556;
+
+    public DateTimeOffset? HttpBannedUntil { get; set; }
+
+    public DateTimeOffset? UdpBannedUntil { get; set; }
+
+    public MyListOptions MyList { get; set; } = new();
+}
+
+public class MyListOptions
+{
+    public MyListState AbsentFileState { get; set; } = MyListState.Deleted;
+    public MyListState PresentFileState { get; set; } = MyListState.Internal;
+}
+
+public class MyAnimeListOptions
+{
+    public MyAnimeListToken? MyAnimeListToken { get; set; }
+}
+
+public record MyAnimeListToken(string AccessToken, DateTimeOffset Expiration, string RefreshToken);

@@ -51,7 +51,7 @@ public class WatchStateService
         }
 
         context.SaveChanges();
-        var myListOptions = _optionsMonitor.CurrentValue.MyList;
+        var myListOptions = _optionsMonitor.CurrentValue.AniDb.MyList;
         var state = myListOptions.PresentFileState;
         _commandService.Dispatch(watchedState?.MyListId is not null
             ? new UpdateMyListArgs(true, state, watched, updatedTime, watchedState.MyListId)
@@ -85,7 +85,7 @@ public class WatchStateService
         context.SaveChanges();
 
 
-        var myListOptions = _optionsMonitor.CurrentValue.MyList;
+        var myListOptions = _optionsMonitor.CurrentValue.AniDb.MyList;
         var state = episode.ManualLinkXrefs.Any() ? myListOptions.PresentFileState : myListOptions.AbsentFileState;
 
         // Don't use generic episode mylist edit, because it edits all files not just generic

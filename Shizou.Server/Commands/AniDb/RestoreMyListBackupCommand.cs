@@ -79,7 +79,7 @@ public class RestoreMyListBackupCommand : BaseCommand<RestoreMyListBackupArgs>
         {
             var bitem = pair.bitem;
             var item = pair.item;
-            var expectedState = _options.MyList.AbsentFileState;
+            var expectedState = _options.AniDb.MyList.AbsentFileState;
             var watched = false;
             DateTimeOffset? watchedDate = null;
             if ((bitem.Viewdate ?? item.Viewdate) is { } viewDate)
@@ -96,7 +96,7 @@ public class RestoreMyListBackupCommand : BaseCommand<RestoreMyListBackupArgs>
                 watchedState.Watched = watched;
                 watchedState.WatchedUpdated = null;
                 if (dbFilesWithLocal.Contains(dbFile.FileId))
-                    expectedState = _options.MyList.PresentFileState;
+                    expectedState = _options.AniDb.MyList.PresentFileState;
             }
 
             if (item is null)

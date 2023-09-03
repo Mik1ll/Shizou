@@ -111,7 +111,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             if (dbFiles.TryGetValue(item.Fid, out var dbFile))
             {
                 var watchedState = dbFile.WatchedState;
-                var expectedState = dbFilesWithLocal.Contains(dbFile.FileId) ? _options.MyList.PresentFileState : _options.MyList.AbsentFileState;
+                var expectedState = dbFilesWithLocal.Contains(dbFile.FileId) ? _options.AniDb.MyList.PresentFileState : _options.AniDb.MyList.AbsentFileState;
                 var itemWatched = item.Viewdate is not null;
                 var updateWatched = watchedState.WatchedUpdated is not null &&
                                     DateOnly.FromDateTime(watchedState.WatchedUpdated.Value) >= item.Updated
@@ -132,8 +132,8 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             {
                 if (item.Eids.Count == 1 && dbEpIdsWithoutGenericFile.Contains(item.Eids.First()))
                     toProcess.Add(new ProcessArgs(item.Fid, IdTypeLocalFile.FileId));
-                else if (item.State != _options.MyList.AbsentFileState || item.FileState != MyListFileState.Normal)
-                    toUpdate.Add(new UpdateMyListArgs(true, _options.MyList.AbsentFileState, Lid: item.Id));
+                else if (item.State != _options.AniDb.MyList.AbsentFileState || item.FileState != MyListFileState.Normal)
+                    toUpdate.Add(new UpdateMyListArgs(true, _options.AniDb.MyList.AbsentFileState, Lid: item.Id));
             }
 
         _context.SaveChanges();
