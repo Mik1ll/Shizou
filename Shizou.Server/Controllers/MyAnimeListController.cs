@@ -38,26 +38,38 @@ public class MyAnimeListController : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK)]
     public ActionResult Authenticate()
     {
-        if (string.IsNullOrWhiteSpace(_options.MyAnimeList.ClientId))
+        var uri = GetAuthenticationUrl(_options.MyAnimeList.ClientId, HttpContext.Connection.RemoteIpAddress!.ToString(), _logger);
+        if (uri is null)
+            return BadRequest();
+        return Ok(uri.AbsoluteUri);
+    }
+
+    public static Uri? GetAuthenticationUrl(string clientId, string remoteIp, ILogger logger)
+    {
+        if (string.IsNullOrWhiteSpace(clientId))
         {
-            _logger.LogError("Tried to authenticate with MAL without a client ID");
-            return BadRequest("Tried to authenticate with MAL without a client ID");
+            logger.LogError("Tried to authenticate with MAL without a client ID");
+            return null;
         }
 
-        if (!AccountController.IsLoopBackAddress(HttpContext)) return BadRequest("Can only authenticate on localhost due to MAL auth redirect registration");
+        if (!AccountController.IsLoopBackAddress(remoteIp))
+        {
+            logger.LogError("Can only authenticate on localhost due to MAL auth redirect registration");
+            return null;
+        }
 
         _codeChallengeAndVerifier = GetCodeVerifier();
-        _state = HttpContext.TraceIdentifier;
+        _state = Guid.NewGuid().ToString();
 
         var authorizeUriBuilder = new UriBuilder("https://myanimelist.net/v1/oauth2/authorize");
         var query = HttpUtility.ParseQueryString(authorizeUriBuilder.Query);
         query["response_type"] = "code";
-        query["client_id"] = _options.MyAnimeList.ClientId;
+        query["client_id"] = clientId;
         query["state"] = _state;
         query["code_challenge"] = _codeChallengeAndVerifier;
         query["code_challenge_method"] = "plain";
         authorizeUriBuilder.Query = query.ToString();
-        return Ok(authorizeUriBuilder.Uri);
+        return authorizeUriBuilder.Uri;
     }
 
     [HttpGet("GetToken")]
@@ -156,7 +168,7 @@ public class MyAnimeListController : ControllerBase
     [SuppressMessage("ReSharper", "ClassNeverInstantiated.Local")]
     private record TokenResponse(string token_type, int expires_in, string access_token, string refresh_token);
 
-    private string GetCodeVerifier()
+    private static string GetCodeVerifier()
     {
         return Base64UrlTextEncoder.Encode(RandomNumberGenerator.GetBytes(32));
     }

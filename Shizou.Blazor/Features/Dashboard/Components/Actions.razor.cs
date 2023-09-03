@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Options;
+using Microsoft.JSInterop;
 using Shizou.Server.Commands;
 using Shizou.Server.Commands.AniDb;
+using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Dashboard.Components;
@@ -9,6 +12,19 @@ public partial class Actions
 {
     [Inject]
     private IServiceProvider ServiceProvider { get; set; } = default!;
+
+    [Inject]
+    private IOptionsSnapshot<ShizouOptions> OptionsSnapshot { get; set; } = default!;
+
+    [Inject]
+    private ILogger<Actions> Logger { get; set; } = default!;
+
+    [Inject]
+    private IJSRuntime JsRuntime { get; set; } = default!;
+
+    [CascadingParameter(Name = "RemoteIp")]
+    private string RemoteIp { get; set; } = default!;
+
 
     private void DispatchNoop()
     {

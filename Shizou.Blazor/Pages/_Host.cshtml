@@ -24,8 +24,9 @@
 <body>
 @{
     var identityCookie = HttpContext.Request.GetTypedHeaders().Cookie.FirstOrDefault(c => c.Name == Constants.IdentityCookieName)?.Value.ToString();
+    var remoteIp = HttpContext.Connection.RemoteIpAddress!.ToString();
 }
-<component type="typeof(App)" render-mode="Server" param-IdentityCookie="@identityCookie"/>
+<component type="typeof(App)" render-mode="Server" param-IdentityCookie="@identityCookie" param-RemoteIp="@remoteIp"/>
 
 <div id="blazor-error-ui">
     <environment include="Staging,Production">

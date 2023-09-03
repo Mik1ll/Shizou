@@ -47,7 +47,7 @@ public class AccountController : ControllerBase
     public async Task<ActionResult> SetPassword([FromBody] string? password)
     {
         if (password is null) return BadRequest("Password not supplied");
-        if (!IsLoopBackAddress(HttpContext)) return BadRequest("Must be local to change password");
+        if (!IsLoopBackAddress(HttpContext.Request.Host.Host)) return BadRequest("Must be local to change password");
         var identity = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == "Admin");
         IdentityResult result;
         if (identity is null)
@@ -72,8 +72,8 @@ public class AccountController : ControllerBase
         return StatusCode(StatusCodes.Status500InternalServerError, "Something went wrong when creating account/changing password");
     }
 
-    public static bool IsLoopBackAddress(HttpContext context)
+    public static bool IsLoopBackAddress(string address)
     {
-        return (context.Connection.RemoteIpAddress?.ToString(), context.Connection.LocalIpAddress?.ToString()) is ("127.0.0.1", "127.0.0.1") or ("::1", "::1");
+        return address is "127.0.0.1" or "::1" or "::ffff:127.0.0.1";
     }
 }
