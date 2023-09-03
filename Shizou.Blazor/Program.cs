@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Shizou.Blazor;
 using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Server;
 using Shizou.Server.Extensions;
+using Shizou.Server.Options;
 
 var logTemplate = "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}";
 Log.Logger = new LoggerConfiguration()
@@ -68,6 +70,9 @@ using (var scope = app.Services.CreateScope())
 
     var context = services.GetRequiredService<ShizouContext>();
     context.Database.Migrate();
+
+    var options = services.GetRequiredService<IOptionsSnapshot<ShizouOptions>>();
+    options.Value.SaveToFile();
 }
 
 app.Run();

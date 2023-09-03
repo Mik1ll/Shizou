@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Server;
 using Shizou.Server.Extensions;
+using Shizou.Server.Options;
 
 var logTemplate = "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}";
 Log.Logger = new LoggerConfiguration()
@@ -64,6 +66,9 @@ try
 
         var context = services.GetRequiredService<ShizouContext>();
         context.Database.Migrate();
+
+        var options = services.GetRequiredService<IOptionsSnapshot<ShizouOptions>>();
+        options.Value.SaveToFile();
     }
 
     app.Run();
