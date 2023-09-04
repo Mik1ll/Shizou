@@ -3,7 +3,7 @@
 @inject UdpRequestFactory UdpRequestFactory
 
 <h3>Actions</h3>
-<section class="actions">
+<div class="d-flex flex-wrap gap-1">
     <button type="button" class="btn btn-primary" @onclick="@DispatchNoop">Add noops</button>
     <button type="button" class="btn btn-primary" @onclick="@RunImport">Run Import</button>
     <button type="button" class="btn btn-primary" @onclick="@RemoveMissingFiles">Remove Missing Files</button>
@@ -17,6 +17,6 @@
     }
     else
     {
-        <a class="btn btn-primary disabled">Authenticate MyAnimeList (requires localhost access)</a>
+        <a class="btn btn-primary disabled ">Authenticate MyAnimeList (requires localhost access)</a>
     }
-</section>
+</div>
