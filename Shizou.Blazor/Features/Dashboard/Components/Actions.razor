@@ -15,4 +15,8 @@
     {
         <a class="btn btn-primary" href="@(MyAnimeListController.GetAuthenticationUrl(OptionsSnapshot.Value.MyAnimeList.ClientId, RemoteIp, Logger))" target="_blank">Authenticate MyAnimeList</a>
     }
+    else
+    {
+        <a class="btn btn-primary disabled">Authenticate MyAnimeList (requires localhost access)</a>
+    }
 </section>
