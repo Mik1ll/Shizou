@@ -116,6 +116,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddScoped<ImportService>();
         builder.Services.AddScoped<WatchStateService>();
         builder.Services.AddScoped<ImageService>();
+        builder.Services.AddScoped<MyAnimeListService>();
         return builder;
     }
 

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Data;
+using Shizou.Data.Utilities;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
@@ -47,7 +48,7 @@ public class AccountController : ControllerBase
     public async Task<ActionResult> SetPassword([FromBody] string? password)
     {
         if (password is null) return BadRequest("Password not supplied");
-        if (!IsLoopBackAddress(HttpContext.Request.Host.Host)) return BadRequest("Must be local to change password");
+        if (!NetworkUtility.IsLoopBackAddress(HttpContext.Request.Host.Host)) return BadRequest("Must be local to change password");
         var identity = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == "Admin");
         IdentityResult result;
         if (identity is null)
@@ -70,10 +71,5 @@ public class AccountController : ControllerBase
         }
 
         return StatusCode(StatusCodes.Status500InternalServerError, "Something went wrong when creating account/changing password");
-    }
-
-    public static bool IsLoopBackAddress(string address)
-    {
-        return address is "127.0.0.1" or "::1" or "::ffff:127.0.0.1";
     }
 }

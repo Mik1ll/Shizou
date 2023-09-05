@@ -55,4 +55,9 @@ public partial class Actions
     {
         ServiceProvider.GetRequiredService<ImageService>().GetMissingAnimePosters();
     }
+
+    private string? GetMalAuthenticationUrl()
+    {
+        return ServiceProvider.GetRequiredService<MyAnimeListService>().GetAuthenticationUrl(RemoteIp)?.AbsoluteUri;
+    }
 }

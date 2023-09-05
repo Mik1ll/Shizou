@@ -1,5 +1,5 @@
 ﻿@using Shizou.Server.AniDbApi.Requests.Udp
-@using Shizou.Server.Controllers
+@using Shizou.Data.Utilities
 @inject UdpRequestFactory UdpRequestFactory
 
 <h3>Actions</h3>
@@ -11,9 +11,9 @@
     <button type="button" class="btn btn-primary" @onclick="@DispatchMyListSync">Sync MyList</button>
     <button type="button" class="btn btn-primary" @onclick="@ScheduleNoop">Schedule Noop</button>
     <button type="button" class="btn btn-primary" @onclick="@GetMissingPosters">Get Missing Posters</button>
-    @if (AccountController.IsLoopBackAddress(RemoteIp))
+    @if (NetworkUtility.IsLoopBackAddress(RemoteIp))
     {
-        <a class="btn btn-primary" href="@(MyAnimeListController.GetAuthenticationUrl(OptionsSnapshot.Value.MyAnimeList.ClientId, RemoteIp, Logger))" target="_blank">Authenticate MyAnimeList</a>
+        <a class="btn btn-primary" href="@(GetMalAuthenticationUrl())" target="_blank">Authenticate MyAnimeList</a>
     }
     else
     {
