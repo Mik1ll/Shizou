@@ -67,4 +67,9 @@ public partial class Actions
     {
         await ServiceProvider.GetRequiredService<MyAnimeListService>().RefreshToken();
     }
+
+    private async Task GetMalList()
+    {
+        await ServiceProvider.GetRequiredService<MyAnimeListService>().GetUserAnimeList();
+    }
 }

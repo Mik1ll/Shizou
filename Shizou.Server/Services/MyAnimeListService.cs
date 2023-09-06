@@ -199,7 +199,7 @@ public class MyAnimeListService
         var url = QueryHelpers.AddQueryString("https://api.myanimelist.net/v2/users/@me/animelist", new Dictionary<string, string?>
         {
             { "nsfw", "true" },
-            { "fields", "list_status{status,num_episodes_watched,updated_at},node{id,title,media_type,num_episodes}" },
+            { "fields", "id,title,media_type,num_episodes,list_status{status,num_episodes_watched,updated_at}" },
             { "limit", "1000" }
         });
         while (url is not null)
@@ -224,7 +224,7 @@ public class MyAnimeListService
                     animeWithStatus.Add(id);
                     var title = anime.GetProperty("title").GetString()!;
                     var type = anime.GetProperty("media_type").GetString()!;
-                    var episodeCount = anime.GetProperty("num_episodes").GetInt32();
+                    int? episodeCount = anime.GetProperty("num_episodes").GetInt32() is var num && num > 0 ? num : null;
 
                     var dbAnime = new MalAnime { Id = id, Title = title, AnimeType = type, EpisodeCount = episodeCount };
 
