@@ -25,7 +25,7 @@ public class MyAnimeListController : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK)]
     public ActionResult Authenticate()
     {
-        var uri = _myAnimeListService.GetAuthenticationUrl(HttpContext.Connection.RemoteIpAddress!.ToString());
+        var uri = _myAnimeListService.GetAuthenticationUri(HttpContext.Connection.RemoteIpAddress!.ToString());
         if (uri is null)
             return BadRequest();
         return Ok(uri.AbsoluteUri);

@@ -56,8 +56,10 @@ public partial class Actions
         ServiceProvider.GetRequiredService<ImageService>().GetMissingAnimePosters();
     }
 
-    private string? GetMalAuthenticationUrl()
+    private void OpenMalAuth()
     {
-        return ServiceProvider.GetRequiredService<MyAnimeListService>().GetAuthenticationUrl(ServerIp)?.AbsoluteUri;
+        var uri = ServiceProvider.GetRequiredService<MyAnimeListService>().GetAuthenticationUri(ServerIp)?.AbsoluteUri;
+        if (uri is not null)
+            JsRuntime.InvokeVoidAsync("open", uri, "_blank");
     }
 }

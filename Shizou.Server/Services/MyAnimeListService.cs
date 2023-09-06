@@ -30,7 +30,7 @@ public class MyAnimeListService
         _optionsMonitor = optionsMonitor;
     }
 
-    public Uri? GetAuthenticationUrl(string serverAccessIp)
+    public Uri? GetAuthenticationUri(string serverAccessIp)
     {
         var options = _optionsMonitor.CurrentValue.MyAnimeList;
         if (string.IsNullOrWhiteSpace(options.ClientId))
