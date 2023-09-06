@@ -11,7 +11,7 @@
     <button type="button" class="btn btn-primary" @onclick="@DispatchMyListSync">Sync MyList</button>
     <button type="button" class="btn btn-primary" @onclick="@ScheduleNoop">Schedule Noop</button>
     <button type="button" class="btn btn-primary" @onclick="@GetMissingPosters">Get Missing Posters</button>
-    @if (NetworkUtility.IsLoopBackAddress(RemoteIp))
+    @if (NetworkUtility.IsLoopBackAddress(ServerIp))
     {
         <a class="btn btn-primary" href="@(GetMalAuthenticationUrl())" target="_blank">Authenticate MyAnimeList</a>
     }

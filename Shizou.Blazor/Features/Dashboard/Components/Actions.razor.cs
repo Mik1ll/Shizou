@@ -23,7 +23,7 @@ public partial class Actions
     private IJSRuntime JsRuntime { get; set; } = default!;
 
     [CascadingParameter(Name = "ServerIp")]
-    private string RemoteIp { get; set; } = default!;
+    private string ServerIp { get; set; } = default!;
 
 
     private void DispatchNoop()
@@ -58,6 +58,6 @@ public partial class Actions
 
     private string? GetMalAuthenticationUrl()
     {
-        return ServiceProvider.GetRequiredService<MyAnimeListService>().GetAuthenticationUrl(RemoteIp)?.AbsoluteUri;
+        return ServiceProvider.GetRequiredService<MyAnimeListService>().GetAuthenticationUrl(ServerIp)?.AbsoluteUri;
     }
 }
