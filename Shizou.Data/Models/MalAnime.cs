@@ -8,5 +8,7 @@ public class MalAnime : IEntity
     public int Id { get; set; }
 
     public required string Title { get; set; }
+    public required string AnimeType { get; set; }
+    public required int EpisodeCount { get; set; }
     public MalStatus? Status { get; set; }
 }

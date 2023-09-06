@@ -223,28 +223,31 @@ public class MyAnimeListService
                     var id = anime.GetProperty("id").GetInt32();
                     animeWithStatus.Add(id);
                     var title = anime.GetProperty("title").GetString()!;
-                    // ReSharper disable once MethodHasAsyncOverload
+                    var type = anime.GetProperty("media_type").GetString()!;
+                    var episodeCount = anime.GetProperty("num_episodes").GetInt32();
 
-                    if (!malAnimes.TryGetValue(id, out var dbAnime))
-                        dbAnime = context.MalAnimes.Add(new MalAnime { Id = id, Title = title }).Entity;
+                    var dbAnime = new MalAnime { Id = id, Title = title, AnimeType = type, EpisodeCount = episodeCount };
+
+                    if (!malAnimes.TryGetValue(id, out var eDbAnime))
+                    {
+                        context.Entry(dbAnime).State = EntityState.Added;
+                    }
                     else
-                        dbAnime.Title = title;
+                    {
+                        context.Entry(eDbAnime).CurrentValues.SetValues(dbAnime);
+                        dbAnime = eDbAnime;
+                    }
 
                     var listStatus = item.GetProperty("list_status");
                     var state = listStatus.GetProperty("status").GetString()!;
                     var stateEnum = Enum.Parse<AnimeState>(state.Replace("_", string.Empty), true);
                     var watched = listStatus.GetProperty("num_episodes_watched").GetInt32();
                     var updated = listStatus.GetProperty("updated_at").GetDateTimeOffset();
+                    var status = new MalStatus { State = stateEnum, Updated = updated.UtcDateTime, WatchedEpisodes = watched };
                     if (dbAnime.Status is null)
-                    {
-                        dbAnime.Status = new MalStatus { State = stateEnum, Updated = updated.UtcDateTime, WatchedEpisodes = watched };
-                    }
+                        dbAnime.Status = status;
                     else
-                    {
-                        dbAnime.Status.State = stateEnum;
-                        dbAnime.Status.Updated = updated.UtcDateTime;
-                        dbAnime.Status.WatchedEpisodes = watched;
-                    }
+                        context.Entry(dbAnime.Status).CurrentValues.SetValues(status);
                 }
 
                 url = nextPage;
