@@ -62,4 +62,9 @@ public partial class Actions
         if (uri is not null)
             JsRuntime.InvokeVoidAsync("open", uri, "_blank");
     }
+
+    private async Task RefreshMalToken()
+    {
+        await ServiceProvider.GetRequiredService<MyAnimeListService>().RefreshToken();
+    }
 }

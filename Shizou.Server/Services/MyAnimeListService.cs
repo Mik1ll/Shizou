@@ -155,7 +155,6 @@ public class MyAnimeListService
         }
 
         var newToken = new MyAnimeListToken(token.access_token, DateTimeOffset.UtcNow + TimeSpan.FromSeconds(token.expires_in), token.refresh_token);
-        var isRefreshSame = newToken.RefreshToken == options.MyAnimeList.MyAnimeListToken?.RefreshToken;
         options.MyAnimeList.MyAnimeListToken = newToken;
         options.SaveToFile();
 

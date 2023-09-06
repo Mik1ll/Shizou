@@ -11,5 +11,6 @@
     <button type="button" class="btn btn-primary" @onclick="@DispatchMyListSync">Sync MyList</button>
     <button type="button" class="btn btn-primary" @onclick="@ScheduleNoop">Schedule Noop</button>
     <button type="button" class="btn btn-primary" @onclick="@GetMissingPosters">Get Missing Posters</button>
-    <button type="button" class="btn btn-primary" @onclick="@OpenMalAuth" disabled="@(!NetworkUtility.IsLoopBackAddress(ServerIp))">Authenticate MyAnimeList</button>
+    <button type="button" class="btn btn-primary" @onclick="@OpenMalAuth" disabled="@(!NetworkUtility.IsLoopBackAddress(ServerIp))">Auth MAL</button>
+    <button type="button" class="btn btn-primary" @onclick="@RefreshMalToken">Refresh MAL token</button>
 </div>
