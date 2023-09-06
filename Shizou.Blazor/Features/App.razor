@@ -1,5 +1,5 @@
 ﻿<CascadingValue Name="IdentityCookie" Value="@IdentityCookie">
-    <CascadingValue Name="RemoteIp" Value="@RemoteIp">
+    <CascadingValue Name="ServerIp" Value="@ServerIp">
         <CascadingAuthenticationState>
             <Router AppAssembly="@typeof(App).Assembly">
                 <Found Context="routeData">
@@ -39,6 +39,6 @@
 
     [Parameter]
     [EditorRequired]
-    public string RemoteIp { get; set; } = default!;
+    public string ServerIp { get; set; } = default!;
 
 }

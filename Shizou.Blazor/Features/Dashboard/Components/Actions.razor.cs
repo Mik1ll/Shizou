@@ -22,7 +22,7 @@ public partial class Actions
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
 
-    [CascadingParameter(Name = "RemoteIp")]
+    [CascadingParameter(Name = "ServerIp")]
     private string RemoteIp { get; set; } = default!;
 
 
