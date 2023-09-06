@@ -58,9 +58,9 @@ public partial class Actions
 
     private void OpenMalAuth()
     {
-        var uri = ServiceProvider.GetRequiredService<MyAnimeListService>().GetAuthenticationUri(ServerIp)?.AbsoluteUri;
-        if (uri is not null)
-            JsRuntime.InvokeVoidAsync("open", uri, "_blank");
+        var url = ServiceProvider.GetRequiredService<MyAnimeListService>().GetAuthenticationUrl(ServerIp);
+        if (url is not null)
+            JsRuntime.InvokeVoidAsync("open", url, "_blank");
     }
 
     private async Task RefreshMalToken()
