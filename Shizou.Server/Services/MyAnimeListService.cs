@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -25,10 +26,10 @@ public class MyAnimeListService
 {
     private static string? _codeChallengeAndVerifier;
     private static string? _state;
+    private readonly IDbContextFactory<ShizouContext> _contextFactory;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<MyAnimeListService> _logger;
     private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
 
     public MyAnimeListService(
         ILogger<MyAnimeListService> logger,
@@ -112,12 +113,19 @@ public class MyAnimeListService
             })
         };
         var result = await httpClient.SendAsync(request);
-        if (!result.IsSuccessStatusCode)
-        {
-            _logger.LogError("Something went wrong when getting token, returned status {StatusCode}", result.StatusCode);
+        if (!HandleStatusCode(result, options))
             return false;
-        }
 
+        if (!await SaveToken(result, options))
+            return false;
+
+        _state = null;
+        _codeChallengeAndVerifier = null;
+        return true;
+    }
+
+    private async Task<bool> SaveToken(HttpResponseMessage result, ShizouOptions options)
+    {
         var token = await result.Content.ReadFromJsonAsync<TokenResponse>();
         if (token is null)
         {
@@ -128,9 +136,6 @@ public class MyAnimeListService
         var newToken = new MyAnimeListToken(token.access_token, DateTimeOffset.UtcNow + TimeSpan.FromSeconds(token.expires_in), token.refresh_token);
         options.MyAnimeList.MyAnimeListToken = newToken;
         options.SaveToFile();
-
-        _state = null;
-        _codeChallengeAndVerifier = null;
         return true;
     }
 
@@ -156,22 +161,11 @@ public class MyAnimeListService
         };
 
         var result = await httpClient.SendAsync(request);
-        if (!result.IsSuccessStatusCode)
-        {
-            _logger.LogError("Something went wrong when refreshing token, returned status {StatusCode}", result.StatusCode);
+        if (!HandleStatusCode(result, options))
             return false;
-        }
 
-        var token = await result.Content.ReadFromJsonAsync<TokenResponse>();
-        if (token is null)
-        {
-            _logger.LogError("Couldn't get token from response body");
+        if (!await SaveToken(result, options))
             return false;
-        }
-
-        var newToken = new MyAnimeListToken(token.access_token, DateTimeOffset.UtcNow + TimeSpan.FromSeconds(token.expires_in), token.refresh_token);
-        options.MyAnimeList.MyAnimeListToken = newToken;
-        options.SaveToFile();
 
         return true;
     }
@@ -205,11 +199,8 @@ public class MyAnimeListService
         while (url is not null)
         {
             var result = await httpClient.GetAsync(url);
-            if (!result.IsSuccessStatusCode)
-            {
-                _logger.LogError("Something went wrong when getting user list, returned status {StatusCode}", result.StatusCode);
+            if (!HandleStatusCode(result, options))
                 return;
-            }
 
             try
             {
@@ -264,6 +255,23 @@ public class MyAnimeListService
 
         // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
+    }
+
+    private bool HandleStatusCode(HttpResponseMessage result, ShizouOptions options)
+    {
+        if (!result.IsSuccessStatusCode)
+        {
+            _logger.LogError("Something went wrong when getting user list, returned status {StatusCode}", result.StatusCode);
+            if (result.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                options.MyAnimeList.MyAnimeListToken = null;
+                options.SaveToFile();
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     private static bool ShouldRefresh(MyAnimeListToken token)
