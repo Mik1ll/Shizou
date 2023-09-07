@@ -63,11 +63,6 @@ public partial class Actions
             JsRuntime.InvokeVoidAsync("open", url, "_blank");
     }
 
-    private async Task RefreshMalToken()
-    {
-        await ServiceProvider.GetRequiredService<MyAnimeListService>().RefreshToken();
-    }
-
     private async Task GetMalList()
     {
         await ServiceProvider.GetRequiredService<MyAnimeListService>().GetUserAnimeList();

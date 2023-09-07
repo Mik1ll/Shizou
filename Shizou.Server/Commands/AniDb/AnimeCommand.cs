@@ -24,6 +24,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
     private readonly HttpAnimeResultCache _animeResultCache;
     private readonly HttpRequestFactory _httpRequestFactory;
     private readonly ImageService _imageService;
+    private readonly MyAnimeListService _myAnimeListService;
     private string _animeResultCacheKey = null!;
 
     public AnimeCommand(
@@ -31,13 +32,15 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         ShizouContext context,
         HttpAnimeResultCache animeResultCache,
         HttpRequestFactory httpRequestFactory,
-        ImageService imageService)
+        ImageService imageService,
+        MyAnimeListService myAnimeListService)
     {
         _logger = logger;
         _context = context;
         _animeResultCache = animeResultCache;
         _httpRequestFactory = httpRequestFactory;
         _imageService = imageService;
+        _myAnimeListService = myAnimeListService;
     }
 
     public override void SetParameters(CommandArgs args)
@@ -95,7 +98,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         if (aniDbAnime.ImageFilename is not null)
             _imageService.GetAnimePoster(aniDbAnime.Id);
 
-        UpdateMalXrefs(animeResult);
+        await UpdateMalXrefs(animeResult);
 
         Completed = true;
     }
@@ -144,7 +147,7 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
         return request.AnimeResult;
     }
 
-    private void UpdateMalXrefs(AnimeResult animeResult)
+    private async Task UpdateMalXrefs(AnimeResult animeResult)
     {
         var eXrefs = _context.MalAniDbXrefs.Where(xref => xref.AniDbId == CommandArgs.AnimeId).ToList();
 
@@ -153,7 +156,10 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
                 .Select(id => new MalAniDbXref { AniDbId = CommandArgs.AnimeId, MalId = int.Parse(id) })).ToList();
         _context.RemoveRange(eXrefs.ExceptBy(xrefs.Select(x => x.MalId), x => x.MalId));
         _context.AddRange(xrefs.ExceptBy(eXrefs.Select(x => x.MalId), x => x.MalId));
+        foreach (var xref in xrefs.Where(x => !_context.MalAnimes.Any(a => a.Id == x.MalId)))
+            await _myAnimeListService.GetAnime(xref.MalId);
 
+        // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
     }
 }

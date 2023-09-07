@@ -139,15 +139,21 @@ public class MyAnimeListService
         return true;
     }
 
-    public async Task<bool> RefreshToken()
+    public async Task<bool> RefreshToken(ShizouOptions options)
     {
-        _logger.LogInformation("Refreshing MAL auth tokens");
-        var options = _optionsMonitor.CurrentValue;
         if (options.MyAnimeList.MyAnimeListToken is null)
         {
             _logger.LogError("No token to refresh");
             return false;
         }
+
+        if (options.MyAnimeList.MyAnimeListToken.Expiration > DateTimeOffset.UtcNow + TimeSpan.FromMinutes(5))
+        {
+            _logger.LogDebug("No need to refresh token, not expired");
+            return true;
+        }
+
+        _logger.LogInformation("Refreshing MAL auth token");
 
         var httpClient = _httpClientFactory.CreateClient();
         var request = new HttpRequestMessage(HttpMethod.Post, "https://myanimelist.net/v1/oauth2/token")
@@ -170,6 +176,50 @@ public class MyAnimeListService
         return true;
     }
 
+    public async Task GetAnime(int animeId)
+    {
+        var options = _optionsMonitor.CurrentValue;
+        if (options.MyAnimeList.MyAnimeListToken is null)
+        {
+            _logger.LogInformation("MyAnimeList not authenticated, aborting get anime");
+            return;
+        }
+
+        await RefreshToken(options);
+
+        var httpClient = _httpClientFactory.CreateClient();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.MyAnimeList.MyAnimeListToken.AccessToken);
+
+        var url = QueryHelpers.AddQueryString($"https://api.myanimelist.net/v2/anime/{animeId}", new Dictionary<string, string?>
+        {
+            { "nsfw", "true" },
+            { "fields", "id,title,media_type,num_episodes,my_list_status{status,num_episodes_watched,updated_at}" }
+        });
+
+        var result = await httpClient.GetAsync(url);
+        if (!HandleStatusCode(result, options))
+            return;
+        try
+        {
+            using var doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
+            var animeJson = doc.RootElement;
+            var anime = AnimeFromJson(animeJson);
+
+            if (animeJson.TryGetProperty("my_list_status", out var statusJson))
+                anime.Status = StatusFromJson(statusJson);
+
+            // ReSharper disable once MethodHasAsyncOverload
+            var context = _contextFactory.CreateDbContext();
+            UpsertAnime(context, anime);
+            // ReSharper disable once MethodHasAsyncOverload
+            context.SaveChanges();
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Failed to parse json from get user list, aborting");
+        }
+    }
+
     public async Task GetUserAnimeList()
     {
         var options = _optionsMonitor.CurrentValue;
@@ -179,8 +229,7 @@ public class MyAnimeListService
             return;
         }
 
-        if (ShouldRefresh(options.MyAnimeList.MyAnimeListToken))
-            await RefreshToken();
+        await RefreshToken(options);
 
         var animeWithStatus = new HashSet<int>();
 
@@ -210,42 +259,22 @@ public class MyAnimeListService
                 var data = root.GetProperty("data");
                 foreach (var item in data.EnumerateArray())
                 {
-                    var anime = item.GetProperty("node");
-                    var id = anime.GetProperty("id").GetInt32();
-                    animeWithStatus.Add(id);
-                    var title = anime.GetProperty("title").GetString()!;
-                    var type = anime.GetProperty("media_type").GetString()!;
-                    int? episodeCount = anime.GetProperty("num_episodes").GetInt32() is var num && num > 0 ? num : null;
+                    var animeJson = item.GetProperty("node");
+                    var anime = AnimeFromJson(animeJson);
 
-                    var dbAnime = new MalAnime { Id = id, Title = title, AnimeType = type, EpisodeCount = episodeCount };
+                    var statusJson = item.GetProperty("list_status");
+                    anime.Status = StatusFromJson(statusJson);
 
-                    if (!malAnimes.TryGetValue(id, out var eDbAnime))
-                    {
-                        context.Entry(dbAnime).State = EntityState.Added;
-                    }
-                    else
-                    {
-                        context.Entry(eDbAnime).CurrentValues.SetValues(dbAnime);
-                        dbAnime = eDbAnime;
-                    }
+                    animeWithStatus.Add(anime.Id);
 
-                    var listStatus = item.GetProperty("list_status");
-                    var state = listStatus.GetProperty("status").GetString()!;
-                    var stateEnum = Enum.Parse<AnimeState>(state.Replace("_", string.Empty), true);
-                    var watched = listStatus.GetProperty("num_episodes_watched").GetInt32();
-                    var updated = listStatus.GetProperty("updated_at").GetDateTimeOffset();
-                    var status = new MalStatus { State = stateEnum, Updated = updated.UtcDateTime, WatchedEpisodes = watched };
-                    if (dbAnime.Status is null)
-                        dbAnime.Status = status;
-                    else
-                        context.Entry(dbAnime.Status).CurrentValues.SetValues(status);
+                    UpsertAnime(context, anime);
                 }
 
                 url = nextPage;
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
-                _logger.LogError("Failed to parse json from get user list, aborting");
+                _logger.LogError(ex, "Failed to parse json from get user list, aborting");
                 return;
             }
         }
@@ -255,6 +284,44 @@ public class MyAnimeListService
 
         // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
+    }
+
+    private static void UpsertAnime(ShizouContext context, MalAnime anime)
+    {
+        var eAnime = context.MalAnimes.Find(anime.Id);
+        if (eAnime is null)
+        {
+            context.MalAnimes.Add(anime);
+        }
+        else
+        {
+            context.Entry(eAnime).CurrentValues.SetValues(anime);
+            if (anime.Status is null || eAnime.Status is null)
+                eAnime.Status = anime.Status;
+            else
+                context.Entry(eAnime.Status).CurrentValues.SetValues(anime.Status);
+        }
+    }
+
+    private static MalStatus StatusFromJson(JsonElement listStatus)
+    {
+        var state = listStatus.GetProperty("status").GetString()!;
+        var stateEnum = Enum.Parse<AnimeState>(state.Replace("_", string.Empty), true);
+        var watched = listStatus.GetProperty("num_episodes_watched").GetInt32();
+        var updated = listStatus.GetProperty("updated_at").GetDateTimeOffset();
+        var status = new MalStatus { State = stateEnum, Updated = updated.UtcDateTime, WatchedEpisodes = watched };
+        return status;
+    }
+
+    private static MalAnime AnimeFromJson(JsonElement anime)
+    {
+        var id = anime.GetProperty("id").GetInt32();
+        var title = anime.GetProperty("title").GetString()!;
+        var type = anime.GetProperty("media_type").GetString()!;
+        int? episodeCount = anime.GetProperty("num_episodes").GetInt32() is var num && num > 0 ? num : null;
+
+        var dbAnime = new MalAnime { Id = id, Title = title, AnimeType = type, EpisodeCount = episodeCount };
+        return dbAnime;
     }
 
     private bool HandleStatusCode(HttpResponseMessage result, ShizouOptions options)
@@ -273,12 +340,6 @@ public class MyAnimeListService
 
         return true;
     }
-
-    private static bool ShouldRefresh(MyAnimeListToken token)
-    {
-        return token.Expiration <= DateTimeOffset.UtcNow - TimeSpan.FromMinutes(5);
-    }
-
 
     private static string GetCodeVerifier()
     {
