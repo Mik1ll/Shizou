@@ -67,4 +67,4 @@ public class MyAnimeListOptions
     public MyAnimeListToken? MyAnimeListToken { get; set; }
 }
 
-public record MyAnimeListToken(string AccessToken, DateTimeOffset Expiration, string RefreshToken);
+public record MyAnimeListToken(string AccessToken, DateTimeOffset AccessExpiration, string RefreshToken, DateTimeOffset RefreshExpiration);

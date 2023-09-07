@@ -133,13 +133,16 @@ public class MyAnimeListService
             return false;
         }
 
-        var newToken = new MyAnimeListToken(token.access_token, DateTimeOffset.UtcNow + TimeSpan.FromSeconds(token.expires_in), token.refresh_token);
+        var newToken = new MyAnimeListToken(token.access_token,
+            DateTimeOffset.UtcNow + TimeSpan.FromSeconds(token.expires_in),
+            token.refresh_token,
+            DateTimeOffset.UtcNow + TimeSpan.FromDays(31));
         options.MyAnimeList.MyAnimeListToken = newToken;
         options.SaveToFile();
         return true;
     }
 
-    public async Task<bool> RefreshToken(ShizouOptions options)
+    private async Task<bool> RefreshToken(ShizouOptions options)
     {
         if (options.MyAnimeList.MyAnimeListToken is null)
         {
@@ -147,7 +150,15 @@ public class MyAnimeListService
             return false;
         }
 
-        if (options.MyAnimeList.MyAnimeListToken.Expiration > DateTimeOffset.UtcNow + TimeSpan.FromMinutes(5))
+        if (options.MyAnimeList.MyAnimeListToken.RefreshExpiration < DateTimeOffset.UtcNow - TimeSpan.FromMinutes(5))
+        {
+            _logger.LogError("Refresh token is expired, deleting token");
+            options.MyAnimeList.MyAnimeListToken = null;
+            options.SaveToFile();
+            return false;
+        }
+
+        if (options.MyAnimeList.MyAnimeListToken.AccessExpiration > DateTimeOffset.UtcNow + TimeSpan.FromMinutes(5))
         {
             _logger.LogDebug("No need to refresh token, not expired");
             return true;
@@ -185,7 +196,8 @@ public class MyAnimeListService
             return;
         }
 
-        await RefreshToken(options);
+        if (!await RefreshToken(options))
+            return;
 
         var httpClient = _httpClientFactory.CreateClient();
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.MyAnimeList.MyAnimeListToken.AccessToken);
@@ -229,7 +241,8 @@ public class MyAnimeListService
             return;
         }
 
-        await RefreshToken(options);
+        if (!await RefreshToken(options))
+            return;
 
         var animeWithStatus = new HashSet<int>();
 
