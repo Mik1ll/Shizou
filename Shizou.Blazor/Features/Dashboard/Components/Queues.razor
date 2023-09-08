@@ -22,19 +22,19 @@
                 <td>
                     @if (processor.Paused)
                     {
-                        <button class="btn p-0" @onclick="@(() => processor.Unpause())">
+                        <button type="button" class="btn p-0" @onclick="@(() => processor.Unpause())">
                             <i class="oi oi-media-play"></i>
                         </button>
                     }
                     else
                     {
-                        <button class="btn p-0" @onclick="@(() => processor.Pause())">
+                        <button type="button" class="btn p-0" @onclick="@(() => processor.Pause())">
                             <i class="oi oi-media-pause"></i>
                         </button>
                     }
                 </td>
                 <td>
-                    <button class="btn p-0" @onclick="@(processor.ClearQueue)">
+                    <button type="button" class="btn p-0" @onclick="@(processor.ClearQueue)">
                         <i class="oi oi-x"></i>
                     </button>
                 </td>
