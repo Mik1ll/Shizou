@@ -45,7 +45,7 @@ public partial class Anime
             .FirstOrDefault(a => a.Id == AnimeId);
         if (_anime is null)
             return;
-        var filesQuery = from f in context.AniDbFiles
+        var filesQuery = from f in context.AniDbFiles.Include(f => f.AniDbGroup)
             join xref in context.AniDbEpisodeFileXrefs
                 on f.Id equals xref.AniDbFileId
             join ep in context.AniDbEpisodes
