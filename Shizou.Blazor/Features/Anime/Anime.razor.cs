@@ -118,6 +118,6 @@ public partial class Anime
         if (IdentityCookie is null)
             return;
         NavigationManager.NavigateTo(
-            $"mpv:{NavigationManager.BaseUri}api/FileServer/{file.Id}{Path.GetExtension(file.PathTail)}?{Constants.IdentityCookieName}__{IdentityCookie}");
+            $"mpv:{NavigationManager.BaseUri}api/FileServer/{file.Id}{Path.GetExtension(file.PathTail)}?{Constants.IdentityCookieName}={IdentityCookie}");
     }
 }

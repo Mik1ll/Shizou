@@ -14,23 +14,16 @@ $cmdKey.SetValue('', "`"$mpvRunPath`" `"%1`"")
 
 $mpvRun = @"
 @echo off
-
-rem Replaces __ with equal signs
 setlocal EnableDelayedExpansion
-set arg=%~1
-set arg=!arg:__==!
 
-for /f "tokens=1,* delims=?" %%A in ("%arg%") do (
+for /f "tokens=1,* delims=?" %%A in ("%~1") do (
   set url=%%A
   set url=!url:~4!
   set cookie=%%B
 )
 
-rem Work around echo on not activating inside if block
-set "echo_on=echo on&for %%. in (.) do"
-
 if /i "%url:~0,8%"=="https://" (
-  %echo_on% start "" /B `"$mpvPath`" "--no-terminal" "--no-ytdl" "--http-header-fields=Cookie: %cookie%" "%url%"
+  start "" /B `"$mpvPath`" "--no-terminal" "--no-ytdl" "--http-header-fields=Cookie: %cookie%" "%url%"
 )
 "@
 
