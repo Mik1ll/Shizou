@@ -16,12 +16,13 @@
         {
             <tr @key="@importFolder">
                 <td class="text-center">
-                    <i role="button" class="scan-button oi oi-magnifying-glass"
-                       data-bs-toggle="tooltip"
-                       data-bs-title="Hold shift to force scan"
-                       data-bs-custom-class="white-tooltip"
-                       @onclick="@(e => ImportService.ScanImportFolder(importFolder.Id, e.ShiftKey))">
-                    </i>
+                    <button type="button" class="scan-button btn p-0"
+                            data-bs-toggle="tooltip"
+                            data-bs-title="Hold shift to force scan"
+                            data-bs-custom-class="white-tooltip"
+                            @onclick="@(e => ImportService.ScanImportFolder(importFolder.Id, e.ShiftKey))">
+                        <i class="oi oi-magnifying-glass"></i>
+                    </button>
                 </td>
                 <td class="absorbing-column">@importFolder.Name</td>
                 <td class="text-center">
@@ -35,10 +36,14 @@
                     }
                 </td>
                 <td class="text-center">
-                    <i role="button" class="oi oi-pencil" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))"></i>
+                    <button type="button" class="btn p-0" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))">
+                        <i class="oi oi-pencil"></i>
+                    </button>
                 </td>
                 <td class="text-center">
-                    <i role="button" class="oi oi-trash" @onclick="@(() => _importFolderModal?.DeleteDialog(importFolder))"></i>
+                    <button type="button" class="btn p-0" @onclick="@(() => _importFolderModal?.DeleteDialog(importFolder))">
+                        <i class="oi oi-trash"></i>
+                    </button>
                 </td>
             </tr>
         }
