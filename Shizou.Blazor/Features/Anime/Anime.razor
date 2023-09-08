@@ -48,6 +48,18 @@
                                     <i class="bi bi-eye"></i> Mark All Watched
                                 </button>
                             </li>
+                            @if (_malXrefs!.Count > 0)
+                            {
+                                <li class="list-group-item">
+                                    @foreach (var malXref in _malXrefs)
+                                    {
+                                        _malAnime!.TryGetValue(malXref.MalId, out var malAnime);
+                                        <div class="border border-primary rounded p-1 d-inline-block">
+                                            <img src="icons/mal.ico" style="height: 1.5em"/> <a href="https://myanimelist.net/anime/@(malXref.MalId)" class="align-middle">@(malAnime?.Title ?? malXref.MalId.ToString())</a>
+                                        </div>
+                                    }
+                                </li>
+                            }
                         </ul>
                     </div>
                 </div>

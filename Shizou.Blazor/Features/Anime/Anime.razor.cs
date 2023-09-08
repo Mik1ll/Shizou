@@ -30,6 +30,8 @@ public partial class Anime
     private HashSet<LocalFile>? _regularLocalFiles;
     private HashSet<FileWatchedState>? _fileWatchedStates;
     private HashSet<EpisodeWatchedState>? _epWatchedStates;
+    private List<MalAniDbXref>? _malXrefs;
+    private Dictionary<int, MalAnime>? _malAnime;
 
     private readonly Regex _splitRegex = new(@"(?<=https?:\/\/\S*? \[.*?\])|(?=https?:\/\/\S*? \[.*?\])", RegexOptions.Compiled);
     private readonly Regex _matchRegex = new(@"(https?:\/\/\S*?) \[(.*?)\]", RegexOptions.Compiled);
@@ -66,6 +68,11 @@ public partial class Anime
                 on ws.Id equals ep.Id
             where ep.AniDbAnimeId == _anime.Id
             select ws).ToHashSet();
+        _malXrefs = context.MalAniDbXrefs.Where(x => x.AniDbId == _anime.Id).ToList();
+        _malAnime = (from malAnime in context.MalAnimes
+            join xref in context.MalAniDbXrefs on malAnime.Id equals xref.MalId
+            where xref.AniDbId == _anime.Id
+            select malAnime).ToDictionary(a => a.Id);
     }
 
     private void MarkEpisode(EpisodeWatchedState watchedState, bool watched)
