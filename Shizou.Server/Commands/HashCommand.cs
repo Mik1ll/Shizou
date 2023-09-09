@@ -47,6 +47,7 @@ public class HashCommand : BaseCommand<HashArgs>
             _logger.LogWarning("File not found or not inside an import folder: \"{Path}\"", file.FullName);
             return;
         }
+
         var pathTail = file.FullName.Substring(importFolder.Path.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var signature = RHasherService.GetFileSignature(file.FullName);
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder)
@@ -63,6 +64,7 @@ public class HashCommand : BaseCommand<HashArgs>
                     _logger.LogError("Skipping add local file for \"{NewPath}\": duplicate file at \"{OldPath}\"", file.FullName, oldPath);
                     return;
                 }
+
                 _logger.LogInformation("Changing path and/or import folder for local file \"{NewPath}\" old path: \"{OldPath}\"", file.FullName, oldPath);
                 localFile.ImportFolder = importFolder;
                 localFile.PathTail = pathTail;
@@ -76,7 +78,7 @@ public class HashCommand : BaseCommand<HashArgs>
             else
                 _logger.LogInformation("Hashing new file: \"{Path}\"", file.FullName);
             var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2k | RHasherService.HashIds.Crc32);
-            localFile ??= _context.LocalFiles.Add(new LocalFile
+            var newLocalFile = new LocalFile
             {
                 Signature = signature,
                 Crc = hashes[RHasherService.HashIds.Crc32],
@@ -86,10 +88,15 @@ public class HashCommand : BaseCommand<HashArgs>
                 PathTail = pathTail,
                 Ignored = false,
                 ImportFolderId = importFolder.Id
-            }).Entity;
+            };
+            if (localFile is null)
+                localFile = _context.LocalFiles.Add(newLocalFile).Entity;
+            else
+                _context.Entry(localFile).CurrentValues.SetValues(newLocalFile);
             _logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasherService.HashIds.Ed2k],
                 hashes[RHasherService.HashIds.Crc32]);
         }
+
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
         var eAniDbFileId = _context.AniDbFiles.Where(f => f.Ed2k == localFile.Ed2k).Select(f => (int?)f.Id).FirstOrDefault();
