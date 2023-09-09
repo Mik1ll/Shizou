@@ -46,7 +46,13 @@
 @* ReSharper restore Html.PathError *@
 <script>
 window.loadTooltip = (myClass) => {
-    const tooltipList = [...document.getElementsByClassName(myClass)].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    const tooltipList = [...document.getElementsByClassName(myClass)].map(tooltipTriggerEl => {
+        let tooltip = new bootstrap.Tooltip(tooltipTriggerEl);
+        tooltipTriggerEl.addEventListener("click", function(e){
+            tooltip.hide()
+        });
+        return tooltip;
+    });
 }
 </script>
 </body>
