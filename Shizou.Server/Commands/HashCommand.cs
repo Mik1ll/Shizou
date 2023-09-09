@@ -80,6 +80,7 @@ public class HashCommand : BaseCommand<HashArgs>
             var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2k | RHasherService.HashIds.Crc32);
             var newLocalFile = new LocalFile
             {
+                Id = localFile?.Id ?? 0,
                 Signature = signature,
                 Crc = hashes[RHasherService.HashIds.Crc32],
                 Ed2k = hashes[RHasherService.HashIds.Ed2k],
