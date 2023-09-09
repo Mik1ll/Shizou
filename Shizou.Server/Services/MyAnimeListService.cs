@@ -221,7 +221,8 @@ public class MyAnimeListService
                 anime.Status = StatusFromJson(statusJson);
 
             // ReSharper disable once MethodHasAsyncOverload
-            var context = _contextFactory.CreateDbContext();
+            // ReSharper disable once UseAwaitUsing
+            using var context = _contextFactory.CreateDbContext();
             UpsertAnime(context, anime);
             // ReSharper disable once MethodHasAsyncOverload
             context.SaveChanges();
@@ -247,7 +248,8 @@ public class MyAnimeListService
         var animeWithStatus = new HashSet<int>();
 
         // ReSharper disable once MethodHasAsyncOverload
-        var context = _contextFactory.CreateDbContext();
+        // ReSharper disable once UseAwaitUsing
+        using var context = _contextFactory.CreateDbContext();
         var malAnimes = context.MalAnimes.ToDictionary(a => a.Id);
 
         var httpClient = _httpClientFactory.CreateClient();
@@ -297,6 +299,75 @@ public class MyAnimeListService
 
         // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
+    }
+
+    public async Task<bool> UpdateAnimeState(int animeId, AnimeState state)
+    {
+        var options = _optionsMonitor.CurrentValue;
+        if (options.MyAnimeList.MyAnimeListToken is null)
+        {
+            _logger.LogWarning("MyAnimeList not authenticated, aborting update anime state");
+            return false;
+        }
+
+        // ReSharper disable once MethodHasAsyncOverload
+        // ReSharper disable once UseAwaitUsing
+        using var context = _contextFactory.CreateDbContext();
+        // ReSharper disable once MethodHasAsyncOverload
+        var anime = context.MalAnimes.Find(animeId);
+        if (anime is null)
+        {
+            _logger.LogError("Tried to update status of MAL anime that is not in database");
+            return false;
+        }
+
+        var httpClient = _httpClientFactory.CreateClient();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.MyAnimeList.MyAnimeListToken.AccessToken);
+
+        var stateStr = state switch
+        {
+            AnimeState.Watching => "watching",
+            AnimeState.Completed => "completed",
+            AnimeState.OnHold => "on_hold",
+            AnimeState.Dropped => "dropped",
+            AnimeState.PlanToWatch => "plan_to_watch",
+            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+        };
+
+        var request = new HttpRequestMessage(HttpMethod.Patch, QueryHelpers.AddQueryString($"https://api.myanimelist.net/v2/anime/{animeId}/my_list_status",
+            new Dictionary<string, string?>
+            {
+                { "fields", "list_status{status,num_episodes_watched,updated_at}" },
+                { "nsfw", "true" }
+            }))
+        {
+            Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+            {
+                new("status", stateStr)
+            })
+        };
+
+        var result = await httpClient.SendAsync(request);
+        if (!HandleStatusCode(result, options))
+            return false;
+
+        try
+        {
+            using var doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
+            var statusJson = doc.RootElement;
+            anime.Status = StatusFromJson(statusJson);
+
+            UpsertAnime(context, anime);
+            // ReSharper disable once MethodHasAsyncOverload
+            context.SaveChanges();
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Failed to parse json from get user list, aborting");
+            return false;
+        }
+
+        return true;
     }
 
     private static void UpsertAnime(ShizouContext context, MalAnime anime)

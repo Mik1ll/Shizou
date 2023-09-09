@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Data;
 using Shizou.Data.Database;
+using Shizou.Data.Enums.Mal;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
 
@@ -25,13 +26,16 @@ public partial class Anime
     [Inject]
     public NavigationManager NavigationManager { get; set; } = default!;
 
+    [Inject]
+    public MyAnimeListService MyAnimeListService { get; set; } = default!;
+
     private AniDbAnime? _anime;
     private ILookup<int, AniDbFile>? _filesGroupedByEpId;
     private HashSet<LocalFile>? _regularLocalFiles;
     private HashSet<FileWatchedState>? _fileWatchedStates;
     private HashSet<EpisodeWatchedState>? _epWatchedStates;
     private List<MalAniDbXref>? _malXrefs;
-    private Dictionary<int, MalAnime>? _malAnime;
+    private Dictionary<int, MalAnime>? _malAnimes;
 
     private readonly Regex _splitRegex = new(@"(?<=https?:\/\/\S*? \[.*?\])|(?=https?:\/\/\S*? \[.*?\])", RegexOptions.Compiled);
     private readonly Regex _matchRegex = new(@"(https?:\/\/\S*?) \[(.*?)\]", RegexOptions.Compiled);
@@ -69,7 +73,7 @@ public partial class Anime
             where ep.AniDbAnimeId == _anime.Id
             select ws).ToHashSet();
         _malXrefs = context.MalAniDbXrefs.Where(x => x.AniDbId == _anime.Id).ToList();
-        _malAnime = (from malAnime in context.MalAnimes
+        _malAnimes = (from malAnime in context.MalAnimes
             join xref in context.MalAniDbXrefs on malAnime.Id equals xref.MalId
             where xref.AniDbId == _anime.Id
             select malAnime).ToDictionary(a => a.Id);
@@ -126,5 +130,13 @@ public partial class Anime
             return;
         NavigationManager.NavigateTo(
             $"mpv:{NavigationManager.BaseUri}api/FileServer/{file.Id}{Path.GetExtension(file.PathTail)}?{Constants.IdentityCookieName}={IdentityCookie}");
+    }
+
+    private async Task UpdateMalState(ChangeEventArgs args, int animeId)
+    {
+        var state = Enum.Parse<AnimeState>((string)args.Value!);
+        if (await MyAnimeListService.UpdateAnimeState(animeId, state))
+        {
+        }
     }
 }
