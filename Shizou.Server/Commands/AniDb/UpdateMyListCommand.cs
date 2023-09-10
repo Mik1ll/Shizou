@@ -78,7 +78,7 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
                 }
                 else if (request.AddedEntryId is not null && CommandArgs.Fid is not null)
                 {
-                    SaveMyListId(request.AddedEntryId.Value, CommandArgs.Fid.Value);
+                    SaveMyListId(CommandArgs.Fid.Value, request.AddedEntryId.Value);
                 }
 
                 break;
