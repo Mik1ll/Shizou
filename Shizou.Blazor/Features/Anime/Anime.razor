@@ -21,14 +21,16 @@
             <div class="col-xl-3 col-lg-4 col-md-5 col-sm-6 d-flex justify-content-start align-items-start">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">@_anime.Title</h4>
+                        <h4 class="card-title">
+                            @_anime.Title <a href="https://anidb.net/anime/@(_anime.Id)" target="_blank">(@(_anime.Id))</a>
+                        </h4>
                         <p class="card-text">
                             @foreach (var s in _splitRegex.Split(_anime.Description ?? ""))
                             {
                                 var res = _matchRegex.Match(s);
                                 if (res.Success)
                                 {
-                                    <a href="@res.Groups[1]">@res.Groups[2]</a>
+                                    <a href="@res.Groups[1]" target="_blank">@res.Groups[2]</a>
                                 }
                                 else
                                 {
@@ -57,16 +59,19 @@
                                         _malAnimes!.TryGetValue(malXref.MalId, out var malAnime);
                                         <div class="border border-primary rounded p-1 d-inline-block">
                                             <img src="icons/mal.ico" style="height: 1.5em"/>
-                                            <a href="https://myanimelist.net/anime/@(malXref.MalId)" class="align-middle">@(malAnime?.Title ?? malXref.MalId.ToString())</a>
-                                            @if (malAnime is not null)
+                                            <a href="https://myanimelist.net/anime/@(malXref.MalId)" target="_blank" class="align-middle">@(malAnime?.Title ?? malXref.MalId.ToString())</a>
+                                            @if (malAnime?.Status is not null)
                                             {
-                                                <select class="form-select form-select-sm" @onchange="@(async args => await UpdateMalState(args, malAnime.Id))">
-                                                    <option selected="@(malAnime.Status is null)" disabled value="">No State</option>
-                                                    @foreach (var state in Enum.GetValues<AnimeState>())
-                                                    {
-                                                        <option selected="@(malAnime.Status?.State == state)" value="@((int)state)">@state</option>
-                                                    }
-                                                </select>
+                                                <EditForm Model="malAnime.Status" OnSubmit="@(() => UpdateMalStatus(malAnime))">
+                                                    <InputSelect @bind-Value="@(malAnime.Status.State)">
+                                                        @foreach (var state in Enum.GetValues<AnimeState>())
+                                                        {
+                                                            <option>@state</option>
+                                                        }
+                                                    </InputSelect>
+                                                    <InputNumber @bind-Value="@(malAnime.Status.WatchedEpisodes)" style="width: 3em;"></InputNumber> / @(malAnime.EpisodeCount)
+                                                    <button type="submit" class="btn btn-primary">Update</button>
+                                                </EditForm>
                                             }
                                         </div>
                                     }
@@ -150,7 +155,7 @@
                                                             <strong>
                                                                 @if (file.AniDbGroup is not null)
                                                                 {
-                                                                    <a href="https://anidb.net/group/@(file.AniDbGroupId)">[@(file.AniDbGroup.ShortName)]</a>
+                                                                    <a href="https://anidb.net/group/@(file.AniDbGroupId)" target="_blank">[@(file.AniDbGroup.ShortName)]</a>
                                                                     <text>&nbsp;</text>
                                                                 }
                                                                 else

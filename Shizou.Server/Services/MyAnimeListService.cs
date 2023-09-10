@@ -301,7 +301,7 @@ public class MyAnimeListService
         context.SaveChanges();
     }
 
-    public async Task<bool> UpdateAnimeState(int animeId, AnimeState state)
+    public async Task<bool> UpdateAnimeStatus(int animeId, MalStatus status)
     {
         var options = _optionsMonitor.CurrentValue;
         if (options.MyAnimeList.MyAnimeListToken is null)
@@ -324,14 +324,14 @@ public class MyAnimeListService
         var httpClient = _httpClientFactory.CreateClient();
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.MyAnimeList.MyAnimeListToken.AccessToken);
 
-        var stateStr = state switch
+        var stateStr = status.State switch
         {
             AnimeState.Watching => "watching",
             AnimeState.Completed => "completed",
             AnimeState.OnHold => "on_hold",
             AnimeState.Dropped => "dropped",
             AnimeState.PlanToWatch => "plan_to_watch",
-            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(status.State), status.State, null)
         };
 
         var request = new HttpRequestMessage(HttpMethod.Patch, QueryHelpers.AddQueryString($"https://api.myanimelist.net/v2/anime/{animeId}/my_list_status",
@@ -343,7 +343,8 @@ public class MyAnimeListService
         {
             Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
             {
-                new("status", stateStr)
+                new("status", stateStr),
+                new("num_watched_episodes", status.WatchedEpisodes.ToString())
             })
         };
 

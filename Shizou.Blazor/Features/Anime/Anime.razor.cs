@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Data;
 using Shizou.Data.Database;
-using Shizou.Data.Enums.Mal;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
 
@@ -132,10 +131,9 @@ public partial class Anime
             $"mpv:{NavigationManager.BaseUri}api/FileServer/{file.Id}{Path.GetExtension(file.PathTail)}?{Constants.IdentityCookieName}={IdentityCookie}");
     }
 
-    private async Task UpdateMalState(ChangeEventArgs args, int animeId)
+    private async Task UpdateMalStatus(MalAnime malAnime)
     {
-        var state = Enum.Parse<AnimeState>((string)args.Value!);
-        if (await MyAnimeListService.UpdateAnimeState(animeId, state))
+        if (await MyAnimeListService.UpdateAnimeStatus(malAnime.Id, malAnime.Status ?? throw new InvalidOperationException()))
         {
         }
     }
