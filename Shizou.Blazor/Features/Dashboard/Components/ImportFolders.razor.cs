@@ -14,9 +14,6 @@ public partial class ImportFolders
     private List<ImportFolder> _importFolders = default!;
 
     [Inject]
-    private IJSRuntime JsRuntime { get; set; } = default!;
-
-    [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
     [Inject]
@@ -31,11 +28,5 @@ public partial class ImportFolders
     {
         using var context = ContextFactory.CreateDbContext();
         _importFolders = context.ImportFolders.ToList();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await JsRuntime.InvokeVoidAsync("loadTooltip", "scan-button");
-        await base.OnAfterRenderAsync(firstRender);
     }
 }
