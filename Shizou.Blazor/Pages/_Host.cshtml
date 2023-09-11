@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="Shizou.Blazor.styles.css"/>
     @* ReSharper restore Html.PathError *@
     <link rel="icon" type="image/png" href="favicon.png"/>
+    <script src="js/theme.js"></script>
     <component type="typeof(HeadOutlet)" render-mode="Server"/>
 </head>
 <body>
@@ -44,18 +45,16 @@
 @* ReSharper disable Html.PathError *@
 <script src="_framework/blazor.server.js"></script>
 @* ReSharper restore Html.PathError *@
-<script>
-window.loadTooltip = (element) => {
-    const tooltip = new bootstrap.Tooltip(element);
-    element.addEventListener("click", function() {
-        tooltip.hide();
-    });
-}
-window.toggleTheme = () => {
-    const root = document.documentElement;
-    const currentTheme = root.getAttribute("data-bs-theme") || "light";
-    document.documentElement.setAttribute("data-bs-theme", currentTheme == "light" ? "dark" : "light");
-}
+<script type="text/javascript">
+(() => {
+    'use strict';
+    window.loadTooltip = (element) => {
+        const tooltip = new bootstrap.Tooltip(element);
+        element.addEventListener("click", function() {
+            tooltip.hide();
+        });
+    }
+})()
 </script>
 </body>
 </html>
