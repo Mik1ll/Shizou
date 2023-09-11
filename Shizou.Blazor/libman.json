@@ -6,7 +6,8 @@
       "library": "bootstrap@5.3.0",
       "files": [
         "js/bootstrap.bundle.min.js",
-        "js/bootstrap.bundle.min.js.map"
+        "js/bootstrap.bundle.min.js.map",
+        "css/bootstrap.min.css"
       ],
       "destination": "wwwroot/lib/bootstrap"
     },

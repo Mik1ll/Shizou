@@ -8,29 +8,31 @@
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
                     <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                        <span class="oi oi-home" aria-hidden="true"></span> Dashboard
+                        <i class="oi oi-home" aria-hidden="true"></i> Dashboard
                     </NavLink>
                 </li>
                 <li class="nav-item">
                     <NavLink class="nav-link" href="Collection" Match="NavLinkMatch.Prefix">
-                        <span class="oi oi-grid-three-up" aria-hidden="true"></span> Collection
+                        <i class="oi oi-grid-three-up" aria-hidden="true"></i> Collection
                     </NavLink>
                 </li>
-
+                <li class="nav-item">
+                    <button class="btn btn-primary" @onclick="@ToggleDarkMode">Toggle Dark Mode</button>
+                </li>
             </ul>
             <ul class="navbar-nav mb-2 mb-md-0">
                 <AuthorizeView>
                     <Authorized>
                         <li class="nav-item">
                             <NavLink class="nav-link" href="Account/Logout" Match="NavLinkMatch.All">
-                                <span class="oi oi-account-logout" aria-hidden="true"></span> Logout
+                                <i class="oi oi-account-logout" aria-hidden="true"></i> Logout
                             </NavLink>
                         </li>
                     </Authorized>
                     <NotAuthorized>
                         <li class="nav-item">
                             <NavLink class="nav-link" href="Account/Login" Match="NavLinkMatch.All">
-                                <span class="oi oi-account-logout" aria-hidden="true"></span> Login
+                                <i class="oi oi-account-logout" aria-hidden="true"></i> Login
                             </NavLink>
                         </li>
                     </NotAuthorized>

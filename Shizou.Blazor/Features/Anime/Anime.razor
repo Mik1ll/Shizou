@@ -7,7 +7,7 @@
 {
     <ModalVideo LocalFileId="@(_videoOpen.Value)" OnClose="@CloseVideo"></ModalVideo>
 }
-<div class="container-fluid">
+<article class="container-fluid">
     @if (_anime is not null)
     {
         <PageTitle>@_anime.Title</PageTitle>
@@ -236,4 +236,4 @@
         <PageTitle>Anime not Found</PageTitle>
         <h1>Anime not found</h1>
     }
-</div>
+</article>
