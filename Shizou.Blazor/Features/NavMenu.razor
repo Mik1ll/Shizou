@@ -8,31 +8,34 @@
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
                     <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                        <i class="oi oi-home" aria-hidden="true"></i> Dashboard
+                        <i class="bi bi-house-fill" aria-hidden="true"></i> Dashboard
                     </NavLink>
                 </li>
                 <li class="nav-item">
                     <NavLink class="nav-link" href="Collection" Match="NavLinkMatch.Prefix">
-                        <i class="oi oi-grid-three-up" aria-hidden="true"></i> Collection
+                        <i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i> Collection
                     </NavLink>
-                </li>
-                <li class="nav-item">
-                    <button class="btn btn-primary" @onclick="@ToggleDarkMode">Toggle Dark Mode</button>
                 </li>
             </ul>
             <ul class="navbar-nav mb-2 mb-md-0">
+                <li class="nav-item">
+                    <button type="button" class="btn btn-link nav-link w-100" @onclick="@ToggleDarkMode">
+                        <i class="bi @(_isDarkMode ? "bi-moon-stars-fill" : "bi-sun-fill")" aria-hidden="true"></i>
+                        <span class="d-lg-none">&nbsp;Toggle Theme</span>
+                    </button>
+                </li>
                 <AuthorizeView>
                     <Authorized>
                         <li class="nav-item">
                             <NavLink class="nav-link" href="Account/Logout" Match="NavLinkMatch.All">
-                                <i class="oi oi-account-logout" aria-hidden="true"></i> Logout
+                                <i class="bi bi-box-arrow-left" aria-hidden="true"></i> Logout
                             </NavLink>
                         </li>
                     </Authorized>
                     <NotAuthorized>
                         <li class="nav-item">
                             <NavLink class="nav-link" href="Account/Login" Match="NavLinkMatch.All">
-                                <i class="oi oi-account-logout" aria-hidden="true"></i> Login
+                                <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Login
                             </NavLink>
                         </li>
                     </NotAuthorized>

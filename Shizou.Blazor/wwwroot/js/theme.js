@@ -23,5 +23,6 @@ function toggleTheme() {
     const theme = currentTheme == "light" ? "dark" : "light";
     setStoredTheme(theme);
     setTheme(theme);
+    return theme;
 }
 setTheme(getPreferredTheme())
