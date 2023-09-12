@@ -6,14 +6,16 @@
     <div class="row gx-2 align-items-end">
         @foreach (var anime in _anime)
         {
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-5 col-xs-6">
+            <div class="col-xl-2 col-lg-3 col-md-4 col-6">
                 <div class="card text-center p-2 mt-2" role="button" @onclick="@(() => GoToAnime(anime.Id))">
                     @if (anime.ImageFilename is not null)
                     {
                         <img class="card-img img-fluid collection-card-img" src="@($"{WebPaths.AnimePostersDir}/{anime.ImageFilename}")">
                     }
-                    <div class="card-footer collection-card-footer">
-                        @(anime.Title)
+                    <div class="card-img-overlay d-flex p-0">
+                        <div class="align-self-end h-25 p-2 text-white bg-black bg-opacity-25 w-100 overflow-hidden" style="text-shadow: 2px 2px 3px #000">
+                            @(anime.Title)
+                        </div>
                     </div>
                 </div>
             </div>
