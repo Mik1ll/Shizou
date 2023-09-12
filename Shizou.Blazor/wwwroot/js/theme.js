@@ -15,9 +15,11 @@ const setTheme = theme => {
         document.documentElement.setAttribute('data-bs-theme', theme)
     }
 }
-window.toggleTheme = () => {
-    const root = document.documentElement;
-    const currentTheme = root.getAttribute("data-bs-theme") || "light";
+function getTheme() {
+    return document.documentElement.getAttribute("data-bs-theme") || "light";
+}
+function toggleTheme() {
+    const currentTheme = getTheme();
     const theme = currentTheme == "light" ? "dark" : "light";
     setStoredTheme(theme);
     setTheme(theme);

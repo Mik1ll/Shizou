@@ -46,15 +46,13 @@
 <script src="_framework/blazor.server.js"></script>
 @* ReSharper restore Html.PathError *@
 <script type="text/javascript">
-(() => {
+function loadTooltip(element) {
     'use strict';
-    window.loadTooltip = (element) => {
-        const tooltip = new bootstrap.Tooltip(element);
-        element.addEventListener("click", function() {
-            tooltip.hide();
-        });
-    }
-})()
+    const tooltip = new bootstrap.Tooltip(element);
+    element.addEventListener("click", function() {
+        tooltip.hide();
+    });
+}
 </script>
 </body>
 </html>
