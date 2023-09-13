@@ -1,17 +1,19 @@
 ﻿@inherits LayoutComponentBase
 
 <PageTitle>Shizou</PageTitle>
-<NavMenu/>
-<main class="content px-4">
-    <ErrorBoundary @ref="@_errorBoundary">
-        <ChildContent>
-            @Body
-        </ChildContent>
-        <ErrorContent>
-            <div class="blazor-error-boundary">
-                @(context.Message)<br/>
-                @(context.StackTrace)
-            </div>
-        </ErrorContent>
-    </ErrorBoundary>
-</main>
+<ToastDisplay>
+    <NavMenu/>
+    <main class="content px-4">
+        <ErrorBoundary @ref="@_errorBoundary">
+            <ChildContent>
+                @Body
+            </ChildContent>
+            <ErrorContent>
+                <div class="blazor-error-boundary">
+                    @(context.Message)<br/>
+                    @(context.StackTrace)
+                </div>
+            </ErrorContent>
+        </ErrorBoundary>
+    </main>
+</ToastDisplay>
