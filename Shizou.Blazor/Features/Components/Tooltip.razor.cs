@@ -7,6 +7,7 @@ public partial class Tooltip
 {
     private string _classes = string.Empty;
     private ElementReference _elementReference;
+    private bool _isLoaded = false;
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -23,7 +24,12 @@ public partial class Tooltip
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        JsRuntime.InvokeVoidAsync("loadTooltip", _elementReference);
+        if (!_isLoaded)
+        {
+            JsRuntime.InvokeVoidAsync("loadTooltip", _elementReference);
+            _isLoaded = true;
+        }
+
         return base.OnAfterRenderAsync(firstRender);
     }
 
