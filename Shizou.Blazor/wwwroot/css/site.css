@@ -73,6 +73,6 @@ table .absorbing-column {
 }
 
 .white-tooltip {
-    --bs-tooltip-color: var(--bs-secondary);
-    --bs-tooltip-bg: var(--bs-body-color);
+    --bs-tooltip-color: var(--bs-black);
+    --bs-tooltip-bg: var(--bs-white);
 }
