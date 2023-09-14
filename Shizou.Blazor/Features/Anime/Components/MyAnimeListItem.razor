@@ -1,0 +1,18 @@
+﻿@using Shizou.Data.Enums.Mal
+<div class="border border-primary rounded p-1 d-inline-block">
+    <img src="icons/mal.ico" style="height: 1.5em"/>
+    <a href="https://myanimelist.net/anime/@(MalId)" target="_blank" class="align-middle">@(MalAnime?.Title ?? MalId.ToString())</a>
+    @if (MalAnime?.Status is not null)
+    {
+        <EditForm Model="MalAnime.Status" OnSubmit="@(() => UpdateMalStatus(MalAnime))">
+            <InputSelect @bind-Value="@(MalAnime.Status.State)">
+                @foreach (var state in Enum.GetValues<AnimeState>())
+                {
+                    <option>@state</option>
+                }
+            </InputSelect>
+            <InputNumber @bind-Value="@(MalAnime.Status.WatchedEpisodes)" style="width: 3em;"></InputNumber> / @(MalAnime.EpisodeCount)
+            <button type="submit" class="btn btn-primary">Update</button>
+        </EditForm>
+    }
+</div>

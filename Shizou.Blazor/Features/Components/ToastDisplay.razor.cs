@@ -9,9 +9,9 @@ public partial class ToastDisplay
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    public void AddToast(string title, string body)
+    public void AddToast(string title, string body, ToastStyle toastStyle)
     {
-        _toasts.Add(new ToastItem(title, body, DateTimeOffset.Now));
+        _toasts.Add(new ToastItem(title, body, DateTimeOffset.Now, toastStyle));
         StateHasChanged();
     }
 }

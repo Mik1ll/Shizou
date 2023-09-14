@@ -1,7 +1,5 @@
 ﻿@page "/Collection/{AnimeId:int}"
-@using Shizou.Data.Enums.Mal
 @using Shizou.Data.Enums
-
 
 @if (_videoOpen is not null)
 {
@@ -57,23 +55,7 @@
                                     @foreach (var malXref in _malXrefs)
                                     {
                                         _malAnimes!.TryGetValue(malXref.MalId, out var malAnime);
-                                        <div class="border border-primary rounded p-1 d-inline-block">
-                                            <img src="icons/mal.ico" style="height: 1.5em"/>
-                                            <a href="https://myanimelist.net/anime/@(malXref.MalId)" target="_blank" class="align-middle">@(malAnime?.Title ?? malXref.MalId.ToString())</a>
-                                            @if (malAnime?.Status is not null)
-                                            {
-                                                <EditForm Model="malAnime.Status" OnSubmit="@(() => UpdateMalStatus(malAnime))">
-                                                    <InputSelect @bind-Value="@(malAnime.Status.State)">
-                                                        @foreach (var state in Enum.GetValues<AnimeState>())
-                                                        {
-                                                            <option>@state</option>
-                                                        }
-                                                    </InputSelect>
-                                                    <InputNumber @bind-Value="@(malAnime.Status.WatchedEpisodes)" style="width: 3em;"></InputNumber> / @(malAnime.EpisodeCount)
-                                                    <button type="submit" class="btn btn-primary">Update</button>
-                                                </EditForm>
-                                            }
-                                        </div>
+                                        <MyAnimeListItem MalId="@(malXref.MalId)" MalAnime="@malAnime"></MyAnimeListItem>
                                     }
                                 </li>
                             }

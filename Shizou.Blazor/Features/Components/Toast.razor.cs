@@ -3,13 +3,22 @@ using Microsoft.JSInterop;
 
 namespace Shizou.Blazor.Features.Components;
 
-public record ToastItem(string Title, string Body, DateTimeOffset TriggerTime);
+public enum ToastStyle
+{
+    Info,
+    Success,
+    Warning,
+    Error
+}
+
+public record ToastItem(string Title, string Body, DateTimeOffset TriggerTime, ToastStyle ToastStyle);
 
 public partial class Toast
 {
     private ElementReference _elementReference;
 
     private bool _isLoaded = false;
+    private string _classes = string.Empty;
 
     [Parameter]
     [EditorRequired]
@@ -17,6 +26,19 @@ public partial class Toast
 
     [Inject]
     public IJSRuntime JsRuntime { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        _classes = ToastItem.ToastStyle switch
+        {
+            ToastStyle.Info => "",
+            ToastStyle.Success => "text-bg-success",
+            ToastStyle.Warning => "text-bg-warning",
+            ToastStyle.Error => "text-bg-danger",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        base.OnInitialized();
+    }
 
 
     protected override Task OnAfterRenderAsync(bool firstRender)

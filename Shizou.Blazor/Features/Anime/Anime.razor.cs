@@ -130,11 +130,4 @@ public partial class Anime
         NavigationManager.NavigateTo(
             $"mpv:{NavigationManager.BaseUri}api/FileServer/{file.Id}{Path.GetExtension(file.PathTail)}?{Constants.IdentityCookieName}={IdentityCookie}");
     }
-
-    private async Task UpdateMalStatus(MalAnime malAnime)
-    {
-        if (await MyAnimeListService.UpdateAnimeStatus(malAnime.Id, malAnime.Status ?? throw new InvalidOperationException()))
-        {
-        }
-    }
 }
