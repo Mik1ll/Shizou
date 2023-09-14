@@ -1,0 +1,46 @@
+﻿@using Shizou.Data.Enums
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <td>Ep</td>
+        <td>Title</td>
+        <td>Dur</td>
+        <td>Air Date</td>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var ep in _episodes.OrderBy(e => e.EpisodeType).ThenBy(e => e.Number))
+    {
+        var epWatchedState = _epWatchedStates!.First(ws => ep.Id == ws.Id);
+        <tr role="button" @onclick="@(() => ToggleEpExpand(ep))">
+            <td>
+                @EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number)
+            </td>
+            <td class="">
+                @(ep.TitleRomaji ?? ep.TitleEnglish)
+            </td>
+            <td>
+                @($"{(ep.DurationMinutes is null ? "??" : ep.DurationMinutes.ToString())} min")
+            </td>
+            <td>
+                @(ep.AirDate?.ToString("yyyy-MM-dd"))
+            </td>
+        </tr>
+        @if (_episodeExpanded.TryGetValue(ep.Id, out var expanded) && expanded)
+        {
+            <tr>
+                <td colspan="5">
+                    @foreach (var (aniDbFile, watchedState, localFile) in GetAniDbFiles(ep.Id))
+                    {
+                        <FileCard AniDbFile="@aniDbFile" FileWatchedState="@watchedState" LocalFile="@localFile" EpisodeWatchedState="@epWatchedState"></FileCard>
+                    }
+                    @foreach (var localFile in GetManualLinks(ep.Id))
+                    {
+                        <FileCard AniDbFile="@null" FileWatchedState="@null" LocalFile="@localFile" EpisodeWatchedState="@epWatchedState"></FileCard>
+                    }
+                </td>
+            </tr>
+        }
+    }
+    </tbody>
+</table>

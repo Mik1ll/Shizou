@@ -1,0 +1,63 @@
+﻿@if (_videoOpen is not null)
+{
+    <ModalVideo LocalFileId="@(_videoOpen.Value)" OnClose="@CloseVideo"></ModalVideo>
+}
+<div class="card">
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+            <div class="d-flex justify-content-between">
+                <div>
+                    @if (LocalFile is not null)
+                    {
+                        <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideo(LocalFile.Id))">
+                            <i class="bi bi-play"></i> Play
+                        </button>
+                        <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenInMpv(LocalFile))">
+                            <i class="bi bi-play"></i> Play in Mpv
+                        </button>
+                    }
+                </div>
+                <div>
+                    <button class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => Mark(!_watchedState.Watched))">
+                        <i class="bi @(_watchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
+                    </button>
+                </div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <span>
+                <strong>
+                    @if (AniDbFile is null)
+                    {
+                        @("Manual Link")
+                    }
+                    else if (AniDbFile.AniDbGroup is not null)
+                    {
+                        <a href="https://anidb.net/group/@(AniDbFile.AniDbGroupId)" target="_blank">[@(AniDbFile.AniDbGroup.ShortName)]</a>
+                        <span>&nbsp;</span>
+                    }
+                    else
+                    {
+                        <span>No Group&nbsp;</span>
+                    }
+                </strong>
+                @if (AniDbFile?.Video is not null)
+                {
+                    <span>@(AniDbFile.Video.Height)x@(AniDbFile.Video.Width) @(AniDbFile.Video.ColorDepth)bit&nbsp;</span>
+                }
+                <strong>@(AniDbFile?.Source)</strong>
+                @(LocalFile?.Crc)
+            </span>
+        </li>
+        <li class="list-group-item">
+            @if (LocalFile is not null)
+            {
+                @(Path.GetFileName(LocalFile.PathTail))
+            }
+            else
+            {
+                @("Local file not found")
+            }
+        </li>
+    </ul>
+</div>
