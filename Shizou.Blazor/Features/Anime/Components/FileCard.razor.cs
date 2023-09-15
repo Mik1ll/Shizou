@@ -27,22 +27,23 @@ public partial class FileCard
 
     [Parameter]
     [EditorRequired]
-    public EpisodeWatchedState EpisodeWatchedState { get; set; } = default!;
+    public EpisodeWatchedState? EpisodeWatchedState { get; set; }
+
 
     [Inject]
     public WatchStateService WatchStateService { get; set; } = default!;
-
 
     [Inject]
     public NavigationManager NavigationManager { get; set; } = default!;
 
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
-        _watchedState = FileWatchedState as IWatchedState ?? EpisodeWatchedState;
-        base.OnInitialized();
+        _watchedState = AniDbFile is null
+            ? EpisodeWatchedState ?? throw new ArgumentNullException(nameof(EpisodeWatchedState))
+            : FileWatchedState ?? throw new ArgumentNullException(nameof(FileWatchedState));
     }
-
+    
     private void Mark(bool watched)
     {
         switch (_watchedState)
@@ -58,10 +59,6 @@ public partial class FileCard
             default:
                 throw new ArgumentOutOfRangeException(nameof(_watchedState));
         }
-    }
-
-    private void MarkUnwatched()
-    {
     }
 
     private void OpenVideo(int localFileId)

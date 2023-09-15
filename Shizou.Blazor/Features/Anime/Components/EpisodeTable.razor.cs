@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
-using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Anime.Components;
 
@@ -11,6 +10,8 @@ public partial class EpisodeTable
     private readonly Dictionary<int, bool> _episodeExpanded = new();
     private HashSet<AniDbEpisode> _episodes = default!;
     private HashSet<EpisodeWatchedState> _epWatchedStates = default!;
+    private Dictionary<int, List<(AniDbFile, FileWatchedState?, LocalFile?)>> _files = new();
+    private Dictionary<int, List<LocalFile>> _manualLinks = new();
 
     [Parameter]
     [EditorRequired]
@@ -20,9 +21,17 @@ public partial class EpisodeTable
     [Inject]
     public IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
-    [Inject]
-    public WatchStateService WatchStateService { get; set; } = default!;
+    public void Reload()
+    {
+        foreach (var (epId, _) in _episodeExpanded.Where(ep => ep.Value))
+        {
+            _files[epId] = GetAniDbFiles(epId);
+            _manualLinks[epId] = GetManualLinks(epId);
+        }
 
+        StateHasChanged();
+    }
+    
     protected override void OnInitialized()
     {
         using var context = ContextFactory.CreateDbContext();
@@ -35,14 +44,18 @@ public partial class EpisodeTable
         _epWatchedStates = epResult.Select(r => r.ws).ToHashSet();
         base.OnInitialized();
     }
-
-
+    
     private void ToggleEpExpand(AniDbEpisode ep)
     {
         if (_episodeExpanded.TryGetValue(ep.Id, out var expanded))
             _episodeExpanded[ep.Id] = !expanded;
         else
             _episodeExpanded[ep.Id] = true;
+        if (_episodeExpanded[ep.Id])
+        {
+            _files[ep.Id] = GetAniDbFiles(ep.Id);
+            _manualLinks[ep.Id] = GetManualLinks(ep.Id);
+        }
     }
 
     private List<(AniDbFile, FileWatchedState?, LocalFile?)> GetAniDbFiles(int episodeId)

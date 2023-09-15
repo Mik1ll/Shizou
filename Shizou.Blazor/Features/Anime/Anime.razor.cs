@@ -18,6 +18,7 @@ public partial class Anime
     private AniDbAnime? _anime;
     private Dictionary<int, MalAnime>? _malAnimes;
     private List<MalAniDbXref>? _malXrefs;
+    private EpisodeTable _episodeTable = default!;
 
     [CascadingParameter]
     public ToastDisplay ToastDisplay { get; set; } = default!;
@@ -48,18 +49,9 @@ public partial class Anime
     private void MarkAllWatched(AniDbAnime anime)
     {
         if (WatchStateService.MarkAnime(anime.Id, true))
-        {
-            foreach (var ws in _fileWatchedStates!)
-                ws.Watched = true;
-            foreach (var ws in from ws in _epWatchedStates
-                     join ep in _anime!.AniDbEpisodes
-                         on ws.Id equals ep.Id
-                     where ep.ManualLinkLocalFiles.Any()
-                     select ws)
-                ws.Watched = true;
-        }
             ToastDisplay.AddToast("Success", "Anime files marked watched", ToastStyle.Success);
         else
             ToastDisplay.AddToast("Error", "Something went wrong while marking anime files watched", ToastStyle.Error);
+        _episodeTable.Reload();
     }
 }
