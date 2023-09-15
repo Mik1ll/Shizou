@@ -1,9 +1,5 @@
 ﻿@page "/Collection/{AnimeId:int}"
 
-@if (_videoOpen is not null)
-{
-    <ModalVideo LocalFileId="@(_videoOpen.Value)" OnClose="@CloseVideo"></ModalVideo>
-}
 <article class="container-fluid">
     @if (_anime is not null)
     {
