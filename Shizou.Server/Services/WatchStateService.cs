@@ -118,10 +118,12 @@ public class WatchStateService
             select episode).ToList();
 
         foreach (var f in filesWithLocal)
-            MarkFile(f.Id, watched, updatedTime);
+            if (!MarkFile(f.Id, watched, updatedTime))
+                return false;
 
         foreach (var ep in epsWithManualLink)
-            MarkEpisode(ep.Id, watched, updatedTime);
+            if (!MarkEpisode(ep.Id, watched, updatedTime))
+                return false;
         return true;
     }
 }
