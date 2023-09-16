@@ -62,11 +62,38 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
         var myListItems = MyListResultToMyListItems(myListResult);
 
+        RelationshipFixup(myListItems);
+
         UpdateFileStates(myListItems);
 
         _commandService.Dispatch(new AddMissingMyListEntriesArgs());
 
         Completed = true;
+    }
+
+    private void RelationshipFixup(List<MyListItem> myListItems)
+    {
+        var eAnimeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
+        var matchedItems = from item in myListItems
+            join xref in _context.AniDbEpisodeFileXrefs on item.Fid equals xref.AniDbFileId into eRels
+            where eRels.Any()
+            // I don't know why this inspection occurs, probably a bug?
+            // ReSharper disable once UseWithExpressionToCopyAnonymousObject
+            select new { item, eRels };
+        foreach (var pair in matchedItems)
+        {
+            var rels = pair.item.Eids.Select(eid => new AniDbEpisodeFileXref { AniDbEpisodeId = eid, AniDbFileId = pair.item.Fid }).ToList();
+            var eRels = pair.eRels.ToList();
+
+            _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(rels.Select(x => x.AniDbEpisodeId), x => x.AniDbEpisodeId));
+            _context.AniDbEpisodeFileXrefs.AddRange(rels.ExceptBy(eRels.Select(x => x.AniDbEpisodeId), x => x.AniDbEpisodeId));
+
+            foreach (var aid in pair.item.Aids)
+                if (!eAnimeIds.Contains(aid))
+                    _commandService.Dispatch(new AnimeArgs(aid));
+        }
+
+        _context.SaveChanges();
     }
 
     private static List<MyListItem> MyListResultToMyListItems(MyListResult myListResult)
