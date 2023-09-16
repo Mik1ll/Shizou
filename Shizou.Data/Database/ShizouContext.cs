@@ -26,7 +26,6 @@ public sealed class ShizouContext : IdentityDbContext
     public DbSet<LocalFile> LocalFiles { get; set; } = null!;
     public DbSet<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; set; } = null!;
     public DbSet<AniDbGenericFile> AniDbGenericFiles { get; set; } = null!;
-    public DbSet<ManualLinkXref> ManualLinkXrefs { get; set; } = null!;
     public DbSet<ScheduledCommand> ScheduledCommands { get; set; } = null!;
     public DbSet<IgnoredMessage> IgnoredMessages { get; set; } = null!;
     public DbSet<MalAniDbXref> MalAniDbXrefs { get; set; } = null!;
@@ -70,8 +69,7 @@ public sealed class ShizouContext : IdentityDbContext
         select f;
 
     public IQueryable<AniDbEpisode> EpisodesWithManualLinks => from e in AniDbEpisodes
-            .Include(e => e.ManualLinkXrefs)
-        where e.ManualLinkXrefs.Any()
+        where e.ManualLinkLocalFiles.Any()
         select e;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -90,10 +88,6 @@ public sealed class ShizouContext : IdentityDbContext
         modelBuilder.Entity<AniDbFile>()
             .OwnsMany(f => f.Subtitles)
             .WithOwner(s => s.AniDbFile);
-        modelBuilder.Entity<AniDbEpisode>()
-            .HasMany(e => e.ManualLinkLocalFiles)
-            .WithMany(e => e.ManualLinkEpisodes)
-            .UsingEntity<ManualLinkXref>();
 
         base.OnModelCreating(modelBuilder);
     }

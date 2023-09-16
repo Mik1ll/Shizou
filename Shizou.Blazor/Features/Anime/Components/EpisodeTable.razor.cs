@@ -64,21 +64,18 @@ public partial class EpisodeTable
         var result = (from f in context.AniDbFiles.Include(f => f.AniDbGroup)
             join xref in context.AniDbEpisodeFileXrefs on f.Id equals xref.AniDbFileId
             where xref.AniDbEpisodeId == episodeId
-            join lf in context.LocalFiles on f.Ed2k equals lf.Ed2k into lflj
+            join sublf in context.LocalFiles on f.Ed2k equals sublf.Ed2k into lflj
             from lf in lflj.DefaultIfEmpty()
-            join ws in context.FileWatchedStates on f.Id equals ws.Id into wslj
+            join subws in context.FileWatchedStates on f.Id equals subws.Id into wslj
             from ws in wslj.DefaultIfEmpty()
             select new { f, ws, lf }).ToList();
-        return result.Select(x => (x.f, x.ws, x.lf)).ToList();
+        return result.Select(x => (x.f, (FileWatchedState?)x.ws, (LocalFile?)x.lf)).ToList();
     }
 
     private List<LocalFile> GetManualLinks(int episodeId)
     {
         using var context = ContextFactory.CreateDbContext();
-        var result = (from lf in context.LocalFiles
-            join xref in context.ManualLinkXrefs on lf.Id equals xref.LocalFileId
-            where xref.AniDbEpisodeId == episodeId
-            select lf).ToList();
+        var result = context.LocalFiles.Where(lf => lf.ManualLinkEpisodeId == episodeId).ToList();
         return result;
     }
 }

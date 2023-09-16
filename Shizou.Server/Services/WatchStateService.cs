@@ -63,8 +63,9 @@ public class WatchStateService
     {
         updatedTime ??= DateTime.UtcNow;
         using var context = _contextFactory.CreateDbContext();
-        if (context.AniDbEpisodes.AsNoTracking().Include(ep => ep.ManualLinkXrefs)
-                .FirstOrDefault(ep => ep.Id == episodeId) is not { } episode)
+        var episode = context.AniDbEpisodes.AsNoTracking().Include(ep => ep.ManualLinkLocalFiles)
+            .FirstOrDefault(ep => ep.Id == episodeId);
+        if (episode is null)
         {
             _logger.LogWarning("Episode Id {EpisodeId} not found, not marking", episodeId);
             return false;
@@ -86,7 +87,7 @@ public class WatchStateService
 
 
         var myListOptions = _optionsMonitor.CurrentValue.AniDb.MyList;
-        var state = episode.ManualLinkXrefs.Any() ? myListOptions.PresentFileState : myListOptions.AbsentFileState;
+        var state = episode.ManualLinkLocalFiles.Any() ? myListOptions.PresentFileState : myListOptions.AbsentFileState;
 
         // Don't use generic episode mylist edit, because it edits all files not just generic
         var fileId = context.AniDbGenericFiles.AsNoTracking().FirstOrDefault(gf => gf.AniDbEpisodeId == episodeId)?.Id;
@@ -113,8 +114,8 @@ public class WatchStateService
         var filesWithLocal = (from file in context.FilesFromAnime(animeId)
             where context.LocalFiles.Any(lf => lf.Ed2k == file.Ed2k)
             select file).ToList();
-        var epsWithManualLink = (from episode in context.AniDbEpisodes.Include(ep => ep.ManualLinkXrefs)
-            where episode.AniDbAnimeId == animeId && episode.ManualLinkXrefs.Any()
+        var epsWithManualLink = (from episode in context.AniDbEpisodes
+            where episode.AniDbAnimeId == animeId && episode.ManualLinkLocalFiles.Any()
             select episode).ToList();
 
         foreach (var f in filesWithLocal)

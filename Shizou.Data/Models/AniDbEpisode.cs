@@ -26,7 +26,4 @@ public class AniDbEpisode : IEntity
 
     [JsonIgnore]
     public List<LocalFile> ManualLinkLocalFiles { get; set; } = null!;
-
-    [JsonIgnore]
-    public List<ManualLinkXref> ManualLinkXrefs { get; set; } = null!;
 }
