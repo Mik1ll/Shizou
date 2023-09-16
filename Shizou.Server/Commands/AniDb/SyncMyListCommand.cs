@@ -80,6 +80,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
             // I don't know why this inspection occurs, probably a bug?
             // ReSharper disable once UseWithExpressionToCopyAnonymousObject
             select new { item, eRels };
+        var animeToAdd = new HashSet<int>();
         foreach (var pair in matchedItems)
         {
             var rels = pair.item.Eids.Select(eid => new AniDbEpisodeFileXref { AniDbEpisodeId = eid, AniDbFileId = pair.item.Fid }).ToList();
@@ -90,9 +91,10 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 
             foreach (var aid in pair.item.Aids)
                 if (!eAnimeIds.Contains(aid))
-                    _commandService.Dispatch(new AnimeArgs(aid));
+                    animeToAdd.Add(aid);
         }
 
+        _commandService.DispatchRange(animeToAdd.Select(aid => new AnimeArgs(aid)));
         _context.SaveChanges();
     }
 
