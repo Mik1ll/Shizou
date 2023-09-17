@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -111,12 +112,14 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     {
     }
 
+    [SuppressMessage("ReSharper.DPA", "DPA0006: Large number of DB commands", MessageId = "count: 2000")]
     public void UpdateCommandsInQueue(ShizouContext context)
     {
         CommandsInQueue = context.CommandRequests.ByQueue(QueueType).Count();
         _wakeupTokenSource?.Cancel();
     }
 
+    [SuppressMessage("ReSharper.DPA", "DPA0006: Large number of DB commands", MessageId = "count: 2000")]
     private void GetScheduledCommands(ShizouContext context, CommandService commandService)
     {
         var scheduledCommands = context.ScheduledCommands.ByQueue(QueueType)
@@ -141,8 +144,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     public void ClearQueue()
     {
         using var context = _contextFactory.CreateDbContext();
-        context.CommandRequests.ClearQueue(QueueType);
-        context.SaveChanges();
+        context.CommandRequests.ByQueue(QueueType).ExecuteDelete();
         UpdateCommandsInQueue(context);
         Logger.LogInformation("{QueueType} queue cleared", Enum.GetName(QueueType));
     }

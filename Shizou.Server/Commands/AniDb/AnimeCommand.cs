@@ -88,9 +88,13 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
             else
                 _context.AniDbEpisodes.Add(ep);
 
-        foreach (var ep in aniDbAnime.AniDbEpisodes
-                     .ExceptBy(_context.EpisodeWatchedStates.Select(ws => ws.Id).ToList(), ep => ep.Id))
-            _context.EpisodeWatchedStates.Add(new EpisodeWatchedState { Id = ep.Id, Watched = false, WatchedUpdated = null });
+        // ReSharper disable once MethodHasAsyncOverload
+        _context.SaveChanges();
+
+        foreach (var epId in _context.AniDbEpisodes.Where(ep =>
+                         ep.AniDbAnimeId == aniDbAnime.Id && !_context.EpisodeWatchedStates.Any(ws => ws.Id == ep.Id))
+                     .Select(ep => ep.Id))
+            _context.EpisodeWatchedStates.Add(new EpisodeWatchedState { Id = epId, Watched = false, WatchedUpdated = null });
 
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();

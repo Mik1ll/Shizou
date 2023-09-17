@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 
@@ -18,10 +17,5 @@ public static class CommandRequestsExtensions
     public static CommandRequest? NextRequest(this IQueryable<CommandRequest> commandRequests, QueueType queueType)
     {
         return commandRequests.ByQueue(queueType).FirstOrDefault();
-    }
-
-    public static void ClearQueue(this DbSet<CommandRequest> commandRequests, QueueType queueType)
-    {
-        commandRequests.RemoveRange(commandRequests.ByQueue(queueType));
     }
 }

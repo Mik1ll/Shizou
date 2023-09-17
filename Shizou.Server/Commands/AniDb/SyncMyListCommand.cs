@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -110,6 +111,7 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         }).ToList();
     }
 
+    [SuppressMessage("ReSharper.DPA", "DPA0007: Large number of DB records", MessageId = "count: 2000")]
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
         var dbFiles = _context.FileWatchedStates.Select(ws => new { FileId = ws.Id, WatchedState = (IWatchedState)ws }).ToList()
