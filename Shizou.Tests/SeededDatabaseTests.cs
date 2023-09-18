@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
@@ -21,8 +20,7 @@ public class SeededDatabaseTests
         {
             if (!_databaseInitialized)
             {
-                using var scope = GetServiceCollection().BuildServiceProvider().CreateScope();
-                using var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
+                using var context = GetContext();
                 context.Database.EnsureDeleted();
                 context.Database.Migrate();
                 context.AniDbAnimes.AddRange(new AniDbAnime
@@ -46,11 +44,8 @@ public class SeededDatabaseTests
         }
     }
 
-    protected static ServiceCollection GetServiceCollection()
+    protected static ShizouContext GetContext()
     {
-        var collection = new ServiceCollection();
-        collection.AddDbContextFactory<ShizouContext>(opts => opts.UseSqlite(ConnectionString));
-        collection.AddLogging();
-        return collection;
+        return new ShizouContext(new DbContextOptionsBuilder<ShizouContext>().UseSqlite(ConnectionString).Options);
     }
 }

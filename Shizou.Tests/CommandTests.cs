@@ -1,29 +1,33 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Shizou.Data.Database;
+using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.Commands.AniDb;
 using Shizou.Server.FileCaches;
+using Shizou.Server.Options;
+using Shizou.Server.Services;
 
 namespace Shizou.Tests;
 
 [TestClass]
 public class CommandTests
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public CommandTests()
-    {
-        var serviceCollection = new ServiceCollection();
-        serviceCollection.AddDbContext<ShizouContext>();
-        serviceCollection.AddScoped<HttpAnimeResultCache>();
-        serviceCollection.AddLogging();
-        _serviceProvider = serviceCollection.BuildServiceProvider();
-    }
-
     [TestMethod]
     // ReSharper disable once InconsistentNaming
     public void TestDI()
     {
-        using var scope = _serviceProvider.CreateScope();
-        ActivatorUtilities.CreateInstance(scope.ServiceProvider, typeof(AnimeCommand), new AnimeArgs(5));
+        var provider = new ServiceCollection()
+            .AddScoped<HttpAnimeResultCache>()
+            .AddScoped<HttpRequestFactory>()
+            .AddScoped<ImageService>()
+            .AddScoped<MyAnimeListService>()
+            .AddHttpClient()
+            .AddOptions<ShizouOptions>().Services
+            .AddScoped<CommandService>()
+            .AddTransient<AnimeCommand>()
+            .AddDbContextFactory<ShizouContext>()
+            .AddLogging()
+            .BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        scope.ServiceProvider.GetRequiredService<AnimeCommand>();
     }
 }
