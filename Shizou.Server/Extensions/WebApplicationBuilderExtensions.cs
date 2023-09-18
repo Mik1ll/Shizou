@@ -63,7 +63,7 @@ public static class WebApplicationBuilderExtensions
 
     public static WebApplicationBuilder AddShizouServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddDbContext<ShizouContext>(optionsLifetime: ServiceLifetime.Singleton);
+        builder.Services.AddDbContextFactory<ShizouContext>();
         builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedEmail = false;
@@ -94,7 +94,6 @@ public static class WebApplicationBuilderExtensions
             opts.Cookie.Name = Constants.IdentityCookieName;
         });
 
-        builder.Services.AddDbContextFactory<ShizouContext>();
 
         builder.Services.AddScoped<AniDbFileResultCache>();
         builder.Services.AddScoped<HttpAnimeResultCache>();
