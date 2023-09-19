@@ -23,7 +23,6 @@ using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.AniDbApi.Requests.Image;
 using Shizou.Server.AniDbApi.Requests.Udp;
-using Shizou.Server.AniDbApi.Requests.Udp.Notify;
 using Shizou.Server.CommandProcessors;
 using Shizou.Server.Commands;
 using Shizou.Server.Commands.AniDb;
@@ -106,9 +105,6 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddTransient<SyncMyListCommand>();
         builder.Services.AddTransient<UpdateMyListCommand>();
         builder.Services.AddTransient<AddMissingMyListEntriesCommand>();
-        builder.Services.AddTransient<ExportCommand>();
-        builder.Services.AddTransient<ExportPollCommand>();
-        builder.Services.AddTransient<SyncMyListFromExportCommand>();
         builder.Services.AddTransient<GetImageCommand>();
         builder.Services.AddTransient<RestoreMyListBackupCommand>();
 
@@ -160,12 +156,6 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddTransient<LogoutRequest>();
         builder.Services.AddTransient<MyListAddRequest>();
         builder.Services.AddTransient<PingRequest>();
-        builder.Services.AddTransient<NotifyListRequest>();
-        builder.Services.AddTransient<NotifyGetRequest>();
-        builder.Services.AddTransient<NotifyAckRequest>();
-        builder.Services.AddTransient<MessageGetRequest>();
-        builder.Services.AddTransient<MessageAckRequest>();
-        builder.Services.AddTransient<MyListExportRequest>();
         builder.Services.AddTransient<MyListEntryRequest>();
 
         builder.Services.AddTransient<IAnimeRequest, HttpAnimeRequest>();

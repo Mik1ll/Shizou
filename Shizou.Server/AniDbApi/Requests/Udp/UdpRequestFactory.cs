@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Shizou.Data.Enums;
-using Shizou.Server.AniDbApi.Requests.Udp.Notify;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
@@ -171,57 +170,6 @@ public class UdpRequestFactory
     public PingRequest PingRequest()
     {
         var request = _provider.GetRequiredService<PingRequest>();
-        request.ParametersSet = true;
-        return request;
-    }
-
-    public NotifyListRequest NotifyListRequest()
-    {
-        var request = _provider.GetRequiredService<NotifyListRequest>();
-        request.ParametersSet = true;
-        return request;
-    }
-
-    public MessageGetRequest MessageGetRequest(int id)
-    {
-        var request = _provider.GetRequiredService<MessageGetRequest>();
-        request.Args["type"] = "M";
-        request.Args["id"] = id.ToString();
-        request.ParametersSet = true;
-        return request;
-    }
-
-    public NotifyGetRequest NotifyGetRequest(int id)
-    {
-        var request = _provider.GetRequiredService<NotifyGetRequest>();
-        request.Args["type"] = "N";
-        request.Args["id"] = id.ToString();
-        request.ParametersSet = true;
-        return request;
-    }
-
-    public MessageAckRequest MessageAckRequest(int id)
-    {
-        var request = _provider.GetRequiredService<MessageAckRequest>();
-        request.Args["type"] = "M";
-        request.Args["id"] = id.ToString();
-        request.ParametersSet = true;
-        return request;
-    }
-
-    public NotifyAckRequest NotifyAckRequest(int id)
-    {
-        var request = _provider.GetRequiredService<NotifyAckRequest>();
-        request.Args["type"] = "N";
-        request.Args["id"] = id.ToString();
-        request.ParametersSet = true;
-        return request;
-    }
-
-    public MyListExportRequest MyListExportRequest()
-    {
-        var request = _provider.GetRequiredService<MyListExportRequest>();
-        request.Args["template"] = Udp.MyListExportRequest.TemplateName;
         request.ParametersSet = true;
         return request;
     }
