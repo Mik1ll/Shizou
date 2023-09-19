@@ -13,10 +13,13 @@ namespace Shizou.Server.AniDbApi.Requests.Http;
 
 public class AnimeRequest : HttpRequest, IAnimeRequest
 {
-    public AnimeRequest(ILogger<AnimeRequest> logger,
+    public AnimeRequest(
+        ILogger<AnimeRequest> logger,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,
         AniDbHttpState httpState,
-        IHttpClientFactory httpClientFactory, HttpRateLimiter rateLimiter) : base(logger, optionsSnapshot, httpState, httpClientFactory, rateLimiter)
+        IHttpClientFactory httpClientFactory,
+        HttpRateLimiter rateLimiter
+    ) : base(logger, optionsSnapshot, httpState, httpClientFactory, rateLimiter)
     {
     }
 
@@ -28,7 +31,7 @@ public class AnimeRequest : HttpRequest, IAnimeRequest
         Args["aid"] = aid.ToString();
         ParametersSet = true;
     }
-    
+
     protected override Task HandleResponse()
     {
         if (ResponseText is not null)
@@ -38,6 +41,7 @@ public class AnimeRequest : HttpRequest, IAnimeRequest
             using var xmlReader = XmlReader.Create(strReader);
             AnimeResult = serializer.Deserialize(xmlReader) as AnimeResult;
         }
+
         return Task.CompletedTask;
     }
 }

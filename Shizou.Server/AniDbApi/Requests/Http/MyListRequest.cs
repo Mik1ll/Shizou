@@ -13,14 +13,17 @@ namespace Shizou.Server.AniDbApi.Requests.Http;
 
 public class MyListRequest : HttpRequest, IMyListRequest
 {
-    public MyListResult? MyListResult { get; private set; }
-
-    public MyListRequest(ILogger<MyListRequest> logger,
+    public MyListRequest(
+        ILogger<MyListRequest> logger,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,
         AniDbHttpState httpState,
-        IHttpClientFactory httpClientFactory, HttpRateLimiter rateLimiter) : base(logger, optionsSnapshot, httpState, httpClientFactory, rateLimiter)
+        IHttpClientFactory httpClientFactory,
+        HttpRateLimiter rateLimiter
+    ) : base(logger, optionsSnapshot, httpState, httpClientFactory, rateLimiter)
     {
     }
+
+    public MyListResult? MyListResult { get; private set; }
 
     public void SetParameters()
     {
@@ -37,6 +40,7 @@ public class MyListRequest : HttpRequest, IMyListRequest
             using var xmlReader = XmlReader.Create(strReader);
             MyListResult = serializer.Deserialize(xmlReader) as MyListResult;
         }
+
         return Task.CompletedTask;
     }
 }
