@@ -20,6 +20,7 @@ using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi;
 using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Http;
+using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.AniDbApi.Requests.Image;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.AniDbApi.Requests.Udp.Notify;
@@ -167,8 +168,8 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddTransient<MyListExportRequest>();
         builder.Services.AddTransient<MyListEntryRequest>();
 
-        builder.Services.AddTransient<HttpAnimeRequest>();
-        builder.Services.AddTransient<MyListRequest>();
+        builder.Services.AddTransient<IAnimeRequest, HttpAnimeRequest>();
+        builder.Services.AddTransient<IMyListRequest, MyListRequest>();
 
         builder.Services.AddTransient<ImageRequest>();
 

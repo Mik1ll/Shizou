@@ -6,13 +6,14 @@ using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Server.AniDbApi.RateLimiters;
+using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Http;
 
-public class MyListRequest : HttpRequest
+public class MyListRequest : HttpRequest, IMyListRequest
 {
-    public MyListResult? MyListResult;
+    public MyListResult? MyListResult { get; private set; }
 
     public MyListRequest(ILogger<MyListRequest> logger,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,

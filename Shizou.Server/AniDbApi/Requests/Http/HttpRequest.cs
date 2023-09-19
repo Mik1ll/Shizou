@@ -6,11 +6,12 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Server.AniDbApi.RateLimiters;
+using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Http;
 
-public abstract class HttpRequest
+public abstract class HttpRequest : IHttpRequest
 {
     private readonly HttpClient _httpClient;
     private readonly UriBuilder _builder;

@@ -6,11 +6,12 @@ using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Server.AniDbApi.RateLimiters;
+using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Http;
 
-public class AnimeRequest : HttpRequest
+public class AnimeRequest : HttpRequest, IAnimeRequest
 {
     public AnimeRequest(ILogger<AnimeRequest> logger,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,

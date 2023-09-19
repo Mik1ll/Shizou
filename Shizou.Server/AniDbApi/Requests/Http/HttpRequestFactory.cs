@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
+using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 
 namespace Shizou.Server.AniDbApi.Requests.Http;
 
@@ -12,18 +13,18 @@ public class HttpRequestFactory
         _provider = provider;
     }
 
-    public AnimeRequest AnimeRequest(int aid)
+    public IAnimeRequest AnimeRequest(int aid)
     {
-        var request = _provider.GetRequiredService<AnimeRequest>();
+        var request = _provider.GetRequiredService<IAnimeRequest>();
         request.Args["request"] = "anime";
         request.Args["aid"] = aid.ToString();
         request.ParametersSet = true;
         return request;
     }
 
-    public MyListRequest MyListRequest()
+    public IMyListRequest MyListRequest()
     {
-        var request = _provider.GetRequiredService<MyListRequest>();
+        var request = _provider.GetRequiredService<IMyListRequest>();
         request.Args["request"] = "mylist";
         request.ParametersSet = true;
         return request;
