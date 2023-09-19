@@ -173,7 +173,6 @@ public static class WebApplicationBuilderExtensions
 
         builder.Services.AddTransient<ImageRequest>();
 
-        builder.Services.AddScoped<HttpRequestFactory>();
         builder.Services.AddScoped<UdpRequestFactory>();
 
         builder.Services.AddHttpClient("gzip")

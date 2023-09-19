@@ -12,6 +12,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
+using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -25,31 +26,27 @@ public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}");
 [Command(CommandType.SyncMyList, CommandPriority.Low, QueueType.AniDbHttp)]
 public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
 {
-    private readonly ILogger<SyncMyListCommand> _logger;
-    private readonly ShizouContext _context;
     private readonly CommandService _commandService;
-    private readonly HttpRequestFactory _httpRequestFactory;
+    private readonly ShizouContext _context;
+    private readonly ILogger<SyncMyListCommand> _logger;
+    private readonly IMyListRequest _myListRequest;
+    private readonly TimeSpan _myListRequestPeriod = TimeSpan.FromHours(24);
     private readonly ShizouOptions _options;
-
-    private record MyListItem(MyListState State, MyListFileState FileState, int Id, HashSet<int> Aids, HashSet<int> Eids, int Fid, DateOnly Updated,
-        DateTimeOffset? Viewdate);
 
     public SyncMyListCommand(
         ILogger<SyncMyListCommand> logger,
         ShizouContext context,
         CommandService commandService,
         IOptionsSnapshot<ShizouOptions> options,
-        HttpRequestFactory httpRequestFactory
+        IMyListRequest myListRequest
     )
     {
         _logger = logger;
         _context = context;
         _commandService = commandService;
-        _httpRequestFactory = httpRequestFactory;
+        _myListRequest = myListRequest;
         _options = options.Value;
     }
-
-    public TimeSpan MyListRequestPeriod { get; } = TimeSpan.FromHours(24);
 
     protected override async Task ProcessInner()
     {
@@ -218,33 +215,36 @@ public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
         var requestable = true;
         var fileInfo = new FileInfo(FilePaths.MyListPath);
         if (fileInfo.Exists)
-            requestable = DateTime.UtcNow - fileInfo.LastWriteTimeUtc > MyListRequestPeriod;
+            requestable = DateTime.UtcNow - fileInfo.LastWriteTimeUtc > _myListRequestPeriod;
         if (!requestable)
         {
-            _logger.LogWarning("Failed to get mylist: already requested in last {Hours} hours", MyListRequestPeriod.TotalHours);
+            _logger.LogWarning("Failed to get mylist: already requested in last {Hours} hours", _myListRequestPeriod.TotalHours);
             return null;
         }
 
-        var request = _httpRequestFactory.MyListRequest();
-        await request.Process();
-        if (request.MyListResult is null)
+        _myListRequest.SetParameters();
+        await _myListRequest.Process();
+        if (_myListRequest.MyListResult is null)
         {
             if (!File.Exists(FilePaths.MyListPath))
                 await File.Create(FilePaths.MyListPath).DisposeAsync();
             File.SetLastWriteTimeUtc(FilePaths.MyListPath, DateTime.UtcNow);
-            _logger.LogWarning("Failed to get mylist data from AniDb, retry in {Hours} hours", MyListRequestPeriod.TotalHours);
+            _logger.LogWarning("Failed to get mylist data from AniDb, retry in {Hours} hours", _myListRequestPeriod.TotalHours);
         }
         else
         {
             _logger.LogDebug("Overwriting mylist file");
             Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.MyListPath)!);
-            await File.WriteAllTextAsync(FilePaths.MyListPath, request.ResponseText, Encoding.UTF8);
+            await File.WriteAllTextAsync(FilePaths.MyListPath, _myListRequest.ResponseText, Encoding.UTF8);
             var backupFilePath = Path.Combine(FilePaths.MyListBackupDir, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".xml");
             Directory.CreateDirectory(FilePaths.MyListBackupDir);
-            await File.WriteAllTextAsync(backupFilePath, request.ResponseText, Encoding.UTF8);
+            await File.WriteAllTextAsync(backupFilePath, _myListRequest.ResponseText, Encoding.UTF8);
             _logger.LogInformation("HTTP Get mylist succeeded");
         }
 
-        return request.MyListResult;
+        return _myListRequest.MyListResult;
     }
+
+    private record MyListItem(MyListState State, MyListFileState FileState, int Id, HashSet<int> Aids, HashSet<int> Eids, int Fid, DateOnly Updated,
+        DateTimeOffset? Viewdate);
 }

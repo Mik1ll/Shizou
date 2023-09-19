@@ -22,6 +22,13 @@ public class AnimeRequest : HttpRequest, IAnimeRequest
 
     public AnimeResult? AnimeResult { get; private set; }
 
+    public void SetParameters(int aid)
+    {
+        Args["request"] = "anime";
+        Args["aid"] = aid.ToString();
+        ParametersSet = true;
+    }
+    
     protected override Task HandleResponse()
     {
         if (ResponseText is not null)

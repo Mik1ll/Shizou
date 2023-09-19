@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Shizou.Data.Database;
-using Shizou.Server.AniDbApi.Requests.Http;
+using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.Commands.AniDb;
 using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
@@ -17,7 +18,6 @@ public class CommandTests
     {
         var provider = new ServiceCollection()
             .AddScoped<HttpAnimeResultCache>()
-            .AddScoped<HttpRequestFactory>()
             .AddScoped<ImageService>()
             .AddScoped<MyAnimeListService>()
             .AddHttpClient()
@@ -25,6 +25,7 @@ public class CommandTests
             .AddScoped<CommandService>()
             .AddTransient<AnimeCommand>()
             .AddDbContextFactory<ShizouContext>()
+            .AddTransient<IAnimeRequest>(_ => Mock.Of<IAnimeRequest>())
             .AddLogging()
             .BuildServiceProvider();
         using var scope = provider.CreateScope();

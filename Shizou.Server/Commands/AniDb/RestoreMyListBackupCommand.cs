@@ -12,6 +12,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
+using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -22,23 +23,23 @@ public record RestoreMyListBackupArgs(DateOnly Date) : CommandArgs($"{nameof(Res
 [Command(CommandType.RestoreMyListBackup, CommandPriority.Low, QueueType.AniDbHttp)]
 public class RestoreMyListBackupCommand : BaseCommand<RestoreMyListBackupArgs>
 {
-    private readonly ILogger<RestoreMyListBackupCommand> _logger;
-    private readonly ShizouContext _context;
-    private readonly HttpRequestFactory _httpRequestFactory;
-    private readonly ShizouOptions _options;
     private readonly CommandService _commandService;
+    private readonly ShizouContext _context;
+    private readonly ILogger<RestoreMyListBackupCommand> _logger;
+    private readonly IMyListRequest _myListRequest;
+    private readonly ShizouOptions _options;
 
     public RestoreMyListBackupCommand(ILogger<RestoreMyListBackupCommand> logger,
         ShizouContext context,
         IOptionsSnapshot<ShizouOptions> options,
-        HttpRequestFactory httpRequestFactory,
-        CommandService commandService)
+        CommandService commandService,
+        IMyListRequest myListRequest)
     {
         _logger = logger;
         _context = context;
-        _httpRequestFactory = httpRequestFactory;
         _options = options.Value;
         _commandService = commandService;
+        _myListRequest = myListRequest;
     }
 
     protected override async Task ProcessInner()
@@ -52,9 +53,9 @@ public class RestoreMyListBackupCommand : BaseCommand<RestoreMyListBackupArgs>
             return;
         }
 
-        var request = _httpRequestFactory.MyListRequest();
-        await request.Process();
-        if (request.MyListResult is null)
+        _myListRequest.SetParameters();
+        await _myListRequest.Process();
+        if (_myListRequest.MyListResult is null)
         {
             _logger.LogError("Failed to get mylist from anidb");
             Completed = true;
@@ -71,7 +72,7 @@ public class RestoreMyListBackupCommand : BaseCommand<RestoreMyListBackupArgs>
         List<UpdateMyListArgs> toUpdate = new();
 
         var backupMyList = backup.MyListItems.DistinctBy(i => i.Id).ToList();
-        var myList = request.MyListResult.MyListItems.DistinctBy(i => i.Id).ToList();
+        var myList = _myListRequest.MyListResult.MyListItems.DistinctBy(i => i.Id).ToList();
         var joined = (from bitem in backupMyList
             join item in myList on bitem.Fid equals item.Fid into lj
             select new { bitem, item = lj.SingleOrDefault() }).ToList();

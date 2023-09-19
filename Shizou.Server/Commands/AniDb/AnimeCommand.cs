@@ -9,6 +9,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
+using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.FileCaches;
 using Shizou.Server.Services;
 
@@ -22,25 +23,25 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
     private readonly ILogger<AnimeCommand> _logger;
     private readonly ShizouContext _context;
     private readonly HttpAnimeResultCache _animeResultCache;
-    private readonly HttpRequestFactory _httpRequestFactory;
     private readonly ImageService _imageService;
     private readonly MyAnimeListService _myAnimeListService;
+    private readonly IAnimeRequest _animeRequest;
     private string _animeResultCacheKey = null!;
 
     public AnimeCommand(
         ILogger<AnimeCommand> logger,
         ShizouContext context,
         HttpAnimeResultCache animeResultCache,
-        HttpRequestFactory httpRequestFactory,
         ImageService imageService,
-        MyAnimeListService myAnimeListService)
+        MyAnimeListService myAnimeListService,
+        IAnimeRequest animeRequest)
     {
         _logger = logger;
         _context = context;
         _animeResultCache = animeResultCache;
-        _httpRequestFactory = httpRequestFactory;
         _imageService = imageService;
         _myAnimeListService = myAnimeListService;
+        _animeRequest = animeRequest;
     }
 
     public override void SetParameters(CommandArgs args)
@@ -143,12 +144,12 @@ public class AnimeCommand : BaseCommand<AnimeArgs>
 
     private async Task<AnimeResult?> GetAnimeHttp()
     {
-        var request = _httpRequestFactory.AnimeRequest(CommandArgs.AnimeId);
-        await request.Process();
-        await _animeResultCache.Save(_animeResultCacheKey, request.ResponseText ?? string.Empty);
-        if (request.AnimeResult is null)
+        _animeRequest.SetParameters(CommandArgs.AnimeId);
+        await _animeRequest.Process();
+        await _animeResultCache.Save(_animeResultCacheKey, _animeRequest.ResponseText ?? string.Empty);
+        if (_animeRequest.AnimeResult is null)
             _logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", _animeResultCache.RetentionDuration.Hours);
-        return request.AnimeResult;
+        return _animeRequest.AnimeResult;
     }
 
     private async Task UpdateMalXrefs(AnimeResult animeResult)

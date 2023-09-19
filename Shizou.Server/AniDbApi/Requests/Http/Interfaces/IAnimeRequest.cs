@@ -3,4 +3,5 @@
 public interface IAnimeRequest : IHttpRequest
 {
     AnimeResult? AnimeResult { get; }
+    void SetParameters(int aid);
 }

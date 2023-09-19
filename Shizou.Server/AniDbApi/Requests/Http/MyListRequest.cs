@@ -22,6 +22,12 @@ public class MyListRequest : HttpRequest, IMyListRequest
     {
     }
 
+    public void SetParameters()
+    {
+        Args["request"] = "mylist";
+        ParametersSet = true;
+    }
+
     protected override Task HandleResponse()
     {
         if (ResponseText is not null)

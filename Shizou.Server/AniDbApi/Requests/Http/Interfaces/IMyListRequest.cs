@@ -3,4 +3,5 @@
 public interface IMyListRequest : IHttpRequest
 {
     MyListResult? MyListResult { get; }
+    void SetParameters();
 }
