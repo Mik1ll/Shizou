@@ -2,34 +2,39 @@
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Timers;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
-using Shizou.Server.AniDbApi.Requests.Udp;
+using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi;
 
 public sealed class AniDbUdpState : IDisposable
 {
+    private readonly Func<IAuthRequest> _authRequestFactory;
     private readonly Timer _bannedTimer;
     private readonly ILogger<AniDbUdpState> _logger;
+    private readonly Func<ILogoutRequest> _logoutRequestFactory;
     private readonly Timer _logoutTimer;
     private readonly Timer? _mappingTimer;
+    private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
+    private readonly string _serverHost;
+    private readonly ushort _serverPort;
     private bool _banned;
     private bool _loggedIn;
     private INatDevice? _router;
-    private readonly string _serverHost;
-    private readonly ushort _serverPort;
-    private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
-    private readonly IServiceScopeFactory _scopeFactory;
 
-    public AniDbUdpState(IOptionsMonitor<ShizouOptions> optionsMonitor,
-        ILogger<AniDbUdpState> logger, IServiceScopeFactory scopeFactory)
+    public AniDbUdpState(
+        IOptionsMonitor<ShizouOptions> optionsMonitor,
+        ILogger<AniDbUdpState> logger,
+        Func<IAuthRequest> authRequestFactory,
+        Func<ILogoutRequest> logoutRequestFactory
+    )
     {
         _optionsMonitor = optionsMonitor;
-        _scopeFactory = scopeFactory;
+        _authRequestFactory = authRequestFactory;
+        _logoutRequestFactory = logoutRequestFactory;
         var options = optionsMonitor.CurrentValue;
         _serverHost = options.AniDb.ServerHost;
         _serverPort = options.AniDb.UdpServerPort;
@@ -57,7 +62,7 @@ public sealed class AniDbUdpState : IDisposable
                 options.AniDb.UdpBannedUntil = null;
                 options.SaveToFile();
             }
-        
+
 
         _logoutTimer = new Timer(LogoutPeriod.TotalMilliseconds);
         _logoutTimer.Elapsed += (_, _) => { Logout().Wait(); };
@@ -98,7 +103,7 @@ public sealed class AniDbUdpState : IDisposable
 
     public UdpClient UdpClient { get; }
     public string? SessionKey { get; set; }
-    
+
     public bool LoggedIn
     {
         get => _loggedIn;
@@ -158,16 +163,17 @@ public sealed class AniDbUdpState : IDisposable
             _logoutTimer.Start();
             return true;
         }
-        using var scope = _scopeFactory.CreateScope();
-        var udpRequestFactory = scope.ServiceProvider.GetRequiredService<UdpRequestFactory>();
-        var req = udpRequestFactory.AuthRequest();
+
+        var req = _authRequestFactory();
         _logger.LogInformation("Attempting to log into AniDB");
+        req.SetParameters();
         await req.Process();
         if (LoggedIn)
         {
             _logger.LogInformation("Logged into AniDB");
             return true;
         }
+
         _logger.LogWarning("Failed to log into AniDB");
         return false;
     }
@@ -176,9 +182,8 @@ public sealed class AniDbUdpState : IDisposable
     {
         if (!LoggedIn)
             return true;
-        using var scope = _scopeFactory.CreateScope();
-        var udpRequestFactory = scope.ServiceProvider.GetRequiredService<UdpRequestFactory>();
-        var req = udpRequestFactory.LogoutRequest();
+        var req = _logoutRequestFactory();
+        req.SetParameters();
         await req.Process();
         if (!LoggedIn)
             return true;

@@ -1,14 +1,21 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Server.AniDbApi.RateLimiters;
+using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public class LogoutRequest : AniDbUdpRequest
+// ReSharper disable once ClassNeverInstantiated.Global
+public class LogoutRequest : AniDbUdpRequest, ILogoutRequest
 {
     public LogoutRequest(ILogger<LogoutRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("LOGOUT", logger, aniDbUdpState,
         rateLimiter)
     {
+    }
+
+    public void SetParameters()
+    {
+        ParametersSet = true;
     }
 
     protected override Task HandleResponse()

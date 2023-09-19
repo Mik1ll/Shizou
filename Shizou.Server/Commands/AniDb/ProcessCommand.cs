@@ -9,6 +9,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
+using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 using Shizou.Server.Extensions;
 using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
@@ -25,7 +26,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
     private readonly ILogger<ProcessCommand> _logger;
     private readonly ShizouContext _context;
     private readonly AniDbFileResultCache _fileResultCache;
-    private readonly UdpRequestFactory _udpRequestFactory;
+    private readonly IFileRequest _fileRequest;
     private readonly ShizouOptions _options;
 
     public ProcessCommand(
@@ -33,14 +34,14 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
         ShizouContext context,
         CommandService commandService,
         AniDbFileResultCache fileResultCache,
-        UdpRequestFactory udpRequestFactory,
-        IOptionsSnapshot<ShizouOptions> optionsSnapshot)
+        IOptionsSnapshot<ShizouOptions> optionsSnapshot,
+        IFileRequest fileRequest)
     {
         _logger = logger;
         _context = context;
         _commandService = commandService;
         _fileResultCache = fileResultCache;
-        _udpRequestFactory = udpRequestFactory;
+        _fileRequest = fileRequest;
         _options = optionsSnapshot.Value;
     }
 
@@ -274,7 +275,6 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
     private async Task<FileResult?> GetFileResult()
     {
         string? fileResultCacheKey;
-        FileRequest? fileReq;
         FileResult? result;
         switch (CommandArgs.IdType)
         {
@@ -294,7 +294,7 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                 if (result is not null)
                     return result;
                 _logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2k);
-                fileReq = _udpRequestFactory.FileRequest(localFile.FileSize, localFile.Ed2k, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                _fileRequest.SetParameters(localFile.FileSize, localFile.Ed2k, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             }
             case IdTypeLocalFile.FileId:
@@ -303,15 +303,15 @@ public class ProcessCommand : BaseCommand<ProcessArgs>
                 if (result is not null)
                     return result;
                 _logger.LogInformation("Processing file id: {FileId}", CommandArgs.Id);
-                fileReq = _udpRequestFactory.FileRequest(CommandArgs.Id, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                _fileRequest.SetParameters(CommandArgs.Id, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(CommandArgs.IdType), CommandArgs.IdType, null);
         }
 
-        await fileReq.Process();
-        result = fileReq.FileResult;
-        if (fileReq.ResponseCode == AniDbResponseCode.NoSuchFile)
+        await _fileRequest.Process();
+        result = _fileRequest.FileResult;
+        if (_fileRequest.ResponseCode == AniDbResponseCode.NoSuchFile)
         {
             _logger.LogInformation("Skipped processing {IdName}: {Id}, file not found on anidb", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
             Completed = true;

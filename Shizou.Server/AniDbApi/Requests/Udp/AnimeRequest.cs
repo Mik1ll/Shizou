@@ -2,22 +2,31 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Server.AniDbApi.RateLimiters;
+using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public class AnimeRequest : AniDbUdpRequest
+public class AnimeRequest : AniDbUdpRequest, IAnimeRequest
 {
     public const AMaskAnime DefaultAMask = AMaskAnime.DateRecordUpdated | AMaskAnime.TitleRomaji | AMaskAnime.TotalEpisodes | AMaskAnime.HighestEpisodeNumber |
                                            AMaskAnime.Type |
                                            AMaskAnime.TitleEnglish | AMaskAnime.TitleKanji | AMaskAnime.AnimeId;
 
-    public AnimeResult? AnimeResult;
-
-    public AMaskAnime AMask { get; set; }
+    private AMaskAnime _aMask;
 
     public AnimeRequest(ILogger<AnimeRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("ANIME", logger, aniDbUdpState,
         rateLimiter)
     {
+    }
+
+    public AnimeResult? AnimeResult { get; private set; }
+
+    public void SetParameters(int aid, AMaskAnime aMask)
+    {
+        _aMask = aMask;
+        Args["aid"] = aid.ToString();
+        Args["amask"] = ((ulong)aMask).ToString("X14");
+        ParametersSet = true;
     }
 
     protected override Task HandleResponse()
@@ -26,11 +35,12 @@ public class AnimeRequest : AniDbUdpRequest
         {
             case AniDbResponseCode.Anime:
                 if (!string.IsNullOrWhiteSpace(ResponseText))
-                    AnimeResult = new AnimeResult(ResponseText, AMask);
+                    AnimeResult = new AnimeResult(ResponseText, _aMask);
                 break;
             case AniDbResponseCode.NoSuchAnime:
                 break;
         }
+
         return Task.CompletedTask;
     }
 }
@@ -108,6 +118,7 @@ public enum AMaskAnime : ulong
     CreditsCount = 1 << 6,
     OthersCount = 1 << 5,
     TrailersCount = 1 << 4,
+
     ParodiesCount = 1 << 3
     // Unused = 1 << 2,
     // Unused = 1 << 1,

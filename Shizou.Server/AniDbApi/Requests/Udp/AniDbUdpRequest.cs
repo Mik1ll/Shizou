@@ -8,15 +8,17 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
 using Shizou.Server.AniDbApi.RateLimiters;
+using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 using Shizou.Server.Exceptions;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public abstract class AniDbUdpRequest
+public abstract class AniDbUdpRequest : IAniDbUdpRequest
 {
-    protected readonly AniDbUdpState AniDbUdpState;
     private readonly UdpRateLimiter _rateLimiter;
+    protected readonly AniDbUdpState AniDbUdpState;
     protected readonly ILogger<AniDbUdpRequest> Logger;
+    private string? _requestText;
 
     protected AniDbUdpRequest(string command, ILogger<AniDbUdpRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter)
     {
@@ -28,15 +30,11 @@ public abstract class AniDbUdpRequest
 
     public string Command { get; set; }
     public Dictionary<string, string> Args { get; } = new();
-
     public bool ParametersSet { get; set; }
-
     public Encoding Encoding { get; } = Encoding.UTF8;
-    public string? RequestText { get; private set; }
-
-    public string? ResponseText { get; protected set; }
-    public AniDbResponseCode? ResponseCode { get; protected set; }
-    public string? ResponseCodeString { get; protected set; }
+    public string? ResponseText { get; private set; }
+    public AniDbResponseCode? ResponseCode { get; private set; }
+    public string? ResponseCodeString { get; private set; }
 
     public static string DataUnescape(string data)
     {
@@ -58,6 +56,7 @@ public abstract class AniDbUdpRequest
             await SendRequest();
             await ReceiveResponse();
         }
+
         var retry = HandleSharedErrors();
         if (retry)
         {
@@ -66,8 +65,10 @@ public abstract class AniDbUdpRequest
                 await SendRequest();
                 await ReceiveResponse();
             }
+
             HandleSharedErrors();
         }
+
         await HandleResponse();
     }
 
@@ -78,13 +79,14 @@ public abstract class AniDbUdpRequest
     /// <exception cref="AniDbUdpRequestException"></exception>
     private async Task SendRequest()
     {
-        var dgramBytes = Encoding.GetBytes(RequestText!);
+        var dgramBytes = Encoding.GetBytes(_requestText!);
         if (AniDbUdpState.Banned)
         {
-            Logger.LogWarning("Banned, aborting UDP request: {RequestText}", RequestText);
+            Logger.LogWarning("Banned, aborting UDP request: {RequestText}", _requestText);
             throw new AniDbUdpRequestException("Udp banned", AniDbResponseCode.Banned);
         }
-        Logger.LogDebug("Sending AniDb UDP text: {RequestText}", RequestText);
+
+        Logger.LogDebug("Sending AniDb UDP text: {RequestText}", _requestText);
         if (!AniDbUdpState.UdpClient.Client.Connected)
             AniDbUdpState.Connect();
         await AniDbUdpState.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
@@ -100,6 +102,7 @@ public abstract class AniDbUdpRequest
                 ResponseCode = AniDbResponseCode.LoginFailed;
                 throw new AniDbUdpRequestException("Login failed", ResponseCode);
             }
+
             if (!string.IsNullOrWhiteSpace(AniDbUdpState.SessionKey))
             {
                 Args["s"] = AniDbUdpState.SessionKey;
@@ -110,11 +113,12 @@ public abstract class AniDbUdpRequest
                 throw new AniDbUdpRequestException("Failed to get new session", ResponseCode);
             }
         }
+
         foreach (var (name, param) in Args)
             requestBuilder.Append($"{name}={Regex.Replace(HttpUtility.HtmlEncode(param), @"\r?\n|\r", "<br />")}&");
         // Removes the extra & at end of parameters
         requestBuilder.Length--;
-        RequestText = requestBuilder.ToString();
+        _requestText = requestBuilder.ToString();
     }
 
 
@@ -182,10 +186,10 @@ public abstract class AniDbUdpRequest
                 Logger.LogCritical("AniDB Server CRITICAL ERROR {ErrorCode} : {ErrorCodeStr}", ResponseCode, ResponseCodeString);
                 throw new AniDbUdpRequestException($"Critical error with server {ResponseCode} {ResponseCodeString}", ResponseCode);
             case AniDbResponseCode.UnknownCommand:
-                Logger.LogError("Uknown command, {Command}, {RequestText}", Command, RequestText);
+                Logger.LogError("Uknown command, {Command}, {RequestText}", Command, _requestText);
                 throw new AniDbUdpRequestException("Unknown AniDB command, check logs", ResponseCode);
             case AniDbResponseCode.IllegalInputOrAccessDenied:
-                Logger.LogError("Illegal input or access is denied, {Command}, {RequestText}", Command, RequestText);
+                Logger.LogError("Illegal input or access is denied, {Command}, {RequestText}", Command, _requestText);
                 throw new AniDbUdpRequestException("Illegal AniDB input, check logs", ResponseCode);
             default:
                 if (!Enum.IsDefined(typeof(AniDbResponseCode), ResponseCode))
@@ -194,8 +198,10 @@ public abstract class AniDbUdpRequest
                         ResponseCodeString);
                     throw new AniDbUdpRequestException($"Unknown response code: {ResponseCode}: {ResponseCodeString}");
                 }
+
                 break;
         }
+
         return false;
     }
 }

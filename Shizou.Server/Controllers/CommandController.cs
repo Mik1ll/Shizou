@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shizou.Server.AniDbApi.Requests.Udp;
+using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -15,12 +15,15 @@ namespace Shizou.Server.Controllers;
 public class CommandController : ControllerBase
 {
     private readonly CommandService _commandService;
-    private readonly UdpRequestFactory _udpRequestFactory;
+    private readonly IGenericRequest _genericRequest;
 
-    public CommandController(CommandService commandService, UdpRequestFactory udpRequestFactory)
+    public CommandController(
+        CommandService commandService,
+        IGenericRequest genericRequest
+    )
     {
         _commandService = commandService;
-        _udpRequestFactory = udpRequestFactory;
+        _genericRequest = genericRequest;
     }
 
     [HttpPut("UpdateMyList")]
@@ -43,9 +46,9 @@ public class CommandController : ControllerBase
     [Consumes("application/json")]
     public async Task<string?> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
-        var req = _udpRequestFactory.GenericRequest(command, args);
-        await req.Process();
-        return req.ResponseCodeString + "\n" + req.ResponseText;
+        _genericRequest.SetParameters(command, args);
+        await _genericRequest.Process();
+        return _genericRequest.ResponseCodeString + "\n" + _genericRequest.ResponseText;
     }
 
     [HttpPut("RestoreMyListBackup")]

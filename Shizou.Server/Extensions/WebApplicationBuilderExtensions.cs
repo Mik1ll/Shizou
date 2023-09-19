@@ -23,6 +23,7 @@ using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.AniDbApi.Requests.Image;
 using Shizou.Server.AniDbApi.Requests.Udp;
+using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 using Shizou.Server.CommandProcessors;
 using Shizou.Server.Commands;
 using Shizou.Server.Commands.AniDb;
@@ -31,7 +32,9 @@ using Shizou.Server.Options;
 using Shizou.Server.Services;
 using Shizou.Server.SwaggerFilters;
 using UdpAnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.AnimeRequest;
+using IUdpAnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.Interfaces.IAnimeRequest;
 using HttpAnimeRequest = Shizou.Server.AniDbApi.Requests.Http.AnimeRequest;
+using IHttpAnimeRequest = Shizou.Server.AniDbApi.Requests.Http.Interfaces.IAnimeRequest;
 
 namespace Shizou.Server.Extensions;
 
@@ -148,22 +151,20 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddSingleton<HttpRateLimiter>();
         builder.Services.AddSingleton<ImageRateLimiter>();
 
-        builder.Services.AddTransient<UdpAnimeRequest>();
-        builder.Services.AddTransient<AuthRequest>();
-        builder.Services.AddTransient<EpisodeRequest>();
-        builder.Services.AddTransient<FileRequest>();
-        builder.Services.AddTransient<GenericRequest>();
-        builder.Services.AddTransient<LogoutRequest>();
-        builder.Services.AddTransient<MyListAddRequest>();
-        builder.Services.AddTransient<PingRequest>();
-        builder.Services.AddTransient<MyListEntryRequest>();
+        builder.Services.AddTransient<IUdpAnimeRequest, UdpAnimeRequest>();
+        builder.Services.AddGenericFactory<IAuthRequest, AuthRequest>();
+        builder.Services.AddGenericFactory<ILogoutRequest, LogoutRequest>();
+        builder.Services.AddTransient<IEpisodeRequest, EpisodeRequest>();
+        builder.Services.AddTransient<IFileRequest, FileRequest>();
+        builder.Services.AddTransient<IGenericRequest, GenericRequest>();
+        builder.Services.AddTransient<IMyListAddRequest, MyListAddRequest>();
+        builder.Services.AddTransient<IPingRequest, PingRequest>();
+        builder.Services.AddTransient<IMyListEntryRequest, MyListEntryRequest>();
 
-        builder.Services.AddTransient<IAnimeRequest, HttpAnimeRequest>();
+        builder.Services.AddTransient<IHttpAnimeRequest, HttpAnimeRequest>();
         builder.Services.AddTransient<IMyListRequest, MyListRequest>();
 
         builder.Services.AddTransient<ImageRequest>();
-
-        builder.Services.AddScoped<UdpRequestFactory>();
 
         builder.Services.AddHttpClient("gzip")
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip });
@@ -199,5 +200,29 @@ public static class WebApplicationBuilderExtensions
             opt.OperationFilter<SecurityOperationFilter>();
         });
         return builder;
+    }
+
+    // ReSharper disable once UnusedMethodReturnValue.Local
+    private static IServiceCollection AddGenericFactory<TInterface, TImplementation>(this IServiceCollection serviceCollection)
+        where TInterface : class
+        where TImplementation : class, TInterface
+    {
+        serviceCollection.AddTransient<TInterface, TImplementation>();
+        serviceCollection.AddSingleton<Func<TInterface>>(x => x.GetRequiredService<TInterface>);
+        return serviceCollection;
+    }
+
+    // ReSharper disable once UnusedMember.Local
+    private static IServiceCollection AddFactory<TInterface, TImplementation, TFactoryInterface, TFactoryImplementation>(
+        this IServiceCollection serviceCollection)
+        where TInterface : class
+        where TImplementation : class, TInterface
+        where TFactoryInterface : class
+        where TFactoryImplementation : class, TFactoryInterface
+    {
+        serviceCollection.AddTransient<TInterface, TImplementation>();
+        serviceCollection.AddSingleton<Func<TInterface>>(x => x.GetRequiredService<TInterface>);
+        serviceCollection.AddSingleton<TFactoryInterface, TFactoryImplementation>();
+        return serviceCollection;
     }
 }

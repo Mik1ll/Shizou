@@ -7,6 +7,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
+using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
 namespace Shizou.Server.Commands.AniDb;
 
@@ -27,42 +28,48 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
 {
     private readonly ShizouContext _context;
     private readonly ILogger<UpdateMyListCommand> _logger;
-    private readonly UdpRequestFactory _udpRequestFactory;
+    private readonly IMyListAddRequest _myListAddRequest;
+    private readonly IMyListEntryRequest _myListEntryRequest;
 
     public UpdateMyListCommand(
         ILogger<UpdateMyListCommand> logger,
         ShizouContext context,
-        UdpRequestFactory udpRequestFactory
+        IMyListAddRequest myListAddRequest,
+        IMyListEntryRequest myListEntryRequest
     )
     {
         _logger = logger;
         _context = context;
-        _udpRequestFactory = udpRequestFactory;
+        _myListAddRequest = myListAddRequest;
+        _myListEntryRequest = myListEntryRequest;
     }
 
     protected override async Task ProcessInner()
     {
-        var request = CommandArgs switch
+        switch (CommandArgs)
         {
-            { Lid: not null, Fid: null, Aid: null, EpNo: null, Edit: true } =>
-                _udpRequestFactory.MyListAddRequest(CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState),
-            { Fid: not null, Lid: null, Aid: null, EpNo: null, Edit: false } =>
-                _udpRequestFactory.MyListAddRequest(CommandArgs.Fid.Value, CommandArgs.Edit, CommandArgs.Watched, CommandArgs.WatchedDate,
-                    CommandArgs.MyListState),
-            { Aid: not null, EpNo: not null, Lid: null, Fid: null } =>
-                _udpRequestFactory.MyListAddRequest(CommandArgs.Aid.Value, CommandArgs.EpNo, CommandArgs.Edit, CommandArgs.Watched,
-                    CommandArgs.WatchedDate, CommandArgs.MyListState),
-            _ => throw new ArgumentException($"{nameof(UpdateMyListArgs)} not valid")
-        };
-        await request.Process();
-        switch (request.ResponseCode)
+            case { Lid: not null, Fid: null, Aid: null, EpNo: null, Edit: true }:
+                _myListAddRequest.SetParameters(CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState);
+                break;
+            case { Fid: not null, Lid: null, Aid: null, EpNo: null, Edit: false }:
+                _myListAddRequest.SetParameters(CommandArgs.Fid.Value, CommandArgs.Edit, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState);
+                break;
+            case { Aid: not null, EpNo: not null, Lid: null, Fid: null }:
+                _myListAddRequest.SetParameters(CommandArgs.Aid.Value, CommandArgs.EpNo, CommandArgs.Edit, CommandArgs.Watched, CommandArgs.WatchedDate,
+                    CommandArgs.MyListState);
+                break;
+            default: throw new ArgumentException($"{nameof(UpdateMyListArgs)} not valid");
+        }
+
+        await _myListAddRequest.Process();
+        switch (_myListAddRequest.ResponseCode)
         {
             case AniDbResponseCode.MyListAdded:
                 if (CommandArgs is { Aid: { } aid, EpNo: { } epno } && epno != "0" && !epno.StartsWith("-"))
                 {
-                    var entryRequest = _udpRequestFactory.MyListEntryRequest(aid, epno);
-                    await entryRequest.Process();
-                    if (entryRequest.MyListEntryResult is { } result)
+                    _myListEntryRequest.SetParameters(aid, epno);
+                    await _myListEntryRequest.Process();
+                    if (_myListEntryRequest.MyListEntryResult is { } result)
                     {
                         // ReSharper disable once MethodHasAsyncOverload
                         if (_context.AniDbGenericFiles.Find(result.FileId) is null)
@@ -76,15 +83,15 @@ public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
                         SaveMyListId(result.FileId, result.MyListId);
                     }
                 }
-                else if (request.AddedEntryId is not null && CommandArgs.Fid is not null)
+                else if (_myListAddRequest.AddedEntryId is not null && CommandArgs.Fid is not null)
                 {
-                    SaveMyListId(CommandArgs.Fid.Value, request.AddedEntryId.Value);
+                    SaveMyListId(CommandArgs.Fid.Value, _myListAddRequest.AddedEntryId.Value);
                 }
 
                 break;
             case AniDbResponseCode.FileInMyList:
                 if (CommandArgs is { Fid: not null })
-                    SaveMyListId(request.ExistingEntryResult!.FileId, request.ExistingEntryResult!.MyListId);
+                    SaveMyListId(_myListAddRequest.ExistingEntryResult!.FileId, _myListAddRequest.ExistingEntryResult!.MyListId);
                 break;
             case AniDbResponseCode.MultipleMyListEntries:
                 break;

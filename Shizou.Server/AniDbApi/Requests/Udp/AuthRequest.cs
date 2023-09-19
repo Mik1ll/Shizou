@@ -2,20 +2,41 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Server.AniDbApi.RateLimiters;
+using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 using Shizou.Server.Exceptions;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public class AuthRequest : AniDbUdpRequest
+// ReSharper disable once ClassNeverInstantiated.Global
+public class AuthRequest : AniDbUdpRequest, IAuthRequest
 {
-    private readonly IOptionsSnapshot<ShizouOptions> _optionsSnapshot;
+    private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
 
-    public AuthRequest(ILogger<AuthRequest> logger,
+    public AuthRequest(
+        ILogger<AuthRequest> logger,
         AniDbUdpState aniDbUdpState,
-        IOptionsSnapshot<ShizouOptions> optionsSnapshot, UdpRateLimiter rateLimiter) : base("AUTH", logger, aniDbUdpState, rateLimiter)
+        IOptionsMonitor<ShizouOptions> optionsMonitor,
+        UdpRateLimiter rateLimiter
+    ) : base("AUTH", logger, aniDbUdpState, rateLimiter)
     {
-        _optionsSnapshot = optionsSnapshot;
+        _optionsMonitor = optionsMonitor;
+    }
+
+    public void SetParameters()
+    {
+        var opts = _optionsMonitor.CurrentValue;
+        Args["user"] = opts.AniDb.Username;
+        Args["pass"] = opts.AniDb.Password;
+        Args["protover"] = "3";
+        Args["client"] = "shizouudp";
+        Args["clientver"] = "1";
+        Args["comp"] = "1";
+        Args["enc"] = Encoding.BodyName;
+        Args["mtu"] = "1400";
+        Args["imgserver"] = "1";
+        Args["nat"] = "1";
+        ParametersSet = true;
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>
@@ -28,13 +49,14 @@ public class AuthRequest : AniDbUdpRequest
                 AniDbUdpState.SessionKey = split?[0];
                 // ReSharper disable once UnusedVariable
                 var ipEndpoint = split?[1];
-                var options = _optionsSnapshot.Value;
                 var imageServer = ResponseText?.Trim();
-                if (imageServer is not null && options.AniDb.ImageServerHost != imageServer)
+                var opts = _optionsMonitor.CurrentValue;
+                if (imageServer is not null && opts.AniDb.ImageServerHost != imageServer)
                 {
-                    options.AniDb.ImageServerHost = imageServer;
-                    options.SaveToFile();
+                    opts.AniDb.ImageServerHost = imageServer;
+                    opts.SaveToFile();
                 }
+
                 AniDbUdpState.LoggedIn = true;
                 break;
             case AniDbResponseCode.LoginFailed:
@@ -46,6 +68,7 @@ public class AuthRequest : AniDbUdpRequest
             case null:
                 throw new AniDbUdpRequestException("No auth response");
         }
+
         return Task.CompletedTask;
     }
 }
