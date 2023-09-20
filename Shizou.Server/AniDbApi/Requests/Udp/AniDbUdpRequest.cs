@@ -28,21 +28,13 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
         _rateLimiter = rateLimiter;
     }
 
-    public string Command { get; set; }
-    public Dictionary<string, string> Args { get; } = new();
-    public bool ParametersSet { get; set; }
-    public Encoding Encoding { get; } = Encoding.UTF8;
+    protected string Command { get; set; }
+    protected Dictionary<string, string> Args { get; } = new();
+    protected bool ParametersSet { get; set; }
+    protected Encoding Encoding { get; } = Encoding.UTF8;
     public string? ResponseText { get; private set; }
     public AniDbResponseCode? ResponseCode { get; private set; }
     public string? ResponseCodeString { get; private set; }
-
-    public static string DataUnescape(string data)
-    {
-        return Regex.Replace(data, @"<br\s*/>", "\n").Replace('`', '\'').Replace('/', '|');
-    }
-
-
-    protected abstract Task HandleResponse();
 
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="AniDbUdpRequestException"></exception>
@@ -71,6 +63,14 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
 
         await HandleResponse();
     }
+
+    public static string DataUnescape(string data)
+    {
+        return Regex.Replace(data, @"<br\s*/>", "\n").Replace('`', '\'').Replace('/', '|');
+    }
+
+
+    protected abstract Task HandleResponse();
 
     /// <summary>
     ///     Create and send an UDP request to AniDb
