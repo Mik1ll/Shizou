@@ -208,6 +208,7 @@ public class RHasherService
     }
 
     [Flags]
+    [SuppressMessage("ReSharper", "UnusedMember.Local")]
     private enum PrintFlags
     {
         Default = 0x0, /* Print in a default format */
