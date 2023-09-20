@@ -14,11 +14,9 @@ public interface ICommand
 public abstract class BaseCommand<T> : ICommand where T : CommandArgs
 {
     private bool _parametersSet;
-
+    protected T CommandArgs { get; private set; } = null!;
     public string CommandId { get; private set; } = null!;
     public bool Completed { get; protected set; }
-
-    protected T CommandArgs { get; set; } = null!;
 
     public virtual void SetParameters(CommandArgs args)
     {
