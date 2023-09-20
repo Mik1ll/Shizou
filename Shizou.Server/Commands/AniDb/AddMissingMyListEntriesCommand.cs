@@ -11,7 +11,7 @@ namespace Shizou.Server.Commands.AniDb;
 public sealed record AddMissingMyListEntriesArgs() : CommandArgs($"{nameof(AddMissingMyListEntriesCommand)}");
 
 [Command(CommandType.AddMissingMyListEntries, CommandPriority.Low, QueueType.AniDbUdp)]
-public class AddMissingMyListEntriesCommand : BaseCommand<AddMissingMyListEntriesArgs>
+public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArgs>
 {
     private readonly CommandService _commandService;
     private readonly ShizouContext _context;

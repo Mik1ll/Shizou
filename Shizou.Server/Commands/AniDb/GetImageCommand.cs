@@ -9,7 +9,7 @@ namespace Shizou.Server.Commands.AniDb;
 public record GetImageCommandArgs(string Url, string SavePath) : CommandArgs($"{nameof(GetImageCommand)}_url={Url}_savePath={SavePath}");
 
 [Command(CommandType.GetImage, CommandPriority.Normal, QueueType.Image)]
-public class GetImageCommand : BaseCommand<GetImageCommandArgs>
+public class GetImageCommand : Command<GetImageCommandArgs>
 {
     private readonly ILogger<GetImageCommand> _logger;
     private readonly ImageRequest _imageRequest;

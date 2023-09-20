@@ -20,7 +20,7 @@ namespace Shizou.Server.Commands.AniDb;
 public sealed record ProcessArgs(int Id, IdTypeLocalFile IdType) : CommandArgs($"{nameof(ProcessCommand)}_id={Id}_type={IdType}");
 
 [Command(CommandType.GetFile, CommandPriority.Normal, QueueType.AniDbUdp)]
-public class ProcessCommand : BaseCommand<ProcessArgs>
+public class ProcessCommand : Command<ProcessArgs>
 {
     private readonly CommandService _commandService;
     private readonly ILogger<ProcessCommand> _logger;

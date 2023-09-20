@@ -16,7 +16,7 @@ namespace Shizou.Server.Commands;
 public record HashArgs(string Path) : CommandArgs($"{nameof(HashCommand)}_{Path}");
 
 [Command(CommandType.Hash, CommandPriority.Normal, QueueType.Hash)]
-public class HashCommand : BaseCommand<HashArgs>
+public class HashCommand : Command<HashArgs>
 {
     private readonly ILogger<HashCommand> _logger;
     private readonly CommandService _commandService;

@@ -6,7 +6,7 @@ namespace Shizou.Server.Commands;
 public sealed record NoopArgs(int Testint) : CommandArgs($"{nameof(NoopCommand)}_{Testint}");
 
 [Command(CommandType.Noop, CommandPriority.Normal, QueueType.General)]
-public sealed class NoopCommand : BaseCommand<NoopArgs>
+public sealed class NoopCommand : Command<NoopArgs>
 {
     protected override async Task ProcessInner()
     {

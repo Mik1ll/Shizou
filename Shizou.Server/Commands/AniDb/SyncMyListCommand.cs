@@ -24,7 +24,7 @@ namespace Shizou.Server.Commands.AniDb;
 public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}");
 
 [Command(CommandType.SyncMyList, CommandPriority.Low, QueueType.AniDbHttp)]
-public class SyncMyListCommand : BaseCommand<SyncMyListArgs>
+public class SyncMyListCommand : Command<SyncMyListArgs>
 {
     private readonly CommandService _commandService;
     private readonly ShizouContext _context;

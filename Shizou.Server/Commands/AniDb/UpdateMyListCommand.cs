@@ -24,7 +24,7 @@ public record UpdateMyListArgs(
                   + $"_edit={Edit}_watched={Watched}_state={MyListState}_uid={Path.GetRandomFileName()[..8]}");
 
 [Command(CommandType.UpdateMyList, CommandPriority.Normal, QueueType.AniDbUdp)]
-public class UpdateMyListCommand : BaseCommand<UpdateMyListArgs>
+public class UpdateMyListCommand : Command<UpdateMyListArgs>
 {
     private readonly ShizouContext _context;
     private readonly ILogger<UpdateMyListCommand> _logger;

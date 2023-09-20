@@ -18,7 +18,7 @@ namespace Shizou.Server.Commands.AniDb;
 public record AnimeArgs(int AnimeId) : CommandArgs($"{nameof(AnimeCommand)}_{AnimeId}");
 
 [Command(CommandType.GetAnime, CommandPriority.Normal, QueueType.AniDbHttp)]
-public class AnimeCommand : BaseCommand<AnimeArgs>
+public class AnimeCommand : Command<AnimeArgs>
 {
     private readonly ILogger<AnimeCommand> _logger;
     private readonly ShizouContext _context;

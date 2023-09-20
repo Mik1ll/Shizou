@@ -11,7 +11,7 @@ public interface ICommand
     Task Process();
 }
 
-public abstract class BaseCommand<T> : ICommand where T : CommandArgs
+public abstract class Command<T> : ICommand where T : CommandArgs
 {
     private bool _parametersSet;
     protected T CommandArgs { get; private set; } = null!;
