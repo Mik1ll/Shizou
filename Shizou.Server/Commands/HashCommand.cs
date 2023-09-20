@@ -4,13 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Extensions;
-using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands;
@@ -23,19 +21,16 @@ public class HashCommand : BaseCommand<HashArgs>
     private readonly ILogger<HashCommand> _logger;
     private readonly CommandService _commandService;
     private readonly ShizouContext _context;
-    private readonly ShizouOptions _options;
 
     public HashCommand(
         ILogger<HashCommand> logger,
         ShizouContext context,
-        CommandService commandService,
-        IOptionsSnapshot<ShizouOptions> optionsSnapshot
+        CommandService commandService
     )
     {
         _logger = logger;
         _context = context;
         _commandService = commandService;
-        _options = optionsSnapshot.Value;
     }
 
     protected override async Task ProcessInner()
