@@ -24,8 +24,8 @@ namespace Shizou.Server.Services;
 
 public class MyAnimeListService
 {
-    private static string? _codeChallengeAndVerifier;
-    private static string? _state;
+    private string? _codeChallengeAndVerifier;
+    private string? _state;
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<MyAnimeListService> _logger;

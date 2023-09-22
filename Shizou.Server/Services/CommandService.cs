@@ -22,19 +22,16 @@ public class CommandService
             let argsType = type.BaseType!.GetGenericArguments()[0]
             select (cmdAttr, type, argsType)).ToList();
 
-    private readonly ILogger<CommandService> _logger;
-    private readonly IServiceProvider _serviceProvider;
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly ILogger<CommandService> _logger;
     private readonly List<CommandProcessor> _processors;
 
     public CommandService(
         ILogger<CommandService> logger,
-        IServiceProvider serviceProvider,
         IDbContextFactory<ShizouContext> contextFactory,
         IEnumerable<CommandProcessor> processors)
     {
         _logger = logger;
-        _serviceProvider = serviceProvider;
         _contextFactory = contextFactory;
         _processors = processors.ToList();
     }
@@ -95,14 +92,15 @@ public class CommandService
         {
             _logger.LogWarning("Command with same commandId={CommandId} already scheduled, ignoring", scheduledCommand.CommandId);
         }
+
         context.SaveChanges();
     }
 
-    public ICommand CommandFromRequest(CommandRequest commandRequest)
+    public ICommand CommandFromRequest(CommandRequest commandRequest, IServiceScope serviceScope)
     {
         var (_, type, argsType) = Commands.Single(x => commandRequest.Type == x.Attr.Type);
         var args = (CommandArgs)JsonSerializer.Deserialize(commandRequest.CommandArgs, argsType)!;
-        var cmd = (ICommand)_serviceProvider.GetRequiredService(type);
+        var cmd = (ICommand)serviceScope.ServiceProvider.GetRequiredService(type);
         cmd.SetParameters(args);
         return cmd;
     }

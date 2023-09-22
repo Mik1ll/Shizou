@@ -20,31 +20,32 @@ namespace Shizou.Server.CommandProcessors;
 
 public abstract class CommandProcessor : BackgroundService, INotifyPropertyChanged
 {
-    protected readonly IServiceProvider Provider;
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
-
-    private CancellationTokenSource? _wakeupTokenSource;
-    private CommandRequest? _currentCommand;
+    private readonly IServiceProvider _provider;
     private int _commandsInQueue;
+    private CommandRequest? _currentCommand;
     private bool _paused = true;
     private int _pollStep;
 
-    protected CommandProcessor(ILogger<CommandProcessor> logger, IServiceProvider provider, QueueType queueType,
-        IDbContextFactory<ShizouContext> contextFactory)
+    private CancellationTokenSource? _wakeupTokenSource;
+
+    protected CommandProcessor(ILogger<CommandProcessor> logger,
+        IServiceProvider provider,
+        QueueType queueType,
+        IDbContextFactory<ShizouContext> contextFactory
+    )
     {
         Logger = logger;
-        Provider = provider;
+        _provider = provider;
         _contextFactory = contextFactory;
         QueueType = queueType;
     }
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-
     public QueueType QueueType { get; }
 
-    public Queue<string> LastThreeCommands { get; } = new(3);
+    private Queue<string> LastThreeCommands { get; } = new(3);
 
-    public int PollInterval => (int)(BasePollInterval * Math.Pow((double)MaxPollInterval / BasePollInterval, (float)PollStep / MaxPollSteps));
+    private int PollInterval => (int)(BasePollInterval * Math.Pow((double)MaxPollInterval / BasePollInterval, (float)PollStep / MaxPollSteps));
 
     public bool ProcessingCommand { get; private set; }
 
@@ -78,16 +79,17 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 PauseReason = null;
                 Logger.LogInformation("Processor unpaused");
             }
+
             SetField(ref _paused, value);
         }
     }
 
     public virtual string? PauseReason { get; protected set; }
 
-    public int PollStep
+    private int PollStep
     {
         get => _pollStep;
-        private set => _pollStep = Math.Min(value, MaxPollSteps);
+        set => _pollStep = Math.Min(value, MaxPollSteps);
     }
 
     protected ILogger<CommandProcessor> Logger { get; }
@@ -95,6 +97,8 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     protected virtual int BasePollInterval => 1000;
     protected virtual int MaxPollSteps => 4;
     protected virtual int MaxPollInterval => 10000;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public void Pause(string? pauseReason = null)
     {
@@ -138,6 +142,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 cmd.RunsLeft -= 1;
                 cmd.NextRunTime = DateTime.UtcNow + TimeSpan.FromMinutes(cmd.FrequencyMinutes.Value);
             }
+
         context.SaveChanges();
     }
 
@@ -161,14 +166,16 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var scope = Provider.CreateScope();
+            using var scope = _provider.CreateScope();
             var commandService = scope.ServiceProvider.GetRequiredService<CommandService>();
-            var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
+            // ReSharper disable once MethodHasAsyncOverloadWithCancellation
+            var context = _contextFactory.CreateDbContext();
             using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
             {
                 GetScheduledCommands(context, commandService);
                 UpdateCommandsInQueue(context);
             }
+
             if (Paused || CommandsInQueue == 0)
             {
                 _wakeupTokenSource = new CancellationTokenSource();
@@ -188,14 +195,16 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                     _wakeupTokenSource = null;
                     linkedTokenSource.Dispose();
                 }
+
                 continue;
             }
+
             CurrentCommand = context.CommandRequests.NextRequest(QueueType);
             Logger.LogDebug("Current command assigned");
             if (CurrentCommand is null)
                 continue;
             PollStep = 0;
-            var command = commandService.CommandFromRequest(CurrentCommand);
+            var command = commandService.CommandFromRequest(CurrentCommand, scope);
             try
             {
                 Logger.LogDebug("Processing command: {CommandId}", command.CommandId);
@@ -243,6 +252,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                     Logger.LogWarning("Queue paused after failing to complete command three times: {CommandId}", command.CommandId);
                 }
             }
+
             CurrentCommand = null;
         }
     }

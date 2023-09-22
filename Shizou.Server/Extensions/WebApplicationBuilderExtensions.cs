@@ -98,8 +98,8 @@ public static class WebApplicationBuilderExtensions
         });
 
 
-        builder.Services.AddScoped<AniDbFileResultCache>();
-        builder.Services.AddScoped<HttpAnimeResultCache>();
+        builder.Services.AddTransient<AniDbFileResultCache>();
+        builder.Services.AddTransient<HttpAnimeResultCache>();
 
         builder.Services.AddTransient<HashCommand>();
         builder.Services.AddTransient<NoopCommand>();
@@ -111,11 +111,12 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddTransient<GetImageCommand>();
         builder.Services.AddTransient<RestoreMyListBackupCommand>();
 
-        builder.Services.AddScoped<CommandService>();
-        builder.Services.AddScoped<ImportService>();
-        builder.Services.AddScoped<WatchStateService>();
-        builder.Services.AddScoped<ImageService>();
-        builder.Services.AddScoped<MyAnimeListService>();
+        builder.Services.AddTransient<CommandService>();
+        builder.Services.AddTransient<ImportService>();
+        builder.Services.AddTransient<WatchStateService>();
+        builder.Services.AddTransient<ImageService>();
+
+        builder.Services.AddSingleton<MyAnimeListService>(); // Has State and Code challenge shared state
         return builder;
     }
 
