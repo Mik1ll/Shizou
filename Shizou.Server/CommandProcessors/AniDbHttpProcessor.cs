@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
@@ -12,8 +13,8 @@ public class AniDbHttpProcessor : CommandProcessor
     private readonly AniDbHttpState _httpState;
 
     public AniDbHttpProcessor(ILogger<AniDbHttpProcessor> logger, IServiceProvider provider, AniDbHttpState httpState,
-        IDbContextFactory<ShizouContext> contextFactory) : base(logger, provider,
-        QueueType.AniDbHttp, contextFactory)
+        IDbContextFactory<ShizouContext> contextFactory, IServiceScopeFactory scopeFactory) : base(logger,
+        QueueType.AniDbHttp, contextFactory, scopeFactory)
     {
         _httpState = httpState;
     }

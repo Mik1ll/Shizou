@@ -21,7 +21,7 @@ namespace Shizou.Server.CommandProcessors;
 public abstract class CommandProcessor : BackgroundService, INotifyPropertyChanged
 {
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
-    private readonly IServiceProvider _provider;
+    private readonly IServiceScopeFactory _scopeFactory;
     private int _commandsInQueue;
     private CommandRequest? _currentCommand;
     private bool _paused = true;
@@ -30,14 +30,12 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     private CancellationTokenSource? _wakeupTokenSource;
 
     protected CommandProcessor(ILogger<CommandProcessor> logger,
-        IServiceProvider provider,
         QueueType queueType,
-        IDbContextFactory<ShizouContext> contextFactory
-    )
+        IDbContextFactory<ShizouContext> contextFactory, IServiceScopeFactory scopeFactory)
     {
         Logger = logger;
-        _provider = provider;
         _contextFactory = contextFactory;
+        _scopeFactory = scopeFactory;
         QueueType = queueType;
     }
 
@@ -123,29 +121,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         _wakeupTokenSource?.Cancel();
     }
 
-    [SuppressMessage("ReSharper.DPA", "DPA0006: Large number of DB commands", MessageId = "count: 2000")]
-    private void GetScheduledCommands(ShizouContext context, CommandService commandService)
-    {
-        var scheduledCommands = context.ScheduledCommands.ByQueue(QueueType)
-            .Where(c => c.NextRunTime < DateTime.UtcNow && !context.CommandRequests.Any(cr => cr.CommandId == c.CommandId)).ToList();
-        if (scheduledCommands.Count == 0)
-            return;
-        var commandArgs = scheduledCommands.Select(commandService.ArgsFromScheduledCommand).ToList();
-        commandService.DispatchRange(commandArgs);
-        foreach (var cmd in scheduledCommands)
-            if (cmd.RunsLeft <= 1 || cmd.FrequencyMinutes is null)
-            {
-                context.ScheduledCommands.Remove(cmd);
-            }
-            else
-            {
-                cmd.RunsLeft -= 1;
-                cmd.NextRunTime = DateTime.UtcNow + TimeSpan.FromMinutes(cmd.FrequencyMinutes.Value);
-            }
-
-        context.SaveChanges();
-    }
-
     public void ClearQueue()
     {
         using var context = _contextFactory.CreateDbContext();
@@ -166,13 +141,13 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var scope = _provider.CreateScope();
+            using var scope = _scopeFactory.CreateScope();
             var commandService = scope.ServiceProvider.GetRequiredService<CommandService>();
             // ReSharper disable once MethodHasAsyncOverloadWithCancellation
             var context = _contextFactory.CreateDbContext();
             using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
             {
-                GetScheduledCommands(context, commandService);
+                commandService.CreateScheduledCommands();
                 UpdateCommandsInQueue(context);
             }
 

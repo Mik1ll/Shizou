@@ -96,6 +96,32 @@ public class CommandService
         context.SaveChanges();
     }
 
+    public void CreateScheduledCommands()
+    {
+        using var context = _contextFactory.CreateDbContext();
+        using var transaction = context.Database.BeginTransaction();
+        var scheduledCommands = context.ScheduledCommands
+            .Where(c => c.NextRunTime < DateTime.UtcNow &&
+                        !context.CommandRequests.Any(cr => cr.CommandId == c.CommandId)).ToList();
+        if (scheduledCommands.Count == 0)
+            return;
+        var commandArgs = scheduledCommands.Select(ArgsFromScheduledCommand).ToList();
+        DispatchRange(commandArgs);
+        foreach (var cmd in scheduledCommands)
+            if (cmd.RunsLeft <= 1 || cmd.FrequencyMinutes is null)
+            {
+                context.ScheduledCommands.Remove(cmd);
+            }
+            else
+            {
+                cmd.RunsLeft -= 1;
+                cmd.NextRunTime = DateTime.UtcNow + TimeSpan.FromMinutes(cmd.FrequencyMinutes.Value);
+            }
+
+        context.SaveChanges();
+        transaction.Commit();
+    }
+
     public ICommand CommandFromRequest(CommandRequest commandRequest, IServiceScope serviceScope)
     {
         var (_, type, argsType) = Commands.Single(x => commandRequest.Type == x.Attr.Type);
