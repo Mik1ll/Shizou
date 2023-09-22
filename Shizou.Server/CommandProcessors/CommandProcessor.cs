@@ -144,7 +144,8 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             using var scope = _scopeFactory.CreateScope();
             var commandService = scope.ServiceProvider.GetRequiredService<CommandService>();
             // ReSharper disable once MethodHasAsyncOverloadWithCancellation
-            var context = _contextFactory.CreateDbContext();
+            // ReSharper disable once UseAwaitUsing
+            using var context = _contextFactory.CreateDbContext();
             using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
             {
                 commandService.CreateScheduledCommands();
