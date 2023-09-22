@@ -115,8 +115,8 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     private void Shutdown()
     {
+        Logger.LogDebug("Processor shutting down");
         ShutdownInner();
-        Logger.LogDebug("Processor starting to shut down");
     }
 
     protected virtual void ShutdownInner()
@@ -214,6 +214,9 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 var task = command.Process();
                 await task.WaitAsync(stoppingToken);
             }
+            catch (TaskCanceledException)
+            {
+            }
             catch (Exception ex)
             {
                 Pause(ex.Message);
@@ -227,17 +230,9 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             if (command.Completed)
             {
                 Logger.LogDebug("Deleting command: {CommandId}", command.CommandId);
-
-                try
-                {
-                    context.CommandRequests.Remove(CurrentCommand);
-                    // ReSharper disable once MethodHasAsyncOverloadWithCancellation
-                    context.SaveChanges();
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    ex.Entries.Single().State = EntityState.Detached;
-                }
+                context.CommandRequests.Remove(CurrentCommand);
+                // ReSharper disable once MethodHasAsyncOverloadWithCancellation
+                context.SaveChanges();
             }
             else
             {
@@ -251,8 +246,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
             CurrentCommand = null;
         }
-
-        Logger.LogDebug("Processor has shut down");
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

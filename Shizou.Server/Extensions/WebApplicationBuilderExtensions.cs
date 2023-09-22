@@ -122,25 +122,12 @@ public static class WebApplicationBuilderExtensions
 
     public static WebApplicationBuilder AddShizouProcessors(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton<CommandProcessor, AniDbUdpProcessor>();
-        builder.Services.AddSingleton(p => (AniDbUdpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
-        builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbUdp));
-
-        builder.Services.AddSingleton<CommandProcessor, HashProcessor>();
-        builder.Services.AddSingleton(p => (HashProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
-        builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Hash));
-
-        builder.Services.AddSingleton<CommandProcessor, AniDbHttpProcessor>();
-        builder.Services.AddSingleton(p => (AniDbHttpProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
-        builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.AniDbHttp));
-
-        builder.Services.AddSingleton<CommandProcessor, GeneralProcessor>();
-        builder.Services.AddSingleton(p => (GeneralProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.General));
-        builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.General));
-
-        builder.Services.AddSingleton<CommandProcessor, ImageProcessor>();
-        builder.Services.AddSingleton(p => (ImageProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Image));
-        builder.Services.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == QueueType.Image));
+        builder.Services.AddProcessor<AniDbUdpProcessor>(QueueType.AniDbUdp);
+        builder.Services.AddProcessor<HashProcessor>(QueueType.Hash);
+        builder.Services.AddProcessor<AniDbHttpProcessor>(QueueType.AniDbHttp);
+        builder.Services.AddProcessor<GeneralProcessor>(QueueType.General);
+        builder.Services.AddProcessor<ImageProcessor>(QueueType.Image);
+        builder.Services.Configure<HostOptions>(opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(30));
         return builder;
     }
 
@@ -201,6 +188,16 @@ public static class WebApplicationBuilderExtensions
             opt.OperationFilter<SecurityOperationFilter>();
         });
         return builder;
+    }
+
+    // ReSharper disable once UnusedMethodReturnValue.Local
+    private static IServiceCollection AddProcessor<TProcessor>(this IServiceCollection serviceCollection, QueueType queueType)
+        where TProcessor : CommandProcessor
+    {
+        serviceCollection.AddSingleton<CommandProcessor, TProcessor>();
+        serviceCollection.AddSingleton(p => (TProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == queueType));
+        serviceCollection.AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == queueType));
+        return serviceCollection;
     }
 
     // ReSharper disable once UnusedMethodReturnValue.Local
