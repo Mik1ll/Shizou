@@ -111,7 +111,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddTransient<GetImageCommand>();
         builder.Services.AddTransient<RestoreMyListBackupCommand>();
 
-        builder.Services.AddTransient<CommandService>();
+        builder.Services.AddGenericFactory<CommandService, CommandService>();
         builder.Services.AddTransient<ImportService>();
         builder.Services.AddTransient<WatchStateService>();
         builder.Services.AddTransient<ImageService>();

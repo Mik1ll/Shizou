@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
+using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.CommandProcessors;
 using Shizou.Server.Commands;
@@ -39,31 +40,28 @@ public class CommandService
     public void Dispatch<TArgs>(TArgs commandArgs)
         where TArgs : CommandArgs
     {
-        using var context = _contextFactory.CreateDbContext();
         var cmdRequest = RequestFromArgs(commandArgs);
-        var processor = _processors.Single(cp => cp.QueueType == cmdRequest.QueueType);
+        using var context = _contextFactory.CreateDbContext();
         using var transaction = context.Database.BeginTransaction();
         if (!context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
+        {
             context.CommandRequests.Add(cmdRequest);
-        context.SaveChanges();
-        transaction.Commit();
-        processor.UpdateCommandsInQueue(context);
+            context.SaveChanges();
+            transaction.Commit();
+            var processor = _processors.Single(cp => cp.QueueType == cmdRequest.QueueType);
+            processor.UpdateCommandsInQueue(context);
+        }
+        else
+        {
+            _logger.LogDebug("Command {CommandId} already exists in database", cmdRequest.CommandId);
+        }
     }
 
     public void DispatchRange<TArgs>(IEnumerable<TArgs> commandArgsEnumerable)
         where TArgs : CommandArgs
     {
-        using var context = _contextFactory.CreateDbContext();
-        using var transaction = context.Database.BeginTransaction();
-        var commandRequests = commandArgsEnumerable.Select(RequestFromArgs)
-            .DistinctBy(cr => cr.CommandId)
-            .Where(e => !context.CommandRequests.Any(c => c.CommandId == e.CommandId))
-            .ToList();
-        context.CommandRequests.AddRange(commandRequests);
-        context.SaveChanges();
-        transaction.Commit();
-        foreach (var processor in _processors.Where(p => commandRequests.Select(cr => cr.QueueType).Distinct().Any(qt => qt == p.QueueType)))
-            processor.UpdateCommandsInQueue(context);
+        foreach (var cmdArgs in commandArgsEnumerable)
+            Dispatch(cmdArgs);
     }
 
     public void ScheduleCommand<TArgs>(TArgs commandArgs, int? runTimes, DateTimeOffset nextRun, TimeSpan? frequency)
@@ -85,23 +83,23 @@ public class CommandService
         if (!context.ScheduledCommands.Any(cr => cr.CommandId == scheduledCommand.CommandId))
         {
             context.ScheduledCommands.Add(scheduledCommand);
-            _logger.LogInformation("Command with commandId={CommandId} scheduled for {RunTimes} runs, starting at {NextRun}, every {Frequency} minutes",
+            _logger.LogInformation("Command {CommandId} scheduled for {RunTimes} runs, starting at {NextRun}, every {Frequency} minutes",
                 scheduledCommand.CommandId, runTimes, nextRun.LocalDateTime, frequency?.TotalMinutes);
         }
         else
         {
-            _logger.LogWarning("Command with same commandId={CommandId} already scheduled, ignoring", scheduledCommand.CommandId);
+            _logger.LogWarning("Command {CommandId} already scheduled, ignoring", scheduledCommand.CommandId);
         }
 
         context.SaveChanges();
     }
 
-    public void CreateScheduledCommands()
+    public void CreateScheduledCommands(QueueType queueType)
     {
         using var context = _contextFactory.CreateDbContext();
-        using var transaction = context.Database.BeginTransaction();
         var scheduledCommands = context.ScheduledCommands
-            .Where(c => c.NextRunTime < DateTime.UtcNow &&
+            .Where(c => c.QueueType == queueType &&
+                        c.NextRunTime < DateTime.UtcNow &&
                         !context.CommandRequests.Any(cr => cr.CommandId == c.CommandId)).ToList();
         if (scheduledCommands.Count == 0)
             return;
@@ -111,15 +109,13 @@ public class CommandService
             if (cmd.RunsLeft <= 1 || cmd.FrequencyMinutes is null)
             {
                 context.ScheduledCommands.Remove(cmd);
+                context.SaveChanges();
             }
             else
             {
                 cmd.RunsLeft -= 1;
                 cmd.NextRunTime = DateTime.UtcNow + TimeSpan.FromMinutes(cmd.FrequencyMinutes.Value);
             }
-
-        context.SaveChanges();
-        transaction.Commit();
     }
 
     public ICommand CommandFromRequest(CommandRequest commandRequest, IServiceScope serviceScope)

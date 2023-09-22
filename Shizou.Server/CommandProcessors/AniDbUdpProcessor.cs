@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi;
+using Shizou.Server.Services;
 
 namespace Shizou.Server.CommandProcessors;
 
@@ -12,9 +13,9 @@ public class AniDbUdpProcessor : CommandProcessor
 {
     private readonly AniDbUdpState _aniDbUdpState;
 
-    public AniDbUdpProcessor(ILogger<AniDbUdpProcessor> logger, IServiceProvider provider, AniDbUdpState aniDbUdpState,
-        IDbContextFactory<ShizouContext> contextFactory, IServiceScopeFactory scopeFactory)
-        : base(logger, QueueType.AniDbUdp, contextFactory, scopeFactory)
+    public AniDbUdpProcessor(ILogger<AniDbUdpProcessor> logger, AniDbUdpState aniDbUdpState,
+        IDbContextFactory<ShizouContext> contextFactory, IServiceScopeFactory scopeFactory, Func<CommandService> commandServiceFactory)
+        : base(logger, QueueType.AniDbUdp, contextFactory, scopeFactory, commandServiceFactory)
     {
         _aniDbUdpState = aniDbUdpState;
     }
@@ -37,7 +38,7 @@ public class AniDbUdpProcessor : CommandProcessor
         protected set => base.PauseReason = value;
     }
 
-    public override void Shutdown()
+    protected override void ShutdownInner()
     {
         _aniDbUdpState.Logout().Wait();
     }

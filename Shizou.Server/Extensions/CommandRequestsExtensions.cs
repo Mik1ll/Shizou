@@ -6,7 +6,7 @@ namespace Shizou.Server.Extensions;
 
 public static class CommandRequestsExtensions
 {
-    public static IQueryable<CommandRequest> ByQueue(this IQueryable<CommandRequest> queryable, QueueType queueType)
+    public static IQueryable<CommandRequest> ByQueueOrdered(this IQueryable<CommandRequest> queryable, QueueType queueType)
     {
         return from cq in queryable
             where cq.QueueType == queueType
@@ -16,6 +16,6 @@ public static class CommandRequestsExtensions
 
     public static CommandRequest? NextRequest(this IQueryable<CommandRequest> commandRequests, QueueType queueType)
     {
-        return commandRequests.ByQueue(queueType).FirstOrDefault();
+        return commandRequests.ByQueueOrdered(queueType).FirstOrDefault();
     }
 }

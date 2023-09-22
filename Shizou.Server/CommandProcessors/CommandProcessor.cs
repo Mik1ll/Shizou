@@ -20,6 +20,7 @@ namespace Shizou.Server.CommandProcessors;
 
 public abstract class CommandProcessor : BackgroundService, INotifyPropertyChanged
 {
+    private readonly Func<CommandService> _commandServiceFactory;
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
     private readonly IServiceScopeFactory _scopeFactory;
     private int _commandsInQueue;
@@ -31,11 +32,14 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     protected CommandProcessor(ILogger<CommandProcessor> logger,
         QueueType queueType,
-        IDbContextFactory<ShizouContext> contextFactory, IServiceScopeFactory scopeFactory)
+        IDbContextFactory<ShizouContext> contextFactory,
+        IServiceScopeFactory scopeFactory,
+        Func<CommandService> commandServiceFactory)
     {
         Logger = logger;
         _contextFactory = contextFactory;
         _scopeFactory = scopeFactory;
+        _commandServiceFactory = commandServiceFactory;
         QueueType = queueType;
     }
 
@@ -64,6 +68,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         get => _paused;
         protected set
         {
+            SetField(ref _paused, value);
             if (value)
             {
                 if (PauseReason is null)
@@ -73,12 +78,10 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             }
             else
             {
-                _wakeupTokenSource?.Cancel();
                 PauseReason = null;
                 Logger.LogInformation("Processor unpaused");
+                WakeUp();
             }
-
-            SetField(ref _paused, value);
         }
     }
 
@@ -92,9 +95,9 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     protected ILogger<CommandProcessor> Logger { get; }
 
-    protected virtual int BasePollInterval => 1000;
-    protected virtual int MaxPollSteps => 4;
-    protected virtual int MaxPollInterval => 10000;
+    private int BasePollInterval => 1000;
+    private int MaxPollSteps => 4;
+    private int MaxPollInterval => 10000;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -110,21 +113,40 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         return !Paused;
     }
 
-    public virtual void Shutdown()
+    private void Shutdown()
+    {
+        ShutdownInner();
+        Logger.LogDebug("Processor starting to shut down");
+    }
+
+    protected virtual void ShutdownInner()
     {
     }
 
     [SuppressMessage("ReSharper.DPA", "DPA0006: Large number of DB commands", MessageId = "count: 2000")]
     public void UpdateCommandsInQueue(ShizouContext context)
     {
-        CommandsInQueue = context.CommandRequests.ByQueue(QueueType).Count();
-        _wakeupTokenSource?.Cancel();
+        CommandsInQueue = context.CommandRequests.ByQueueOrdered(QueueType).Count();
+        if (CommandsInQueue > 0)
+            WakeUp();
+    }
+
+    private void WakeUp()
+    {
+        try
+        {
+            _wakeupTokenSource?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            _wakeupTokenSource = null;
+        }
     }
 
     public void ClearQueue()
     {
         using var context = _contextFactory.CreateDbContext();
-        context.CommandRequests.ByQueue(QueueType).ExecuteDelete();
+        context.CommandRequests.ByQueueOrdered(QueueType).ExecuteDelete();
         UpdateCommandsInQueue(context);
         Logger.LogInformation("{QueueType} queue cleared", Enum.GetName(QueueType));
     }
@@ -132,7 +154,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     public List<CommandRequest> GetQueuedCommands()
     {
         using var context = _contextFactory.CreateDbContext();
-        return context.CommandRequests.AsNoTracking().ByQueue(QueueType).ToList();
+        return context.CommandRequests.AsNoTracking().ByQueueOrdered(QueueType).ToList();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -141,14 +163,13 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var commandService = scope.ServiceProvider.GetRequiredService<CommandService>();
             // ReSharper disable once MethodHasAsyncOverloadWithCancellation
             // ReSharper disable once UseAwaitUsing
             using var context = _contextFactory.CreateDbContext();
+            var commandService = _commandServiceFactory();
             using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
             {
-                commandService.CreateScheduledCommands();
+                commandService.CreateScheduledCommands(QueueType);
                 UpdateCommandsInQueue(context);
             }
 
@@ -162,6 +183,8 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 }
                 catch (TaskCanceledException)
                 {
+                    if (stoppingToken.IsCancellationRequested)
+                        continue;
                     Logger.LogDebug("Processor woken up from pause/inactive state");
                 }
                 finally
@@ -176,16 +199,16 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             }
 
             CurrentCommand = context.CommandRequests.NextRequest(QueueType);
-            Logger.LogDebug("Current command assigned");
             if (CurrentCommand is null)
                 continue;
             PollStep = 0;
+            using var scope = _scopeFactory.CreateScope();
             var command = commandService.CommandFromRequest(CurrentCommand, scope);
             try
             {
                 Logger.LogDebug("Processing command: {CommandId}", command.CommandId);
                 LastThreeCommands.Enqueue(command.CommandId);
-                if (LastThreeCommands.Count > 3)
+                while (LastThreeCommands.Count > 3)
                     LastThreeCommands.Dequeue();
                 ProcessingCommand = true;
                 var task = command.Process();
@@ -207,12 +230,9 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
                 try
                 {
-                    if (context.CommandRequests.Any(cr => cr.Id == CurrentCommand.Id))
-                    {
-                        context.CommandRequests.Remove(CurrentCommand);
-                        // ReSharper disable once MethodHasAsyncOverloadWithCancellation
-                        context.SaveChanges();
-                    }
+                    context.CommandRequests.Remove(CurrentCommand);
+                    // ReSharper disable once MethodHasAsyncOverloadWithCancellation
+                    context.SaveChanges();
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
@@ -231,14 +251,16 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
             CurrentCommand = null;
         }
+
+        Logger.LogDebug("Processor has shut down");
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return false;
         field = value;
