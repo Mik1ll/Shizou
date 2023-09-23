@@ -4,6 +4,7 @@
     <tr>
         <td>Ep</td>
         <td>Title</td>
+        <td># of Files</td>
         <td>Dur</td>
         <td>Air Date</td>
     </tr>
@@ -16,8 +17,11 @@
             <td>
                 @EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number)
             </td>
-            <td class="">
+            <td>
                 @(ep.TitleRomaji ?? ep.TitleEnglish)
+            </td>
+            <td>
+                @(_fileCounts[ep.Id])
             </td>
             <td>
                 @($"{(ep.DurationMinutes is null ? "??" : ep.DurationMinutes.ToString())} min")

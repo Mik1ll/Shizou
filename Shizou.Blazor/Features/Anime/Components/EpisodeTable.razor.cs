@@ -12,6 +12,7 @@ public partial class EpisodeTable
     private HashSet<EpisodeWatchedState> _epWatchedStates = default!;
     private Dictionary<int, List<(AniDbFile, FileWatchedState?, LocalFile?)>> _files = new();
     private Dictionary<int, List<LocalFile>> _manualLinks = new();
+    private Dictionary<int, int> _fileCounts = default!;
 
     [Parameter]
     [EditorRequired]
@@ -31,7 +32,7 @@ public partial class EpisodeTable
 
         StateHasChanged();
     }
-    
+
     protected override void OnInitialized()
     {
         using var context = ContextFactory.CreateDbContext();
@@ -39,12 +40,19 @@ public partial class EpisodeTable
             where ep.AniDbAnimeId == AnimeId
             join ws in context.EpisodeWatchedStates on ep.Id equals ws.Id into wslj
             from ws in wslj.DefaultIfEmpty()
-            select new { ep, ws }).ToList();
+            select new { ep, ws, ManLinkCount = ep.ManualLinkLocalFiles.Count }).ToList();
+        _fileCounts = (from ep in context.AniDbEpisodes
+                where ep.AniDbAnimeId == AnimeId
+                join fXref in context.AniDbEpisodeFileXrefs on ep.Id equals fXref.AniDbEpisodeId into fXrefs
+                select new { EpId = ep.Id, Count = fXrefs.Count() }).ToList()
+            .Join(epResult, x => x.EpId, y => y.ep.Id,
+                (x, y) => x with { Count = x.Count + y.ManLinkCount })
+            .ToDictionary(x => x.EpId, x => x.Count);
         _episodes = epResult.Select(r => r.ep).ToHashSet();
         _epWatchedStates = epResult.Select(r => r.ws).ToHashSet();
         base.OnInitialized();
     }
-    
+
     private void ToggleEpExpand(AniDbEpisode ep)
     {
         if (_episodeExpanded.TryGetValue(ep.Id, out var expanded))
