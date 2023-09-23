@@ -27,7 +27,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     private CommandRequest? _currentCommand;
     private bool _paused = true;
     private int _pollStep;
-
     private CancellationTokenSource? _wakeupTokenSource;
 
     protected CommandProcessor(ILogger<CommandProcessor> logger,
@@ -43,25 +42,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         QueueType = queueType;
     }
 
-    public QueueType QueueType { get; }
-
-    private Queue<string> LastThreeCommands { get; } = new(3);
-
-    private int PollInterval => (int)(BasePollInterval * Math.Pow((double)MaxPollInterval / BasePollInterval, (float)PollStep / MaxPollSteps));
-
-    public bool ProcessingCommand { get; private set; }
-
-    public CommandRequest? CurrentCommand
-    {
-        get => _currentCommand;
-        private set => SetField(ref _currentCommand, value);
-    }
-
-    public int CommandsInQueue
-    {
-        get => _commandsInQueue;
-        private set => SetField(ref _commandsInQueue, value);
-    }
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public virtual bool Paused
     {
@@ -87,19 +68,35 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     public virtual string? PauseReason { get; protected set; }
 
+    public QueueType QueueType { get; }
+
+    public CommandRequest? CurrentCommand
+    {
+        get => _currentCommand;
+        private set => SetField(ref _currentCommand, value);
+    }
+
+    public int CommandsInQueue
+    {
+        get => _commandsInQueue;
+        private set => SetField(ref _commandsInQueue, value);
+    }
+
+    protected ILogger<CommandProcessor> Logger { get; }
+
+    private Queue<string> LastThreeCommands { get; } = new(3);
+
+    private int PollInterval => (int)(BasePollInterval * Math.Pow((double)MaxPollInterval / BasePollInterval, (float)PollStep / MaxPollSteps));
+
     private int PollStep
     {
         get => _pollStep;
         set => _pollStep = Math.Min(value, MaxPollSteps);
     }
 
-    protected ILogger<CommandProcessor> Logger { get; }
-
     private int BasePollInterval => 1000;
     private int MaxPollSteps => 4;
     private int MaxPollInterval => 10000;
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     public void Pause(string? pauseReason = null)
     {
@@ -113,34 +110,12 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         return !Paused;
     }
 
-    private void Shutdown()
-    {
-        Logger.LogDebug("Processor shutting down");
-        ShutdownInner();
-    }
-
-    protected virtual void ShutdownInner()
-    {
-    }
-
     [SuppressMessage("ReSharper.DPA", "DPA0006: Large number of DB commands", MessageId = "count: 2000")]
     public void UpdateCommandsInQueue(ShizouContext context)
     {
         CommandsInQueue = context.CommandRequests.ByQueueOrdered(QueueType).Count();
         if (CommandsInQueue > 0)
             WakeUp();
-    }
-
-    private void WakeUp()
-    {
-        try
-        {
-            _wakeupTokenSource?.Cancel();
-        }
-        catch (ObjectDisposedException)
-        {
-            _wakeupTokenSource = null;
-        }
     }
 
     public void ClearQueue()
@@ -155,6 +130,10 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     {
         using var context = _contextFactory.CreateDbContext();
         return context.CommandRequests.AsNoTracking().ByQueueOrdered(QueueType).ToList();
+    }
+
+    protected virtual void ShutdownInner()
+    {
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -210,7 +189,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 LastThreeCommands.Enqueue(command.CommandId);
                 while (LastThreeCommands.Count > 3)
                     LastThreeCommands.Dequeue();
-                ProcessingCommand = true;
                 var task = command.Process();
                 await task.WaitAsync(stoppingToken);
             }
@@ -221,10 +199,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             {
                 Pause(ex.Message);
                 Logger.LogError(ex, "Error while processing command: {ExMessage}", ex.Message);
-            }
-            finally
-            {
-                ProcessingCommand = false;
             }
 
             if (command.Completed)
@@ -248,11 +222,30 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         }
     }
 
+    private void Shutdown()
+    {
+        Logger.LogDebug("Processor shutting down");
+        ShutdownInner();
+    }
+
+    private void WakeUp()
+    {
+        try
+        {
+            _wakeupTokenSource?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            _wakeupTokenSource = null;
+        }
+    }
+
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
+    // ReSharper disable once UnusedMethodReturnValue.Local
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return false;
