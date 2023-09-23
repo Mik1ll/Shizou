@@ -209,4 +209,5 @@
             &lt;/Entry.SortBy&gt;
         &lt;/Entry&gt;
     &lt;/FilePattern&gt;
-&lt;/Patterns&gt;</s:String></wpf:ResourceDictionary>
+&lt;/Patterns&gt;</s:String>
+	<s:Boolean x:Key="/Default/ReSpeller/ReSpellerEnabled/@EntryValue">False</s:Boolean></wpf:ResourceDictionary>
