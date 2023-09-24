@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Shizou.Server.Services;
@@ -52,7 +51,7 @@ public class RHasherService
     private readonly HashIds _hashIds;
 
     /* Pointer to the native structure. */
-    private readonly nint _ptr;
+    private nint _ptr;
 
     public RHasherService(HashIds hashtype)
     {
@@ -93,13 +92,7 @@ public class RHasherService
     {
         if (_ptr == nint.Zero) return;
         Bindings.rhash_free(_ptr);
-    }
-
-    public RHasherService Update(byte[] buf)
-    {
-        if (Bindings.rhash_update(_ptr, buf, buf.Length) < 0)
-            throw new ExternalException($"{nameof(Bindings.rhash_update)} failed");
-        return this;
+        _ptr = nint.Zero;
     }
 
     public RHasherService Update(byte[] buf, int len)
@@ -110,21 +103,9 @@ public class RHasherService
         return this;
     }
 
-    public RHasherService UpdateFile(FileInfo file)
-    {
-        const int bufSize = 1 << 25;
-        using var stream = file.OpenRead();
-        var buf = new byte[bufSize];
-        int len;
-        while ((len = stream.Read(buf, 0, buf.Length)) > 0)
-            if (Bindings.rhash_update(_ptr, buf, len) < 0)
-                throw new ExternalException($"{nameof(Bindings.rhash_update)} failed");
-        return this;
-    }
-
     public async Task<RHasherService> UpdateFileAsync(FileInfo file)
     {
-        const int bufSize = 1 << 25;
+        const int bufSize = 1 << 20;
         await using var stream = file.OpenRead();
         var buf = new byte[bufSize];
         int len;
@@ -134,9 +115,9 @@ public class RHasherService
         return this;
     }
 
-    public RHasherService Finish()
+    public unsafe RHasherService Finish()
     {
-        if (Bindings.rhash_final(_ptr, null) < 0)
+        if (Bindings.rhash_final(_ptr, (byte*)nint.Zero) < 0)
             throw new ExternalException($"{nameof(Bindings.rhash_final)} failed");
         return this;
     }
@@ -146,21 +127,21 @@ public class RHasherService
         Bindings.rhash_reset(_ptr);
     }
 
-    public override string ToString()
+    public override unsafe string ToString()
     {
-        StringBuilder sb = new(130);
+        var sb = stackalloc byte[130];
         if (Bindings.rhash_print(sb, _ptr, 0, PrintFlags.Default) == 0)
             throw new ExternalException($"{nameof(Bindings.rhash_print)} failed");
-        return sb.ToString();
+        return Marshal.PtrToStringAnsi((nint)sb) ?? string.Empty;
     }
 
-    public string ToString(HashIds id)
+    public unsafe string ToString(HashIds id)
     {
         if ((_hashIds & id) == 0) throw new ArgumentException("This hasher has not computed message digest for id: " + id, nameof(id));
-        StringBuilder sb = new(130);
+        var sb = stackalloc byte[130];
         if (Bindings.rhash_print(sb, _ptr, id, PrintFlags.Default) == 0)
             throw new ExternalException($"{nameof(Bindings.rhash_print)} failed");
-        return sb.ToString();
+        return Marshal.PtrToStringAnsi((nint)sb) ?? string.Empty;
     }
 
     private static class Bindings
@@ -179,10 +160,10 @@ public class RHasherService
         public static extern nint rhash_init(HashIds hashIds);
 
         [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int rhash_update(nint ctx, byte[] message, int length);
+        public static extern int rhash_update(nint ctx, [In] byte[] message, int length);
 
-        [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int rhash_final(nint ctx, StringBuilder? firstResult);
+        [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern unsafe int rhash_final(nint ctx, byte* firstResult);
 
         [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
         public static extern void rhash_reset(nint ctx);
@@ -190,8 +171,8 @@ public class RHasherService
         [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
         public static extern void rhash_free(nint ctx);
 
-        [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
-        public static extern nuint rhash_print(StringBuilder output, nint ctx, HashIds hashId, PrintFlags flags);
+        [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern unsafe nuint rhash_print(byte* output, nint ctx, HashIds hashId, PrintFlags flags);
     }
 
     [Flags]
