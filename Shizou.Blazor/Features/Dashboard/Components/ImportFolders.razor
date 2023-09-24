@@ -1,48 +1,41 @@
 ﻿<section class="import-folders">
-    <h3>ImportFolders</h3>
+    <h3>Import Folders</h3>
     <ImportFolderModal @ref="@_importFolderModal" OnClose="@RefreshFolders"></ImportFolderModal>
     <table class="table table-hover align-middle">
-        <thead>
-        <tr>
-            <th scope="col">Scan</th>
-            <th scope="col">Name</th>
-            <th scope="col">Scan On Import</th>
-            <th scope="col">Edit</th>
-            <th scope="col">Delete</th>
-        </tr>
-        </thead>
         <tbody>
         @foreach (var importFolder in _importFolders)
         {
             <tr @key="@importFolder">
-                <td class="text-center">
+                <td>
                     <Tooltip Content="Hold shift to force scan">
                         <button type="button" class="scan-button btn p-0"
                                 @onclick="@(e => ImportService.ScanImportFolder(importFolder.Id, e.ShiftKey))">
-                            <i class="oi oi-magnifying-glass"></i>
+                            <i class="bi bi-search"></i>
                         </button>
                     </Tooltip>
                 </td>
                 <td class="absorbing-column">@importFolder.Name</td>
-                <td class="text-center">
+                <td>
                     @if (importFolder.ScanOnImport)
                     {
-                        <i class="oi oi-circle-check"></i>
-                    }
-                    else
-                    {
-                        <i class="oi oi-circle-x"></i>
+                        <Tooltip Content="Will scan on import">
+                            <i class="bi bi-save2"></i>
+                        </Tooltip>
                     }
                 </td>
-                <td class="text-center">
-                    <button type="button" class="btn p-0" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))">
-                        <i class="oi oi-pencil"></i>
-                    </button>
+                <td>
+                    <Tooltip Content="Edit">
+                        <button type="button" class="btn p-0" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                    </Tooltip>
                 </td>
-                <td class="text-center">
-                    <button type="button" class="btn p-0" @onclick="@(() => _importFolderModal?.DeleteDialog(importFolder))">
-                        <i class="oi oi-trash"></i>
-                    </button>
+                <td>
+                    <Tooltip Content="Remove">
+                        <button type="button" class="btn p-0" @onclick="@(() => _importFolderModal?.DeleteDialog(importFolder))">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </Tooltip>
                 </td>
             </tr>
         }
