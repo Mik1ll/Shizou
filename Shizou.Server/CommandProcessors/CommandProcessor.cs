@@ -205,8 +205,11 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             {
                 Logger.LogDebug("Deleting command: {CommandId}", command.CommandId);
                 context.CommandRequests.Remove(CurrentCommand);
-                // ReSharper disable once MethodHasAsyncOverloadWithCancellation
-                context.SaveChanges();
+                using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
+                {
+                    // ReSharper disable once MethodHasAsyncOverloadWithCancellation
+                    context.SaveChanges();
+                }
             }
             else
             {

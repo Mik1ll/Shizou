@@ -40,6 +40,7 @@ public class HashCommand : Command<HashArgs>
         if (!file.Exists || importFolder is null)
         {
             _logger.LogWarning("File not found or not inside an import folder: \"{Path}\"", file.FullName);
+            Completed = true;
             return;
         }
 
@@ -57,6 +58,7 @@ public class HashCommand : Command<HashArgs>
                 if (File.Exists(oldPath))
                 {
                     _logger.LogError("Skipping add local file for \"{NewPath}\": duplicate file at \"{OldPath}\"", file.FullName, oldPath);
+                    Completed = true;
                     return;
                 }
 
