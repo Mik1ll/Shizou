@@ -60,15 +60,6 @@ public class RHasherService
         _ptr = Bindings.rhash_init(_hashIds);
     }
 
-    public static Dictionary<HashIds, string> GetFileHashes(FileInfo file, HashIds ids)
-    {
-        var hasher = new RHasherService(ids);
-        hasher.UpdateFile(file);
-        hasher.Finish();
-        return Enum.GetValues(typeof(HashIds)).Cast<HashIds>().Where(id => ids.HasFlag(id))
-            .ToDictionary(id => id, id => hasher.ToString(id));
-    }
-
     public static async Task<Dictionary<HashIds, string>> GetFileHashesAsync(FileInfo file, HashIds ids)
     {
         var hasher = new RHasherService(ids);
@@ -78,12 +69,7 @@ public class RHasherService
             .ToDictionary(id => id, id => hasher.ToString(id));
     }
 
-    public static string GetMsgHash(byte[] buf, HashIds id)
-    {
-        return new RHasherService(id).Update(buf).Finish().ToString();
-    }
-
-    public static string GetFileSignature(string filePath)
+    public static async Task<string> GetFileSignatureAsync(string filePath)
     {
         var file = new FileInfo(filePath);
         if (!file.Exists)
@@ -91,14 +77,15 @@ public class RHasherService
         var bufSize = 1 << 20;
         var seekLen = Math.Max(file.Length / 30 - bufSize, 0);
         var hasher = new RHasherService(HashIds.Sha1);
-        using var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
+        await using var stream = file.OpenRead();
         var buf = new byte[bufSize];
         int len;
-        while ((len = stream.Read(buf, 0, buf.Length)) > 0)
+        while ((len = await stream.ReadAsync(buf, 0, buf.Length)) > 0)
         {
             hasher.Update(buf, len);
             stream.Seek(seekLen, SeekOrigin.Current);
         }
+
         return hasher.Finish().ToString();
     }
 
@@ -126,7 +113,7 @@ public class RHasherService
     public RHasherService UpdateFile(FileInfo file)
     {
         const int bufSize = 1 << 25;
-        using FileStream stream = new(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufSize, FileOptions.SequentialScan);
+        using var stream = file.OpenRead();
         var buf = new byte[bufSize];
         int len;
         while ((len = stream.Read(buf, 0, buf.Length)) > 0)
@@ -138,7 +125,7 @@ public class RHasherService
     public async Task<RHasherService> UpdateFileAsync(FileInfo file)
     {
         const int bufSize = 1 << 25;
-        await using FileStream stream = new(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufSize, FileOptions.SequentialScan);
+        await using var stream = file.OpenRead();
         var buf = new byte[bufSize];
         int len;
         while ((len = await stream.ReadAsync(buf, 0, buf.Length)) > 0)

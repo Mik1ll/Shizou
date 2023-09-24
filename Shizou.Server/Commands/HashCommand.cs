@@ -45,7 +45,7 @@ public class HashCommand : Command<HashArgs>
         }
 
         var pathTail = file.FullName.Substring(importFolder.Path.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        var signature = RHasherService.GetFileSignature(file.FullName);
+        var signature = await RHasherService.GetFileSignatureAsync(file.FullName);
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder)
             .FirstOrDefault(l => l.Signature == signature
                                  || (l.ImportFolderId == importFolder.Id && l.PathTail == pathTail));
