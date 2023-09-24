@@ -3,30 +3,30 @@
     <thead>
     <tr>
         <td>Ep</td>
-        <td>Title</td>
-        <td># of Files</td>
-        <td>Dur</td>
-        <td>Air Date</td>
+        <td class="w-100">Title</td>
+        <td class="text-center">Files</td>
+        <td class="text-center">Length</td>
+        <td class="text-center">Aired</td>
     </tr>
     </thead>
-    <tbody>
+    <tbody class="table-group-divider">
     @foreach (var ep in _episodes.OrderBy(e => e.EpisodeType).ThenBy(e => e.Number))
     {
         var epWatchedState = _epWatchedStates.First(ws => ep.Id == ws.Id);
         <tr role="button" @onclick="@(() => ToggleEpExpand(ep))">
-            <td>
+            <td class="text-end">
                 @EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number)
             </td>
-            <td>
+            <td class="w-100">
                 @(ep.TitleRomaji ?? ep.TitleEnglish)
             </td>
-            <td>
+            <td class="text-end">
                 @(_fileCounts[ep.Id])
             </td>
-            <td>
+            <td class="text-nowrap text-end">
                 @($"{(ep.DurationMinutes is null ? "??" : ep.DurationMinutes.ToString())} min")
             </td>
-            <td>
+            <td class="text-nowrap text-end">
                 @(ep.AirDate?.ToString("yyyy-MM-dd"))
             </td>
         </tr>
