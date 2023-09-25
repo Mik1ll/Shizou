@@ -1,5 +1,7 @@
 ﻿.collection-card-img {
     height: 25vh;
+    min-height: 12rem;
+    max-width: 35vw;
     object-fit: contain;
     width: 100%;
 }
