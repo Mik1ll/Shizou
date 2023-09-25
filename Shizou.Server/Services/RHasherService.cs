@@ -59,20 +59,40 @@ public class RHasherService
         _ptr = Bindings.rhash_init(_hashIds);
     }
 
-    public static async Task<Dictionary<HashIds, string>> GetFileHashesAsync(FileInfo file, HashIds ids)
+    /// <summary>
+    ///     Get file hashes
+    /// </summary>
+    /// <param name="file">File to hash</param>
+    /// <param name="hashIds">Hashes to retrieve</param>
+    /// <returns>Dictionary of hash results</returns>
+    /// <exception cref="FileNotFoundException"></exception>
+    public static async Task<Dictionary<HashIds, string>> GetFileHashesAsync(FileInfo file, HashIds hashIds)
     {
-        var hasher = new RHasherService(ids);
-        await hasher.UpdateFileAsync(file);
+        if (!file.Exists)
+            throw new FileNotFoundException("Couldn't find file when trying to get file hash");
+        var hasher = new RHasherService(hashIds);
+        var bufSize = 1 << 20;
+        await using var stream = file.OpenRead();
+        var buf = new byte[bufSize];
+        int len;
+        while ((len = await stream.ReadAsync(buf, 0, buf.Length)) > 0)
+            hasher.Update(buf, len);
+
         hasher.Finish();
-        return Enum.GetValues(typeof(HashIds)).Cast<HashIds>().Where(id => ids.HasFlag(id))
+        return Enum.GetValues(typeof(HashIds)).Cast<HashIds>().Where(id => hashIds.HasFlag(id))
             .ToDictionary(id => id, id => hasher.ToString(id));
     }
 
-    public static async Task<string> GetFileSignatureAsync(string filePath)
+    /// <summary>
+    ///     Get file signature/thumbprint
+    /// </summary>
+    /// <param name="file"></param>
+    /// <returns></returns>
+    /// <exception cref="FileNotFoundException"></exception>
+    public static async Task<string> GetFileSignatureAsync(FileInfo file)
     {
-        var file = new FileInfo(filePath);
         if (!file.Exists)
-            return string.Empty;
+            throw new FileNotFoundException("Couldn't find file when trying to get file signature");
         var bufSize = 1 << 20;
         var seekLen = Math.Max(file.Length / 30 - bufSize, 0);
         var hasher = new RHasherService(HashIds.Sha1);
@@ -100,17 +120,6 @@ public class RHasherService
         if (len < 0 || len > buf.Length) throw new IndexOutOfRangeException();
         if (Bindings.rhash_update(_ptr, buf, len) < 0)
             throw new ExternalException($"{nameof(Bindings.rhash_update)} failed");
-        return this;
-    }
-
-    public async Task<RHasherService> UpdateFileAsync(FileInfo file)
-    {
-        var bufSize = 1 << 20;
-        await using var stream = file.OpenRead();
-        var buf = new byte[bufSize];
-        int len;
-        while ((len = await stream.ReadAsync(buf, 0, buf.Length)) > 0)
-            Update(buf, len);
         return this;
     }
 

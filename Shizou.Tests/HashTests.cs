@@ -11,14 +11,7 @@ public class HashTests
     public async Task TestHashSpeed()
     {
         var stopWatch = new Stopwatch();
-        var file = new FileInfo(Path.Combine(FilePaths.ApplicationDataDir, "hashTestFile.bin"));
-        var data = new byte[300 * 1024 * 1024];
-        var rng = new Random(555);
-        rng.NextBytes(data);
-        await using (var stream = file.Create())
-        {
-            await stream.WriteAsync(data);
-        }
+        var file = await CreateTestFile(300, "hashTestFile.bin");
 
         stopWatch.Start();
         var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2k);
@@ -31,17 +24,22 @@ public class HashTests
     [TestMethod]
     public async Task TestSmallFile()
     {
-        var file = new FileInfo(Path.Combine(FilePaths.ApplicationDataDir, "hashTestFile.bin"));
-        var data = new byte[512];
-        var rng = new Random(555);
-        rng.NextBytes(data);
-        await using (var stream = file.Create())
-        {
-            await stream.WriteAsync(data);
-        }
+        var file = await CreateTestFile(1, "hashTestFile.bin");
 
         var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2k);
         Console.WriteLine($"Small file hash: {hashes[RHasherService.HashIds.Ed2k]}");
         file.Delete();
+    }
+
+    // ReSharper disable once InconsistentNaming
+    private static async Task<FileInfo> CreateTestFile(int sizeInMB, string testFileName)
+    {
+        var file = new FileInfo(Path.Combine(FilePaths.ApplicationDataDir, testFileName));
+        var data = new byte[sizeInMB * 1024 * 1024];
+        var rng = new Random(555);
+        rng.NextBytes(data);
+        await using var stream = file.Create();
+        await stream.WriteAsync(data);
+        return file;
     }
 }
