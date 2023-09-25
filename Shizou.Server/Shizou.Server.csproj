@@ -27,8 +27,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="librhash.dll" />
-        <Content Include="librhash.dll">
+        <None Remove="RHash\librhash.dll" />
+        <Content Include="RHash\librhash.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
@@ -40,8 +40,6 @@
     <ItemGroup>
         <InternalsVisibleTo Include="Shizou.Tests" />
     </ItemGroup>
-
-
 
 
 </Project>

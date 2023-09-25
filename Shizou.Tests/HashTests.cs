@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Shizou.Data;
+using Shizou.Server.RHash;
 using Shizou.Server.Services;
 
 namespace Shizou.Tests;
@@ -14,10 +15,10 @@ public class HashTests
         var file = await CreateTestFile(300, "hashTestFile.bin");
 
         stopWatch.Start();
-        var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2k);
+        var hashes = await new HashService().GetFileHashesAsync(file, HashIds.Ed2k);
         stopWatch.Stop();
         var elapsed = stopWatch.Elapsed;
-        Console.WriteLine($"Took {elapsed}, Hash: {hashes[RHasherService.HashIds.Ed2k]}");
+        Console.WriteLine($"Took {elapsed}, Hash: {hashes[HashIds.Ed2k]}");
         file.Delete();
     }
 
@@ -26,9 +27,16 @@ public class HashTests
     {
         var file = await CreateTestFile(1, "hashTestFile.bin");
 
-        var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2k);
-        Console.WriteLine($"Small file hash: {hashes[RHasherService.HashIds.Ed2k]}");
+        var hashes = await new HashService().GetFileHashesAsync(file, HashIds.Ed2k);
+        Console.WriteLine($"Small file hash: {hashes[HashIds.Ed2k]}");
         file.Delete();
+    }
+
+    [TestMethod]
+    public void TestBadHashId()
+    {
+        var ex = Assert.ThrowsException<ArgumentException>(() => new RHasher(HashIds.Md4).ToString(HashIds.Sha1 | HashIds.Crc32));
+        Assert.AreEqual("No hash id set or multiple hash ids set", ex.Message);
     }
 
     // ReSharper disable once InconsistentNaming

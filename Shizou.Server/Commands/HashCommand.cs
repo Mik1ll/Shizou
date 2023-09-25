@@ -9,6 +9,7 @@ using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Extensions;
+using Shizou.Server.RHash;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands;
@@ -20,17 +21,20 @@ public class HashCommand : Command<HashArgs>
 {
     private readonly ILogger<HashCommand> _logger;
     private readonly CommandService _commandService;
+    private readonly HashService _hashService;
     private readonly ShizouContext _context;
 
     public HashCommand(
         ILogger<HashCommand> logger,
         ShizouContext context,
-        CommandService commandService
+        CommandService commandService,
+        HashService hashService
     )
     {
         _logger = logger;
         _context = context;
         _commandService = commandService;
+        _hashService = hashService;
     }
 
     protected override async Task ProcessInner()
@@ -45,7 +49,7 @@ public class HashCommand : Command<HashArgs>
         }
 
         var pathTail = file.FullName.Substring(importFolder.Path.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        var signature = await RHasherService.GetFileSignatureAsync(file);
+        var signature = await _hashService.GetFileSignatureAsync(file);
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder)
             .FirstOrDefault(l => l.Signature == signature
                                  || (l.ImportFolderId == importFolder.Id && l.PathTail == pathTail));
@@ -74,13 +78,13 @@ public class HashCommand : Command<HashArgs>
                 _logger.LogInformation("Found local file with mismatched signature, rehashing: \"{Path}\"", file.FullName);
             else
                 _logger.LogInformation("Hashing new file: \"{Path}\"", file.FullName);
-            var hashes = await RHasherService.GetFileHashesAsync(file, RHasherService.HashIds.Ed2k | RHasherService.HashIds.Crc32);
+            var hashes = await _hashService.GetFileHashesAsync(file, HashIds.Ed2k | HashIds.Crc32);
             var newLocalFile = new LocalFile
             {
                 Id = localFile?.Id ?? 0,
                 Signature = signature,
-                Crc = hashes[RHasherService.HashIds.Crc32],
-                Ed2k = hashes[RHasherService.HashIds.Ed2k],
+                Crc = hashes[HashIds.Crc32],
+                Ed2k = hashes[HashIds.Ed2k],
                 FileSize = file.Length,
                 Updated = DateTime.UtcNow,
                 PathTail = pathTail,
@@ -91,8 +95,8 @@ public class HashCommand : Command<HashArgs>
                 localFile = _context.LocalFiles.Add(newLocalFile).Entity;
             else
                 _context.Entry(localFile).CurrentValues.SetValues(newLocalFile);
-            _logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[RHasherService.HashIds.Ed2k],
-                hashes[RHasherService.HashIds.Crc32]);
+            _logger.LogInformation("Hash result: \"{Path}\" {Ed2k} {Crc}", file.FullName, hashes[HashIds.Ed2k],
+                hashes[HashIds.Crc32]);
         }
 
         // ReSharper disable once MethodHasAsyncOverload

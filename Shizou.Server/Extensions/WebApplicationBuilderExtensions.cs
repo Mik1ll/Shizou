@@ -115,6 +115,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddTransient<ImportService>();
         builder.Services.AddTransient<WatchStateService>();
         builder.Services.AddTransient<ImageService>();
+        builder.Services.AddTransient<HashService>();
 
         builder.Services.AddSingleton<MyAnimeListService>(); // Has State and Code challenge shared state
         return builder;
