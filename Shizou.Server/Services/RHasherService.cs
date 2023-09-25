@@ -105,13 +105,12 @@ public class RHasherService
 
     public async Task<RHasherService> UpdateFileAsync(FileInfo file)
     {
-        const int bufSize = 1 << 20;
+        var bufSize = 1 << 20;
         await using var stream = file.OpenRead();
         var buf = new byte[bufSize];
         int len;
         while ((len = await stream.ReadAsync(buf, 0, buf.Length)) > 0)
-            if (Bindings.rhash_update(_ptr, buf, len) < 0)
-                throw new ExternalException($"{nameof(Bindings.rhash_update)} failed");
+            Update(buf, len);
         return this;
     }
 
