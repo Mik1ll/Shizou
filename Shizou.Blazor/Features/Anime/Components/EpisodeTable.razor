@@ -1,12 +1,12 @@
 ﻿@using Shizou.Data.Enums
-<table class="table table-striped table-hover">
+<table class="table table-striped table-hover resizable-table-columns">
     <thead>
     <tr>
-        <td>Ep</td>
-        <td class="w-100">Title</td>
-        <td class="text-center">Files</td>
-        <td class="text-center">Length</td>
-        <td class="text-center">Aired</td>
+        <th>Ep</th>
+        <th>Title</th>
+        <th class="text-center">Files</th>
+        <th class="text-center">Length</th>
+        <th class="text-center">Aired</th>
     </tr>
     </thead>
     <tbody class="table-group-divider">
@@ -17,7 +17,7 @@
             <td class="text-end">
                 @EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number)
             </td>
-            <td class="w-100">
+            <td>
                 @(ep.TitleRomaji ?? ep.TitleEnglish)
             </td>
             <td class="text-end">
