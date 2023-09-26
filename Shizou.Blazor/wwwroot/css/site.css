@@ -77,7 +77,12 @@ table .absorbing-column {
     --bs-tooltip-bg: var(--bs-white);
 }
 
-.resizable-table-columns > thead > tr > th {
+.resizable-table-columns > thead tr th {
     resize: horizontal;
     overflow: auto;
+}
+
+.unselectable {
+    -webkit-user-select: none; /* Safari */
+    user-select: none;
 }
