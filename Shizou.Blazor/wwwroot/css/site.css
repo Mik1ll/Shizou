@@ -76,3 +76,8 @@ table .absorbing-column {
     --bs-tooltip-color: var(--bs-black);
     --bs-tooltip-bg: var(--bs-white);
 }
+
+.resizable-table-columns > thead > tr > th {
+    resize: horizontal;
+    overflow: auto;
+}
