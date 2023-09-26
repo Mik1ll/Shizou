@@ -1,0 +1,29 @@
+﻿@page "/UnidentifiedFiles"
+@using Shizou.Data.Models
+<PageTitle>Unidentified Files</PageTitle>
+
+<article class="container-fluid">
+    <SelectTable TValue="@LocalFile" OnChange="@OnSelectChanged" class="table table-hover resizable-table-columns">
+        <thead>
+        <tr>
+            <th>Folder</th>
+            <th>Name</th>
+            <th>Size</th>
+            <th>Hash</th>
+            <th>Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var (file, idx) in _localFiles.Select((file, idx) => (file, idx)))
+        {
+            <SelectRow TValue="@LocalFile" Index="@idx" Value="@file">
+                <td>@(file.ImportFolder?.Path)</td>
+                <td>@(file.PathTail)</td>
+                <td>@(Math.Round(file.FileSize / (1024.0 * 1024), 2)) MiB</td>
+                <td>@(file.Ed2k)</td>
+                <td>@(file.Updated)</td>
+            </SelectRow>
+        }
+        </tbody>
+    </SelectTable>
+</article>
