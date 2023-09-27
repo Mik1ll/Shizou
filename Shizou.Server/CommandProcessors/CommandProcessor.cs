@@ -14,6 +14,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.Extensions;
+using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.CommandProcessors;

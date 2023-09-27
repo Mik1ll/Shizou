@@ -2,7 +2,7 @@
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 
-namespace Shizou.Server.Extensions;
+namespace Shizou.Server.Extensions.Query;
 
 public static class ScheduledCommandsExtensions
 {

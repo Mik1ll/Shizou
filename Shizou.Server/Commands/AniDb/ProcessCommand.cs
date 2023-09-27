@@ -10,7 +10,7 @@ using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
-using Shizou.Server.Extensions;
+using Shizou.Server.Extensions.Query;
 using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
@@ -64,8 +64,8 @@ public class ProcessCommand : Command<ProcessArgs>
 
     private void UpdateAniDb(FileResult result)
     {
-        if ((FileIsGeneric(result) && _context.EpisodesWithManualLinks.Any(e => e.Id == result.EpisodeId!.Value)) ||
-            _context.LocalFiles.GetByEd2K(result.Ed2K!) is not null)
+        if ((FileIsGeneric(result) && _context.AniDbEpisodes.WithManualLinks().Any(e => e.Id == result.EpisodeId!.Value)) ||
+            _context.LocalFiles.ByEd2K(result.Ed2K!) is not null)
             if (result.MyListId is null)
                 _commandService.Dispatch(new UpdateMyListArgs(false, _options.AniDb.MyList.PresentFileState, Fid: result.FileId));
             else if (result.MyListState != _options.AniDb.MyList.PresentFileState || result.MyListFileState != MyListFileState.Normal)

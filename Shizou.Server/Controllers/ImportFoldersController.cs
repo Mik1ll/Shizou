@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
-using Shizou.Server.Extensions;
+using Shizou.Server.Extensions.Query;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;

@@ -7,6 +7,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.Commands.AniDb;
+using Shizou.Server.Extensions.Query;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.Services;
@@ -111,7 +112,7 @@ public class WatchStateService
         var updatedTime = DateTime.UtcNow;
         using var context = _contextFactory.CreateDbContext();
 
-        var filesWithLocal = (from file in context.FilesFromAnime(animeId)
+        var filesWithLocal = (from file in context.AniDbFiles.ByAnimeId(context.AniDbEpisodeFileXrefs, context.AniDbEpisodes, animeId)
             where context.LocalFiles.Any(lf => lf.Ed2k == file.Ed2k)
             select file).ToList();
         var epsWithManualLink = (from episode in context.AniDbEpisodes

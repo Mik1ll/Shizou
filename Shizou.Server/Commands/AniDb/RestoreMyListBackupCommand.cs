@@ -13,6 +13,7 @@ using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
+using Shizou.Server.Extensions.Query;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -67,8 +68,8 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
                 join ws in _context.EpisodeWatchedStates
                     on gf.AniDbEpisodeId equals ws.Id
                 select new { FileId = gf.Id, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId);
-        var dbFilesWithLocal = _context.FilesWithLocal.Select(f => f.Id)
-            .Union(_context.GenericFilesWithManualLinks.Select(f => f.Id)).ToHashSet();
+        var dbFilesWithLocal = _context.AniDbFiles.WithLocal(_context.LocalFiles).Select(f => f.Id)
+            .Union(_context.AniDbGenericFiles.WithManualLinks(_context.AniDbEpisodes).Select(f => f.Id)).ToHashSet();
         List<UpdateMyListArgs> toUpdate = new();
 
         var backupMyList = backup.MyListItems.DistinctBy(i => i.Id).ToList();

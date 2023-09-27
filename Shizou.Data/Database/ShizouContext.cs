@@ -33,45 +33,6 @@ public sealed class ShizouContext : IdentityDbContext
     public DbSet<FileWatchedState> FileWatchedStates { get; set; } = null!;
     public DbSet<EpisodeWatchedState> EpisodeWatchedStates { get; set; } = null!;
 
-    public IQueryable<AniDbEpisode> EpisodesFromFile(int fileId)
-    {
-        return from e in AniDbEpisodes
-            join r in AniDbEpisodeFileXrefs on e.Id equals r.AniDbEpisodeId
-            where r.AniDbFileId == fileId
-            select e;
-    }
-
-    public IQueryable<AniDbFile> FilesFromEpisode(int episodeId)
-    {
-        return from f in AniDbFiles
-            join r in AniDbEpisodeFileXrefs on f.Id equals r.AniDbFileId
-            where r.AniDbEpisodeId == episodeId
-            select f;
-    }
-
-    public IQueryable<AniDbFile> FilesFromAnime(int animeId)
-    {
-        return from f in AniDbFiles
-            join xref in AniDbEpisodeFileXrefs
-                on f.Id equals xref.AniDbFileId
-            join ep in AniDbEpisodes
-                on xref.AniDbEpisodeId equals ep.Id
-            where ep.AniDbAnimeId == animeId
-            select f;
-    }
-
-    public IQueryable<AniDbFile> FilesWithLocal => from f in AniDbFiles
-        where LocalFiles.Any(lf => lf.Ed2k == f.Ed2k)
-        select f;
-
-    public IQueryable<AniDbGenericFile> GenericFilesWithManualLinks => from f in AniDbGenericFiles
-        where EpisodesWithManualLinks.Any(e => e.Id == f.AniDbEpisodeId)
-        select f;
-
-    public IQueryable<AniDbEpisode> EpisodesWithManualLinks => from e in AniDbEpisodes
-        where e.ManualLinkLocalFiles.Any()
-        select e;
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)

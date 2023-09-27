@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
+using Shizou.Server.Extensions.Query;
 
 namespace Shizou.Blazor.Features.Utilities.UnidentifiedFiles;
 
@@ -16,9 +17,7 @@ public partial class UnidentifiedFiles
     protected override void OnInitialized()
     {
         using var context = ContextFactory.CreateDbContext();
-        _localFiles = (from lf in context.LocalFiles.Include(lf => lf.ImportFolder)
-            where lf.ManualLinkEpisodeId == null && !context.AniDbFiles.Any(f => f.Ed2k == lf.Ed2k)
-            select lf).ToList();
+        _localFiles = context.LocalFiles.Include(lf => lf.ImportFolder).GetUnrecognized(context.AniDbFiles).ToList();
     }
 
     private void OnSelectChanged(List<LocalFile> values)

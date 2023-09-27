@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
+using Shizou.Server.Extensions.Query;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -41,7 +42,7 @@ public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArg
                   ws.MyListId == null
             select new { gf.Id, ws.Watched, ws.WatchedUpdated }).ToList();
 
-        var episodesWithMissingGenericFile = (from ep in _context.EpisodesWithManualLinks
+        var episodesWithMissingGenericFile = (from ep in _context.AniDbEpisodes.WithManualLinks()
             join ws in _context.EpisodeWatchedStates
                 on ep.Id equals ws.Id
             where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == ep.Id)

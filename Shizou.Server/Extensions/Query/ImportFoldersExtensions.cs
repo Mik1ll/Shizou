@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using Shizou.Data.Models;
 
-namespace Shizou.Server.Extensions;
+namespace Shizou.Server.Extensions.Query;
 
 public static class ImportFoldersExtensions
 {

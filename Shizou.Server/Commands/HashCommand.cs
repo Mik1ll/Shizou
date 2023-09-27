@@ -8,7 +8,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.Commands.AniDb;
-using Shizou.Server.Extensions;
+using Shizou.Server.Extensions.Query;
 using Shizou.Server.RHash;
 using Shizou.Server.Services;
 
