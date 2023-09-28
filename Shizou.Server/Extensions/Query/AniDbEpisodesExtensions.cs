@@ -6,13 +6,13 @@ namespace Shizou.Server.Extensions.Query;
 
 public static class AniDbEpisodesExtensions
 {
-    public static AniDbEpisode? AniDbEpisodeByGenericFileId(this ShizouContext context, int genericFileId)
+    public static AniDbEpisode? ByGenericFileId(this IQueryable<AniDbEpisode> query, ShizouContext context, int genericFileId)
     {
-        return context.AniDbEpisodes.SingleOrDefault(e => context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id && gf.Id == genericFileId));
+        return query.SingleOrDefault(e => context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id && gf.Id == genericFileId));
     }
 
-    public static IQueryable<AniDbEpisode> AniDbEpisodesWithManualLinks(this ShizouContext context)
+    public static IQueryable<AniDbEpisode> WithManualLinks(this IQueryable<AniDbEpisode> query)
     {
-        return context.AniDbEpisodes.Where(ep => ep.ManualLinkLocalFiles.Any());
+        return query.Where(ep => ep.ManualLinkLocalFiles.Any());
     }
 }

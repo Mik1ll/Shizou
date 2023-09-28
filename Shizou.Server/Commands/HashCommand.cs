@@ -40,7 +40,7 @@ public class HashCommand : Command<HashArgs>
     protected override async Task ProcessInner()
     {
         var file = new FileInfo(CommandArgs.Path);
-        var importFolder = _context.ImportFolderByPath(file.FullName);
+        var importFolder = _context.ImportFolders.ByPath(file.FullName);
         if (!file.Exists || importFolder is null)
         {
             _logger.LogWarning("File not found or not inside an import folder: \"{Path}\"", file.FullName);

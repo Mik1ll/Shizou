@@ -114,7 +114,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     [SuppressMessage("ReSharper.DPA", "DPA0006: Large number of DB commands", MessageId = "count: 2000")]
     public void UpdateCommandsInQueue(ShizouContext context)
     {
-        CommandsInQueue = context.CommandRequestsByQueueOrdered(QueueType).Count();
+        CommandsInQueue = context.CommandRequests.ByQueueOrdered(QueueType).Count();
         if (CommandsInQueue > 0)
             WakeUp();
     }
@@ -122,7 +122,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     public void ClearQueue()
     {
         using var context = _contextFactory.CreateDbContext();
-        context.CommandRequestsByQueueOrdered(QueueType).ExecuteDelete();
+        context.CommandRequests.ByQueueOrdered(QueueType).ExecuteDelete();
         UpdateCommandsInQueue(context);
         Logger.LogInformation("{QueueType} queue cleared", Enum.GetName(QueueType));
     }
@@ -130,7 +130,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     public List<CommandRequest> GetQueuedCommands()
     {
         using var context = _contextFactory.CreateDbContext();
-        return context.CommandRequestsByQueueOrdered(QueueType).AsNoTracking().ToList();
+        return context.CommandRequests.ByQueueOrdered(QueueType).AsNoTracking().ToList();
     }
 
     protected virtual void ShutdownInner()
@@ -178,7 +178,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 continue;
             }
 
-            CurrentCommand = context.CommandRequestNext(QueueType);
+            CurrentCommand = context.CommandRequests.Next(QueueType);
             if (CurrentCommand is null)
                 continue;
             PollStep = 0;

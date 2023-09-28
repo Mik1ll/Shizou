@@ -25,7 +25,7 @@ public class ImportFoldersController : EntityController<ImportFolder>
     [Produces("application/json")]
     public ActionResult<ImportFolder> GetByPath(string path)
     {
-        var importFolder = Context.ImportFolderByPath(path);
+        var importFolder = Context.ImportFolders.ByPath(path);
         if (importFolder is null)
             return NotFound();
         return importFolder;

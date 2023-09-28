@@ -31,14 +31,16 @@ public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArg
 
     protected override Task ProcessInner()
     {
-        var filesMissingMyListId = _context.FileWatchedStatesWithoutMyListId(true)
-            .Select(ws => new { Fid = ws.Id, ws.Watched, ws.WatchedUpdated }).ToList();
+        var filesMissingMyListId = (from ws in _context.FileWatchedStates.WithLocalFile(_context)
+            where ws.MyListId == null
+            select new { Fid = ws.Id, ws.Watched, ws.WatchedUpdated }).ToList();
 
-        var genericFilesMissingMyListId = (from ws in _context.EpisodeWatchedStatesWithoutMyListId(true)
+        var genericFilesMissingMyListId = (from ws in _context.EpisodeWatchedStates.WithManualLinks(_context)
+            where ws.MyListId == null
             join gf in _context.AniDbGenericFiles on ws.Id equals gf.AniDbEpisodeId
             select new { Fid = gf.Id, ws.Watched, ws.WatchedUpdated }).ToList();
 
-        var episodesWithMissingGenericFile = (from ep in _context.AniDbEpisodesWithManualLinks()
+        var episodesWithMissingGenericFile = (from ep in _context.AniDbEpisodes.WithManualLinks()
             join ws in _context.EpisodeWatchedStates
                 on ep.Id equals ws.Id
             where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == ep.Id)

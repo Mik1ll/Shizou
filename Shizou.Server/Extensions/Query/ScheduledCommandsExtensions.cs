@@ -8,9 +8,9 @@ namespace Shizou.Server.Extensions.Query;
 
 public static class ScheduledCommandsExtensions
 {
-    public static IQueryable<ScheduledCommand> ScheduledCommandsDue(this ShizouContext context, QueueType queueType)
+    public static IQueryable<ScheduledCommand> DueCommands(this IQueryable<ScheduledCommand> query, ShizouContext context, QueueType queueType)
     {
-        return from cq in context.ScheduledCommands
+        return from cq in query
             where cq.QueueType == queueType &&
                   cq.NextRunTime < DateTime.UtcNow &&
                   !context.CommandRequests.Any(cr => cr.CommandId == cq.CommandId)

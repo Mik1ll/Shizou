@@ -6,14 +6,14 @@ namespace Shizou.Server.Extensions.Query;
 
 public static class AniDbFilesExtensions
 {
-    public static IQueryable<AniDbFile> AniDbFilesWithLocalFile(this ShizouContext context)
+    public static IQueryable<AniDbFile> WithLocalFile(this IQueryable<AniDbFile> query, ShizouContext context)
     {
-        return context.AniDbFiles.Where(f => context.LocalFiles.Any(lf => lf.Ed2k == f.Ed2k));
+        return query.Where(f => context.LocalFiles.Any(lf => lf.Ed2k == f.Ed2k));
     }
 
-    public static IQueryable<AniDbFile> AniDbFilesByAnimeId(this ShizouContext context, int animeId)
+    public static IQueryable<AniDbFile> ByAnimeId(this IQueryable<AniDbFile> query, ShizouContext context, int animeId)
     {
-        return from f in context.AniDbFiles
+        return from f in query
             join xref in context.AniDbEpisodeFileXrefs
                 on f.Id equals xref.AniDbFileId
             join ep in context.AniDbEpisodes

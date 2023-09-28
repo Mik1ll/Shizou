@@ -98,7 +98,7 @@ public class CommandService
     public void CreateScheduledCommands(QueueType queueType)
     {
         using var context = _contextFactory.CreateDbContext();
-        var scheduledCommands = context.ScheduledCommandsDue(queueType).ToList();
+        var scheduledCommands = context.ScheduledCommands.DueCommands(context, queueType).ToList();
         if (scheduledCommands.Count == 0)
             return;
         var commandArgs = scheduledCommands.Select(ArgsFromScheduledCommand).ToList();

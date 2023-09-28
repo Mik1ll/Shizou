@@ -18,7 +18,7 @@ public class DatabaseTests : SeededDatabaseTests
     public void TestQueryables()
     {
         using var context = GetContext();
-        var result = context.AniDbEpisodeByGenericFileId(3);
+        var result = context.AniDbGenericFiles.WithManualLinks(context);
         Assert.IsNotNull(result);
     }
 }

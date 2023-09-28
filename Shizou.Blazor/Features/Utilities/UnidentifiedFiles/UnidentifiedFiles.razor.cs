@@ -17,7 +17,7 @@ public partial class UnidentifiedFiles
     protected override void OnInitialized()
     {
         using var context = ContextFactory.CreateDbContext();
-        _localFiles = context.LocalFilesUnrecognized().Include(lf => lf.ImportFolder).ToList();
+        _localFiles = context.LocalFiles.Unrecognized(context).Include(lf => lf.ImportFolder).ToList();
     }
 
     private void OnSelectChanged(List<LocalFile> values)

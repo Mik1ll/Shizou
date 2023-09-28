@@ -6,10 +6,10 @@ namespace Shizou.Server.Extensions.Query;
 
 public static class EpisodeWatchedStatesExtensions
 {
-    public static IQueryable<EpisodeWatchedState> EpisodeWatchedStatesWithoutMyListId(this ShizouContext context, bool excludeWithoutManualLink)
+    public static IQueryable<EpisodeWatchedState> WithManualLinks(this IQueryable<EpisodeWatchedState> query, ShizouContext context)
     {
-        return from ws in context.EpisodeWatchedStates
-            where (excludeWithoutManualLink || context.LocalFiles.Any(lf => lf.ManualLinkEpisodeId == ws.Id)) && ws.MyListId == null
+        return from ws in query
+            where context.LocalFiles.Any(lf => lf.ManualLinkEpisodeId == ws.Id)
             select ws;
     }
 }
