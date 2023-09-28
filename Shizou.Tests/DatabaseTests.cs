@@ -1,3 +1,5 @@
+using Shizou.Server.Extensions.Query;
+
 namespace Shizou.Tests;
 
 [TestClass]
@@ -8,6 +10,15 @@ public class DatabaseTests : SeededDatabaseTests
     {
         using var context = GetContext();
         var result = context.AniDbAnimes.Where(a => a.Updated < DateTime.UtcNow).ToList();
+        Assert.IsNotNull(result);
+    }
+
+
+    [TestMethod]
+    public void TestQueryables()
+    {
+        using var context = GetContext();
+        var result = context.AniDbEpisodeByGenericFileId(3);
         Assert.IsNotNull(result);
     }
 }

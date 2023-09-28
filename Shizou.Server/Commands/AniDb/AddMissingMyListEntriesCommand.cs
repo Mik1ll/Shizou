@@ -42,7 +42,7 @@ public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArg
                   ws.MyListId == null
             select new { gf.Id, ws.Watched, ws.WatchedUpdated }).ToList();
 
-        var episodesWithMissingGenericFile = (from ep in _context.AniDbEpisodes.WithManualLinks()
+        var episodesWithMissingGenericFile = (from ep in _context.AniDbEpisodesWithManualLinks()
             join ws in _context.EpisodeWatchedStates
                 on ep.Id equals ws.Id
             where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == ep.Id)

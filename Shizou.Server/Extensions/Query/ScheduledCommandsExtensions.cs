@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 
@@ -6,11 +8,12 @@ namespace Shizou.Server.Extensions.Query;
 
 public static class ScheduledCommandsExtensions
 {
-    public static IQueryable<ScheduledCommand> ByQueue(this IQueryable<ScheduledCommand> queryable, QueueType queueType)
+    public static IQueryable<ScheduledCommand> ScheduledCommandsDue(this ShizouContext context, QueueType queueType)
     {
-        return from cq in queryable
-            where cq.QueueType == queueType
-            orderby cq.Priority, cq.Id
+        return from cq in context.ScheduledCommands
+            where cq.QueueType == queueType &&
+                  cq.NextRunTime < DateTime.UtcNow &&
+                  !context.CommandRequests.Any(cr => cr.CommandId == cq.CommandId)
             select cq;
     }
 }

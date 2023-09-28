@@ -11,6 +11,7 @@ using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.CommandProcessors;
 using Shizou.Server.Commands;
+using Shizou.Server.Extensions.Query;
 
 namespace Shizou.Server.Services;
 
@@ -97,10 +98,7 @@ public class CommandService
     public void CreateScheduledCommands(QueueType queueType)
     {
         using var context = _contextFactory.CreateDbContext();
-        var scheduledCommands = context.ScheduledCommands
-            .Where(c => c.QueueType == queueType &&
-                        c.NextRunTime < DateTime.UtcNow &&
-                        !context.CommandRequests.Any(cr => cr.CommandId == c.CommandId)).ToList();
+        var scheduledCommands = context.ScheduledCommandsDue(queueType).ToList();
         if (scheduledCommands.Count == 0)
             return;
         var commandArgs = scheduledCommands.Select(ArgsFromScheduledCommand).ToList();
