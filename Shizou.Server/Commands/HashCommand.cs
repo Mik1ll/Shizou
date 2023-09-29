@@ -103,7 +103,7 @@ public class HashCommand : Command<HashArgs>
         localFile.AniDbFileId = eAniDbFileId;
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
-        
+
         if (eAniDbFileId is null)
             _commandService.Dispatch(new ProcessArgs(localFile.Id, IdTypeLocalFile.LocalId));
         Completed = true;

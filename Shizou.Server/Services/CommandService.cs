@@ -17,7 +17,7 @@ namespace Shizou.Server.Services;
 
 public class CommandService
 {
-    public static readonly IList<(CommandAttribute Attr, Type Type, Type ArgsType)> Commands =
+    private static readonly IList<(CommandAttribute Attr, Type Type, Type ArgsType)> Commands =
         (from type in Assembly.GetExecutingAssembly().GetTypes()
             let cmdAttr = type.GetCustomAttribute<CommandAttribute>()
             where cmdAttr is not null
@@ -125,7 +125,7 @@ public class CommandService
         return cmd;
     }
 
-    public CommandRequest RequestFromArgs(CommandArgs commandArgs)
+    private CommandRequest RequestFromArgs(CommandArgs commandArgs)
     {
         var argType = commandArgs.GetType();
         var commandAttr = Commands.Single(x => x.ArgsType == argType).Attr;
@@ -139,7 +139,7 @@ public class CommandService
         };
     }
 
-    public CommandArgs ArgsFromScheduledCommand(ScheduledCommand scheduledCommand)
+    private CommandArgs ArgsFromScheduledCommand(ScheduledCommand scheduledCommand)
     {
         var (_, _, argsType) = Commands.Single(x => scheduledCommand.Type == x.Attr.Type);
         var args = (CommandArgs)JsonSerializer.Deserialize(scheduledCommand.CommandArgs, argsType)!;

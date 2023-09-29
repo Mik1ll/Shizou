@@ -45,33 +45,6 @@ public class ProcessCommand : Command<ProcessArgs>
         _options = optionsSnapshot.Value;
     }
 
-    protected override async Task ProcessInner()
-    {
-        var result = await GetFileResult();
-
-        if (result is null)
-            return;
-
-        if (!_context.AniDbAnimes.Any(a => a.Id == result.AnimeId))
-            _commandService.Dispatch(new AnimeArgs(result.AnimeId!.Value));
-
-        UpdateDatabase(result);
-
-        UpdateAniDb(result);
-
-        Completed = true;
-    }
-
-    private void UpdateAniDb(FileResult result)
-    {
-        if ((FileIsGeneric(result) && _context.AniDbEpisodes.WithManualLinks().Any(e => e.Id == result.EpisodeId!.Value)) ||
-            _context.LocalFiles.SingleOrDefault(lf => lf.Ed2k == result.Ed2K!) is not null)
-            if (result.MyListId is null)
-                _commandService.Dispatch(new UpdateMyListArgs(false, _options.AniDb.MyList.PresentFileState, Fid: result.FileId));
-            else if (result.MyListState != _options.AniDb.MyList.PresentFileState || result.MyListFileState != MyListFileState.Normal)
-                _commandService.Dispatch(new UpdateMyListArgs(true, _options.AniDb.MyList.PresentFileState, Lid: result.MyListId!));
-    }
-
     private static AniDbFile FileResultToAniDbFile(FileResult result)
     {
         return new AniDbFile
@@ -118,6 +91,38 @@ public class ProcessCommand : Command<ProcessArgs>
         };
     }
 
+    private static bool FileIsGeneric(FileResult result)
+    {
+        return result.Ed2K is null && result.State == 0;
+    }
+
+    protected override async Task ProcessInner()
+    {
+        var result = await GetFileResult();
+
+        if (result is null)
+            return;
+
+        if (!_context.AniDbAnimes.Any(a => a.Id == result.AnimeId))
+            _commandService.Dispatch(new AnimeArgs(result.AnimeId!.Value));
+
+        UpdateDatabase(result);
+
+        UpdateAniDb(result);
+
+        Completed = true;
+    }
+
+    private void UpdateAniDb(FileResult result)
+    {
+        if ((FileIsGeneric(result) && _context.AniDbEpisodes.WithManualLinks().Any(e => e.Id == result.EpisodeId!.Value)) ||
+            _context.LocalFiles.SingleOrDefault(lf => lf.Ed2k == result.Ed2K!) is not null)
+            if (result.MyListId is null)
+                _commandService.Dispatch(new UpdateMyListArgs(false, _options.AniDb.MyList.PresentFileState, Fid: result.FileId));
+            else if (result.MyListState != _options.AniDb.MyList.PresentFileState || result.MyListFileState != MyListFileState.Normal)
+                _commandService.Dispatch(new UpdateMyListArgs(true, _options.AniDb.MyList.PresentFileState, Lid: result.MyListId!));
+    }
+
     private void UpdateDatabase(FileResult result)
     {
         if (FileIsGeneric(result)) // Generics also have .rl extension but don't know if it's exclusive
@@ -155,11 +160,6 @@ public class ProcessCommand : Command<ProcessArgs>
             });
         else if (eState.WatchedUpdated is null)
             eState.Watched = result.MyListViewed ?? false;
-    }
-
-    private static bool FileIsGeneric(FileResult result)
-    {
-        return result.Ed2K is null && result.State == 0;
     }
 
     private void UpdateFile(FileResult result)
@@ -235,7 +235,6 @@ public class ProcessCommand : Command<ProcessArgs>
                 else
                     _context.Entry(es).CurrentValues.SetValues(s);
         }
-
     }
 
     private void UpdateGenericFile(FileResult result)
@@ -268,7 +267,6 @@ public class ProcessCommand : Command<ProcessArgs>
 
         _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(rels.Select(x => x.AniDbEpisodeId), x => x.AniDbEpisodeId));
         _context.AniDbEpisodeFileXrefs.AddRange(rels.ExceptBy(eRels.Select(x => x.AniDbEpisodeId), x => x.AniDbEpisodeId));
-
     }
 
     private async Task<FileResult?> GetFileResult()
