@@ -36,6 +36,59 @@ public class SeededDatabaseTests
                     ImageFilename = null,
                     Updated = default
                 });
+                var file = context.AniDbFiles.Add(new AniDbFile
+                {
+                    Id = 24,
+                    Ed2k = "asdf",
+                    Crc = null,
+                    Md5 = null,
+                    Sha1 = null,
+                    FileSize = 0,
+                    DurationSeconds = null,
+                    Source = null,
+                    Updated = default,
+                    FileVersion = 0,
+                    FileName = "blah",
+                    Censored = null,
+                    Deprecated = false,
+                    Chaptered = false,
+                    AniDbGroupId = null,
+                    AniDbGroup = null,
+                    LocalFile = null,
+                    Video = null,
+                    Audio = new List<AniDbAudio>(),
+                    Subtitles = new List<AniDbSubtitle>()
+                }).Entity;
+                context.LocalFiles.AddRange(new LocalFile
+                {
+                    Id = 23,
+                    Ed2k = "asdf",
+                    Crc = "blah",
+                    FileSize = 0,
+                    Signature = "null",
+                    Ignored = false,
+                    PathTail = "wijw",
+                    Updated = null,
+                    ImportFolderId = null,
+                    ImportFolder = null,
+                    ManualLinkEpisodeId = null,
+                    ManualLinkEpisode = null,
+                    AniDbFile = file
+                }, new LocalFile
+                {
+                    Id = 12,
+                    Ed2k = "null",
+                    Crc = "null",
+                    FileSize = 0,
+                    Signature = "hiuhuh",
+                    Ignored = false,
+                    PathTail = "null",
+                    Updated = null,
+                    ImportFolderId = null,
+                    ImportFolder = null,
+                    ManualLinkEpisodeId = null,
+                    ManualLinkEpisode = null
+                });
 
                 context.SaveChanges();
 

@@ -68,7 +68,7 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
                 join ws in _context.EpisodeWatchedStates
                     on gf.AniDbEpisodeId equals ws.Id
                 select new { FileId = gf.Id, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId);
-        var dbFilesWithLocal = _context.AniDbFiles.WithLocalFile(_context).Select(f => f.Id)
+        var dbFilesWithLocal = _context.AniDbFiles.Where(f => f.LocalFile != null).Select(f => f.Id)
             .Union(_context.AniDbGenericFiles.WithManualLinks(_context).Select(f => f.Id)).ToHashSet();
         List<UpdateMyListArgs> toUpdate = new();
 

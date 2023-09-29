@@ -171,33 +171,34 @@ public class ProcessCommand : Command<ProcessArgs>
             .SingleOrDefault(f => f.Id == result.FileId);
         var file = FileResultToAniDbFile(result);
 
-        UpdateNavigations(file);
-
         if (eFile is null)
             _context.Entry(file).State = EntityState.Added;
         else
             _context.Entry(eFile).CurrentValues.SetValues(file);
-        _context.SaveChanges();
+
+        UpdateNavigations(file);
 
         UpdateOwnedNavigations(file, eFile);
 
         UpdateEpRelations(result);
 
         UpdateFileWatchedState(result);
+
+        _context.SaveChanges();
     }
 
     private void UpdateNavigations(AniDbFile file)
     {
         if (file.AniDbGroup is not null)
         {
-            var eAniDbGroup = _context.AniDbGroups.Find(file.AniDbGroupId);
-            if (eAniDbGroup is null)
-                _context.AniDbGroups.Add(file.AniDbGroup);
-            else
+            if (_context.AniDbGroups.Find(file.AniDbGroupId) is { } eAniDbGroup)
                 _context.Entry(eAniDbGroup).CurrentValues.SetValues(file.AniDbGroup);
+            else
+                _context.Entry(file.AniDbGroup).State = EntityState.Added;
         }
 
-        _context.SaveChanges();
+        if (_context.LocalFiles.FirstOrDefault(lf => lf.Ed2k == file.Ed2k) is { } eLocalFile)
+            file.LocalFile = eLocalFile;
     }
 
     private void UpdateOwnedNavigations(AniDbFile file, AniDbFile? eFile)
@@ -235,7 +236,6 @@ public class ProcessCommand : Command<ProcessArgs>
                     _context.Entry(es).CurrentValues.SetValues(s);
         }
 
-        _context.SaveChanges();
     }
 
     private void UpdateGenericFile(FileResult result)
@@ -269,7 +269,6 @@ public class ProcessCommand : Command<ProcessArgs>
         _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(rels.Select(x => x.AniDbEpisodeId), x => x.AniDbEpisodeId));
         _context.AniDbEpisodeFileXrefs.AddRange(rels.ExceptBy(eRels.Select(x => x.AniDbEpisodeId), x => x.AniDbEpisodeId));
 
-        _context.SaveChanges();
     }
 
     private async Task<FileResult?> GetFileResult()

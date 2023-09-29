@@ -30,4 +30,9 @@ public class LocalFile : IEntity
 
     [JsonIgnore]
     public AniDbEpisode? ManualLinkEpisode { get; set; }
+
+    public int? AniDbFileId { get; set; }
+
+    [JsonIgnore]
+    public AniDbFile? AniDbFile { get; set; }
 }

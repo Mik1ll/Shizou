@@ -32,6 +32,9 @@ public class AniDbFile : IEntity
     [JsonIgnore]
     public AniDbGroup? AniDbGroup { get; set; }
 
+    [JsonIgnore]
+    public LocalFile? LocalFile { get; set; }
+
     public AniDbVideo? Video { get; set; }
     public List<AniDbAudio> Audio { get; set; } = null!;
     public List<AniDbSubtitle> Subtitles { get; set; } = null!;
