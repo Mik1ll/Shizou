@@ -48,12 +48,12 @@ public partial class FileCard
     {
         switch (_watchedState)
         {
-            case Data.Models.FileWatchedState:
-                if (WatchStateService.MarkFile(_watchedState.Id, watched))
+            case FileWatchedState fws:
+                if (WatchStateService.MarkFile(fws.Id, watched))
                     _watchedState.Watched = watched;
                 break;
-            case Data.Models.EpisodeWatchedState:
-                if (WatchStateService.MarkEpisode(_watchedState.Id, watched))
+            case EpisodeWatchedState ews:
+                if (WatchStateService.MarkEpisode(ews.Id, watched))
                     _watchedState.Watched = watched;
                 break;
             default:
