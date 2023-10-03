@@ -6,7 +6,7 @@ namespace Shizou.Server.Controllers;
 
 public class AniDbEpisodesController : EntityGetController<AniDbEpisode>
 {
-    public AniDbEpisodesController(ILogger<AniDbEpisodesController> logger, ShizouContext context) : base(logger, context)
+    public AniDbEpisodesController(ILogger<AniDbEpisodesController> logger, ShizouContext context) : base(logger, context, episode => episode.Id)
     {
     }
 }

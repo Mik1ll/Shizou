@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Shizou.Data.Models;
 
 [Owned]
-public class AniDbAudio : IEntity
+public class AniDbAudio
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required int Id { get; set; }

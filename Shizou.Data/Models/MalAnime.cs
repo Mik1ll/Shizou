@@ -2,7 +2,7 @@
 
 namespace Shizou.Data.Models;
 
-public class MalAnime : IEntity
+public class MalAnime
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public int Id { get; set; }

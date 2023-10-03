@@ -10,7 +10,7 @@ namespace Shizou.Server.Controllers;
 
 public class ImportFoldersController : EntityController<ImportFolder>
 {
-    public ImportFoldersController(ILogger<ImportFoldersController> logger, ShizouContext context) : base(logger, context)
+    public ImportFoldersController(ILogger<ImportFoldersController> logger, ShizouContext context) : base(logger, context, folder => folder.Id)
     {
     }
 

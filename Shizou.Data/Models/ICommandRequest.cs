@@ -2,11 +2,12 @@
 
 namespace Shizou.Data.Models;
 
-public interface ICommandRequest : IEntity
+public interface ICommandRequest
 {
     CommandType Type { get; set; }
     CommandPriority Priority { get; set; }
     QueueType QueueType { get; set; }
     string CommandId { get; set; }
     string CommandArgs { get; set; }
+    int Id { get; set; }
 }

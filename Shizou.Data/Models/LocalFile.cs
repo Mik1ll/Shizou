@@ -7,7 +7,7 @@ namespace Shizou.Data.Models;
 [Index(nameof(Ed2k), IsUnique = true)]
 [Index(nameof(Signature), IsUnique = true)]
 [Index(nameof(ImportFolderId), nameof(PathTail), IsUnique = true)]
-public class LocalFile : IEntity
+public class LocalFile
 {
     public int Id { get; set; }
 

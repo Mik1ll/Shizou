@@ -1,27 +1,30 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
-using Shizou.Data.Models;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class EntityGetController<TEntity> : ControllerBase where TEntity : class, IEntity
+public class EntityGetController<TEntity> : ControllerBase where TEntity : class
 {
     protected readonly ShizouContext Context;
+    protected readonly Expression<Func<TEntity, int>> Selector;
     protected readonly ILogger<EntityGetController<TEntity>> Logger;
     protected readonly DbSet<TEntity> DbSet;
 
-    public EntityGetController(ILogger<EntityGetController<TEntity>> logger, ShizouContext context)
+    public EntityGetController(ILogger<EntityGetController<TEntity>> logger, ShizouContext context, Expression<Func<TEntity, int>> selector)
     {
         Logger = logger;
         Context = context;
+        Selector = selector;
         DbSet = Context.Set<TEntity>();
     }
 
@@ -51,9 +54,15 @@ public class EntityGetController<TEntity> : ControllerBase where TEntity : class
     [Produces("application/json")]
     public virtual ActionResult<TEntity> Get(int id)
     {
-        var result = DbSet.AsNoTracking().SingleOrDefault(e => e.Id == id);
+        var exp = KeyEqualsExpression(id);
+        var result = DbSet.AsNoTracking().SingleOrDefault(exp);
         if (result is null)
             return NotFound();
         return result;
+    }
+
+    protected Expression<Func<TEntity, bool>> KeyEqualsExpression(int id)
+    {
+        return Expression.Lambda<Func<TEntity, bool>>(Expression.Equal(Selector.Body, Expression.Constant(id)), Selector.Parameters);
     }
 }

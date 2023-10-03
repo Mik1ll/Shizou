@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Shizou.Data.Models;
 
-public class AniDbGroup : IEntity
+public class AniDbGroup
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required int Id { get; set; }

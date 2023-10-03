@@ -1,17 +1,19 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
-using Shizou.Data.Models;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
-public class EntityController<TEntity> : EntityGetController<TEntity> where TEntity : class, IEntity
+public class EntityController<TEntity> : EntityGetController<TEntity> where TEntity : class
 {
-    public EntityController(ILogger<EntityController<TEntity>> logger, ShizouContext context) : base(logger, context)
+    public EntityController(ILogger<EntityController<TEntity>> logger, ShizouContext context, Expression<Func<TEntity, int>> selector) : base(logger, context,
+        selector)
     {
     }
 
@@ -40,11 +42,12 @@ public class EntityController<TEntity> : EntityGetController<TEntity> where TEnt
         }
         catch (DbUpdateException)
         {
-            if (Exists(entity.Id))
+            if (Exists(Selector.Compile()(entity)))
                 return Conflict();
             throw;
         }
-        return CreatedAtAction(nameof(Get), new { id = newEntity.Id }, newEntity);
+
+        return CreatedAtAction(nameof(Get), new { id = Selector.Compile()(newEntity) }, newEntity);
     }
 
     /// <summary>
@@ -62,7 +65,7 @@ public class EntityController<TEntity> : EntityGetController<TEntity> where TEnt
     [Consumes("application/json")]
     public virtual ActionResult Put([FromBody] TEntity entity)
     {
-        var id = entity.Id;
+        var id = Selector.Compile()(entity);
         if (id == 0)
             return BadRequest("Entity id cannot be 0");
         Context.Entry(entity).State = EntityState.Modified;
@@ -94,7 +97,7 @@ public class EntityController<TEntity> : EntityGetController<TEntity> where TEnt
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     public virtual ActionResult Delete(int id)
     {
-        var entity = DbSet.Find(id);
+        var entity = DbSet.FirstOrDefault(KeyEqualsExpression(id));
         if (entity is null)
             return NotFound();
         DbSet.Remove(entity);
@@ -104,6 +107,6 @@ public class EntityController<TEntity> : EntityGetController<TEntity> where TEnt
 
     protected bool Exists(int id)
     {
-        return DbSet.Any(e => e.Id == id);
+        return DbSet.Any(KeyEqualsExpression(id));
     }
 }

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Shizou.Data.Models;
 
 [Index(nameof(AniDbEpisodeId), IsUnique = true)]
-public class AniDbGenericFile : IEntity
+public class AniDbGenericFile
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required int Id { get; set; }

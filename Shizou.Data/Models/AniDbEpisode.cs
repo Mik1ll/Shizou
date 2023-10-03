@@ -4,7 +4,7 @@ using Shizou.Data.Enums;
 
 namespace Shizou.Data.Models;
 
-public class AniDbEpisode : IEntity
+public class AniDbEpisode
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required int Id { get; set; }

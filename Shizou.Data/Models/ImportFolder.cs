@@ -7,7 +7,7 @@ namespace Shizou.Data.Models;
 
 [Index(nameof(Name), IsUnique = true)]
 [Index(nameof(Path), IsUnique = true)]
-public class ImportFolder : IEntity
+public class ImportFolder
 {
     public int Id { get; set; }
 

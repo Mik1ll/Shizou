@@ -2,7 +2,7 @@
 
 namespace Shizou.Data.Models;
 
-public class IgnoredMessage : IEntity
+public class IgnoredMessage
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required int Id { get; set; }

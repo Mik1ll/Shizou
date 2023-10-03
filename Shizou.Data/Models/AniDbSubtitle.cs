@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Shizou.Data.Models;
 
 [Owned]
-public class AniDbSubtitle : IEntity
+public class AniDbSubtitle
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required int Id { get; set; }
