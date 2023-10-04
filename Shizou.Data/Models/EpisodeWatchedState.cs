@@ -16,4 +16,5 @@ public class EpisodeWatchedState : IWatchedState
     public required bool Watched { get; set; }
     public required DateTime? WatchedUpdated { get; set; }
     public int? MyListId { get; set; }
+    public int? AniDbFileId { get; set; }
 }

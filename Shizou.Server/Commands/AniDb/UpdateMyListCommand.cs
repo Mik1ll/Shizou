@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
-using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
@@ -72,10 +71,10 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
                     if (_myListEntryRequest.MyListEntryResult is { } result)
                     {
                         // ReSharper disable once MethodHasAsyncOverload
-                        if (_context.AniDbGenericFiles.Find(result.FileId) is null)
+                        if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == result.EpisodeId) is { } eWs)
                         {
-                            _logger.LogDebug("Adding new generic file {GenericId}", result.FileId);
-                            _context.AniDbGenericFiles.Add(new AniDbGenericFile { Id = result.FileId, AniDbEpisodeId = result.EpisodeId });
+                            _logger.LogDebug("Updating episode {EpisodeId} with generic file id {GenericId}", result.EpisodeId, result.FileId);
+                            eWs.AniDbFileId = result.FileId;
                             // ReSharper disable once MethodHasAsyncOverload
                             _context.SaveChanges();
                         }
@@ -109,9 +108,7 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
         if (_context.FileWatchedStates.Find(fileId) is { } fileWatchedState)
             fileWatchedState.MyListId = myListId;
         else if ((from ws in _context.EpisodeWatchedStates
-                     join gf in _context.AniDbGenericFiles
-                         on ws.AniDbEpisodeId equals gf.AniDbEpisodeId
-                     where gf.Id == fileId
+                     where ws.AniDbFileId == fileId
                      select ws).FirstOrDefault() is { } epWatchedState)
             epWatchedState.MyListId = myListId;
 

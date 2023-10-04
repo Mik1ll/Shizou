@@ -33,7 +33,7 @@ public class WatchStateService
         using var context = _contextFactory.CreateDbContext();
         if (context.FileWatchedStates.Find(fileId) is not { } fileWatchedState)
         {
-            if (context.AniDbGenericFiles.Where(f => f.Id == fileId).Select(f => (int?)f.AniDbEpisodeId).FirstOrDefault() is { } episodeId)
+            if (context.EpisodeWatchedStates.Where(ws => ws.AniDbFileId == fileId).Select(f => (int?)f.AniDbEpisodeId).FirstOrDefault() is { } episodeId)
                 return MarkEpisode(episodeId, watched);
             _logger.LogWarning("File Id {FileId} watched state not found, not marking", fileId);
             return false;
@@ -80,7 +80,8 @@ public class WatchStateService
         var state = episode.HasManualLinks ? myListOptions.PresentFileState : myListOptions.AbsentFileState;
 
         // Don't use generic episode mylist edit, because it edits all files not just generic
-        var fileId = context.AniDbGenericFiles.Where(gf => gf.AniDbEpisodeId == episodeId).Select(gf => (int?)gf.Id).FirstOrDefault();
+        var fileId = context.EpisodeWatchedStates.Where(ws => ws.AniDbEpisodeId == episodeId && ws.AniDbFileId != null)
+            .Select(ws => ws.AniDbFileId).FirstOrDefault();
         if (fileId is not null)
             _commandService.Dispatch(episodeWatchedState.MyListId is not null
                 ? new UpdateMyListArgs(true, state, watched, updatedTime, episodeWatchedState.MyListId)

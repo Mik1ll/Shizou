@@ -13,7 +13,6 @@ using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
-using Shizou.Server.Extensions.Query;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -113,15 +112,15 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
         var dbFiles = _context.FileWatchedStates.Select(ws => new { FileId = ws.AniDbFileId, WatchedState = (IWatchedState)ws }).ToList()
-            .Union((from gf in _context.AniDbGenericFiles
-                join ws in _context.EpisodeWatchedStates
-                    on gf.AniDbEpisodeId equals ws.AniDbEpisodeId
-                select new { FileId = gf.Id, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId);
+            .Union((from ws in _context.EpisodeWatchedStates
+                where ws.AniDbFileId != null
+                select new { FileId = ws.AniDbFileId!.Value, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId);
         var dbFilesWithLocal = _context.AniDbFiles.Where(f => f.LocalFile != null).Select(f => f.Id)
-            .Union(_context.AniDbGenericFiles.WithManualLinks(_context).Select(f => f.Id)).ToHashSet();
-        var dbEpIdsWithoutGenericFile = (from e in _context.AniDbEpisodes
-            where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == e.Id)
-            select e.Id).ToHashSet();
+            .Union(_context.EpisodeWatchedStates.Where(ws => ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any())
+                .Select(ws => ws.AniDbFileId!.Value)).ToHashSet();
+        var dbEpIdsWithoutGenericFile = (from ws in _context.EpisodeWatchedStates
+            where ws.AniDbFileId == null
+            select ws.AniDbEpisodeId).ToHashSet();
 
         List<UpdateMyListArgs> toUpdate = new();
         List<ProcessArgs> toProcess = new();

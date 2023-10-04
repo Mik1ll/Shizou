@@ -1,5 +1,3 @@
-using Shizou.Server.Extensions.Query;
-
 namespace Shizou.Tests;
 
 [TestClass]
@@ -18,7 +16,9 @@ public class DatabaseTests : SeededDatabaseTests
     public void TestQueryables()
     {
         using var context = GetContext();
-        var result = context.AniDbGenericFiles.WithManualLinks(context);
+        var result = from ws in context.EpisodeWatchedStates
+            where ws.MyListId == null && ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any()
+            select new { Fid = ws.AniDbFileId!.Value, ws.Watched, ws.WatchedUpdated };
         Assert.IsNotNull(result);
     }
 }

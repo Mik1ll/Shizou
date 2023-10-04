@@ -36,15 +36,12 @@ public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArg
             select new { Fid = ws.AniDbFileId, ws.Watched, ws.WatchedUpdated }).ToList();
 
         var genericFilesMissingMyListId = (from ws in _context.EpisodeWatchedStates
-            where ws.MyListId == null && ws.AniDbEpisode.ManualLinkLocalFiles.Any()
-            join gf in _context.AniDbGenericFiles on ws.AniDbEpisodeId equals gf.AniDbEpisodeId
-            select new { Fid = gf.Id, ws.Watched, ws.WatchedUpdated }).ToList();
+            where ws.MyListId == null && ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any()
+            select new { Fid = ws.AniDbFileId!.Value, ws.Watched, ws.WatchedUpdated }).ToList();
 
         var episodesWithMissingGenericFile = (from ep in _context.AniDbEpisodes.WithManualLinks()
-            join ws in _context.EpisodeWatchedStates
-                on ep.Id equals ws.AniDbEpisodeId
-            where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == ep.Id)
-            select new { ep.AniDbAnimeId, ep.EpisodeType, ep.Number, ws.Watched, ws.WatchedUpdated }).ToList();
+            where ep.EpisodeWatchedState.AniDbFileId == null
+            select new { ep.AniDbAnimeId, ep.EpisodeType, ep.Number, ep.EpisodeWatchedState.Watched, ep.EpisodeWatchedState.WatchedUpdated }).ToList();
 
         _commandService.DispatchRange(filesMissingMyListId.Union(genericFilesMissingMyListId).Select(f =>
             new UpdateMyListArgs(false, _options.AniDb.MyList.PresentFileState, f.Watched, f.WatchedUpdated, Fid: f.Fid)));

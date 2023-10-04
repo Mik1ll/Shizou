@@ -246,28 +246,19 @@ public class ProcessCommand : Command<ProcessArgs>
     private void UpdateGenericFile(FileResult result)
     {
         _logger.LogInformation("Updating generic AniDb file information for file id {FileId}", result.FileId);
-        var eGenericFile = _context.AniDbGenericFiles
-            .SingleOrDefault(f => f.Id == result.FileId);
-        var genericFile = new AniDbGenericFile
-        {
-            Id = result.FileId,
-            AniDbEpisodeId = result.EpisodeId!.Value
-        };
-
-
-        if (eGenericFile is null)
-            _context.Entry(genericFile).State = EntityState.Added;
-        else
-            _context.Entry(eGenericFile).CurrentValues.SetValues(genericFile);
 
         if (_context.EpisodeWatchedStates.Find(result.EpisodeId!.Value) is { } eEpisodeWatchedState)
         {
             if (eEpisodeWatchedState.WatchedUpdated is null)
                 eEpisodeWatchedState.Watched = result.MyListViewed ?? false;
+            eEpisodeWatchedState.AniDbFileId = result.FileId;
             eEpisodeWatchedState.MyListId = result.MyListId;
+            _context.SaveChanges();
         }
-        
-        _context.SaveChanges();
+        else
+        {
+            _logger.LogWarning("Failed to update generic file id {FileId}, did not find episode {EpisodeId} watch state", result.FileId, result.EpisodeId);
+        }
     }
 
     private void UpdateEpRelations(FileResult result)
