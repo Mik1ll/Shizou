@@ -73,20 +73,19 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
                         // ReSharper disable once MethodHasAsyncOverload
                         if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == result.EpisodeId) is { } eWs)
                         {
-                            _logger.LogDebug("Updating episode {EpisodeId} with generic file id {GenericId}", result.EpisodeId, result.FileId);
+                            _logger.LogDebug("Updating episode {EpisodeId} with generic file id {GenericId} and mylist id {MyListId}",
+                                result.EpisodeId, result.FileId, result.MyListId);
                             eWs.AniDbFileId = result.FileId;
+                            eWs.MyListId = result.MyListId;
                             // ReSharper disable once MethodHasAsyncOverload
                             _context.SaveChanges();
                         }
-
-                        SaveMyListId(result.FileId, result.MyListId);
                     }
                 }
                 else if (_myListAddRequest.AddedEntryId is not null && CommandArgs.Fid is not null)
                 {
                     SaveMyListId(CommandArgs.Fid.Value, _myListAddRequest.AddedEntryId.Value);
                 }
-
                 break;
             case AniDbResponseCode.FileInMyList:
                 if (CommandArgs is { Fid: not null })
@@ -107,9 +106,7 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
     {
         if (_context.FileWatchedStates.Find(fileId) is { } fileWatchedState)
             fileWatchedState.MyListId = myListId;
-        else if ((from ws in _context.EpisodeWatchedStates
-                     where ws.AniDbFileId == fileId
-                     select ws).FirstOrDefault() is { } epWatchedState)
+        else if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == fileId) is { } epWatchedState)
             epWatchedState.MyListId = myListId;
 
         _context.SaveChanges();
