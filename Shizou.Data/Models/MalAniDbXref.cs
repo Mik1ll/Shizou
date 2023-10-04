@@ -2,11 +2,11 @@
 
 namespace Shizou.Data.Models;
 
-[PrimaryKey(nameof(MalAnimesId), nameof(AniDbAnimesId))]
+[PrimaryKey(nameof(MalAnimeId), nameof(AniDbAnimeId))]
 public class MalAniDbXref
 {
-    public required int MalAnimesId { get; set; }
+    public required int MalAnimeId { get; set; }
     public MalAnime MalAnime { get; set; } = default!;
-    public required int AniDbAnimesId { get; set; }
+    public required int AniDbAnimeId { get; set; }
     public AniDbAnime AniDbAnime { get; set; } = default!;
 }

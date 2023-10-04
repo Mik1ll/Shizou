@@ -168,12 +168,12 @@ public class AnimeCommand : Command<AnimeArgs>
     {
         var xrefs = animeResult.Resources.Where(r => (ResourceType)r.Type == ResourceType.Mal)
             .SelectMany(r => r.ExternalEntities.SelectMany(e => e.Identifiers)
-                .Select(id => new MalAniDbXref { AniDbAnimesId = CommandArgs.AnimeId, MalAnimesId = int.Parse(id) })).ToList();
+                .Select(id => new MalAniDbXref { AniDbAnimeId = CommandArgs.AnimeId, MalAnimeId = int.Parse(id) })).ToList();
         foreach (var xref in xrefs)
-            await _myAnimeListService.GetAnime(xref.MalAnimesId);
-        var eXrefs = _context.MalAniDbXrefs.Where(xref => xref.AniDbAnimesId == CommandArgs.AnimeId).ToList();
-        _context.RemoveRange(eXrefs.ExceptBy(xrefs.Select(x => x.MalAnimesId), x => x.MalAnimesId));
-        _context.AddRange(xrefs.ExceptBy(eXrefs.Select(x => x.MalAnimesId), x => x.MalAnimesId));
+            await _myAnimeListService.GetAnime(xref.MalAnimeId);
+        var eXrefs = _context.MalAniDbXrefs.Where(xref => xref.AniDbAnimeId == CommandArgs.AnimeId).ToList();
+        _context.RemoveRange(eXrefs.ExceptBy(xrefs.Select(x => x.MalAnimeId), x => x.MalAnimeId));
+        _context.AddRange(xrefs.ExceptBy(eXrefs.Select(x => x.MalAnimeId), x => x.MalAnimeId));
 
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
