@@ -69,7 +69,6 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
                     _myListEntryRequest.SetParameters(aid, epno);
                     await _myListEntryRequest.Process();
                     if (_myListEntryRequest.MyListEntryResult is { } result)
-                    {
                         // ReSharper disable once MethodHasAsyncOverload
                         if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == result.EpisodeId) is { } eWs)
                         {
@@ -80,12 +79,12 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
                             // ReSharper disable once MethodHasAsyncOverload
                             _context.SaveChanges();
                         }
-                    }
                 }
                 else if (_myListAddRequest.AddedEntryId is not null && CommandArgs.Fid is not null)
                 {
                     SaveMyListId(CommandArgs.Fid.Value, _myListAddRequest.AddedEntryId.Value);
                 }
+
                 break;
             case AniDbResponseCode.FileInMyList:
                 if (CommandArgs is { Fid: not null })
