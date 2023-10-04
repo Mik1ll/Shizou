@@ -1,7 +1,7 @@
 ﻿@using Shizou.Data.Enums.Mal
 <div class="border border-primary rounded p-1 d-inline-block">
     <img src="icons/mal.ico" style="height: 1.5em"/>
-    <a href="https://myanimelist.net/anime/@(MalId)" target="_blank" class="align-middle">@(MalAnime?.Title ?? MalId.ToString())</a>
+    <a href="https://myanimelist.net/anime/@(MalAnime.Id)" target="_blank" class="align-middle">@(MalAnime.Title)</a>
     @if (MalAnime?.Status is not null)
     {
         <EditForm Model="MalAnime.Status" OnSubmit="@(() => UpdateMalStatus(MalAnime))">

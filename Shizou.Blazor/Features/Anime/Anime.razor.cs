@@ -16,8 +16,6 @@ public partial class Anime
     private readonly Regex _splitRegex = new(@"(?<=https?:\/\/\S*? \[.*?\])|(?=https?:\/\/\S*? \[.*?\])", RegexOptions.Compiled);
 
     private AniDbAnime? _anime;
-    private Dictionary<int, MalAnime>? _malAnimes;
-    private List<MalAniDbXref>? _malXrefs;
     private EpisodeTable _episodeTable = default!;
 
     [CascadingParameter]
@@ -35,15 +33,11 @@ public partial class Anime
     protected override void OnInitialized()
     {
         using var context = ContextFactory.CreateDbContext();
-        _anime = context.AniDbAnimes.AsSingleQuery().Include(a => a.AniDbEpisodes).ThenInclude(e => e.ManualLinkLocalFiles)
+        _anime = context.AniDbAnimes.AsSingleQuery()
+            .Include(a => a.AniDbEpisodes)
+            .ThenInclude(e => e.ManualLinkLocalFiles)
+            .Include(a => a.MalAnimes)
             .FirstOrDefault(a => a.Id == AnimeId);
-        if (_anime is null)
-            return;
-        _malXrefs = context.MalAniDbXrefs.Where(x => x.AniDbId == _anime.Id).ToList();
-        _malAnimes = (from malAnime in context.MalAnimes
-            join xref in context.MalAniDbXrefs on malAnime.Id equals xref.MalId
-            where xref.AniDbId == _anime.Id
-            select malAnime).ToDictionary(a => a.Id);
     }
 
     private void MarkAllWatched(AniDbAnime anime)

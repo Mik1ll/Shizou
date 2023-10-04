@@ -47,6 +47,10 @@ public sealed class ShizouContext : IdentityDbContext
         modelBuilder.Entity<AniDbFile>()
             .OwnsMany(f => f.Subtitles)
             .WithOwner(s => s.AniDbFile);
+        modelBuilder.Entity<AniDbAnime>()
+            .HasMany(a => a.MalAnimes)
+            .WithMany(a => a.AniDbAnimes)
+            .UsingEntity<MalAniDbXref>();
 
         base.OnModelCreating(modelBuilder);
     }

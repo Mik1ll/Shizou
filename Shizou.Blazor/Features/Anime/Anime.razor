@@ -44,13 +44,12 @@
                                     <i class="bi bi-eye"></i> Mark All Watched
                                 </button>
                             </li>
-                            @if (_malXrefs!.Count > 0)
+                            @if (_anime.MalAnimes.Count > 0)
                             {
                                 <li class="list-group-item">
-                                    @foreach (var malXref in _malXrefs)
+                                    @foreach (var malAnime in _anime.MalAnimes)
                                     {
-                                        _malAnimes!.TryGetValue(malXref.MalId, out var malAnime);
-                                        <MyAnimeListItem MalId="@(malXref.MalId)" MalAnime="@malAnime"></MyAnimeListItem>
+                                        <MyAnimeListItem MalAnime="@malAnime"></MyAnimeListItem>
                                     }
                                 </li>
                             }

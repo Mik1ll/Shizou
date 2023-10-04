@@ -9,11 +9,7 @@ public partial class MyAnimeListItem
 {
     [Parameter]
     [EditorRequired]
-    public int MalId { get; set; }
-
-    [Parameter]
-    [EditorRequired]
-    public MalAnime? MalAnime { get; set; }
+    public MalAnime MalAnime { get; set; } = default!;
 
     [CascadingParameter]
     public ToastDisplay ToastDisplay { get; set; } = default!;

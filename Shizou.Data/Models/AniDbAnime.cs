@@ -22,4 +22,10 @@ public class AniDbAnime
 
     [JsonIgnore]
     public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
+
+    [JsonIgnore]
+    public List<MalAniDbXref> MalAniDbXrefs { get; set; } = default!;
+
+    [JsonIgnore]
+    public List<MalAnime> MalAnimes { get; set; } = default!;
 }

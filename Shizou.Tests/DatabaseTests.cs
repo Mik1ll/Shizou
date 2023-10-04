@@ -16,9 +16,9 @@ public class DatabaseTests : SeededDatabaseTests
     public void TestQueryables()
     {
         using var context = GetContext();
-        var result = from ws in context.EpisodeWatchedStates
-            where ws.MyListId == null && ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any()
-            select new { Fid = ws.AniDbFileId!.Value, ws.Watched, ws.WatchedUpdated };
+        var result = context.AniDbFiles.Where(f => f.LocalFile != null).Select(f => f.Id)
+            .Union(context.EpisodeWatchedStates.Where(ws => ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any())
+                .Select(ws => ws.AniDbFileId!.Value));
         Assert.IsNotNull(result);
     }
 }
