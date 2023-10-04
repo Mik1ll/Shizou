@@ -49,11 +49,11 @@ public partial class FileCard
         switch (_watchedState)
         {
             case FileWatchedState fws:
-                if (WatchStateService.MarkFile(fws.Id, watched))
+                if (WatchStateService.MarkFile(fws.AniDbFileId, watched))
                     _watchedState.Watched = watched;
                 break;
             case EpisodeWatchedState ews:
-                if (WatchStateService.MarkEpisode(ews.Id, watched))
+                if (WatchStateService.MarkEpisode(ews.AniDbEpisodeId, watched))
                     _watchedState.Watched = watched;
                 break;
             default:

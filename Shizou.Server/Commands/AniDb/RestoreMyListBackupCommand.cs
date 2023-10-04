@@ -63,10 +63,10 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
             return;
         }
 
-        var dbFiles = _context.FileWatchedStates.Select(ws => new { FileId = ws.Id, WatchedState = (IWatchedState)ws }).ToList()
+        var dbFiles = _context.FileWatchedStates.Select(ws => new { FileId = ws.AniDbFileId, WatchedState = (IWatchedState)ws }).ToList()
             .Union((from gf in _context.AniDbGenericFiles
                 join ws in _context.EpisodeWatchedStates
-                    on gf.AniDbEpisodeId equals ws.Id
+                    on gf.AniDbEpisodeId equals ws.AniDbEpisodeId
                 select new { FileId = gf.Id, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId);
         var dbFilesWithLocal = _context.AniDbFiles.Where(f => f.LocalFile != null).Select(f => f.Id)
             .Union(_context.AniDbGenericFiles.WithManualLinks(_context).Select(f => f.Id)).ToHashSet();

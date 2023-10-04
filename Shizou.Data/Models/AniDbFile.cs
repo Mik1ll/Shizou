@@ -35,6 +35,9 @@ public class AniDbFile
     [JsonIgnore]
     public LocalFile? LocalFile { get; set; }
 
+    [JsonIgnore]
+    public required FileWatchedState FileWatchedState { get; set; }
+
     public AniDbVideo? Video { get; set; }
     public List<AniDbAudio> Audio { get; set; } = null!;
     public List<AniDbSubtitle> Subtitles { get; set; } = null!;

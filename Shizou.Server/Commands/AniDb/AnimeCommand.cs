@@ -69,7 +69,7 @@ public class AnimeCommand : Command<AnimeArgs>
             return;
         }
 
-        var eAniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes)
+        var eAniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes).ThenInclude(ep => ep.EpisodeWatchedState)
             .FirstOrDefault(a => a.Id == CommandArgs.AnimeId);
         var aniDbAnime = AnimeResultToAniDbAnime(animeResult);
         if (eAniDbAnime is null)
@@ -84,18 +84,11 @@ public class AnimeCommand : Command<AnimeArgs>
         }
 
         foreach (var ep in aniDbAnime.AniDbEpisodes)
-            if (eAniDbAnime?.AniDbEpisodes.FirstOrDefault(x => x.Id == ep.Id) is { } eEp)
+            // ReSharper disable once MethodHasAsyncOverload
+            if (_context.AniDbEpisodes.Find(ep.Id) is { } eEp)
                 _context.Entry(eEp).CurrentValues.SetValues(ep);
             else
                 _context.AniDbEpisodes.Add(ep);
-
-        // ReSharper disable once MethodHasAsyncOverload
-        _context.SaveChanges();
-
-        foreach (var epId in _context.AniDbEpisodes.Where(ep =>
-                         ep.AniDbAnimeId == aniDbAnime.Id && !_context.EpisodeWatchedStates.Any(ws => ws.Id == ep.Id))
-                     .Select(ep => ep.Id))
-            _context.EpisodeWatchedStates.Add(new EpisodeWatchedState { Id = epId, Watched = false, WatchedUpdated = null });
 
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
@@ -127,15 +120,34 @@ public class AnimeCommand : Command<AnimeArgs>
                 AniDbAnimeId = animeResult.Id,
                 Id = e.Id,
                 DurationMinutes = e.Length,
-                Number = EpisodeTypeExtensions.ParseEpisode(e.Epno.Text).number,
+                Number = EpisodeTypeExtensions.ParseEpisode(e.Epno.Text)
+                    .number,
                 EpisodeType = e.Epno.Type,
-                AirDate = string.IsNullOrEmpty(e.Airdate) ? null : DateTime.Parse(e.Airdate, styles: DateTimeStyles.AssumeUniversal),
+                AirDate = string.IsNullOrEmpty(e.Airdate)
+                    ? null
+                    : DateTime.Parse(e.Airdate,
+                        styles: DateTimeStyles.AssumeUniversal),
                 Updated = DateTime.UtcNow,
-                TitleEnglish = e.Title.First(t => t.Lang == "en").Text,
-                TitleRomaji = e.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == mainTitle.Lang)?.Text,
+                TitleEnglish = e.Title.First(t => t.Lang == "en")
+                    .Text,
+                TitleRomaji = e.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == mainTitle.Lang)
+                    ?.Text,
                 TitleKanji = e.Title.FirstOrDefault(t =>
-                    t.Lang.StartsWith(mainTitle.Lang switch { "x-jat" => "ja", "x-zht" => "zh-han", "x-kot" => "ko", _ => "none" },
-                        StringComparison.OrdinalIgnoreCase))?.Text
+                        t.Lang.StartsWith(mainTitle.Lang switch
+                            {
+                                "x-jat" => "ja",
+                                "x-zht" => "zh-han",
+                                "x-kot" => "ko",
+                                _ => "none"
+                            },
+                            StringComparison.OrdinalIgnoreCase))
+                    ?.Text,
+                EpisodeWatchedState = new EpisodeWatchedState
+                {
+                    AniDbEpisodeId = e.Id,
+                    Watched = false,
+                    WatchedUpdated = null
+                }
             }).ToList(),
             Updated = DateTime.UtcNow
         };

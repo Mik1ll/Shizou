@@ -110,7 +110,7 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
             fileWatchedState.MyListId = myListId;
         else if ((from ws in _context.EpisodeWatchedStates
                      join gf in _context.AniDbGenericFiles
-                         on ws.Id equals gf.AniDbEpisodeId
+                         on ws.AniDbEpisodeId equals gf.AniDbEpisodeId
                      where gf.Id == fileId
                      select ws).FirstOrDefault() is { } epWatchedState)
             epWatchedState.MyListId = myListId;

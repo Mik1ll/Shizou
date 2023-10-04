@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Data.Models;
@@ -6,8 +7,11 @@ namespace Shizou.Data.Models;
 [Index(nameof(MyListId))]
 public class EpisodeWatchedState : IWatchedState
 {
+    [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public required int Id { get; set; }
+    public required int AniDbEpisodeId { get; set; }
+
+    public AniDbEpisode AniDbEpisode { get; set; } = default!;
 
     public required bool Watched { get; set; }
     public required DateTime? WatchedUpdated { get; set; }

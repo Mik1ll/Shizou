@@ -57,7 +57,14 @@ public class SeededDatabaseTests
                     LocalFile = null,
                     Video = null,
                     Audio = new List<AniDbAudio>(),
-                    Subtitles = new List<AniDbSubtitle>()
+                    Subtitles = new List<AniDbSubtitle>(),
+                    FileWatchedState = new FileWatchedState
+                    {
+                        AniDbFileId = 24,
+                        Watched = false,
+                        WatchedUpdated = null,
+                        MyListId = null
+                    }
                 }).Entity;
                 context.LocalFiles.AddRange(new LocalFile
                 {

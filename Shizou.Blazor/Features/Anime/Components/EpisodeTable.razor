@@ -12,7 +12,7 @@
     <tbody class="table-group-divider">
     @foreach (var ep in _episodes.OrderBy(e => e.EpisodeType).ThenBy(e => e.Number))
     {
-        var epWatchedState = _epWatchedStates.First(ws => ep.Id == ws.Id);
+        var epWatchedState = ep.EpisodeWatchedState;
         <tr role="button" @onclick="@(() => ToggleEpExpand(ep))">
             <td class="text-end">
                 @EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number)

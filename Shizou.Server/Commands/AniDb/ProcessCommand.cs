@@ -62,9 +62,22 @@ public class ProcessCommand : Command<ProcessArgs>
             Source = result.Source,
             FileVersion = result.State!.Value.FileVersion(),
             Updated = DateTime.UtcNow,
-            Audio = result.AudioCodecs!.Zip(result.AudioBitRates!, (codec, bitrate) => (codec, bitrate))
-                .Zip(result.DubLanguages!, (tup, lang) => (tup.codec, tup.bitrate, lang)).Select((tuple, i) =>
-                    new AniDbAudio { Bitrate = tuple.bitrate, Codec = tuple.codec, Language = tuple.lang, Id = i + 1, AniDbFileId = result.FileId })
+            Audio = result.AudioCodecs!.Zip(result.AudioBitRates!,
+                    (codec,
+                        bitrate) => (codec, bitrate))
+                .Zip(result.DubLanguages!,
+                    (tup,
+                        lang) => (tup.codec, tup.bitrate, lang))
+                .Select((tuple,
+                        i) =>
+                    new AniDbAudio
+                    {
+                        Bitrate = tuple.bitrate,
+                        Codec = tuple.codec,
+                        Language = tuple.lang,
+                        Id = i + 1,
+                        AniDbFileId = result.FileId
+                    })
                 .ToList(),
             Video = result.VideoCodec is null
                 ? null
@@ -76,7 +89,14 @@ public class ProcessCommand : Command<ProcessArgs>
                     Height = int.Parse(result.VideoResolution!.Split('x')[1]),
                     Width = int.Parse(result.VideoResolution!.Split('x')[0])
                 },
-            Subtitles = result.SubLangugages!.Select((s, i) => new AniDbSubtitle { Language = s, Id = i + 1, AniDbFileId = result.FileId }).ToList(),
+            Subtitles = result.SubLangugages!.Select((s,
+                    i) => new AniDbSubtitle
+                {
+                    Language = s,
+                    Id = i + 1,
+                    AniDbFileId = result.FileId
+                })
+                .ToList(),
             FileName = result.AniDbFileName!,
             AniDbGroupId = result.GroupId,
             AniDbGroup = result.GroupId is null
@@ -87,7 +107,14 @@ public class ProcessCommand : Command<ProcessArgs>
                     Name = result.GroupName!,
                     ShortName = result.GroupNameShort!,
                     Url = null
-                }
+                },
+            FileWatchedState = new FileWatchedState
+            {
+                AniDbFileId = result.FileId,
+                Watched = result.MyListViewed ?? false,
+                WatchedUpdated = null,
+                MyListId = result.MyListId
+            }
         };
     }
 
@@ -131,42 +158,12 @@ public class ProcessCommand : Command<ProcessArgs>
             UpdateFile(result);
     }
 
-    private void UpdateFileWatchedState(FileResult result)
-    {
-        var eState = _context.FileWatchedStates.Find(result.FileId);
-        if (eState is null)
-            _context.FileWatchedStates.Add(new FileWatchedState
-            {
-                Id = result.FileId,
-                Ed2k = result.Ed2K!,
-                Watched = result.MyListViewed ?? false,
-                WatchedUpdated = null,
-                MyListId = result.MyListId
-            });
-        else if (eState.WatchedUpdated is null)
-            eState.Watched = result.MyListViewed ?? false;
-    }
-
-    private void UpdateEpisodeWatchedState(FileResult result)
-    {
-        var eState = _context.EpisodeWatchedStates.Find(result.EpisodeId!.Value);
-        if (eState is null)
-            _context.EpisodeWatchedStates.Add(new EpisodeWatchedState
-            {
-                Id = result.EpisodeId!.Value,
-                Watched = result.MyListViewed ?? false,
-                WatchedUpdated = null,
-                MyListId = result.MyListId
-            });
-        else if (eState.WatchedUpdated is null)
-            eState.Watched = result.MyListViewed ?? false;
-    }
-
     private void UpdateFile(FileResult result)
     {
         _logger.LogInformation("Updating AniDb file information for file id {FileId}", result.FileId);
         var eFile = _context.AniDbFiles
             .Include(f => f.AniDbGroup)
+            .Include(f => f.FileWatchedState)
             .AsSingleQuery()
             .SingleOrDefault(f => f.Id == result.FileId);
         var file = FileResultToAniDbFile(result);
@@ -182,8 +179,6 @@ public class ProcessCommand : Command<ProcessArgs>
 
         UpdateEpRelations(result);
 
-        UpdateFileWatchedState(result);
-
         _context.SaveChanges();
     }
 
@@ -195,6 +190,17 @@ public class ProcessCommand : Command<ProcessArgs>
                 _context.Entry(eAniDbGroup).CurrentValues.SetValues(file.AniDbGroup);
             else
                 _context.Entry(file.AniDbGroup).State = EntityState.Added;
+        }
+
+        if (_context.FileWatchedStates.Find(file.FileWatchedState.AniDbFileId) is { } eFileWatchedState)
+        {
+            if (eFileWatchedState.WatchedUpdated is null)
+                eFileWatchedState.Watched = file.FileWatchedState.Watched;
+            eFileWatchedState.MyListId = file.FileWatchedState.MyListId;
+        }
+        else
+        {
+            _context.Entry(file.FileWatchedState).State = EntityState.Added;
         }
 
         if (_context.LocalFiles.FirstOrDefault(lf => lf.Ed2k == file.Ed2k) is { } eLocalFile)
@@ -254,9 +260,14 @@ public class ProcessCommand : Command<ProcessArgs>
         else
             _context.Entry(eGenericFile).CurrentValues.SetValues(genericFile);
 
+        if (_context.EpisodeWatchedStates.Find(result.EpisodeId!.Value) is { } eEpisodeWatchedState)
+        {
+            if (eEpisodeWatchedState.WatchedUpdated is null)
+                eEpisodeWatchedState.Watched = result.MyListViewed ?? false;
+            eEpisodeWatchedState.MyListId = result.MyListId;
+        }
+        
         _context.SaveChanges();
-
-        UpdateEpisodeWatchedState(result);
     }
 
     private void UpdateEpRelations(FileResult result)

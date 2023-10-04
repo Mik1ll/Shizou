@@ -9,7 +9,6 @@ public partial class EpisodeTable
 {
     private readonly Dictionary<int, bool> _episodeExpanded = new();
     private HashSet<AniDbEpisode> _episodes = default!;
-    private HashSet<EpisodeWatchedState> _epWatchedStates = default!;
     private Dictionary<int, List<(AniDbFile, FileWatchedState?, LocalFile?)>> _files = new();
     private Dictionary<int, List<LocalFile>> _manualLinks = new();
     private Dictionary<int, int> _fileCounts = default!;
@@ -36,11 +35,9 @@ public partial class EpisodeTable
     protected override void OnInitialized()
     {
         using var context = ContextFactory.CreateDbContext();
-        var epResult = (from ep in context.AniDbEpisodes
+        var epResult = (from ep in context.AniDbEpisodes.Include(ep => ep.EpisodeWatchedState)
             where ep.AniDbAnimeId == AnimeId
-            join ws in context.EpisodeWatchedStates on ep.Id equals ws.Id into wslj
-            from ws in wslj.DefaultIfEmpty()
-            select new { ep, ws, ManLinkCount = ep.ManualLinkLocalFiles.Count }).ToList();
+            select new { ep, ManLinkCount = ep.ManualLinkLocalFiles.Count }).ToList();
         _fileCounts = (from ep in context.AniDbEpisodes
                 where ep.AniDbAnimeId == AnimeId
                 join fXref in context.AniDbEpisodeFileXrefs on ep.Id equals fXref.AniDbEpisodeId into fXrefs
@@ -49,7 +46,6 @@ public partial class EpisodeTable
                 (x, y) => x with { Count = x.Count + y.ManLinkCount })
             .ToDictionary(x => x.EpId, x => x.Count);
         _episodes = epResult.Select(r => r.ep).ToHashSet();
-        _epWatchedStates = epResult.Select(r => r.ws).ToHashSet();
         base.OnInitialized();
     }
 
@@ -74,7 +70,7 @@ public partial class EpisodeTable
             where xref.AniDbEpisodeId == episodeId
             join sublf in context.LocalFiles on f.Ed2k equals sublf.Ed2k into lflj
             from lf in lflj.DefaultIfEmpty()
-            join subws in context.FileWatchedStates on f.Id equals subws.Id into wslj
+            join subws in context.FileWatchedStates on f.Id equals subws.AniDbFileId into wslj
             from ws in wslj.DefaultIfEmpty()
             select new { f, ws, lf }).ToList();
         return result.Select(x => (x.f, (FileWatchedState?)x.ws, (LocalFile?)x.lf)).ToList();

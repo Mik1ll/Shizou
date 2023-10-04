@@ -31,18 +31,18 @@ public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArg
 
     protected override Task ProcessInner()
     {
-        var filesMissingMyListId = (from ws in _context.FileWatchedStates.WithLocalFile(_context)
-            where ws.MyListId == null
-            select new { Fid = ws.Id, ws.Watched, ws.WatchedUpdated }).ToList();
+        var filesMissingMyListId = (from ws in _context.FileWatchedStates
+            where ws.MyListId == null && ws.AniDbFile.LocalFile != null
+            select new { Fid = ws.AniDbFileId, ws.Watched, ws.WatchedUpdated }).ToList();
 
-        var genericFilesMissingMyListId = (from ws in _context.EpisodeWatchedStates.WithManualLinks(_context)
-            where ws.MyListId == null
-            join gf in _context.AniDbGenericFiles on ws.Id equals gf.AniDbEpisodeId
+        var genericFilesMissingMyListId = (from ws in _context.EpisodeWatchedStates
+            where ws.MyListId == null && ws.AniDbEpisode.ManualLinkLocalFiles.Any()
+            join gf in _context.AniDbGenericFiles on ws.AniDbEpisodeId equals gf.AniDbEpisodeId
             select new { Fid = gf.Id, ws.Watched, ws.WatchedUpdated }).ToList();
 
         var episodesWithMissingGenericFile = (from ep in _context.AniDbEpisodes.WithManualLinks()
             join ws in _context.EpisodeWatchedStates
-                on ep.Id equals ws.Id
+                on ep.Id equals ws.AniDbEpisodeId
             where !_context.AniDbGenericFiles.Any(gf => gf.AniDbEpisodeId == ep.Id)
             select new { ep.AniDbAnimeId, ep.EpisodeType, ep.Number, ws.Watched, ws.WatchedUpdated }).ToList();
 
