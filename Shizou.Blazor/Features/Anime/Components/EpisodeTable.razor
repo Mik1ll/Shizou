@@ -12,7 +12,6 @@
     <tbody class="table-group-divider">
     @foreach (var ep in _episodes.OrderBy(e => e.EpisodeType).ThenBy(e => e.Number))
     {
-        var epWatchedState = ep.EpisodeWatchedState;
         <tr role="button" @onclick="@(() => ToggleEpExpand(ep))">
             <td class="text-end">
                 @EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number)
@@ -34,13 +33,13 @@
         {
             <tr>
                 <td colspan="5">
-                    @foreach (var (aniDbFile, watchedState, localFile) in _files[ep.Id])
+                    @foreach (var aniDbFile in ep.AniDbFiles)
                     {
-                        <FileCard AniDbFile="@aniDbFile" FileWatchedState="@watchedState" LocalFile="@localFile" EpisodeWatchedState="@null"></FileCard>
+                        <FileCard AniDbFile="@aniDbFile" FileWatchedState="@(aniDbFile.FileWatchedState)" LocalFile="@(aniDbFile.LocalFile)" EpisodeWatchedState="@null"></FileCard>
                     }
-                    @foreach (var localFile in _manualLinks[ep.Id])
+                    @foreach (var localFile in ep.ManualLinkLocalFiles)
                     {
-                        <FileCard AniDbFile="@null" FileWatchedState="@null" LocalFile="@localFile" EpisodeWatchedState="@epWatchedState"></FileCard>
+                        <FileCard AniDbFile="@null" FileWatchedState="@null" LocalFile="@localFile" EpisodeWatchedState="@(ep.EpisodeWatchedState)"></FileCard>
                     }
                 </td>
             </tr>
