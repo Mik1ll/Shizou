@@ -9,7 +9,7 @@ public static class LocalFilesExtensions
     public static IQueryable<LocalFile> Unrecognized(this IQueryable<LocalFile> query, ShizouContext context)
     {
         return from lf in query
-            where lf.ManualLinkEpisodeId == null && !context.AniDbFiles.Any(f => f.Ed2k == lf.Ed2k)
+            where lf.ManualLinkEpisodeId == null && lf.AniDbFile == null
             select lf;
     }
 }

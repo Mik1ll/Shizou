@@ -98,7 +98,7 @@ public class WatchStateService
         var updatedTime = DateTime.UtcNow;
         using var context = _contextFactory.CreateDbContext();
 
-        var filesWithLocal = (from file in context.AniDbFiles.ByAnimeId(context, animeId)
+        var filesWithLocal = (from file in context.AniDbFiles.ByAnimeId(animeId)
             where file.LocalFile != null
             select file).ToList();
         var epsWithManualLink = (from episode in context.AniDbEpisodes

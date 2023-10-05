@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
-using Shizou.Server.Extensions.Query;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -39,8 +38,8 @@ public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArg
             where ws.MyListId == null && ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any()
             select new { Fid = ws.AniDbFileId!.Value, ws.Watched, ws.WatchedUpdated }).ToList();
 
-        var episodesWithMissingGenericFile = (from ep in _context.AniDbEpisodes.WithManualLinks()
-            where ep.EpisodeWatchedState.AniDbFileId == null
+        var episodesWithMissingGenericFile = (from ep in _context.AniDbEpisodes
+            where ep.ManualLinkLocalFiles.Any() && ep.EpisodeWatchedState.AniDbFileId == null 
             select new { ep.AniDbAnimeId, ep.EpisodeType, ep.Number, ep.EpisodeWatchedState.Watched, ep.EpisodeWatchedState.WatchedUpdated }).ToList();
 
         _commandService.DispatchRange(filesMissingMyListId.Union(genericFilesMissingMyListId).Select(f =>

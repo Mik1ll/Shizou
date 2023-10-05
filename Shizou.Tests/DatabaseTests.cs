@@ -16,9 +16,9 @@ public class DatabaseTests : SeededDatabaseTests
     public void TestQueryables()
     {
         using var context = GetContext();
-        var result = context.AniDbFiles.Where(f => f.LocalFile != null).Select(f => f.Id)
-            .Union(context.EpisodeWatchedStates.Where(ws => ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any())
-                .Select(ws => ws.AniDbFileId!.Value));
+        var result = from file in context.AniDbFiles
+            where file.LocalFile != null && file.AniDbEpisodes.Any(ep => ep.AniDbAnimeId == 5)
+            select file;
         Assert.IsNotNull(result);
     }
 }
