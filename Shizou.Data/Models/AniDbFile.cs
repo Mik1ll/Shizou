@@ -36,7 +36,16 @@ public class AniDbFile
     public LocalFile? LocalFile { get; set; }
 
     [JsonIgnore]
+    public List<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; set; } = default!;
+
+    [JsonIgnore]
+    public List<AniDbEpisode> AniDbEpisodes { get; set; } = default!;
+
+    [JsonIgnore]
     public required FileWatchedState FileWatchedState { get; set; }
+
+    [JsonIgnore]
+    public List<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; set; } = default!;
 
     public AniDbVideo? Video { get; set; }
     public List<AniDbAudio> Audio { get; set; } = null!;

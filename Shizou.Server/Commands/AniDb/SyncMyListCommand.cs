@@ -72,22 +72,30 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
     private void RelationshipFixup(List<MyListItem> myListItems)
     {
         var eAnimeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
-        var matchedItems = from item in myListItems
-            join xref in _context.AniDbEpisodeFileXrefs on item.Fid equals xref.AniDbFileId into eRels
-            where eRels.Any()
-            // I don't know why this inspection occurs, probably a bug?
-            // ReSharper disable once UseWithExpressionToCopyAnonymousObject
-            select new { item, eRels };
+        var eFileIds = _context.AniDbFiles.Select(f => f.Id).ToHashSet();
         var animeToAdd = new HashSet<int>();
-        foreach (var pair in matchedItems)
+        foreach (var item in myListItems.Where(i => eFileIds.Contains(i.Fid)))
         {
-            var rels = pair.item.Eids.Select(eid => new AniDbEpisodeFileXref { AniDbEpisodeId = eid, AniDbFileId = pair.item.Fid }).ToList();
-            var eRels = pair.eRels.ToList();
-
-            _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(rels.Select(x => x.AniDbEpisodeId), x => x.AniDbEpisodeId));
-            _context.AniDbEpisodeFileXrefs.AddRange(rels.ExceptBy(eRels.Select(x => x.AniDbEpisodeId), x => x.AniDbEpisodeId));
-
-            foreach (var aid in pair.item.Aids)
+            var eRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == item.Fid).ToList();
+            var eHangingRels = _context.HangingEpisodeFileXrefs.Where(x => x.AniDbFileId == item.Fid).ToList();
+            _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
+            _context.HangingEpisodeFileXrefs.RemoveRange(eHangingRels.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
+            foreach (var rel in item.Eids
+                         .Except(eRels.Select(x => x.AniDbEpisodeId))
+                         .Except(eHangingRels.Select(x => x.AniDbEpisodeId)))
+                if (_context.AniDbEpisodes.Any(ep => ep.Id == rel))
+                    _context.AniDbEpisodeFileXrefs.Add(new AniDbEpisodeFileXref
+                    {
+                        AniDbEpisodeId = rel,
+                        AniDbFileId = item.Fid
+                    });
+                else
+                    _context.HangingEpisodeFileXrefs.Add(new HangingEpisodeFileXref
+                    {
+                        AniDbEpisodeId = rel,
+                        AniDbFileId = item.Fid
+                    });
+            foreach (var aid in item.Aids)
                 if (!eAnimeIds.Contains(aid))
                     animeToAdd.Add(aid);
         }

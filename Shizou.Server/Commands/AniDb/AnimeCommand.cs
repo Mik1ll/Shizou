@@ -84,11 +84,23 @@ public class AnimeCommand : Command<AnimeArgs>
         }
 
         foreach (var ep in aniDbAnime.AniDbEpisodes)
+        {
             // ReSharper disable once MethodHasAsyncOverload
             if (_context.AniDbEpisodes.Find(ep.Id) is { } eEp)
                 _context.Entry(eEp).CurrentValues.SetValues(ep);
             else
                 _context.AniDbEpisodes.Add(ep);
+            foreach (var eHangingXref in _context.HangingEpisodeFileXrefs.Where(x => x.AniDbEpisodeId == ep.Id))
+            {
+                if (!_context.AniDbEpisodeFileXrefs.Any(x => x.AniDbEpisodeId == ep.Id && x.AniDbFileId == eHangingXref.AniDbFileId))
+                    _context.AniDbEpisodeFileXrefs.Add(new AniDbEpisodeFileXref
+                    {
+                        AniDbEpisodeId = ep.Id,
+                        AniDbFileId = eHangingXref.AniDbFileId
+                    });
+                _context.HangingEpisodeFileXrefs.Remove(eHangingXref);
+            }
+        }
 
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();

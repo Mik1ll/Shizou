@@ -28,5 +28,11 @@ public class AniDbEpisode
     public List<LocalFile> ManualLinkLocalFiles { get; set; } = null!;
 
     [JsonIgnore]
+    public List<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; set; } = default!;
+
+    [JsonIgnore]
+    public List<AniDbFile> AniDbFiles { get; set; } = default!;
+
+    [JsonIgnore]
     public required EpisodeWatchedState EpisodeWatchedState { get; set; }
 }

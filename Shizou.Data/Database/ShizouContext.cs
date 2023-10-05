@@ -30,6 +30,7 @@ public sealed class ShizouContext : IdentityDbContext
     public DbSet<MalAnime> MalAnimes { get; set; } = null!;
     public DbSet<FileWatchedState> FileWatchedStates { get; set; } = null!;
     public DbSet<EpisodeWatchedState> EpisodeWatchedStates { get; set; } = null!;
+    public DbSet<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -51,6 +52,10 @@ public sealed class ShizouContext : IdentityDbContext
             .HasMany(a => a.MalAnimes)
             .WithMany(a => a.AniDbAnimes)
             .UsingEntity<MalAniDbXref>();
+        modelBuilder.Entity<AniDbEpisode>()
+            .HasMany(ep => ep.AniDbFiles)
+            .WithMany(f => f.AniDbEpisodes)
+            .UsingEntity<AniDbEpisodeFileXref>();
 
         base.OnModelCreating(modelBuilder);
     }
