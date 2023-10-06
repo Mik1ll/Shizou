@@ -3,6 +3,11 @@
 <PageTitle>Unidentified Files</PageTitle>
 
 <article class="container-fluid">
+    <div class="d-flex mb-2">
+        <button type="button" class="btn btn-primary" @onclick="@ScanAll">
+            <i class="bi bi-search"></i> Scan All
+        </button>
+    </div>
     <SelectTable TValue="@LocalFile" OnChange="@OnSelectChanged" class="table table-hover resizable-table-columns">
         <thead>
         <tr>

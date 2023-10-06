@@ -30,8 +30,8 @@ public partial class SelectTable<TValue>
         {
             var low = Math.Min(row.Index, _lastClicked.Index);
             var high = Math.Max(row.Index, _lastClicked.Index);
-            foreach (var x in _rows)
-                x.Active = false;
+            foreach (var r in _rows.Where(r => r.Active))
+                r.Active = false;
             foreach (var r in _rows.Where(r => low <= r.Index && r.Index <= high))
                 r.Active = true;
         }
@@ -42,9 +42,11 @@ public partial class SelectTable<TValue>
         }
         else
         {
-            foreach (var x in _rows)
-                x.Active = false;
-            row.Active = true;
+            var activeRows = _rows.Where(r => r.Active).ToList();
+            var active = row.Active;
+            foreach (var r in activeRows)
+                r.Active = false;
+            row.Active = activeRows.Count > 1 || !active;
             _lastClicked = row;
         }
 
