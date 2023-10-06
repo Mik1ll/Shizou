@@ -161,21 +161,26 @@ public class ProcessCommand : Command<ProcessArgs>
     private void UpdateFile(FileResult result)
     {
         _logger.LogInformation("Updating AniDb file information for file id {FileId}", result.FileId);
-        var eFile = _context.AniDbFiles
-            .Include(f => f.AniDbGroup)
-            .Include(f => f.FileWatchedState)
-            .AsSingleQuery()
-            .SingleOrDefault(f => f.Id == result.FileId);
+        var eFile = _context.AniDbFiles.FirstOrDefault(f => f.Id == result.FileId);
         var file = FileResultToAniDbFile(result);
 
         if (eFile is null)
+        {
             _context.Entry(file).State = EntityState.Added;
+            if (file.Video is not null)
+                _context.Entry(file.Video).State = EntityState.Added;
+            foreach (var a in file.Audio)
+                _context.Entry(a).State = EntityState.Added;
+            foreach (var s in file.Subtitles)
+                _context.Entry(s).State = EntityState.Added;
+        }
         else
+        {
             _context.Entry(eFile).CurrentValues.SetValues(file);
+            UpdateOwnedNavigations(file, eFile);
+        }
 
         UpdateNavigations(file);
-
-        UpdateOwnedNavigations(file, eFile);
 
         UpdateEpRelations(result);
 
@@ -185,14 +190,12 @@ public class ProcessCommand : Command<ProcessArgs>
     private void UpdateNavigations(AniDbFile file)
     {
         if (file.AniDbGroup is not null)
-        {
-            if (_context.AniDbGroups.Find(file.AniDbGroupId) is { } eAniDbGroup)
+            if (_context.AniDbGroups.FirstOrDefault(g => g.Id == file.AniDbGroupId) is { } eAniDbGroup)
                 _context.Entry(eAniDbGroup).CurrentValues.SetValues(file.AniDbGroup);
             else
                 _context.Entry(file.AniDbGroup).State = EntityState.Added;
-        }
 
-        if (_context.FileWatchedStates.Find(file.FileWatchedState.AniDbFileId) is { } eFileWatchedState)
+        if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == file.Id) is { } eFileWatchedState)
         {
             if (eFileWatchedState.WatchedUpdated is null)
                 eFileWatchedState.Watched = file.FileWatchedState.Watched;
@@ -204,50 +207,38 @@ public class ProcessCommand : Command<ProcessArgs>
         }
 
         if (_context.LocalFiles.FirstOrDefault(lf => lf.Ed2k == file.Ed2k) is { } eLocalFile)
-            file.LocalFile = eLocalFile;
+            eLocalFile.AniDbFileId = file.Id;
     }
 
-    private void UpdateOwnedNavigations(AniDbFile file, AniDbFile? eFile)
+    private void UpdateOwnedNavigations(AniDbFile file, AniDbFile eFile)
     {
-        if (eFile is null)
-        {
-            if (file.Video is not null)
-                _context.Entry(file.Video).State = EntityState.Added;
-            foreach (var a in file.Audio)
-                _context.Entry(a).State = EntityState.Added;
-            foreach (var s in file.Subtitles)
-                _context.Entry(s).State = EntityState.Added;
-        }
+        if (eFile.Video is not null && file.Video is not null)
+            _context.Entry(eFile.Video).CurrentValues.SetValues(file.Video);
         else
-        {
-            if (eFile.Video is not null && file.Video is not null)
-                _context.Entry(eFile.Video).CurrentValues.SetValues(file.Video);
+            eFile.Video = file.Video;
+
+        foreach (var a in eFile.Audio.ExceptBy(file.Audio.Select(a => a.Id), a => a.Id))
+            eFile.Audio.Remove(a);
+        foreach (var a in file.Audio)
+            if (eFile.Audio.FirstOrDefault(x => x.Id == a.Id) is { } ea)
+                _context.Entry(ea).CurrentValues.SetValues(a);
             else
-                eFile.Video = file.Video;
+                eFile.Audio.Add(a);
 
-            foreach (var a in eFile.Audio.ExceptBy(file.Audio.Select(a => a.Id), a => a.Id))
-                eFile.Audio.Remove(a);
-            foreach (var s in eFile.Subtitles.ExceptBy(file.Subtitles.Select(s => s.Id), s => s.Id))
-                eFile.Subtitles.Remove(s);
-
-            foreach (var a in file.Audio)
-                if (eFile.Audio.FirstOrDefault(x => x.Id == a.Id) is var ea && ea is null)
-                    eFile.Audio.Add(a);
-                else
-                    _context.Entry(ea).CurrentValues.SetValues(a);
-            foreach (var s in file.Subtitles)
-                if (eFile.Subtitles.FirstOrDefault(x => x.Id == s.Id) is var es && es is null)
-                    eFile.Subtitles.Add(s);
-                else
-                    _context.Entry(es).CurrentValues.SetValues(s);
-        }
+        foreach (var s in eFile.Subtitles.ExceptBy(file.Subtitles.Select(s => s.Id), s => s.Id))
+            eFile.Subtitles.Remove(s);
+        foreach (var s in file.Subtitles)
+            if (eFile.Subtitles.FirstOrDefault(x => x.Id == s.Id) is { } es)
+                _context.Entry(es).CurrentValues.SetValues(s);
+            else
+                eFile.Subtitles.Add(s);
     }
 
     private void UpdateGenericFile(FileResult result)
     {
         _logger.LogInformation("Updating generic AniDb file information for file id {FileId}", result.FileId);
 
-        if (_context.EpisodeWatchedStates.Find(result.EpisodeId!.Value) is { } eEpisodeWatchedState)
+        if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == result.EpisodeId!.Value) is { } eEpisodeWatchedState)
         {
             if (eEpisodeWatchedState.WatchedUpdated is null)
                 eEpisodeWatchedState.Watched = result.MyListViewed ?? false;
@@ -263,7 +254,7 @@ public class ProcessCommand : Command<ProcessArgs>
 
     private void UpdateEpRelations(FileResult result)
     {
-        var relIds = (result.OtherEpisodeIds ?? new List<int>()).Append(result.EpisodeId!.Value).ToList();
+        var relIds = new List<int> { result.EpisodeId!.Value }.Concat(result.OtherEpisodeIds!).ToList();
         var eRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
         var eHangingRels = _context.HangingEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
         _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(relIds, x => x.AniDbEpisodeId));
