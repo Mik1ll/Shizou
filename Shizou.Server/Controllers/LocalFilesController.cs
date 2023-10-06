@@ -1,12 +1,30 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
+using Shizou.Data.Enums;
 using Shizou.Data.Models;
+using Shizou.Server.Commands.AniDb;
+using Shizou.Server.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
 public class LocalFilesController : EntityGetController<LocalFile>
 {
-    public LocalFilesController(ILogger<LocalFilesController> logger, ShizouContext context) : base(logger, context, file => file.Id)
+    private readonly CommandService _commandService;
+
+    public LocalFilesController(ILogger<LocalFilesController> logger, ShizouContext context, CommandService commandService) : base(logger, context,
+        file => file.Id)
     {
+        _commandService = commandService;
+    }
+
+    [HttpPut("ProcessFile/{id}")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    public ActionResult ProcessFile(int id)
+    {
+        _commandService.Dispatch(new ProcessArgs(id, IdTypeLocalFile.LocalId));
+        return Ok();
     }
 }

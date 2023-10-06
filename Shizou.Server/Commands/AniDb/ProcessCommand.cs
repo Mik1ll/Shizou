@@ -206,14 +206,14 @@ public class ProcessCommand : Command<ProcessArgs>
             _context.Entry(file.FileWatchedState).State = EntityState.Added;
         }
 
-        if (_context.LocalFiles.Include(lf => lf.ManualLinkEpisode).FirstOrDefault(lf => lf.Ed2k == file.Ed2k) is { } eLocalFile)
+        if (_context.LocalFiles.FirstOrDefault(lf => lf.Ed2k == file.Ed2k) is { } eLocalFile)
         {
             eLocalFile.AniDbFileId = file.Id;
-            if (eLocalFile.ManualLinkEpisode is not null)
+            if (eLocalFile.ManualLinkEpisodeId is not null)
             {
                 _logger.LogInformation("Replacing manual link from local file {LocalId} with episode {EpisodeId} with file relation", eLocalFile.Id,
                     eLocalFile.ManualLinkEpisodeId);
-                eLocalFile.ManualLinkEpisode = null;
+                eLocalFile.ManualLinkEpisodeId = null;
             }
         }
     }
