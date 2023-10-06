@@ -100,8 +100,9 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
                     animeToAdd.Add(aid);
         }
 
-        _commandService.DispatchRange(animeToAdd.Select(aid => new AnimeArgs(aid)));
         _context.SaveChanges();
+
+        _commandService.DispatchRange(animeToAdd.Select(aid => new AnimeArgs(aid)));
     }
 
     private static List<MyListItem> MyListResultToMyListItems(MyListResult myListResult)
