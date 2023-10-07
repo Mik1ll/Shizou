@@ -4,8 +4,11 @@
 
 <article class="container-fluid">
     <div class="d-flex mb-2">
-        <button type="button" class="btn btn-primary" @onclick="@ScanAll">
+        <button type="button" class="btn btn-primary" @onclick="@(() => ScanFiles(_localFiles))">
             <i class="bi bi-search"></i> Scan All
+        </button>
+        <button type="button" class="btn btn-primary" @onclick="@(() => HashFiles(_localFiles))">
+            <i class="bi bi-hash"></i> Hash All
         </button>
     </div>
     <div class="row gx-2">
@@ -37,7 +40,18 @@
         <div class="col-4 col-lg-3 sticky-top" style="align-self: flex-start; top: 3.5rem">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">@(_selectedFiles.Count) files selected</h6>
+                    <h5 class="card-title">
+                        <strong>@(_selectedFiles.Count) file@(_selectedFiles.Count == 1 ? "" : "s") selected</strong>
+                    </h5>
+                    @if (_selectedFiles.Count > 0)
+                    {
+                        <button type="button" class="btn btn-primary" @onclick="@(() => ScanFiles(_selectedFiles))">
+                            <i class="bi bi-search"></i> Scan
+                        </button>
+                        <button type="button" class="btn btn-primary" @onclick="@(() => HashFiles(_selectedFiles))">
+                            <i class="bi bi-hash"></i> Hash
+                        </button>
+                    }
                 </div>
             </div>
         </div>

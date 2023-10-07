@@ -5,7 +5,7 @@ namespace Shizou.Server.Extensions.Query;
 
 public static class LocalFilesExtensions
 {
-    public static IQueryable<LocalFile> Unrecognized(this IQueryable<LocalFile> query)
+    public static IQueryable<LocalFile> Unidentified(this IQueryable<LocalFile> query)
     {
         return from lf in query
             where lf.ManualLinkEpisodeId == null && lf.AniDbFile == null
