@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,7 @@ public class ImportService
             _logger.LogError("Import folder path \"{ImportPath}\" does not exist", importFolder.Path);
             return;
         }
+
         var allFiles = dir.GetFiles("*", SearchOption.AllDirectories);
         var dbFiles = context.LocalFiles.Include(lf => lf.ImportFolder)
             .Where(lf => lf.ImportFolder != null)
@@ -75,6 +77,23 @@ public class ImportService
                 _logger.LogInformation("Removing missing local file: \"{FilePath}\"", Path.Combine(file.ImportFolder.Path, file.PathTail));
             context.LocalFiles.Remove(file);
         }
+
+        context.SaveChanges();
+    }
+
+    public void SetIgnored(IEnumerable<int> localFileIds, bool ignored)
+    {
+        using var context = _contextFactory.CreateDbContext();
+        foreach (var fileId in localFileIds)
+        {
+            var localFile = context.LocalFiles.Find(fileId);
+            if (localFile is null || localFile.Ignored == ignored)
+                continue;
+            _logger.LogInformation("Setting ignored state {State} for local file: {LocalFileId} filename: \"{FileName}\"", ignored, fileId,
+                Path.GetFileName(localFile.PathTail));
+            localFile.Ignored = ignored;
+        }
+
         context.SaveChanges();
     }
 }

@@ -3,13 +3,16 @@
 <PageTitle>Unidentified Files</PageTitle>
 
 <article class="container-fluid">
-    <div class="d-flex mb-2">
+    <div class="d-flex mb-2 gap-2 align-items-center">
         <button type="button" class="btn btn-primary" @onclick="@(() => ScanFiles(_localFiles))">
             <i class="bi bi-search"></i> Scan All
         </button>
         <button type="button" class="btn btn-primary" @onclick="@(() => HashFiles(_localFiles))">
             <i class="bi bi-hash"></i> Hash All
         </button>
+        <div>
+            <input class="form-check-input" type="checkbox" checked="@(_includeIgnored)" @onclick="@ToggleIncludeIgnored"/> Ignored Files
+        </div>
     </div>
     <div class="row gx-2">
         <div class="col overflow-auto">
@@ -26,9 +29,9 @@
                 <tbody>
                 @foreach (var (file, idx) in _localFiles.Select((file, idx) => (file, idx)))
                 {
-                    <SelectRow TValue="@LocalFile" Index="@idx" Value="@file">
+                    <SelectRow @key="@file" TValue="@LocalFile" Index="@idx" Value="@file" class="@(file.Ignored ? "ignored-file" : "")">
                         <td>@(file.ImportFolder?.Path)</td>
-                        <td>@(file.PathTail)</td>
+                        <td>@(Path.GetFileName(file.PathTail))</td>
                         <td>@(Math.Round(file.FileSize / (1024.0 * 1024), 2)) MiB</td>
                         <td>@(file.Ed2k)</td>
                         <td>@(file.Updated?.ToLocalTime())</td>
@@ -51,6 +54,40 @@
                         <button type="button" class="btn btn-primary" @onclick="@(() => HashFiles(_selectedFiles))">
                             <i class="bi bi-hash"></i> Hash
                         </button>
+                        if (_selectedFiles.All(lf => lf.Ignored == false))
+                        {
+                            <button type="button" class="btn btn-primary" @onclick="@(() => SetIgnored(_selectedFiles, true))">
+                                <i class="bi bi-slash-circle"></i> Ignore
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-primary" @onclick="@(() => SetIgnored(_selectedFiles, false))">
+                                <i class="bi bi-circle"></i> Unignore
+                            </button>
+                        }
+                    }
+                    @if (_selectedFiles.Count == 1)
+                    {
+                        var localFile = _selectedFiles.First();
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <strong>Name:</strong> @(Path.GetFileName(localFile.PathTail))
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Path:</strong> @(Path.Combine(localFile.ImportFolder?.Path ?? throw new NullReferenceException("Import folder can't be null, need a complete path"),
+                                                           localFile.PathTail)))
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Size:</strong> @(localFile.FileSize)
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Hash:</strong> @(localFile.Ed2k)
+                            </li>
+                            <li class="list-group-item">
+                                <strong>CRC:</strong> @(localFile.Crc)
+                            </li>
+                        </ul>
                     }
                 </div>
             </div>
