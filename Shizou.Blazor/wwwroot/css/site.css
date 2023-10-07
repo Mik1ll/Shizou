@@ -77,8 +77,22 @@ table .absorbing-column {
     --bs-tooltip-bg: var(--bs-white);
 }
 
+.resizable-table-columns {
+    table-layout: fixed;
+}
+
 .resizable-table-columns > thead tr th {
     resize: horizontal;
+    overflow: hidden;
+}
+
+.resizable-table-columns > tbody tr td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.resizable-table-columns > tbody tr td:hover {
+    text-overflow: unset;
     overflow: auto;
 }
 
