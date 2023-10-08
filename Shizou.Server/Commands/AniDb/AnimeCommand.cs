@@ -168,15 +168,15 @@ public class AnimeCommand : Command<AnimeArgs>
         }
 
         var rateLimit = TimeSpan.FromDays(1);
-        var rateLimitTimer = DateTime.UtcNow + rateLimit;
+        var rateLimitExpires = DateTime.UtcNow + rateLimit;
         if (timer is not null)
-            timer.Expires = rateLimitTimer;
+            timer.Expires = rateLimitExpires;
         else
             _context.Timers.Add(new Timer
             {
                 Type = TimerType.AnimeRequest,
                 ExtraId = CommandArgs.AnimeId,
-                Expires = rateLimitTimer
+                Expires = rateLimitExpires
             });
         // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();

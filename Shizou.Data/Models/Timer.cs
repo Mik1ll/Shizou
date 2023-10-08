@@ -6,7 +6,7 @@ namespace Shizou.Data.Models;
 [PrimaryKey(nameof(Type), nameof(ExtraId))]
 public class Timer
 {
-    public TimerType Type { get; set; }
+    public required TimerType Type { get; set; }
     public int? ExtraId { get; set; }
-    public DateTime Expires { get; set; }
+    public required DateTime Expires { get; set; }
 }
