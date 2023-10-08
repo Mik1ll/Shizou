@@ -161,7 +161,7 @@ public class ProcessCommand : Command<ProcessArgs>
     private void UpdateFile(FileResult result)
     {
         _logger.LogInformation("Updating AniDb file information for file id {FileId}", result.FileId);
-        var eFile = _context.AniDbFiles.FirstOrDefault(f => f.Id == result.FileId);
+        var eFile = _context.AniDbFiles.AsSplitQuery().FirstOrDefault(f => f.Id == result.FileId);
         var file = FileResultToAniDbFile(result);
 
         if (eFile is null)
@@ -262,7 +262,7 @@ public class ProcessCommand : Command<ProcessArgs>
 
     private void UpdateEpRelations(FileResult result)
     {
-        var relIds = new List<int> { result.EpisodeId!.Value }.Concat(result.OtherEpisodeIds!).ToList();
+        var relIds = new List<int> { result.EpisodeId!.Value }.Concat(result.OtherEpisodeIds ?? new List<int>()).ToList();
         var eRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
         var eHangingRels = _context.HangingEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
         _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(relIds, x => x.AniDbEpisodeId));
@@ -286,7 +286,7 @@ public class ProcessCommand : Command<ProcessArgs>
 
     private async Task<FileResult?> GetFileResult()
     {
-        string? fileResultCacheKey;
+        string? fileCacheFilename;
         FileResult? result;
         switch (CommandArgs.IdType)
         {
@@ -301,8 +301,8 @@ public class ProcessCommand : Command<ProcessArgs>
                     return null;
                 }
 
-                fileResultCacheKey = $"File_Ed2k={localFile.Ed2k}.json";
-                result = await _fileResultCache.Get(fileResultCacheKey);
+                fileCacheFilename = $"File_Ed2k={localFile.Ed2k}.json";
+                result = await _fileResultCache.Get(fileCacheFilename);
                 if (result is not null)
                     return result;
                 _logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2k);
@@ -310,8 +310,8 @@ public class ProcessCommand : Command<ProcessArgs>
                 break;
             }
             case IdTypeLocalFile.FileId:
-                fileResultCacheKey = $"File_Id={CommandArgs.Id}.json";
-                result = await _fileResultCache.Get(fileResultCacheKey);
+                fileCacheFilename = $"File_Id={CommandArgs.Id}.json";
+                result = await _fileResultCache.Get(fileCacheFilename);
                 if (result is not null)
                     return result;
                 _logger.LogInformation("Processing file id: {FileId}", CommandArgs.Id);
@@ -334,7 +334,7 @@ public class ProcessCommand : Command<ProcessArgs>
         }
         else
         {
-            await _fileResultCache.Save(fileResultCacheKey, result);
+            await _fileResultCache.Save(fileCacheFilename, result);
         }
 
         return result;
