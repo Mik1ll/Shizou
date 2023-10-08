@@ -9,9 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Shizou.Data;
@@ -59,6 +61,20 @@ public static class InitializationExtensions
             .ReadFrom.Configuration(ctx.Configuration)
             .ConfigureSerilog());
         return builder;
+    }
+
+    public static WebApplication MigrateDatabase(this WebApplication app)
+    {
+        using var context = app.Services.GetRequiredService<IDbContextFactory<ShizouContext>>().CreateDbContext();
+        context.Database.Migrate();
+        return app;
+    }
+
+    public static WebApplication PopulateOptions(this WebApplication app)
+    {
+        var options = app.Services.GetRequiredService<IOptions<ShizouOptions>>();
+        options.Value.SaveToFile();
+        return app;
     }
 
     public static LoggerConfiguration ConfigureSerilog(this LoggerConfiguration cfg)

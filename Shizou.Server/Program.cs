@@ -1,16 +1,12 @@
 using System;
 using System.IO;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Serilog;
 using Shizou.Data;
-using Shizou.Data.Database;
 using Shizou.Server;
 using Shizou.Server.Extensions;
-using Shizou.Server.Options;
 
 Log.Logger = new LoggerConfiguration()
     .ConfigureSerilog()
@@ -39,7 +35,6 @@ try
 
     builder.Services.AddHostedService<StartupService>();
 
-
     var app = builder.Build();
 
     if (!app.Environment.IsDevelopment())
@@ -61,16 +56,8 @@ try
     app.MapControllers().RequireAuthorization();
 
 
-    using (var scope = app.Services.CreateScope())
-    {
-        var services = scope.ServiceProvider;
-
-        var context = services.GetRequiredService<ShizouContext>();
-        context.Database.Migrate();
-
-        var options = services.GetRequiredService<IOptionsSnapshot<ShizouOptions>>();
-        options.Value.SaveToFile();
-    }
+    app.MigrateDatabase();
+    app.PopulateOptions();
 
     app.Run();
 }

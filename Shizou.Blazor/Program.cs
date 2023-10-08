@@ -1,13 +1,9 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Options;
 using Serilog;
 using Shizou.Blazor;
 using Shizou.Data;
-using Shizou.Data.Database;
 using Shizou.Server;
 using Shizou.Server.Extensions;
-using Shizou.Server.Options;
 
 Log.Logger = new LoggerConfiguration()
     .ConfigureSerilog()
@@ -15,7 +11,6 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
@@ -65,15 +60,7 @@ app.MapControllers().RequireAuthorization();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-
-    var context = services.GetRequiredService<ShizouContext>();
-    context.Database.Migrate();
-
-    var options = services.GetRequiredService<IOptionsSnapshot<ShizouOptions>>();
-    options.Value.SaveToFile();
-}
+app.MigrateDatabase();
+app.PopulateOptions();
 
 app.Run();
