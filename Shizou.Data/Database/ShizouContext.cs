@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shizou.Data.Models;
+using Timer = Shizou.Data.Models.Timer;
 
 namespace Shizou.Data.Database;
 
@@ -31,6 +32,7 @@ public sealed class ShizouContext : IdentityDbContext
     public DbSet<FileWatchedState> FileWatchedStates { get; set; } = null!;
     public DbSet<EpisodeWatchedState> EpisodeWatchedStates { get; set; } = null!;
     public DbSet<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; set; } = null!;
+    public DbSet<Timer> Timers { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

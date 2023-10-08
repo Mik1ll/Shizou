@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +25,7 @@ public class AnimeCommand : Command<AnimeArgs>
     private readonly ImageService _imageService;
     private readonly MyAnimeListService _myAnimeListService;
     private readonly IAnimeRequest _animeRequest;
-    private string _animeResultCacheKey = null!;
+    private string _animeCacheFilename = null!;
 
     public AnimeCommand(
         ILogger<AnimeCommand> logger,
@@ -46,21 +45,13 @@ public class AnimeCommand : Command<AnimeArgs>
 
     public override void SetParameters(CommandArgs args)
     {
-        _animeResultCacheKey = $"AnimeDoc_{((AnimeArgs)args).AnimeId}.xml";
+        _animeCacheFilename = $"AnimeDoc_{((AnimeArgs)args).AnimeId}.xml";
         base.SetParameters(args);
     }
 
     protected override async Task ProcessInner()
     {
-        if (Path.Exists(Path.Combine(_animeResultCache.BasePath, _animeResultCacheKey)) && _animeResultCache.InsideRetentionPeriod(_animeResultCacheKey))
-        {
-            _logger.LogWarning("Ignoring HTTP anime request: {AnimeId}, already requested in last {Hours} hours", CommandArgs.AnimeId,
-                _animeResultCache.RetentionDuration.TotalHours);
-            Completed = true;
-            return;
-        }
-
-        var animeResult = await _animeResultCache.Get(_animeResultCacheKey) ?? await GetAnimeHttp();
+        var animeResult = await GetAnime();
 
         if (animeResult is null)
         {
@@ -166,13 +157,35 @@ public class AnimeCommand : Command<AnimeArgs>
         return newAniDbAnime;
     }
 
-    private async Task<AnimeResult?> GetAnimeHttp()
+    private async Task<AnimeResult?> GetAnime()
     {
+        // ReSharper disable once MethodHasAsyncOverload
+        var timer = _context.Timers.FirstOrDefault(t => t.Type == TimerType.AnimeRequest && t.ExtraId == CommandArgs.AnimeId);
+        if (timer is not null && timer.Expires > DateTime.UtcNow)
+        {
+            _logger.LogWarning("Anime {AnimeId} already requested recently, trying cache for HTTP anime request", CommandArgs.AnimeId);
+            return await _animeResultCache.Get(_animeCacheFilename);
+        }
+
+        var rateLimit = TimeSpan.FromDays(1);
+        var rateLimitTimer = DateTime.UtcNow + rateLimit;
+        if (timer is not null)
+            timer.Expires = rateLimitTimer;
+        else
+            _context.Timers.Add(new Timer
+            {
+                Type = TimerType.AnimeRequest,
+                ExtraId = CommandArgs.AnimeId,
+                Expires = rateLimitTimer
+            });
+        // ReSharper disable once MethodHasAsyncOverload
+        _context.SaveChanges();
+        _logger.LogInformation("Getting Anime {AnimeId} from HTTP anime request", CommandArgs.AnimeId);
         _animeRequest.SetParameters(CommandArgs.AnimeId);
         await _animeRequest.Process();
-        await _animeResultCache.Save(_animeResultCacheKey, _animeRequest.ResponseText ?? string.Empty);
+        await _animeResultCache.Save(_animeCacheFilename, _animeRequest.ResponseText ?? string.Empty);
         if (_animeRequest.AnimeResult is null)
-            _logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", _animeResultCache.RetentionDuration.Hours);
+            _logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", rateLimit.TotalHours);
         return _animeRequest.AnimeResult;
     }
 
