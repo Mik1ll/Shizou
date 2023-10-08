@@ -48,10 +48,6 @@ public class AniDbOptions
 
     public ushort ClientPort { get; set; } = 4556;
 
-    public DateTimeOffset? HttpBannedUntil { get; set; }
-
-    public DateTimeOffset? UdpBannedUntil { get; set; }
-
     public MyListOptions MyList { get; set; } = new();
 }
 

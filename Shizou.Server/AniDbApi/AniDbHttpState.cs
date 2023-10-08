@@ -1,23 +1,26 @@
 ﻿using System;
+using System.Linq;
 using System.Timers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Shizou.Server.Options;
+using Shizou.Data.Database;
+using Shizou.Data.Enums;
 
 namespace Shizou.Server.AniDbApi;
 
 public class AniDbHttpState : IDisposable
 {
     private readonly Timer _bannedTimer;
+
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private readonly ILogger<AniDbHttpState> _logger;
-    private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
+    private readonly IDbContextFactory<ShizouContext> _contextFactory;
     private bool _banned;
 
-    public AniDbHttpState(ILogger<AniDbHttpState> logger, IOptionsMonitor<ShizouOptions> optionsMonitor)
+    public AniDbHttpState(ILogger<AniDbHttpState> logger, IDbContextFactory<ShizouContext> contextFactory)
     {
         _logger = logger;
-        _optionsMonitor = optionsMonitor;
+        _contextFactory = contextFactory;
 
         _bannedTimer = new Timer(BanPeriod);
         _bannedTimer.Elapsed += (_, _) =>
@@ -29,18 +32,13 @@ public class AniDbHttpState : IDisposable
         };
         _bannedTimer.AutoReset = false;
 
-        var options = optionsMonitor.CurrentValue;
-        var currentBan = options.AniDb.HttpBannedUntil;
+        using var context = _contextFactory.CreateDbContext();
+        var currentBan = context.Timers.FirstOrDefault(t => t.Type == TimerType.HttpBan)?.Expires;
         if (currentBan is not null)
-            if (currentBan.Value > DateTimeOffset.UtcNow)
+            if (currentBan > DateTime.UtcNow)
             {
-                _bannedTimer.Interval = (currentBan.Value - DateTimeOffset.UtcNow).TotalMilliseconds;
+                _bannedTimer.Interval = (currentBan.Value - DateTime.UtcNow).TotalMilliseconds;
                 Banned = true;
-            }
-            else
-            {
-                options.AniDb.HttpBannedUntil = null;
-                options.SaveToFile();
             }
     }
 
@@ -54,9 +52,19 @@ public class AniDbHttpState : IDisposable
             {
                 _bannedTimer.Stop();
                 _bannedTimer.Start();
-                var options = _optionsMonitor.CurrentValue;
-                options.AniDb.HttpBannedUntil = DateTimeOffset.UtcNow + BanPeriod;
-                options.SaveToFile();
+                using var context = _contextFactory.CreateDbContext();
+                var bannedTimer = context.Timers.FirstOrDefault(t => t.Type == TimerType.HttpBan);
+                var banExpires = DateTime.UtcNow + BanPeriod;
+                if (bannedTimer is null)
+                    context.Timers.Add(new Data.Models.Timer
+                    {
+                        Type = TimerType.HttpBan,
+                        ExtraId = null,
+                        Expires = banExpires
+                    });
+                else
+                    bannedTimer.Expires = banExpires;
+                context.SaveChanges();
             }
         }
     }

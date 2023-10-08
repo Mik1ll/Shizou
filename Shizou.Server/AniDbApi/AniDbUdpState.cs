@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Timers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
+using Shizou.Data.Database;
+using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 using Shizou.Server.Options;
 
@@ -16,9 +20,9 @@ public sealed class AniDbUdpState : IDisposable
     private readonly Timer _bannedTimer;
     private readonly ILogger<AniDbUdpState> _logger;
     private readonly Func<ILogoutRequest> _logoutRequestFactory;
+    private readonly IDbContextFactory<ShizouContext> _contextFactory;
     private readonly Timer _logoutTimer;
     private readonly Timer? _mappingTimer;
-    private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
     private readonly string _serverHost;
     private readonly ushort _serverPort;
     private bool _banned;
@@ -29,12 +33,12 @@ public sealed class AniDbUdpState : IDisposable
         IOptionsMonitor<ShizouOptions> optionsMonitor,
         ILogger<AniDbUdpState> logger,
         Func<IAuthRequest> authRequestFactory,
-        Func<ILogoutRequest> logoutRequestFactory
-    )
+        Func<ILogoutRequest> logoutRequestFactory,
+        IDbContextFactory<ShizouContext> contextFactory)
     {
-        _optionsMonitor = optionsMonitor;
         _authRequestFactory = authRequestFactory;
         _logoutRequestFactory = logoutRequestFactory;
+        _contextFactory = contextFactory;
         var options = optionsMonitor.CurrentValue;
         _serverHost = options.AniDb.ServerHost;
         _serverPort = options.AniDb.UdpServerPort;
@@ -50,17 +54,13 @@ public sealed class AniDbUdpState : IDisposable
             Banned = false;
         };
         _bannedTimer.AutoReset = false;
-        var currentBan = options.AniDb.UdpBannedUntil;
+        using var context = _contextFactory.CreateDbContext();
+        var currentBan = context.Timers.FirstOrDefault(t => t.Type == TimerType.UdpBan)?.Expires;
         if (currentBan is not null)
-            if (currentBan.Value > DateTimeOffset.UtcNow)
+            if (currentBan > DateTime.UtcNow)
             {
-                _bannedTimer.Interval = (currentBan.Value - DateTimeOffset.UtcNow).TotalMilliseconds;
+                _bannedTimer.Interval = (currentBan.Value - DateTime.UtcNow).TotalMilliseconds;
                 Banned = true;
-            }
-            else
-            {
-                options.AniDb.UdpBannedUntil = null;
-                options.SaveToFile();
             }
 
 
@@ -79,17 +79,17 @@ public sealed class AniDbUdpState : IDisposable
         }
         else
         {
-            _logger.LogInformation("Creating port mapping on port {AniDbClientPort}", optionsMonitor.CurrentValue.AniDb.ClientPort);
-            var mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, optionsMonitor.CurrentValue.AniDb.ClientPort,
-                optionsMonitor.CurrentValue.AniDb.ClientPort));
+            _logger.LogInformation("Creating port mapping on port {AniDbClientPort}", options.AniDb.ClientPort);
+            var mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, options.AniDb.ClientPort,
+                options.AniDb.ClientPort));
             if (mapping.Lifetime > 0)
             {
                 _mappingTimer = new Timer(TimeSpan.FromSeconds(mapping.Lifetime - 60).TotalMilliseconds);
                 _mappingTimer.Elapsed += (_, _) =>
                 {
-                    _logger.LogInformation("Recreating port mapping on port {AniDbClientPort}", optionsMonitor.CurrentValue.AniDb.ClientPort);
-                    mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, optionsMonitor.CurrentValue.AniDb.ClientPort,
-                        optionsMonitor.CurrentValue.AniDb.ClientPort));
+                    var optionsVal = optionsMonitor.CurrentValue;
+                    _logger.LogInformation("Recreating port mapping on port {AniDbClientPort}", optionsVal.AniDb.ClientPort);
+                    mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, optionsVal.AniDb.ClientPort, optionsVal.AniDb.ClientPort));
                 };
                 _mappingTimer.AutoReset = true;
                 _mappingTimer.Start();
@@ -128,9 +128,19 @@ public sealed class AniDbUdpState : IDisposable
             {
                 _bannedTimer.Stop();
                 _bannedTimer.Start();
-                var options = _optionsMonitor.CurrentValue;
-                options.AniDb.UdpBannedUntil = DateTimeOffset.UtcNow + BanPeriod;
-                options.SaveToFile();
+                using var context = _contextFactory.CreateDbContext();
+                var bannedTimer = context.Timers.FirstOrDefault(t => t.Type == TimerType.UdpBan);
+                var banExpires = DateTime.UtcNow + BanPeriod;
+                if (bannedTimer is null)
+                    context.Timers.Add(new Data.Models.Timer
+                    {
+                        Type = TimerType.UdpBan,
+                        ExtraId = null,
+                        Expires = banExpires
+                    });
+                else
+                    bannedTimer.Expires = banExpires;
+                context.SaveChanges();
             }
             else
             {
