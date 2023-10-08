@@ -12,9 +12,8 @@ using Shizou.Server;
 using Shizou.Server.Extensions;
 using Shizou.Server.Options;
 
-var logTemplate = "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}";
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(outputTemplate: logTemplate)
+    .ConfigureSerilog()
     .CreateBootstrapLogger();
 
 try
@@ -24,11 +23,13 @@ try
     var builder = WebApplication.CreateBuilder();
 
     builder.AddShizouOptions()
-        .AddShizouLogging(logTemplate)
-        .AddShizouApiServices()
+        .AddShizouLogging();
+
+    builder.Services
         .AddShizouServices()
+        .AddShizouProcessors()
         .AddAniDbServices()
-        .AddShizouProcessors();
+        .AddShizouApiServices();
 
     builder.Services.AddCors(options =>
     {
