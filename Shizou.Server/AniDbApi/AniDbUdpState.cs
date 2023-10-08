@@ -49,8 +49,6 @@ public sealed class AniDbUdpState : IDisposable
         _bannedTimer.Elapsed += (_, _) =>
         {
             _logger.LogInformation("Udp ban timer has elapsed: {BanPeriod}", BanPeriod);
-            if (Math.Abs(_bannedTimer.Interval - BanPeriod.TotalMilliseconds) > 1)
-                _bannedTimer.Interval = BanPeriod.TotalMilliseconds;
             Banned = false;
         };
         _bannedTimer.AutoReset = false;
@@ -127,6 +125,7 @@ public sealed class AniDbUdpState : IDisposable
             if (value)
             {
                 _bannedTimer.Stop();
+                _bannedTimer.Interval = BanPeriod.TotalMilliseconds;
                 _bannedTimer.Start();
                 using var context = _contextFactory.CreateDbContext();
                 var bannedTimer = context.Timers.FirstOrDefault(t => t.Type == TimerType.UdpBan);
