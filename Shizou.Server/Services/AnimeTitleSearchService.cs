@@ -22,11 +22,11 @@ namespace Shizou.Server.Services;
 
 public class AnimeTitleSearchService
 {
-    private static readonly Regex RemoveSpecial = new(@"[][【】「」『』、…〜（）`()\\,<>/;:'""-]", RegexOptions.Compiled);
-    private static List<AnimeTitle>? _animeTitlesMemCache;
+    private readonly Regex _removeSpecial = new(@"[][【】「」『』、…〜（）`()\\,<>/;:'""-]", RegexOptions.Compiled);
     private readonly ILogger<AnimeTitleSearchService> _logger;
     private readonly IHttpClientFactory _clientFactory;
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private List<AnimeTitle>? _animeTitlesMemCache;
 
     public AnimeTitleSearchService(
         ILogger<AnimeTitleSearchService> logger,
@@ -151,7 +151,7 @@ public class AnimeTitleSearchService
     {
         string Processor(AnimeTitle title)
         {
-            return RemoveSpecial.Replace(title.Title.ToLower().Trim(), string.Empty);
+            return _removeSpecial.Replace(title.Title.ToLower().Trim(), string.Empty);
         }
 
         var results = Process.ExtractTop(
