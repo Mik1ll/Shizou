@@ -137,7 +137,9 @@ public class AnimeTitleSearchService
             return RemoveSpecial.Replace(title.Title.ToLower().Trim(), string.Empty);
         }
 
-        var results = Process.ExtractTop(new AnimeTitle(0, TitleType.Primary, "", query), titles, Processor, ScorerCache.Get<TokenSetScorer>(), 50).ToList();
+        var results = Process.ExtractTop(
+            new AnimeTitle(0, TitleType.Primary, "", query),
+            titles, Processor, ScorerCache.Get<TokenSetScorer>(), 50, 70).ToList();
         var refinedResults = results.GroupBy(r => r.Value.Aid)
             .Select(g => g
                 .OrderBy(r => r.Value.Type switch
@@ -150,21 +152,16 @@ public class AnimeTitleSearchService
                 })
                 .ThenBy(r => r.Value.Lang switch
                 {
-                    "x-jat" => 0,
-                    "x-kot" => 0,
-                    "x-zht" => 0,
-                    "x-other" => 0,
-                    "x-unk" => 0,
+                    var x when x.StartsWith("x-") => 0,
                     "en" => 1,
                     "ja" => 2,
                     "ko" => 2,
-                    "zh" => 2,
-                    "zh-Hans" => 2,
+                    var x when x.StartsWith("zh") => 2,
                     _ => int.MaxValue
                 })
                 .ThenByDescending(r => r.Score).First())
-            .OrderByDescending(r => r.Score).Select(r => r.Value).ToList();
-        return refinedResults;
+            .OrderByDescending(r => r.Score).ToList();
+        return refinedResults.Select(r => r.Value).ToList();
     }
 
     private record AnimeTitle(int Aid, TitleType Type, string Lang, string Title);
