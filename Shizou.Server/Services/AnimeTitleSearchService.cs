@@ -56,39 +56,56 @@ public class AnimeTitleSearchService
 
     private async Task GetTitles()
     {
-        var data = await GetContent();
-        if (data is null)
-            return;
-        _animeTitlesMemCache = ParseContent(data);
-    }
-
-    private async Task<string?> GetContent()
-    {
+        string? data;
         // ReSharper disable once MethodHasAsyncOverload
         // ReSharper disable once UseAwaitUsing
         using var context = _contextFactory.CreateDbContext();
         var timer = context.Timers.FirstOrDefault(t => t.Type == TimerType.AnimeTitlesRequest);
         if (timer is not null && timer.Expires > DateTime.UtcNow)
         {
-            _logger.LogInformation("Anime titles requested recently, getting from local file");
-            if (File.Exists(FilePaths.AnimeTitlesPath))
-                return await File.ReadAllTextAsync(FilePaths.AnimeTitlesPath, Encoding.UTF8);
-            _logger.LogError("Could not find anime titles file at \"{AnimeTitlesPath}\"", FilePaths.AnimeTitlesPath);
-            return null;
+            if (_animeTitlesMemCache is null)
+            {
+                _logger.LogInformation("Anime titles requested recently, getting from local file");
+                data = await GetFromFile();
+            }
+            else
+            {
+                _logger.LogDebug("Anime titles request recently, using in-memory cache");
+                return;
+            }
+        }
+        else
+        {
+            var rateLimit = TimeSpan.FromDays(1);
+            var rateLimitExpires = DateTime.UtcNow + rateLimit;
+            if (timer is not null)
+                timer.Expires = rateLimitExpires;
+            else
+                context.Timers.Add(new Timer
+                {
+                    Type = TimerType.AnimeTitlesRequest,
+                    Expires = rateLimitExpires
+                });
+            // ReSharper disable once MethodHasAsyncOverload
+            context.SaveChanges();
+            data = await GetFromAniDb();
         }
 
-        var rateLimit = TimeSpan.FromDays(1);
-        var rateLimitExpires = DateTime.UtcNow + rateLimit;
-        if (timer is not null)
-            timer.Expires = rateLimitExpires;
-        else
-            context.Timers.Add(new Timer
-            {
-                Type = TimerType.AnimeTitlesRequest,
-                Expires = rateLimitExpires
-            });
-        // ReSharper disable once MethodHasAsyncOverload
-        context.SaveChanges();
+        if (data is null)
+            return;
+        _animeTitlesMemCache = ParseContent(data);
+    }
+
+    private async Task<string?> GetFromFile()
+    {
+        if (File.Exists(FilePaths.AnimeTitlesPath))
+            return await File.ReadAllTextAsync(FilePaths.AnimeTitlesPath, Encoding.UTF8);
+        _logger.LogError("Could not find anime titles file at \"{AnimeTitlesPath}\"", FilePaths.AnimeTitlesPath);
+        return null;
+    }
+
+    private async Task<string?> GetFromAniDb()
+    {
         // Not using gzip client, didn't work. Maybe it requires a gzip content header in the response
         var client = _clientFactory.CreateClient(string.Empty);
         client.DefaultRequestHeaders.UserAgent.ParseAdd("Shizou");
