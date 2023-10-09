@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -44,7 +45,7 @@ public class AnimeTitleSearchService
         }
 
         var rateLimit = TimeSpan.FromDays(1);
-        var rateLimitExpires = DateTime.UtcNow - rateLimit;
+        var rateLimitExpires = DateTime.UtcNow + rateLimit;
         if (timer is not null)
             timer.Expires = rateLimitExpires;
         else
@@ -55,9 +56,12 @@ public class AnimeTitleSearchService
             });
         // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
-        var client = _clientFactory.CreateClient("gzip");
-        var result = await client.GetAsync("https://anidb.net/api/anime-titles.dat.gz");
-        var data = await result.Content.ReadAsStringAsync();
+        var client = _clientFactory.CreateClient(string.Empty);
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Shizou");
+        await using var httpStream = await client.GetStreamAsync("https://anidb.net/api/anime-titles.dat.gz");
+        await using var decompStream = new GZipStream(httpStream, CompressionMode.Decompress);
+        using var reader = new StreamReader(decompStream);
+        var data = await reader.ReadToEndAsync();
         Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.AnimeTitlesPath)!);
         await File.WriteAllTextAsync(FilePaths.AnimeTitlesPath, data, Encoding.UTF8);
         return data;
