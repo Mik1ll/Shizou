@@ -30,7 +30,7 @@ public class AnimeTitleSearchService
         _contextFactory = contextFactory;
     }
 
-    public async Task<string> GetTitles()
+    public async Task<string?> GetContent()
     {
         // ReSharper disable once MethodHasAsyncOverload
         // ReSharper disable once UseAwaitUsing
@@ -42,6 +42,7 @@ public class AnimeTitleSearchService
             if (File.Exists(FilePaths.AnimeTitlesPath))
                 return await File.ReadAllTextAsync(FilePaths.AnimeTitlesPath, Encoding.UTF8);
             _logger.LogError("Could not find anime titles file at \"{AnimeTitlesPath}\"", FilePaths.AnimeTitlesPath);
+            return null;
         }
 
         var rateLimit = TimeSpan.FromDays(1);
@@ -56,14 +57,26 @@ public class AnimeTitleSearchService
             });
         // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
+        // Not using gzip client, didn't work. Maybe it requires a gzip content header in the response
         var client = _clientFactory.CreateClient(string.Empty);
         client.DefaultRequestHeaders.UserAgent.ParseAdd("Shizou");
-        await using var httpStream = await client.GetStreamAsync("https://anidb.net/api/anime-titles.dat.gz");
+        using var response = await client.GetAsync("https://anidb.net/api/anime-titles.dat.gz");
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("Anime titles request failed: {StatusCode} {StatusMessage}", response.StatusCode, response.ReasonPhrase);
+            return null;
+        }
+
+        await using var httpStream = await response.Content.ReadAsStreamAsync();
         await using var decompStream = new GZipStream(httpStream, CompressionMode.Decompress);
         using var reader = new StreamReader(decompStream);
         var data = await reader.ReadToEndAsync();
         Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.AnimeTitlesPath)!);
         await File.WriteAllTextAsync(FilePaths.AnimeTitlesPath, data, Encoding.UTF8);
         return data;
+    }
+
+    public void ParseContent(string content)
+    {
     }
 }

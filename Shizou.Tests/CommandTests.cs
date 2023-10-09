@@ -40,6 +40,6 @@ public class CommandTests
         var clientFact = Mock.Of<IHttpClientFactory>(c => c.CreateClient(It.IsAny<string>()) == new HttpClient());
         var dbcontextfact = Mock.Of<IDbContextFactory<ShizouContext>>(c => c.CreateDbContext() == new ShizouContext());
         var service = new AnimeTitleSearchService(Mock.Of<ILogger<AnimeTitleSearchService>>(), clientFact, dbcontextfact);
-        service.GetTitles().Wait();
+        service.GetContent().Wait();
     }
 }
