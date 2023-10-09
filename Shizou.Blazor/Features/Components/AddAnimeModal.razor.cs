@@ -16,6 +16,11 @@ public partial class AddAnimeModal
         return (await AnimeTitleSearchService.Search(query))?.Select(p => (p.Item1, $"{p.Item1} {p.Item2}")).ToList();
     }
 
+    public void Open()
+    {
+        _dialogIsOpen = true;
+    }
+
     private void OnClose(bool accepted)
     {
     }

@@ -11,12 +11,10 @@ public partial class LiveSearchBox
     public Func<string, Task<List<(int, string)>?>> GetResults { get; set; } = default!;
 
     [Parameter]
-    [EditorRequired]
-    public int Selected { get; set; }
+    public int? Selected { get; set; }
 
     [Parameter]
-    [EditorRequired]
-    public EventCallback<int> SelectedChanged { get; set; }
+    public EventCallback<int?> SelectedChanged { get; set; }
 
     private async Task OnInputChanged(ChangeEventArgs e)
     {
