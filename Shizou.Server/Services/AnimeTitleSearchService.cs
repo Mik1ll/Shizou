@@ -22,7 +22,8 @@ namespace Shizou.Server.Services;
 
 public class AnimeTitleSearchService
 {
-    private static readonly Regex RemoveSpecial = new(@"[][`!@#$%^&*()+_=\\.,<>?/;:'""-]", RegexOptions.Compiled);
+    private static readonly Regex RemoveSpecial = new(@"[][【】「」『』、…〜（）`()\\,<>/;:'""-]", RegexOptions.Compiled);
+    private static List<AnimeTitle>? _animeTitlesMemCache;
     private readonly ILogger<AnimeTitleSearchService> _logger;
     private readonly IHttpClientFactory _clientFactory;
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
@@ -47,10 +48,18 @@ public class AnimeTitleSearchService
 
     public async Task<List<(int, string)>?> Search(string query)
     {
+        await GetTitles();
+        if (_animeTitlesMemCache is null)
+            return null;
+        return SearchTitles(_animeTitlesMemCache, query).Select(t => (t.Aid, t.Title)).ToList();
+    }
+
+    private async Task GetTitles()
+    {
         var data = await GetContent();
-        if (data is null) return null;
-        var titles = ParseContent(data);
-        return SearchTitles(titles, query).Select(t => (t.Aid, t.Title)).ToList();
+        if (data is null)
+            return;
+        _animeTitlesMemCache = ParseContent(data);
     }
 
     private async Task<string?> GetContent()
