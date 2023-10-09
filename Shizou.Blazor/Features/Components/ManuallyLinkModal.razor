@@ -1,0 +1,13 @@
+﻿@if (_dialogIsOpen)
+{
+    if (!_addAnimeOpen)
+    {
+        <ModalDisplay DialogType="ModalDisplay.ModalDialogType.OkCancel" Title="Manually Link File" OnClose="@OnClose">
+            <button type="button" class="btn btn-primary" @onclick="">Add Anime</button>
+        </ModalDisplay>
+    }
+    else
+    {
+        <AddAnimeModal @ref="_addAnimeModal"></AddAnimeModal>
+    }
+}
