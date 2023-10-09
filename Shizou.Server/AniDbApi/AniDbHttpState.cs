@@ -58,7 +58,6 @@ public class AniDbHttpState : IDisposable
                     context.Timers.Add(new Data.Models.Timer
                     {
                         Type = TimerType.HttpBan,
-                        ExtraId = null,
                         Expires = banExpires
                     });
                 else

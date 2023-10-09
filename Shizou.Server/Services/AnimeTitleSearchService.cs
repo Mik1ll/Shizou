@@ -51,7 +51,6 @@ public class AnimeTitleSearchService
             context.Timers.Add(new Timer
             {
                 Type = TimerType.AnimeTitlesRequest,
-                ExtraId = null,
                 Expires = rateLimitExpires
             });
         // ReSharper disable once MethodHasAsyncOverload

@@ -134,7 +134,6 @@ public sealed class AniDbUdpState : IDisposable
                     context.Timers.Add(new Data.Models.Timer
                     {
                         Type = TimerType.UdpBan,
-                        ExtraId = null,
                         Expires = banExpires
                     });
                 else
