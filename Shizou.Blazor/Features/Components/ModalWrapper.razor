@@ -1,19 +1,10 @@
-﻿<div class="modal fade show d-block" aria-modal="true" role="dialog" tabindex="-1">
-    <div class="modal-backdrop fade show" @onclick="@Cancel"></div>
-    <div class="modal-dialog" style="z-index: var(--bs-modal-zindex)">
-        <div class="modal-content">
-            @ChildContent
+﻿<FocusTrap @ref="@_focusTrap" IsActive="true">
+    <div class="modal fade show d-block" aria-modal="true" role="dialog">
+        <div class="modal-backdrop fade show" @onclick="@Cancel"></div>
+        <div class="modal-dialog" style="z-index: var(--bs-modal-zindex)">
+            <div class="modal-content">
+                @ChildContent
+            </div>
         </div>
     </div>
-</div>
-
-@code {
-
-    [Parameter]
-    public RenderFragment ChildContent { get; set; } = default!;
-
-    [Parameter]
-    [EditorRequired]
-    public EventCallback Cancel { get; set; }
-
-}
+</FocusTrap>
