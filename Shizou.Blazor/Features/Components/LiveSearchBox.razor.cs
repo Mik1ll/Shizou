@@ -8,6 +8,10 @@ public partial class LiveSearchBox
     private List<(int, string)> _results = new();
     private string? _query;
     private Timer _searchTimer = default!;
+    private ElementReference _inputEl;
+
+    [CascadingParameter]
+    public ToastDisplay ToastDisplay { get; set; } = default!;
 
     [Parameter]
     [EditorRequired]
@@ -37,7 +41,7 @@ public partial class LiveSearchBox
             var res = await GetResults(_query);
             if (res is null)
             {
-                // display error toast
+                ToastDisplay.AddToast("Search failed", "Search was unable to retrieve results", ToastStyle.Error);
             }
             else
             {
@@ -45,6 +49,20 @@ public partial class LiveSearchBox
                 await InvokeAsync(StateHasChanged);
             }
         };
+    }
+
+    private async Task UpdateSelected(int? selected)
+    {
+        Selected = selected;
+        await SelectedChanged.InvokeAsync(Selected);
+    }
+
+    private async Task OnSelectChanged(ChangeEventArgs e)
+    {
+        var selected = int.Parse(((string[])e.Value!).Single());
+        await UpdateSelected(selected);
+        _query = _results.First(r => r.Item1 == selected).Item2.ToString();
+        _results.Clear();
     }
 
     private void OnInputChanged(ChangeEventArgs e)

@@ -1,9 +1,11 @@
-﻿<input type="text" @oninput="@OnInputChanged">
-<ul class="dropdown-menu @(_results.Count > 0 ? "show" : "")">
+﻿<input type="text" @bind="@_query" @oninput="@OnInputChanged">
+<select size="@(_results.Count)" multiple
+        class="dropdown-menu @(_results.Count > 0 ? "show" : "")" style="overflow-y: auto"
+        @onchange="@OnSelectChanged">
     @foreach (var result in _results)
     {
-        <li>
-            <a class="dropdown-item" href="#"> @result.Item2</a>
-        </li>
+        <option class="dropdown-item" value="@(result.Item1)">
+            @result.Item2
+        </option>
     }
-</ul>
+</select>
