@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace Shizou.Server.Services;
 
 public class AnimeTitleSearchService
 {
-    private readonly Regex _removeSpecial = new(@"[][【】「」『』、…〜（）`()\\,<>/;:'""-]", RegexOptions.Compiled);
+    private readonly Regex _removeSpecial = new(@"[][【】「」『』、…〜（）`()\\,<>/;:：'""-]+", RegexOptions.Compiled);
     private readonly ILogger<AnimeTitleSearchService> _logger;
     private readonly IHttpClientFactory _clientFactory;
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
@@ -128,6 +129,7 @@ public class AnimeTitleSearchService
     private List<AnimeTitle> ParseContent(string content)
     {
         var titles = new List<AnimeTitle>();
+        var titleSpan = new Span<char>(new char[200]);
         foreach (var line in content.SplitSpan('\n'))
         {
             if (line.IsEmpty || line.StartsWith(new ReadOnlySpan<char>('#')))
@@ -138,10 +140,17 @@ public class AnimeTitleSearchService
             enumerator.MoveNext();
             var type = Enum.Parse<TitleType>(enumerator.Current);
             enumerator.MoveNext();
-            var lang = enumerator.Current;
+            var lang = enumerator.Current.ToString();
+            var culture = lang.Length <= 3 ? CultureInfo.GetCultureInfoByIetfLanguageTag(lang) : CultureInfo.InvariantCulture;
             enumerator.MoveNext();
-            var title = enumerator.Current;
-            titles.Add(new AnimeTitle(aid, type, lang.ToString(), title.ToString()));
+            titleSpan.Clear();
+            enumerator.Current.ToLower(titleSpan, culture);
+            foreach (var match in _removeSpecial.EnumerateMatches(titleSpan))
+                titleSpan.Slice(match.Index, match.Length).Fill(' ');
+            titleSpan.Trim();
+            var firstNull = titleSpan.IndexOf('\0');
+            titles.Add(new AnimeTitle(aid, type, lang, enumerator.Current.ToString(),
+                titleSpan.Slice(0, Math.Min(firstNull > 0 ? firstNull : int.MaxValue, titleSpan.Length)).ToString()));
         }
 
         return titles;
@@ -149,14 +158,10 @@ public class AnimeTitleSearchService
 
     private List<AnimeTitle> SearchTitles(List<AnimeTitle> titles, string query)
     {
-        string Processor(AnimeTitle title)
-        {
-            return _removeSpecial.Replace(title.Title.ToLower().Trim(), string.Empty);
-        }
-
+        query = _removeSpecial.Replace(query.ToLower(CultureInfo.CurrentUICulture), " ").Trim();
         var results = Process.ExtractTop(
-            new AnimeTitle(0, TitleType.Primary, "", query),
-            titles, Processor, ScorerCache.Get<TokenSetScorer>(), 50, 70).ToList();
+            new AnimeTitle(0, TitleType.Primary, "", "", query),
+            titles, p => p.ProcessedTitle, ScorerCache.Get<TokenSetScorer>(), 50, 70).ToList();
         var refinedResults = results.GroupBy(r => r.Value.Aid)
             .Select(g => g
                 .OrderBy(r => r.Value.Type switch
@@ -181,5 +186,5 @@ public class AnimeTitleSearchService
         return refinedResults.Select(r => r.Value).ToList();
     }
 
-    private record AnimeTitle(int Aid, TitleType Type, string Lang, string Title);
+    private record AnimeTitle(int Aid, TitleType Type, string Lang, string Title, string ProcessedTitle);
 }
