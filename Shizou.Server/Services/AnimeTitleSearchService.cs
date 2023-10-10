@@ -181,6 +181,9 @@ public class AnimeTitleSearchService
                 })
                 .ThenByDescending(r => r.Score).First())
             .OrderByDescending(r => r.Score).ToList();
+
+        if (int.TryParse(query, out var aid))
+            return titles.Where(t => t.Aid == aid).Take(1).Concat(refinedResults.Select(r => r.Value)).ToList();
         return refinedResults.Select(r => r.Value).ToList();
     }
 
