@@ -23,6 +23,11 @@ public partial class AddAnimeModal
         return (await AnimeTitleSearchService.Search(query))?.Select(p => (p.Item1, $"{p.Item1} {p.Item2}")).ToList();
     }
 
+    private async Task Cancel()
+    {
+        await ModalInstance.CancelAsync();
+    }
+
     private async Task Close()
     {
         await ModalInstance.CloseAsync();

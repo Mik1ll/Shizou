@@ -26,6 +26,5 @@ public partial class ManuallyLinkModal
     {
         var addModal = ModalService.Show<AddAnimeModal>("Add Anime");
         _ = await addModal.Result;
-        await ModalInstance.CloseAsync();
     }
 }

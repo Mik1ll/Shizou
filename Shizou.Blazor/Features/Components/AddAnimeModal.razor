@@ -1,1 +1,8 @@
-﻿<LiveSearchBox GetResults="@GetTitles" @bind-Selected="@_selected"></LiveSearchBox>
+﻿<ModalWrapper Cancel="@Cancel">
+    <div class="modal-header">
+        <h4 class="modal-title">Add Anime</h4>
+    </div>
+    <div class="modal-body">
+        <LiveSearchBox GetResults="@GetTitles" @bind-Selected="@_selected"></LiveSearchBox>
+    </div>
+</ModalWrapper>

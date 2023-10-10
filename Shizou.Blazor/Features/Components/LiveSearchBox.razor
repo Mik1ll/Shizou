@@ -1,3 +1,9 @@
-﻿<div>
-    <input type="text" @onchange="@OnInputChanged">
-</div>
+﻿<input type="text" @oninput="@OnInputChanged">
+<ul class="dropdown-menu @(_results.Count > 0 ? "show" : "")">
+    @foreach (var result in _results)
+    {
+        <li>
+            <a class="dropdown-item" href="#"> @result.Item2</a>
+        </li>
+    }
+</ul>
