@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -141,10 +140,9 @@ public class AnimeTitleSearchService
             var type = Enum.Parse<TitleType>(enumerator.Current);
             enumerator.MoveNext();
             var lang = enumerator.Current.ToString();
-            var culture = lang.Length <= 3 ? CultureInfo.GetCultureInfoByIetfLanguageTag(lang) : CultureInfo.InvariantCulture;
             enumerator.MoveNext();
             titleSpan.Clear();
-            enumerator.Current.ToLower(titleSpan, culture);
+            enumerator.Current.ToUpperInvariant(titleSpan);
             foreach (var match in _removeSpecial.EnumerateMatches(titleSpan))
                 titleSpan.Slice(match.Index, match.Length).Fill(' ');
             titleSpan.Trim();
@@ -158,7 +156,7 @@ public class AnimeTitleSearchService
 
     private List<AnimeTitle> SearchTitles(List<AnimeTitle> titles, string query)
     {
-        query = _removeSpecial.Replace(query.ToLower(CultureInfo.CurrentUICulture), " ").Trim();
+        query = _removeSpecial.Replace(query.ToUpperInvariant(), " ").Trim();
         var results = Process.ExtractTop(
             new AnimeTitle(0, TitleType.Primary, "", "", query),
             titles, p => p.ProcessedTitle, ScorerCache.Get<TokenSetScorer>(), 50, 70).ToList();
