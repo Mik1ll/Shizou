@@ -1,3 +1,4 @@
+using Blazored.Modal;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 using Shizou.Blazor;
@@ -13,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddBlazoredModal();
 
 builder.AddShizouOptions()
     .AddShizouLogging();

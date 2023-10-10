@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Blazored.Modal.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
+using Shizou.Blazor.Features.Components;
 using Shizou.Server.Commands;
 using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Options;
@@ -24,6 +26,9 @@ public partial class Actions
 
     [CascadingParameter(Name = "ServerIp")]
     private string ServerIp { get; set; } = default!;
+
+    [CascadingParameter]
+    private IModalService ModalService { get; set; } = default!;
 
 
     private void DispatchNoop()
@@ -66,5 +71,10 @@ public partial class Actions
     private async Task GetMalList()
     {
         await ServiceProvider.GetRequiredService<MyAnimeListService>().GetUserAnimeList();
+    }
+
+    private async Task OpenManualLinkModal()
+    {
+        await ModalService.Show<ManuallyLinkModal>("Manually Link File").Result;
     }
 }

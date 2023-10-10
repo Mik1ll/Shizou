@@ -1,6 +1,1 @@
-﻿@if (_dialogIsOpen)
-{
-    <ModalDisplay DialogType="@(ModalDisplay.ModalDialogType.OkCancel)" Title="Add Anime from AniDb" OnClose="@OnClose">
-        <LiveSearchBox GetResults="@GetTitles" @bind-Selected="@_selected"></LiveSearchBox>
-    </ModalDisplay>
-}
+﻿<LiveSearchBox GetResults="@GetTitles" @bind-Selected="@_selected"></LiveSearchBox>

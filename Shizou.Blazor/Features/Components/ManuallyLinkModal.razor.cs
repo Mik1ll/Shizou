@@ -1,18 +1,31 @@
-﻿namespace Shizou.Blazor.Features.Components;
+﻿using Blazored.Modal;
+using Blazored.Modal.Services;
+using Microsoft.AspNetCore.Components;
+
+namespace Shizou.Blazor.Features.Components;
 
 public partial class ManuallyLinkModal
 {
-    private bool _dialogIsOpen;
-    private bool _addAnimeOpen;
-    private AddAnimeModal? _addAnimeModal;
+    [CascadingParameter]
+    public IModalService ModalService { get; set; } = default!;
 
-    private void OnClose(bool accepted)
+    [CascadingParameter]
+    public BlazoredModalInstance ModalInstance { get; set; } = default!;
+
+    private async Task Close()
     {
-        _dialogIsOpen = false;
-        _addAnimeOpen = false;
+        await ModalInstance.CloseAsync();
     }
 
-    private void OpenAnimeModal()
+    private async Task Cancel()
     {
+        await ModalInstance.CancelAsync();
+    }
+
+    private async Task OpenAnimeModal()
+    {
+        var addModal = ModalService.Show<AddAnimeModal>("Add Anime");
+        _ = await addModal.Result;
+        await ModalInstance.CloseAsync();
     }
 }

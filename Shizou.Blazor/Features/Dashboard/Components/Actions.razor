@@ -1,6 +1,4 @@
-﻿@using Shizou.Server.AniDbApi.Requests.Udp
-@using Shizou.Data.Utilities
-
+﻿@using Shizou.Data.Utilities
 <h3>Actions</h3>
 <div class="d-flex flex-wrap gap-1">
     <button type="button" class="btn btn-primary" @onclick="@DispatchNoop">Add noops</button>
@@ -11,4 +9,5 @@
     <button type="button" class="btn btn-primary" @onclick="@GetMissingPosters">Get Missing Posters</button>
     <button type="button" class="btn btn-primary" @onclick="@OpenMalAuth" disabled="@(!NetworkUtility.IsLoopBackAddress(ServerIp))">Auth MAL</button>
     <button type="button" class="btn btn-primary" @onclick="@GetMalList">Get MAL List</button>
+    <button type="button" class="btn btn-primary" @onclick="@OpenManualLinkModal">Open Manual Link Modal</button>
 </div>
