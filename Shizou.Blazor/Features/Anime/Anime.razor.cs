@@ -19,16 +19,16 @@ public partial class Anime
     private EpisodeTable _episodeTable = default!;
 
     [CascadingParameter]
-    public ToastDisplay ToastDisplay { get; set; } = default!;
+    private ToastDisplay ToastDisplay { get; set; } = default!;
 
     [Parameter]
     public int AnimeId { get; set; }
 
     [Inject]
-    public IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
     [Inject]
-    public WatchStateService WatchStateService { get; set; } = default!;
+    private WatchStateService WatchStateService { get; set; } = default!;
 
     protected override void OnInitialized()
     {

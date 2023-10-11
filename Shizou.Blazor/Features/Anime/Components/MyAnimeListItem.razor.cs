@@ -12,10 +12,10 @@ public partial class MyAnimeListItem
     public MalAnime MalAnime { get; set; } = default!;
 
     [CascadingParameter]
-    public ToastDisplay ToastDisplay { get; set; } = default!;
+    private ToastDisplay ToastDisplay { get; set; } = default!;
 
     [Inject]
-    public MyAnimeListService MyAnimeListService { get; set; } = default!;
+    private MyAnimeListService MyAnimeListService { get; set; } = default!;
 
 
     private async Task UpdateMalStatus(MalAnime malAnime)

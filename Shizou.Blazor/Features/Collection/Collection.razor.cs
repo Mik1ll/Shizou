@@ -11,13 +11,13 @@ public partial class Collection
     private List<AniDbAnime> _anime = default!;
 
     [Inject]
-    public IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
     [Inject]
-    public ImageService ImageService { get; set; } = default!;
+    private ImageService ImageService { get; set; } = default!;
 
     [Inject]
-    public NavigationManager NavigationManager { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = default!;
 
     protected override void OnInitialized()
     {

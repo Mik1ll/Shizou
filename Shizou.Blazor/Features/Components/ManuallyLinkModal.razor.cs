@@ -7,10 +7,10 @@ namespace Shizou.Blazor.Features.Components;
 public partial class ManuallyLinkModal
 {
     [CascadingParameter]
-    public IModalService ModalService { get; set; } = default!;
+    private IModalService ModalService { get; set; } = default!;
 
     [CascadingParameter]
-    public BlazoredModalInstance ModalInstance { get; set; } = default!;
+    private BlazoredModalInstance ModalInstance { get; set; } = default!;
 
     private async Task Cancel()
     {

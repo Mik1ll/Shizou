@@ -16,7 +16,7 @@ public partial class EpisodeTable
     public int AnimeId { get; set; }
 
     [Inject]
-    public IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
     public void Reload()
     {

@@ -11,19 +11,19 @@ public partial class AddAnimeModal
     private int? _selected;
 
     [CascadingParameter]
-    public IModalService ModalService { get; set; } = default!;
+    private IModalService ModalService { get; set; } = default!;
 
     [CascadingParameter]
-    public BlazoredModalInstance ModalInstance { get; set; } = default!;
+    private BlazoredModalInstance ModalInstance { get; set; } = default!;
 
     [CascadingParameter]
-    public ToastDisplay ToastDisplay { get; set; } = default!;
+    private ToastDisplay ToastDisplay { get; set; } = default!;
 
     [Inject]
-    public AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
+    private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
 
     [Inject]
-    public CommandService CommandService { get; set; } = default!;
+    private CommandService CommandService { get; set; } = default!;
 
 
     private async Task<List<(int, string)>?> GetTitles(string query)

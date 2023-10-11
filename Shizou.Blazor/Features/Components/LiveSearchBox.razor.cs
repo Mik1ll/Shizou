@@ -10,7 +10,7 @@ public partial class LiveSearchBox
     private Timer _searchTimer = default!;
 
     [CascadingParameter]
-    public ToastDisplay ToastDisplay { get; set; } = default!;
+    private ToastDisplay ToastDisplay { get; set; } = default!;
 
     [Parameter]
     [EditorRequired]

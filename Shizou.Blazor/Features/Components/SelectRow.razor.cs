@@ -8,7 +8,7 @@ public partial class SelectRow<TValue>
     private HashSet<string> _classes = default!;
 
     [CascadingParameter]
-    public SelectTable<TValue> ParentTable { get; set; } = default!;
+    private SelectTable<TValue> ParentTable { get; set; } = default!;
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }

@@ -20,7 +20,7 @@ public partial class Tooltip
     public string Content { get; set; } = default!;
 
     [Inject]
-    public IJSRuntime JsRuntime { get; set; } = default!;
+    private IJSRuntime JsRuntime { get; set; } = default!;
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {

@@ -11,7 +11,7 @@ public partial class FileCard
     private IWatchedState _watchedState = default!;
 
     [CascadingParameter(Name = "IdentityCookie")]
-    public string? IdentityCookie { get; set; }
+    private string? IdentityCookie { get; set; }
 
     [Parameter]
     [EditorRequired]
@@ -31,10 +31,10 @@ public partial class FileCard
 
 
     [Inject]
-    public WatchStateService WatchStateService { get; set; } = default!;
+    private WatchStateService WatchStateService { get; set; } = default!;
 
     [Inject]
-    public NavigationManager NavigationManager { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = default!;
 
 
     protected override void OnParametersSet()

@@ -25,7 +25,7 @@ public partial class Toast
     public ToastItem ToastItem { get; set; } = default!;
 
     [Inject]
-    public IJSRuntime JsRuntime { get; set; } = default!;
+    private IJSRuntime JsRuntime { get; set; } = default!;
 
     protected override void OnInitialized()
     {

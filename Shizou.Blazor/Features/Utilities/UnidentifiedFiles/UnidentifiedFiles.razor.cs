@@ -17,13 +17,13 @@ public partial class UnidentifiedFiles
     private bool _includeIgnored;
 
     [Inject]
-    public IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
     [Inject]
-    public CommandService CommandService { get; set; } = default!;
+    private CommandService CommandService { get; set; } = default!;
 
     [Inject]
-    public ImportService ImportService { get; set; } = default!;
+    private ImportService ImportService { get; set; } = default!;
 
 
     protected override void OnInitialized()

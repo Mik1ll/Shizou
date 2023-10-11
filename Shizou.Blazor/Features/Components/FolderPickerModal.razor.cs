@@ -11,7 +11,7 @@ public partial class FolderPickerModal
     private string _pathChild = string.Empty;
 
     [CascadingParameter]
-    public BlazoredModalInstance ModalInstance { get; set; } = default!;
+    private BlazoredModalInstance ModalInstance { get; set; } = default!;
 
     [Parameter]
     public string? FolderPath { get; set; }
