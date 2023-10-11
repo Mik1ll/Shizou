@@ -1,4 +1,7 @@
-﻿<input type="search" size="40" @bind="@_query" @oninput="@OnInputChanged">
+﻿<div class="form-floating">
+    <input type="search" class="form-control" id="queryInput" placeholder="Search for anime" @bind="@_query" @oninput="@OnInputChanged">
+    <label for="queryInput">Search for anime</label>
+</div>
 <select size="@(_results.Count)" multiple
         class="dropdown-menu @(_results.Count > 0 ? "show" : "")" style="overflow-y: auto"
         @onchange="@OnSelectChanged">
