@@ -31,7 +31,7 @@ public partial class AddAnimeModal
         return (await AnimeTitleSearchService.Search(query))?.Select(p => (p.Item1, $"{p.Item1} {p.Item2}")).ToList();
     }
 
-    private void AddAnime()
+    private async Task AddAnime()
     {
         if (_selected is null)
         {
@@ -43,6 +43,11 @@ public partial class AddAnimeModal
             ToastDisplay.AddToast($"Adding anime {_selected}", "You may need to wait for the anime to be processed before it is available", ToastStyle.Success);
         }
 
-        ModalInstance.CloseAsync();
+        await ModalInstance.CloseAsync();
+    }
+
+    private async Task Cancel()
+    {
+        await ModalInstance.CancelAsync();
     }
 }
