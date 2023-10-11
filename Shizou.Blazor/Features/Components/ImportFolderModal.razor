@@ -2,41 +2,34 @@
 {
     if (!_isDelete)
     {
-        if (!_folderPickerOpen)
-        {
-            <ModalDisplay @ref="@_modalDisplay"
-                          Model="@_myImportFolder"
-                          Title="Add Import Folder"
-                          OnClose="@OnDialogClose"
-                          DialogType="@ModalDisplay.ModalDialogType.Form"
-                          ShowValidationSummary="false">
-                <div class="mb-3">
-                    <div class="form-floating mb-1">
-                        <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_myImportFolder.Name)"></InputText>
-                        <label for="nameInput">Name</label>
+        <ModalDisplay @ref="@_modalDisplay"
+                      Model="@_myImportFolder"
+                      Title="Add Import Folder"
+                      OnClose="@OnDialogClose"
+                      DialogType="@ModalDisplay.ModalDialogType.Form"
+                      ShowValidationSummary="false">
+            <div class="mb-3">
+                <div class="form-floating mb-1">
+                    <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_myImportFolder.Name)"></InputText>
+                    <label for="nameInput">Name</label>
+                </div>
+                <ValidationMessage For="@(() => _myImportFolder.Name)"></ValidationMessage>
+            </div>
+            <div class="mb-3">
+                <div class="input-group mb-1">
+                    <div class="form-floating">
+                        <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(_myImportFolder.Path)"></InputText>
+                        <label for="pathInput">Path</label>
                     </div>
-                    <ValidationMessage For="@(() => _myImportFolder.Name)"></ValidationMessage>
+                    <button type="button" class="input-group-text" @onclick="@OpenFolderPicker">Browse</button>
                 </div>
-                <div class="mb-3">
-                    <div class="input-group mb-1">
-                        <div class="form-floating">
-                            <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(_myImportFolder.Path)"></InputText>
-                            <label for="pathInput">Path</label>
-                        </div>
-                        <button type="button" class="input-group-text" @onclick="@(() => { _folderPickerOpen = true; })">Browse</button>
-                    </div>
-                    <ValidationMessage For="@(() => _myImportFolder.Path)"></ValidationMessage>
-                </div>
-                <div class="mb-3 form-check">
-                    <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(_myImportFolder.ScanOnImport)"></InputCheckbox>
-                    <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
-                </div>
-            </ModalDisplay>
-        }
-        else
-        {
-            <FolderPickerModal @bind-FolderPath="@_myImportFolder.Path" OnFolderPickerClose="@OnFolderPickerClose"></FolderPickerModal>
-        }
+                <ValidationMessage For="@(() => _myImportFolder.Path)"></ValidationMessage>
+            </div>
+            <div class="mb-3 form-check">
+                <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(_myImportFolder.ScanOnImport)"></InputCheckbox>
+                <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
+            </div>
+        </ModalDisplay>
     }
     else
     {

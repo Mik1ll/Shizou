@@ -1,4 +1,6 @@
 ﻿using System.Runtime.InteropServices;
+using Blazored.Modal;
+using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 
 namespace Shizou.Blazor.Features.Components;
@@ -8,15 +10,11 @@ public partial class FolderPickerModal
     private string _pathParent = string.Empty;
     private string _pathChild = string.Empty;
 
+    [CascadingParameter]
+    public BlazoredModalInstance ModalInstance { get; set; } = default!;
+
     [Parameter]
     public string? FolderPath { get; set; }
-
-    [Parameter]
-    public EventCallback<string> FolderPathChanged { get; set; }
-
-    [Parameter]
-    [EditorRequired]
-    public EventCallback OnFolderPickerClose { get; set; }
 
     private string GetFolderName(string path)
     {
@@ -28,7 +26,7 @@ public partial class FolderPickerModal
         return Path.GetDirectoryName(Path.GetFullPath(path)) ?? string.Empty;
     }
 
-    private string[] GetSubFolders(string path)
+    private string[] GetSubFolders()
     {
         if (_pathParent == string.Empty)
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -51,20 +49,23 @@ public partial class FolderPickerModal
         }
     }
 
-    public void OnClose(bool accepted)
+    private async Task Close()
     {
-        if (accepted)
-            FolderPathChanged.InvokeAsync(Path.Combine(_pathParent, _pathChild));
-        OnFolderPickerClose.InvokeAsync();
+        await ModalInstance.CloseAsync(ModalResult.Ok(Path.Combine(_pathParent, _pathChild)));
     }
 
-    public void GoDown()
+    private async Task Cancel()
+    {
+        await ModalInstance.CancelAsync();
+    }
+
+    private void GoDown()
     {
         _pathParent = Path.Combine(_pathParent, _pathChild);
         _pathChild = string.Empty;
     }
 
-    public void GoUp()
+    private void GoUp()
     {
         if (_pathParent == string.Empty)
             return;

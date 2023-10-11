@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Blazored.Modal;
+using Blazored.Modal.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
@@ -11,8 +13,10 @@ public partial class ImportFolderModal
     private ImportFolder _myImportFolder = NewImportFolder();
     private bool _dialogIsOpen = false;
     private bool _isDelete = false;
-    private bool _folderPickerOpen = false;
     private ModalDisplay? _modalDisplay;
+
+    [CascadingParameter]
+    private IModalService ModalService { get; set; } = default!;
 
     [Parameter]
     public EventCallback OnClose { get; set; }
@@ -23,9 +27,13 @@ public partial class ImportFolderModal
     [Inject]
     private ImportService ImportService { get; set; } = default!;
 
-    public void OnFolderPickerClose()
+    public async Task OpenFolderPicker()
     {
-        _folderPickerOpen = false;
+        var res = await ModalService
+            .Show<FolderPickerModal>(string.Empty, new ModalParameters()
+                .Add(nameof(FolderPickerModal.FolderPath), _myImportFolder.Path)).Result;
+        if (res.Confirmed)
+            _myImportFolder.Path = (string?)res.Data ?? string.Empty;
     }
 
     public void NewDialog()
@@ -80,8 +88,10 @@ public partial class ImportFolderModal
                         context.Entry(importFolder).CurrentValues.SetValues(_myImportFolder);
                 }
             }
+
             context.SaveChanges();
         }
+
         _dialogIsOpen = false;
         _myImportFolder = NewImportFolder();
         OnClose.InvokeAsync();

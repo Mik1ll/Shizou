@@ -1,17 +1,25 @@
-﻿<ModalDisplay Title="Pick folder" OnClose="@OnClose" DialogType="ModalDisplay.ModalDialogType.OkCancel">
-    <div class="d-flex mb-3">
-        <button type="button" class="justify-content-left btn btn-primary bi bi-box-arrow-up" @onclick="@GoUp"></button>
-        <input type="text" class="form-control justify-content-center" value="@Path.Combine(_pathParent, _pathChild)" disabled readonly>
+﻿<ModalWrapper Cancel="@Cancel">
+    <div class="modal-header">
+        <h4 class="modal-title">Pick folder</h4>
     </div>
-    @{
-        var directories = GetSubFolders(_pathParent);
-    }
-    <select class="form-select" size="@Math.Min(Math.Max(directories.Length, 2), 15)" @bind="@_pathChild" @ondblclick="@GoDown">
-        @foreach (var dir in directories)
-        {
-            var name = GetFolderName(dir);
-            <option value="@name" selected=@(name == _pathChild)>@name</option>
+    <div class="modal-body">
+        <div class="d-flex mb-3">
+            <button type="button" class="justify-content-left btn btn-primary bi bi-box-arrow-up" @onclick="@GoUp"></button>
+            <input type="text" class="form-control justify-content-center" value="@Path.Combine(_pathParent, _pathChild)" disabled readonly>
+        </div>
+        @{
+            var directories = GetSubFolders();
         }
-    </select>
-
-</ModalDisplay>
+        <select class="form-select" size="@Math.Min(Math.Max(directories.Length, 2), 15)" @bind="@_pathChild" @ondblclick="@GoDown">
+            @foreach (var dir in directories)
+            {
+                var name = GetFolderName(dir);
+                <option value="@name" selected=@(name == _pathChild)>@name</option>
+            }
+        </select>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @onclick="@Cancel">Cancel</button>
+        <button type="button" class="btn btn-primary" @onclick="@Close">OK</button>
+    </div>
+</ModalWrapper>
