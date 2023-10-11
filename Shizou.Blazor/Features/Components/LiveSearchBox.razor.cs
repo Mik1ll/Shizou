@@ -8,7 +8,6 @@ public partial class LiveSearchBox
     private List<(int, string)> _results = new();
     private string? _query;
     private Timer _searchTimer = default!;
-    private ElementReference _inputEl;
 
     [CascadingParameter]
     public ToastDisplay ToastDisplay { get; set; } = default!;
