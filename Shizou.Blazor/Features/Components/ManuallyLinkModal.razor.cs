@@ -12,11 +12,6 @@ public partial class ManuallyLinkModal
     [CascadingParameter]
     public BlazoredModalInstance ModalInstance { get; set; } = default!;
 
-    private async Task Close()
-    {
-        await ModalInstance.CloseAsync();
-    }
-
     private async Task Cancel()
     {
         await ModalInstance.CancelAsync();
@@ -24,7 +19,6 @@ public partial class ManuallyLinkModal
 
     private async Task OpenAnimeModal()
     {
-        var addModal = ModalService.Show<AddAnimeModal>("Add Anime");
-        _ = await addModal.Result;
+        await ModalService.Show<AddAnimeModal>().Result;
     }
 }
