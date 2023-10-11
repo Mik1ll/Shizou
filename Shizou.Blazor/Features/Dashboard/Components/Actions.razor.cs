@@ -24,7 +24,7 @@ public partial class Actions
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
 
-    [CascadingParameter(Name = "ServerIp")]
+    [CascadingParameter(Name = nameof(App.ServerIp))]
     private string ServerIp { get; set; } = default!;
 
     [CascadingParameter]

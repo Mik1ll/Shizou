@@ -10,7 +10,7 @@ public partial class FileCard
     private int? _videoOpen;
     private IWatchedState _watchedState = default!;
 
-    [CascadingParameter(Name = "IdentityCookie")]
+    [CascadingParameter(Name = nameof(App.IdentityCookie))]
     private string? IdentityCookie { get; set; }
 
     [Parameter]

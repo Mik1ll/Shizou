@@ -1,5 +1,5 @@
-﻿<CascadingValue Name="IdentityCookie" Value="@IdentityCookie" IsFixed="true">
-    <CascadingValue Name="ServerIp" Value="@ServerIp" IsFixed="true">
+﻿<CascadingValue Name="@nameof(IdentityCookie)" Value="@IdentityCookie" IsFixed="true">
+    <CascadingValue Name="@nameof(ServerIp)" Value="@ServerIp" IsFixed="true">
         <CascadingAuthenticationState>
             <Router AppAssembly="@typeof(App).Assembly">
                 <Found Context="routeData">
