@@ -1,6 +1,6 @@
 ﻿<FocusTrap @ref="@_focusTrap" IsActive="true">
     <div class="modal fade show d-block" aria-modal="true" role="dialog">
-        <div class="modal-backdrop fade show" @onclick="@Cancel"></div>
+        <div class="modal-backdrop fade show" @onclick="@CancelWrapped"></div>
         <div class="modal-dialog" style="z-index: var(--bs-modal-zindex)">
             <div class="modal-content">
                 @ChildContent

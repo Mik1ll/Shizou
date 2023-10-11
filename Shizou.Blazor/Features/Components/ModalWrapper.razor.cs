@@ -14,11 +14,18 @@ public partial class ModalWrapper
     public RenderFragment ChildContent { get; set; } = default!;
 
     [Parameter]
-    [EditorRequired]
     public EventCallback Cancel { get; set; }
 
     protected override void OnAfterRender(bool firstRender)
     {
         ModalInstance.FocusTrap = _focusTrap;
+    }
+
+    private async Task CancelWrapped()
+    {
+        if (Cancel.HasDelegate)
+            await Cancel.InvokeAsync();
+        else
+            await ModalInstance.CancelAsync();
     }
 }
