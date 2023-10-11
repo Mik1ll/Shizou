@@ -1,9 +1,12 @@
-﻿<ModalWrapper Cancel="@Cancel">
+﻿<ModalWrapper>
     <div class="modal-header">
         <h4 class="modal-title">Add Anime</h4>
     </div>
     <div class="modal-body">
         <LiveSearchBox GetResults="@GetTitles" @bind-Selected="@_selected"></LiveSearchBox>
-        
+        @if (_selected is not null)
+        {
+            <button class="btn btn-primary" @onclick="@AddAnime">Add Anime</button>
+        }
     </div>
 </ModalWrapper>

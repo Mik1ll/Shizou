@@ -65,8 +65,9 @@ public partial class LiveSearchBox
         _results.Clear();
     }
 
-    private void OnInputChanged(ChangeEventArgs e)
+    private async Task OnInputChanged(ChangeEventArgs e)
     {
+        await UpdateSelected(null);
         _query = (string?)e.Value;
         _searchTimer.Stop();
         _searchTimer.Start();
