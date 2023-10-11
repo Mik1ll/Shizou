@@ -2,18 +2,20 @@
 
 <PageTitle>Shizou</PageTitle>
 <ToastDisplay>
-    <NavMenu/>
-    <main class="content px-4">
-        <ErrorBoundary @ref="@_errorBoundary">
-            <ChildContent>
-                @Body
-            </ChildContent>
-            <ErrorContent>
-                <div class="blazor-error-boundary">
-                    @(context.Message)<br/>
-                    @(context.StackTrace)
-                </div>
-            </ErrorContent>
-        </ErrorBoundary>
-    </main>
+    <CascadingBlazoredModal UseCustomLayout="true" AnimationType="@(ModalAnimationType.None)">
+        <NavMenu/>
+        <main class="content px-4">
+            <ErrorBoundary @ref="@_errorBoundary">
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent>
+                    <div class="blazor-error-boundary">
+                        @(context.Message)<br/>
+                        @(context.StackTrace)
+                    </div>
+                </ErrorContent>
+            </ErrorBoundary>
+        </main>
+    </CascadingBlazoredModal>
 </ToastDisplay>
