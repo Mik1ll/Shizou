@@ -14,7 +14,8 @@ public class Login : PageModel
         _signInManager = signInManager;
     }
 
-    [BindProperty] public required InputModel Input { get; set; }
+    [BindProperty]
+    public required InputModel Input { get; set; }
 
     public string ReturnUrl { get; set; } = "";
 

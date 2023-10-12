@@ -8,7 +8,7 @@ public partial class Queues : IDisposable
 {
     [Inject]
     private IEnumerable<CommandProcessor> Processors { get; set; } = default!;
-    
+
     public void Dispose()
     {
         foreach (var processor in Processors)

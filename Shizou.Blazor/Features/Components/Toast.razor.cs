@@ -20,12 +20,12 @@ public partial class Toast
     private bool _isLoaded = false;
     private string _classes = string.Empty;
 
+    [Inject]
+    private IJSRuntime JsRuntime { get; set; } = default!;
+
     [Parameter]
     [EditorRequired]
     public ToastItem ToastItem { get; set; } = default!;
-
-    [Inject]
-    private IJSRuntime JsRuntime { get; set; } = default!;
 
     protected override void OnInitialized()
     {

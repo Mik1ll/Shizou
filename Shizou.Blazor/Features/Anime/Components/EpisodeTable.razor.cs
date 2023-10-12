@@ -11,12 +11,12 @@ public partial class EpisodeTable
     private HashSet<AniDbEpisode> _episodes = default!;
     private Dictionary<int, int> _fileCounts = default!;
 
+    [Inject]
+    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+
     [Parameter]
     [EditorRequired]
     public int AnimeId { get; set; }
-
-    [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
     public void Reload()
     {

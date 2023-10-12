@@ -8,13 +8,13 @@ public partial class SelectTable<TValue>
     private HashSet<SelectRow<TValue>> _rows = default!;
     private SelectRow<TValue>? _lastClicked;
 
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-
     [Parameter]
     [EditorRequired]
     public EventCallback<List<TValue>> OnChange { get; set; }
+
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> AdditionalAttributes { get; set; } = new();

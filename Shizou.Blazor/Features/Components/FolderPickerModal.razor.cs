@@ -16,6 +16,19 @@ public partial class FolderPickerModal
     [Parameter]
     public string? FolderPath { get; set; }
 
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrWhiteSpace(FolderPath))
+        {
+            _pathParent = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        }
+        else
+        {
+            _pathParent = GetFolderParent(FolderPath);
+            _pathChild = GetFolderName(FolderPath);
+        }
+    }
+
     private string GetFolderName(string path)
     {
         return Path.GetPathRoot(path) == path ? path : Path.GetFileName(path);
@@ -34,19 +47,6 @@ public partial class FolderPickerModal
             else
                 return new[] { "/" };
         return Directory.EnumerateDirectories(_pathParent, "*", new EnumerationOptions { IgnoreInaccessible = true }).ToArray();
-    }
-
-    protected override void OnInitialized()
-    {
-        if (string.IsNullOrWhiteSpace(FolderPath))
-        {
-            _pathParent = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        }
-        else
-        {
-            _pathParent = GetFolderParent(FolderPath);
-            _pathChild = GetFolderName(FolderPath);
-        }
     }
 
     private async Task Close()

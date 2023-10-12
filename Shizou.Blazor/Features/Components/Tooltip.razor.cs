@@ -9,18 +9,18 @@ public partial class Tooltip
     private ElementReference _elementReference;
     private bool _isLoaded = false;
 
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-
-    [Parameter(CaptureUnmatchedValues = true)]
-    public Dictionary<string, object> AdditionalAttributes { get; set; } = new();
+    [Inject]
+    private IJSRuntime JsRuntime { get; set; } = default!;
 
     [Parameter]
     [EditorRequired]
     public string Content { get; set; } = default!;
 
-    [Inject]
-    private IJSRuntime JsRuntime { get; set; } = default!;
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> AdditionalAttributes { get; set; } = new();
 
     protected override Task OnAfterRenderAsync(bool firstRender)
     {

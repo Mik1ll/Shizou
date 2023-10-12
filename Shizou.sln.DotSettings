@@ -1,5 +1,9 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/CodeStyle/CSharpFileLayoutPatterns/Pattern/@EntryValue">&lt;Patterns xmlns="urn:schemas-jetbrains-com:member-reordering-patterns"&gt;
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/LINE_FEED_AT_FILE_END/@EntryValue">True</s:Boolean>
+    <s:Int64 x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/MaxBlankLines/@EntryValue">1</s:Int64>
+    <s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/NormalizeTagNames/@EntryValue">True</s:Boolean>
+    <s:String x:Key="/Default/CodeStyle/CSharpFileLayoutPatterns/Pattern/@EntryValue">&lt;Patterns xmlns="urn:schemas-jetbrains-com:member-reordering-patterns"
+          StaticFieldReorderingPolicy="Strict"&gt;
     &lt;TypePattern DisplayName="Non-reorderable types"&gt;
         &lt;TypePattern.Match&gt;
             &lt;Or&gt;
@@ -99,7 +103,7 @@
                 &lt;Access /&gt;
             &lt;/Entry.SortBy&gt;
         &lt;/Entry&gt;
-        &lt;Entry DisplayName="Properties"&gt;
+        &lt;Entry DisplayName="Properties" Priority="0"&gt;
             &lt;Entry.Match&gt;
                 &lt;Kind Is="Property" /&gt;
             &lt;/Entry.Match&gt;
@@ -112,6 +116,29 @@
                 &lt;Override /&gt;
                 &lt;Sealed /&gt;
             &lt;/Entry.SortBy&gt;
+        &lt;/Entry&gt;
+        &lt;Entry DisplayName="Blazor Inject" Priority="25"&gt;
+            &lt;Entry.Match&gt;
+                &lt;HasAttribute Name="Microsoft.AspNetCore.Components.InjectAttribute" /&gt;
+            &lt;/Entry.Match&gt;
+        &lt;/Entry&gt;
+        &lt;Entry DisplayName="Blazor Cascading" Priority="25"&gt;
+            &lt;Entry.Match&gt;
+                &lt;HasAttribute Name="Microsoft.AspNetCore.Components.CascadingParameterAttribute" /&gt;
+            &lt;/Entry.Match&gt;
+        &lt;/Entry&gt;
+        &lt;Entry DisplayName="Blazor Required Parameters" Priority="50"&gt;
+            &lt;Entry.Match&gt;
+                &lt;And&gt;
+                    &lt;HasAttribute Name="Microsoft.AspNetCore.Components.ParameterAttribute" /&gt;
+                    &lt;HasAttribute Name="Microsoft.AspNetCore.Components.EditorRequiredAttribute" /&gt;
+                &lt;/And&gt;
+            &lt;/Entry.Match&gt;
+        &lt;/Entry&gt;
+        &lt;Entry DisplayName="Blazor Parameters" Priority="25"&gt;
+            &lt;Entry.Match&gt;
+                &lt;HasAttribute Name="Microsoft.AspNetCore.Components.ParameterAttribute" /&gt;
+            &lt;/Entry.Match&gt;
         &lt;/Entry&gt;
         &lt;Entry DisplayName="Operators"&gt;
             &lt;Entry.Match&gt;
@@ -200,6 +227,14 @@
                 &lt;Access /&gt;
             &lt;/Entry.SortBy&gt;
         &lt;/Entry&gt;
+        &lt;Entry DisplayName="Records"&gt;
+            &lt;Entry.Match&gt;
+                &lt;Kind Is="Record" /&gt;
+            &lt;/Entry.Match&gt;
+            &lt;Entry.SortBy&gt;
+                &lt;Access /&gt;
+            &lt;/Entry.SortBy&gt;
+        &lt;/Entry&gt;
         &lt;Entry DisplayName="Classes"&gt;
             &lt;Entry.Match&gt;
                 &lt;Kind Is="Class" /&gt;
@@ -210,4 +245,4 @@
         &lt;/Entry&gt;
     &lt;/FilePattern&gt;
 &lt;/Patterns&gt;</s:String>
-	<s:Boolean x:Key="/Default/ReSpeller/ReSpellerEnabled/@EntryValue">False</s:Boolean></wpf:ResourceDictionary>
+    <s:Boolean x:Key="/Default/ReSpeller/ReSpellerEnabled/@EntryValue">False</s:Boolean></wpf:ResourceDictionary>

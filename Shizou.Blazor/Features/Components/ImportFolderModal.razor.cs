@@ -15,17 +15,26 @@ public partial class ImportFolderModal
     private bool _isDelete = false;
     private ModalDisplay? _modalDisplay;
 
+    [Inject]
+    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+
+    [Inject]
+    private ImportService ImportService { get; set; } = default!;
+
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
 
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
-
-    [Inject]
-    private ImportService ImportService { get; set; } = default!;
+    private static ImportFolder NewImportFolder()
+    {
+        return new ImportFolder
+        {
+            Name = string.Empty,
+            Path = string.Empty
+        };
+    }
 
     public async Task OpenFolderPicker()
     {
@@ -55,15 +64,6 @@ public partial class ImportFolderModal
         _isDelete = true;
         _myImportFolder = importFolder;
         _dialogIsOpen = true;
-    }
-
-    private static ImportFolder NewImportFolder()
-    {
-        return new ImportFolder
-        {
-            Name = string.Empty,
-            Path = string.Empty
-        };
     }
 
     private void OnDialogClose(bool accepted)

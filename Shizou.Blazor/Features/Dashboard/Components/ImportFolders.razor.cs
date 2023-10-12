@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.JSInterop;
 using Shizou.Blazor.Features.Components;
 using Shizou.Data.Database;
 using Shizou.Data.Models;

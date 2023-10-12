@@ -4,8 +4,13 @@ namespace Shizou.Blazor.Features.Components;
 
 public partial class ModalDisplay
 {
-    [Parameter]
-    public object? Model { get; set; }
+    public enum ModalDialogType
+    {
+        Ok,
+        OkCancel,
+        DeleteCancel,
+        Form
+    }
 
     [Parameter]
     [EditorRequired]
@@ -18,6 +23,9 @@ public partial class ModalDisplay
     [Parameter]
     [EditorRequired]
     public EventCallback<bool> OnClose { get; set; }
+
+    [Parameter]
+    public object? Model { get; set; }
 
     [Parameter]
     public bool ShowValidationSummary { get; set; } = true;
@@ -41,13 +49,5 @@ public partial class ModalDisplay
     private async Task ModalOk()
     {
         await OnClose.InvokeAsync(true);
-    }
-
-    public enum ModalDialogType
-    {
-        Ok,
-        OkCancel,
-        DeleteCancel,
-        Form
     }
 }

@@ -18,17 +18,17 @@ public partial class Anime
     private AniDbAnime? _anime;
     private EpisodeTable _episodeTable = default!;
 
-    [CascadingParameter]
-    private ToastDisplay ToastDisplay { get; set; } = default!;
-
-    [Parameter]
-    public int AnimeId { get; set; }
-
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
     [Inject]
     private WatchStateService WatchStateService { get; set; } = default!;
+
+    [CascadingParameter]
+    private ToastDisplay ToastDisplay { get; set; } = default!;
+
+    [Parameter]
+    public int AnimeId { get; set; }
 
     protected override void OnInitialized()
     {

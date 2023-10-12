@@ -18,7 +18,8 @@ public class SetPassword : PageModel
         _userManager = userManager;
     }
 
-    [BindProperty] public required InputModel Input { get; set; }
+    [BindProperty]
+    public required InputModel Input { get; set; }
 
     public void OnGet()
     {
@@ -37,7 +38,9 @@ public class SetPassword : PageModel
                 result = await _userManager.CreateAsync(identity, Input.Password!);
             }
             else
+            {
                 result = await _userManager.ResetPasswordAsync(identity, await _userManager.GeneratePasswordResetTokenAsync(identity), Input.Password!);
+            }
 
             if (result.Succeeded)
             {

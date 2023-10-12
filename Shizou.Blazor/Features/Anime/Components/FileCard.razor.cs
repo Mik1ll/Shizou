@@ -10,6 +10,13 @@ public partial class FileCard
     private int? _videoOpen;
     private IWatchedState _watchedState = default!;
 
+
+    [Inject]
+    private WatchStateService WatchStateService { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
     [CascadingParameter(Name = nameof(App.IdentityCookie))]
     private string? IdentityCookie { get; set; }
 
@@ -30,20 +37,13 @@ public partial class FileCard
     public EpisodeWatchedState? EpisodeWatchedState { get; set; }
 
 
-    [Inject]
-    private WatchStateService WatchStateService { get; set; } = default!;
-
-    [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
-
-
     protected override void OnParametersSet()
     {
         _watchedState = AniDbFile is null
             ? EpisodeWatchedState ?? throw new ArgumentNullException(nameof(EpisodeWatchedState))
             : FileWatchedState ?? throw new ArgumentNullException(nameof(FileWatchedState));
     }
-    
+
     private void Mark(bool watched)
     {
         switch (_watchedState)

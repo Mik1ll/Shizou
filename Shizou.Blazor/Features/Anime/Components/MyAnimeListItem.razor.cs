@@ -7,15 +7,15 @@ namespace Shizou.Blazor.Features.Anime.Components;
 
 public partial class MyAnimeListItem
 {
-    [Parameter]
-    [EditorRequired]
-    public MalAnime MalAnime { get; set; } = default!;
+    [Inject]
+    private MyAnimeListService MyAnimeListService { get; set; } = default!;
 
     [CascadingParameter]
     private ToastDisplay ToastDisplay { get; set; } = default!;
 
-    [Inject]
-    private MyAnimeListService MyAnimeListService { get; set; } = default!;
+    [Parameter]
+    [EditorRequired]
+    public MalAnime MalAnime { get; set; } = default!;
 
 
     private async Task UpdateMalStatus(MalAnime malAnime)
