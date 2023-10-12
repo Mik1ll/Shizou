@@ -4,7 +4,7 @@ using Shizou.Data.Enums;
 namespace Shizou.Data.Models;
 
 [Index(nameof(CommandId), IsUnique = true)]
-public class CommandRequest : ICommandRequest
+public class CommandRequest
 {
     public int Id { get; set; }
     public required CommandType Type { get; set; }

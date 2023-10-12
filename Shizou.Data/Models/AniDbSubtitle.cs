@@ -13,5 +13,7 @@ public class AniDbSubtitle
     public required string Language { get; set; }
 
     public required int AniDbFileId { get; set; }
-    [JsonIgnore] public AniDbFile AniDbFile { get; set; } = null!;
+
+    [JsonIgnore]
+    public AniDbFile AniDbFile { get; set; } = null!;
 }

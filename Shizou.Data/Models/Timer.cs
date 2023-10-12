@@ -12,5 +12,6 @@ public class Timer
 
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public int ExtraId { get; set; }
+
     public required DateTime Expires { get; set; }
 }

@@ -12,9 +12,9 @@ public class EpisodeWatchedState : IWatchedState
     public required int AniDbEpisodeId { get; set; }
 
     public AniDbEpisode AniDbEpisode { get; set; } = default!;
+    public int? AniDbFileId { get; set; }
 
     public required bool Watched { get; set; }
     public required DateTime? WatchedUpdated { get; set; }
     public int? MyListId { get; set; }
-    public int? AniDbFileId { get; set; }
 }

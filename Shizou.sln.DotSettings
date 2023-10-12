@@ -4,7 +4,7 @@
     <s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/NormalizeTagNames/@EntryValue">True</s:Boolean>
     <s:String x:Key="/Default/CodeStyle/CSharpFileLayoutPatterns/Pattern/@EntryValue">&lt;Patterns xmlns="urn:schemas-jetbrains-com:member-reordering-patterns"
           StaticFieldReorderingPolicy="Strict"&gt;
-    &lt;TypePattern DisplayName="Non-reorderable types"&gt;
+    &lt;TypePattern DisplayName="Non-reorderable types" Priority="150"&gt;
         &lt;TypePattern.Match&gt;
             &lt;Or&gt;
                 &lt;And&gt;
@@ -20,13 +20,18 @@
             &lt;/Or&gt;
         &lt;/TypePattern.Match&gt;
     &lt;/TypePattern&gt;
-    &lt;TypePattern DisplayName="Type layout"&gt;
+    &lt;TypePattern DisplayName="Type layout" Priority="0"&gt;
         &lt;TypePattern.Match&gt;
-            &lt;Or&gt;
-                &lt;Kind Is="Class" /&gt;
-                &lt;Kind Is="Struct" /&gt;
-                &lt;Kind Is="Interface" /&gt;
-            &lt;/Or&gt;
+            &lt;And&gt;
+                &lt;Or&gt;
+                    &lt;Kind Is="Class" /&gt;
+                    &lt;Kind Is="Interface" /&gt;
+                    &lt;Kind Is="Record" /&gt;
+                &lt;/Or&gt;
+                &lt;Not&gt;
+                    &lt;Kind Is="Struct" /&gt;
+                &lt;/Not&gt;
+            &lt;/And&gt;
         &lt;/TypePattern.Match&gt;
         &lt;Entry DisplayName="Extern"&gt;
             &lt;Entry.Match&gt;
@@ -188,7 +193,7 @@
                 &lt;Access /&gt;
             &lt;/Entry.SortBy&gt;
         &lt;/Entry&gt;
-        &lt;Entry DisplayName="All other members" /&gt;
+        &lt;Entry DisplayName="All other members" Priority="0" /&gt;
     &lt;/TypePattern&gt;
 &lt;/Patterns&gt;</s:String>
     <s:Boolean x:Key="/Default/ReSpeller/ReSpellerEnabled/@EntryValue">False</s:Boolean></wpf:ResourceDictionary>

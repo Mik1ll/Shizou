@@ -4,7 +4,7 @@ using Shizou.Data.Enums;
 namespace Shizou.Data.Models;
 
 [Index(nameof(CommandId), IsUnique = true)]
-public class ScheduledCommand : ICommandRequest
+public class ScheduledCommand
 {
     public int Id { get; set; }
 
