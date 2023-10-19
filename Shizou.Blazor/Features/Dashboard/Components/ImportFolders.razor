@@ -1,6 +1,5 @@
 ﻿<section class="import-folders">
     <h3>Import Folders</h3>
-    <ImportFolderModal @ref="@_importFolderModal" OnClose="@RefreshFolders"></ImportFolderModal>
     <table class="table table-hover align-middle">
         <tbody>
         @foreach (var importFolder in _importFolders)
@@ -25,14 +24,14 @@
                 </td>
                 <td>
                     <Tooltip Content="Edit">
-                        <button type="button" class="btn p-0" @onclick="@(() => _importFolderModal?.EditDialog(importFolder))">
+                        <button type="button" class="btn p-0" @onclick="@(() => Edit(importFolder))">
                             <i class="bi bi-pencil-square"></i>
                         </button>
                     </Tooltip>
                 </td>
                 <td>
                     <Tooltip Content="Remove">
-                        <button type="button" class="btn p-0" @onclick="@(() => _importFolderModal?.DeleteDialog(importFolder))">
+                        <button type="button" class="btn p-0" @onclick="@(() => Remove(importFolder))">
                             <i class="bi bi-trash"></i>
                         </button>
                     </Tooltip>
@@ -41,5 +40,5 @@
         }
         </tbody>
     </table>
-    <button type="button" class="btn btn-primary" @onclick="@(() => _importFolderModal?.NewDialog())">Add Import Folder</button>
+    <button type="button" class="btn btn-primary" @onclick="@Add">Add Import Folder</button>
 </section>

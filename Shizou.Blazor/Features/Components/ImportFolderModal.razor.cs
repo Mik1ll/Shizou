@@ -4,96 +4,71 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
-using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Components;
 
 public partial class ImportFolderModal
 {
-    private ImportFolder _myImportFolder = NewImportFolder();
-    private bool _dialogIsOpen = false;
-    private bool _isDelete = false;
-    private ModalDisplay? _modalDisplay;
-
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
-
-    [Inject]
-    private ImportService ImportService { get; set; } = default!;
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
 
+    [CascadingParameter]
+    private BlazoredModalInstance ModalInstance { get; set; } = default!;
+
     [Parameter]
-    public EventCallback OnClose { get; set; }
+    public ImportFolder MyImportFolder { get; set; } = default!;
 
-    private static ImportFolder NewImportFolder()
-    {
-        return new ImportFolder
-        {
-            Name = string.Empty,
-            Path = string.Empty
-        };
-    }
+    [Parameter]
+    public bool IsDelete { get; set; }
 
-    public async Task OpenFolderPicker()
+
+    private async Task OpenFolderPicker()
     {
         var res = await ModalService
             .Show<FolderPickerModal>(string.Empty, new ModalParameters()
-                .Add(nameof(FolderPickerModal.FolderPath), _myImportFolder.Path)).Result;
+                .Add(nameof(FolderPickerModal.FolderPath), MyImportFolder.Path)).Result;
         if (res.Confirmed)
-            _myImportFolder.Path = (string?)res.Data ?? string.Empty;
+            MyImportFolder.Path = (string?)res.Data ?? string.Empty;
     }
 
-    public void NewDialog()
+    private async Task Upsert()
     {
-        _isDelete = false;
-        _myImportFolder = NewImportFolder();
-        _dialogIsOpen = true;
-    }
-
-    public void EditDialog(ImportFolder importFolder)
-    {
-        _isDelete = false;
-        _myImportFolder = importFolder;
-        _dialogIsOpen = true;
-    }
-
-    public void DeleteDialog(ImportFolder importFolder)
-    {
-        _isDelete = true;
-        _myImportFolder = importFolder;
-        _dialogIsOpen = true;
-    }
-
-    private void OnDialogClose(bool accepted)
-    {
-        if (accepted)
+        // ReSharper disable once MethodHasAsyncOverload
+        // ReSharper disable once UseAwaitUsing
+        using var context = ContextFactory.CreateDbContext();
+        if (MyImportFolder.Id == 0)
         {
-            using var context = ContextFactory.CreateDbContext();
-            if (_isDelete)
-            {
-                context.ImportFolders.Remove(_myImportFolder);
-            }
-            else
-            {
-                if (_myImportFolder.Id == 0)
-                {
-                    context.ImportFolders.Add(_myImportFolder);
-                }
-                else
-                {
-                    var importFolder = context.ImportFolders.Find(_myImportFolder.Id);
-                    if (importFolder is not null)
-                        context.Entry(importFolder).CurrentValues.SetValues(_myImportFolder);
-                }
-            }
-
-            context.SaveChanges();
+            context.ImportFolders.Add(MyImportFolder);
+        }
+        else
+        {
+            // ReSharper disable once MethodHasAsyncOverload
+            var importFolder = context.ImportFolders.Find(MyImportFolder.Id);
+            if (importFolder is not null)
+                context.Entry(importFolder).CurrentValues.SetValues(MyImportFolder);
         }
 
-        _dialogIsOpen = false;
-        _myImportFolder = NewImportFolder();
-        OnClose.InvokeAsync();
+        // ReSharper disable once MethodHasAsyncOverload
+        context.SaveChanges();
+        await ModalInstance.CloseAsync();
+    }
+
+    private async Task Remove()
+    {
+        // ReSharper disable once MethodHasAsyncOverload
+        // ReSharper disable once UseAwaitUsing
+        using var context = ContextFactory.CreateDbContext();
+        context.ImportFolders.Remove(MyImportFolder);
+        // ReSharper disable once MethodHasAsyncOverload
+        context.SaveChanges();
+        await ModalInstance.CloseAsync();
+    }
+
+    private async Task Cancel()
+    {
+        await ModalInstance.CancelAsync();
     }
 }

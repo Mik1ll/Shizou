@@ -1,38 +1,50 @@
-﻿@if (_dialogIsOpen)
+﻿@if (!IsDelete)
 {
-    if (!_isDelete)
-    {
-        <ModalDisplay @ref="@_modalDisplay"
-                      Model="@_myImportFolder"
-                      Title="Add Import Folder"
-                      OnClose="@OnDialogClose"
-                      DialogType="@ModalDisplay.ModalDialogType.Form"
-                      ShowValidationSummary="false">
-            <div class="mb-3">
-                <div class="form-floating mb-1">
-                    <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_myImportFolder.Name)"></InputText>
-                    <label for="nameInput">Name</label>
-                </div>
-                <ValidationMessage For="@(() => _myImportFolder.Name)"></ValidationMessage>
-            </div>
-            <div class="mb-3">
-                <div class="input-group mb-1">
-                    <div class="form-floating">
-                        <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(_myImportFolder.Path)"></InputText>
-                        <label for="pathInput">Path</label>
+    <ModalWrapper Cancel="@Cancel">
+        <div class="modal-header">
+            <h4 class="modal-title">Edit Import Folder</h4>
+        </div>
+        <div class="modal-body">
+            <EditForm Model="@MyImportFolder" id="editImportFolderForm" OnValidSubmit="@Upsert">
+                <DataAnnotationsValidator/>
+                <div class="mb-3">
+                    <div class="form-floating mb-1">
+                        <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(MyImportFolder.Name)"></InputText>
+                        <label for="nameInput">Name</label>
                     </div>
-                    <button type="button" class="input-group-text" @onclick="@OpenFolderPicker">Browse</button>
+                    <ValidationMessage For="@(() => MyImportFolder.Name)"></ValidationMessage>
                 </div>
-                <ValidationMessage For="@(() => _myImportFolder.Path)"></ValidationMessage>
-            </div>
-            <div class="mb-3 form-check">
-                <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(_myImportFolder.ScanOnImport)"></InputCheckbox>
-                <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
-            </div>
-        </ModalDisplay>
-    }
-    else
-    {
-        <ModalDisplay Title="@($"Delete Import Folder: {_myImportFolder.Name}")" OnClose="@OnDialogClose" DialogType="ModalDisplay.ModalDialogType.DeleteCancel"></ModalDisplay>
-    }
+                <div class="mb-3">
+                    <div class="input-group mb-1">
+                        <div class="form-floating">
+                            <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(MyImportFolder.Path)"></InputText>
+                            <label for="pathInput">Path</label>
+                        </div>
+                        <button type="button" class="input-group-text" @onclick="@OpenFolderPicker">Browse</button>
+                    </div>
+                    <ValidationMessage For="@(() => MyImportFolder.Path)"></ValidationMessage>
+                </div>
+                <div class="mb-3 form-check">
+                    <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(MyImportFolder.ScanOnImport)"></InputCheckbox>
+                    <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
+                </div>
+            </EditForm>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @onclick="@Cancel">Cancel</button>
+            <button type="submit" form="editImportFolderForm" class="btn btn-success">Submit</button>
+        </div>
+    </ModalWrapper>
+}
+else
+{
+    <ModalWrapper Cancel="@Cancel">
+        <div class="modal-header">
+            <h4 class="modal-title">Remove Import Folder: @(MyImportFolder.Name)</h4>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @onclick="@Cancel">Cancel</button>
+            <button type="button" class="btn btn-danger" @onclick=@Remove>Remove</button>
+        </div>
+    </ModalWrapper>
 }
