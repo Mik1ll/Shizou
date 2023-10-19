@@ -310,6 +310,9 @@ public class MyAnimeListService
             return false;
         }
 
+        if (!await RefreshToken(options))
+            return false;
+
         // ReSharper disable once MethodHasAsyncOverload
         // ReSharper disable once UseAwaitUsing
         using var context = _contextFactory.CreateDbContext();

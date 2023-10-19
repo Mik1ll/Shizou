@@ -4,7 +4,7 @@
     <a href="https://myanimelist.net/anime/@(MalAnime.Id)" target="_blank" class="align-middle">@(MalAnime.Title)</a>
     @if (MalAnime.Status is not null)
     {
-        <EditForm Model="MalAnime.Status" OnSubmit="@(() => UpdateMalStatus(MalAnime))">
+        <EditForm Model="MalAnime.Status" OnSubmit="@UpdateStatus">
             <InputSelect @bind-Value="@(MalAnime.Status.State)">
                 @foreach (var state in Enum.GetValues<AnimeState>())
                 {
@@ -14,5 +14,11 @@
             <InputNumber @bind-Value="@(MalAnime.Status.WatchedEpisodes)" style="width: 3em;"></InputNumber> / @(MalAnime.EpisodeCount)
             <button type="submit" class="btn btn-primary">Update</button>
         </EditForm>
+    }
+    else
+    {
+        <button type="button" class="btn btn-link" @onclick="@AddStatus">
+            <i class="bi bi-plus-circle-fill text-success"></i>
+        </button>
     }
 </div>
