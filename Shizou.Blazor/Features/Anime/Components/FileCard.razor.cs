@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Blazored.Modal;
+using Blazored.Modal.Services;
+using Microsoft.AspNetCore.Components;
+using Shizou.Blazor.Features.Components;
 using Shizou.Data;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
@@ -7,7 +10,6 @@ namespace Shizou.Blazor.Features.Anime.Components;
 
 public partial class FileCard
 {
-    private int? _videoOpen;
     private IWatchedState _watchedState = default!;
 
 
@@ -19,6 +21,9 @@ public partial class FileCard
 
     [CascadingParameter(Name = nameof(App.IdentityCookie))]
     private string? IdentityCookie { get; set; }
+
+    [CascadingParameter]
+    public IModalService ModalService { get; set; } = default!;
 
     [Parameter]
     [EditorRequired]
@@ -61,14 +66,9 @@ public partial class FileCard
         }
     }
 
-    private void OpenVideo(int localFileId)
+    private async Task OpenVideo(int localFileId)
     {
-        _videoOpen = localFileId;
-    }
-
-    private void CloseVideo()
-    {
-        _videoOpen = null;
+        await ModalService.Show<ModalVideo>(string.Empty, new ModalParameters().Add(nameof(ModalVideo.LocalFileId), localFileId)).Result;
     }
 
     private void OpenInMpv(LocalFile file)
