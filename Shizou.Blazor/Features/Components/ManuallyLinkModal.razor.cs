@@ -1,6 +1,10 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.EntityFrameworkCore;
+using Shizou.Data.Database;
+using Shizou.Data.Models;
+using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Components;
@@ -8,15 +12,26 @@ namespace Shizou.Blazor.Features.Components;
 public partial class ManuallyLinkModal
 {
     private int? _selected;
+    private AniDbAnime? _selectedAnime;
+    private bool _restrictInCollection = true;
 
     [Inject]
     private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
+
+    [Inject]
+    private CommandService CommandService { get; set; } = default!;
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
 
     [CascadingParameter]
     private BlazoredModalInstance ModalInstance { get; set; } = default!;
+
+    [CascadingParameter]
+    private ToastDisplay ToastDisplay { get; set; } = default!;
+
+    [Inject]
+    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
     private async Task Cancel()
     {
@@ -25,11 +40,24 @@ public partial class ManuallyLinkModal
 
     private async Task<List<(int, string)>?> GetTitles(string query)
     {
-        return (await AnimeTitleSearchService.Search(query, true))?.Select(p => (p.Item1, $"{p.Item1} {p.Item2}")).ToList();
+        return (await AnimeTitleSearchService.Search(query, _restrictInCollection))?.Select(p => (p.Item1, $"{p.Item1} {p.Item2}")).ToList();
     }
 
-    private async Task OpenAnimeModal()
+    private void SelectAnime()
     {
-        await ModalService.Show<AddAnimeModal>().Result;
+        using var context = ContextFactory.CreateDbContext();
+        if (context.AniDbAnimes.FirstOrDefault(a => a.Id == _selected) is { } anime)
+        {
+            _selectedAnime = anime;
+        }
+        else if (_selected is null)
+        {
+            ToastDisplay.AddToast("Add anime failed", "No anime to add!", ToastStyle.Error);
+        }
+        else
+        {
+            CommandService.Dispatch(new AnimeArgs(_selected.Value));
+            ToastDisplay.AddToast($"Adding anime {_selected}", "You may need to wait for the anime to be processed before it is available", ToastStyle.Success);
+        }
     }
 }

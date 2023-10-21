@@ -1,13 +1,13 @@
-﻿<ModalWrapper Cancel="@Cancel">
+﻿<ModalWrapper class="modal-lg" Cancel="@Cancel">
     <div class="modal-header">
         <h4 class="modal-title">Manually Link File</h4>
     </div>
     <div class="modal-body">
         <div class="input-group">
-            <LiveSearchBox GetResults="@GetTitles" @bind-Selected="@_selected"></LiveSearchBox>
-            <button class="btn btn-primary" type="button">Select Anime</button>
+            <button type="button" class="btn @(_restrictInCollection ? "btn-primary" : "btn-primary-outline")" @onclick="@(() => _restrictInCollection = !_restrictInCollection)">Only Anime in Collection</button>
+            <LiveSearchBox GetResults="@GetTitles" PlaceholderText="Select Anime..." @bind-Selected="@_selected"></LiveSearchBox>
+            <button class="btn btn-primary" type="button" @onclick="@SelectAnime">Select Anime</button>
         </div>
-        <button type="button" class="btn btn-primary" @onclick="@OpenAnimeModal">Get Absent Anime</button>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" @onclick="@Cancel">Cancel</button>
