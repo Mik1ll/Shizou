@@ -2,6 +2,7 @@
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Shizou.Blazor.Extensions;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 
@@ -24,6 +25,11 @@ public partial class ImportFolderModal
     [Parameter]
     public bool IsDelete { get; set; }
 
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        parameters.EnsureParametersSet(nameof(MyImportFolder), nameof(IsDelete));
+        return base.SetParametersAsync(parameters);
+    }
 
     private async Task OpenFolderPicker()
     {

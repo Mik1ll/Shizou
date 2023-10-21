@@ -68,7 +68,7 @@ public partial class FileCard
 
     private async Task OpenVideo(int localFileId)
     {
-        await ModalService.Show<ModalVideo>(string.Empty, new ModalParameters().Add(nameof(ModalVideo.LocalFileId), localFileId)).Result;
+        await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), localFileId)).Result;
     }
 
     private void OpenInMpv(LocalFile file)

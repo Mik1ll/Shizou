@@ -2,6 +2,7 @@
 using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
+using Shizou.Blazor.Extensions;
 
 namespace Shizou.Blazor.Features.Components;
 
@@ -15,6 +16,12 @@ public partial class FolderPickerModal
 
     [Parameter]
     public string? FolderPath { get; set; }
+
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        parameters.EnsureParametersSet(nameof(FolderPath));
+        return base.SetParametersAsync(parameters);
+    }
 
     protected override void OnInitialized()
     {

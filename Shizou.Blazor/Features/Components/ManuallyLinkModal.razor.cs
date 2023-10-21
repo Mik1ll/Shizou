@@ -2,6 +2,7 @@
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Shizou.Blazor.Extensions;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Commands.AniDb;
@@ -36,10 +37,10 @@ public partial class ManuallyLinkModal
     [Parameter]
     public List<LocalFile> SelectedFiles { get; set; } = default!;
 
-    protected override void OnParametersSet()
+    public override Task SetParametersAsync(ParameterView parameters)
     {
-        if (SelectedFiles is null)
-            throw new ArgumentNullException(nameof(SelectedFiles));
+        parameters.EnsureParametersSet(nameof(SelectedFiles));
+        return base.SetParametersAsync(parameters);
     }
 
     private async Task Cancel()
