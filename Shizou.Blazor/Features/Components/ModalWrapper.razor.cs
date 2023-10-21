@@ -19,7 +19,7 @@ public partial class ModalWrapper
     public EventCallback Cancel { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
-    public Dictionary<string, object> AdditionalAttributes { get; set; } = default!;
+    public Dictionary<string, object> AdditionalAttributes { get; set; } = new();
 
     protected override void OnParametersSet()
     {

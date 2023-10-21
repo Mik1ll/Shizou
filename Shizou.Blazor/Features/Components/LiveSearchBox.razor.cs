@@ -22,6 +22,9 @@ public partial class LiveSearchBox
     [Parameter]
     public EventCallback<int?> SelectedChanged { get; set; }
 
+    [Parameter]
+    public string? PlaceholderText { get; set; }
+
     protected override void OnInitialized()
     {
         _searchTimer = new Timer(TimeSpan.FromMilliseconds(500))
