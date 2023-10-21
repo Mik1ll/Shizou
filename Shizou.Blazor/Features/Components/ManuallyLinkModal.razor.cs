@@ -45,19 +45,22 @@ public partial class ManuallyLinkModal
 
     private void SelectAnime()
     {
+        if (_selected is null)
+            return;
         using var context = ContextFactory.CreateDbContext();
         if (context.AniDbAnimes.FirstOrDefault(a => a.Id == _selected) is { } anime)
         {
             _selectedAnime = anime;
-        }
-        else if (_selected is null)
-        {
-            ToastDisplay.AddToast("Add anime failed", "No anime to add!", ToastStyle.Error);
         }
         else
         {
             CommandService.Dispatch(new AnimeArgs(_selected.Value));
             ToastDisplay.AddToast($"Adding anime {_selected}", "You may need to wait for the anime to be processed before it is available", ToastStyle.Success);
         }
+    }
+
+    private void ClearSelection()
+    {
+        _selectedAnime = null;
     }
 }
