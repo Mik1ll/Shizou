@@ -72,9 +72,4 @@ public partial class Actions
     {
         await ServiceProvider.GetRequiredService<MyAnimeListService>().GetUserAnimeList();
     }
-
-    private async Task OpenManualLinkModal()
-    {
-        await ModalService.Show<ManuallyLinkModal>("Manually Link File").Result;
-    }
 }

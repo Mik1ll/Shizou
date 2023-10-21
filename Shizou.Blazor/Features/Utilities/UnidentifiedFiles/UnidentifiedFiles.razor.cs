@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Blazored.Modal;
+using Blazored.Modal.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Shizou.Blazor.Features.Components;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
@@ -24,6 +27,9 @@ public partial class UnidentifiedFiles
 
     [Inject]
     private ImportService ImportService { get; set; } = default!;
+
+    [Inject]
+    private IModalService ModalService { get; set; } = default!;
 
 
     protected override void OnInitialized()
@@ -66,5 +72,11 @@ public partial class UnidentifiedFiles
     {
         _includeIgnored = !_includeIgnored;
         LoadFiles();
+    }
+
+    private async Task CreateManualLink(List<LocalFile> localFiles)
+    {
+        await ModalService.Show<ManuallyLinkModal>(string.Empty, new ModalParameters()
+            .Add(nameof(ManuallyLinkModal.SelectedFiles), localFiles)).Result;
     }
 }

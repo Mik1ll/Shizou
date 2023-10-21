@@ -21,6 +21,9 @@ public partial class ManuallyLinkModal
     [Inject]
     private CommandService CommandService { get; set; } = default!;
 
+    [Inject]
+    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
 
@@ -30,8 +33,14 @@ public partial class ManuallyLinkModal
     [CascadingParameter]
     private ToastDisplay ToastDisplay { get; set; } = default!;
 
-    [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    [Parameter]
+    public List<LocalFile> SelectedFiles { get; set; } = default!;
+
+    protected override void OnParametersSet()
+    {
+        if (SelectedFiles is null)
+            throw new ArgumentNullException(nameof(SelectedFiles));
+    }
 
     private async Task Cancel()
     {
@@ -55,7 +64,8 @@ public partial class ManuallyLinkModal
         else
         {
             CommandService.Dispatch(new AnimeArgs(_selected.Value));
-            ToastDisplay.AddToast($"Adding anime {_selected}", "You may need to wait for the anime to be processed before it is available", ToastStyle.Success);
+            ToastDisplay.AddToast($"Queueing add anime {_selected}", "You must wait for the command to complete before it is available",
+                ToastStyle.Success);
         }
     }
 
