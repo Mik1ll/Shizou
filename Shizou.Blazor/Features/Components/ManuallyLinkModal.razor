@@ -3,6 +3,10 @@
         <h4 class="modal-title">Manually Link File</h4>
     </div>
     <div class="modal-body">
+        <div class="input-group">
+            <LiveSearchBox GetResults="@GetTitles" @bind-Selected="@_selected"></LiveSearchBox>
+            <button class="btn btn-primary" type="button">Select Anime</button>
+        </div>
         <button type="button" class="btn btn-primary" @onclick="@OpenAnimeModal">Get Absent Anime</button>
     </div>
     <div class="modal-footer">

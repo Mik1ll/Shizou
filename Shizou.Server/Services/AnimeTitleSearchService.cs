@@ -46,12 +46,12 @@ public class AnimeTitleSearchService
         Official = 4
     }
 
-    public async Task<List<(int, string)>?> Search(string query)
+    public async Task<List<(int, string)>?> Search(string query, bool restrictInCollection = false)
     {
         await GetTitles();
         if (_animeTitlesMemCache is null)
             return null;
-        return SearchTitles(_animeTitlesMemCache, query).Select(t => (t.Aid, t.Title)).ToList();
+        return SearchTitles(_animeTitlesMemCache, query, restrictInCollection).Select(t => (t.Aid, t.Title)).ToList();
     }
 
     private async Task GetTitles()
@@ -154,12 +154,20 @@ public class AnimeTitleSearchService
         return titles;
     }
 
-    private List<AnimeTitle> SearchTitles(List<AnimeTitle> titles, string query)
+    private List<AnimeTitle> SearchTitles(List<AnimeTitle> titles, string query, bool restrictInCollection = false)
     {
+        var scorer = ScorerCache.Get<TokenSetScorer>();
+        if (restrictInCollection)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var aidsInCollection = context.AniDbAnimes.Select(a => a.Id).ToHashSet();
+            titles = titles.Where(t => aidsInCollection.Contains(t.Aid)).ToList();
+            scorer = ScorerCache.Get<PartialTokenSetScorer>();
+        }
         query = _removeSpecial.Replace(query.ToUpperInvariant(), " ").Trim();
         var results = Process.ExtractTop(
             new AnimeTitle(0, TitleType.Primary, "", "", query),
-            titles, p => p.ProcessedTitle, ScorerCache.Get<TokenSetScorer>(), 50, 70).ToList();
+            titles, p => p.ProcessedTitle, scorer, 50, 70).ToList();
         var refinedResults = results.GroupBy(r => r.Value.Aid)
             .Select(g => g
                 .OrderBy(r => r.Value.Type switch
