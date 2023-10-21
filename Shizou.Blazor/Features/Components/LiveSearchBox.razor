@@ -1,6 +1,6 @@
 ﻿<div>
     <div class="form-floating">
-        <input type="search" class="form-control" id="queryInput" placeholder="@PlaceholderText" @bind="@_query" @oninput="@OnInputChanged">
+        <input type="search" disabled="@Disabled" class="form-control" id="queryInput" placeholder="@PlaceholderText" @bind="@_query" @oninput="@OnInputChanged">
         <label for="queryInput">@PlaceholderText</label>
     </div>
     <select size="@(Math.Min(_results.Count, 15))" multiple

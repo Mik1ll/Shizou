@@ -25,6 +25,9 @@ public partial class LiveSearchBox
     [Parameter]
     public string? PlaceholderText { get; set; }
 
+    [Parameter]
+    public bool? Disabled { get; set; }
+
     protected override void OnInitialized()
     {
         _searchTimer = new Timer(TimeSpan.FromMilliseconds(500))
