@@ -5,15 +5,16 @@
         @foreach (var importFolder in _importFolders)
         {
             <tr @key="@importFolder">
-                <td>
-                    <Tooltip Content="Hold shift to force scan">
-                        <button type="button" class="scan-button btn p-0"
+                <td class="absorbing-column">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary border-start-0 border-top-0 border-end-1 border-bottom-0 border-white p-1"
                                 @onclick="@(e => ImportService.ScanImportFolder(importFolder.Id, e.ShiftKey))">
-                            <i class="bi bi-search"></i>
+                            <i class="bi bi-search"></i> Scan
                         </button>
-                    </Tooltip>
+                        <button class="btn btn-primary border-top-0 border-end-0 border-bottom-0 border-white p-1">Force</button>
+                    </div>&nbsp;
+                    @(importFolder.Name)
                 </td>
-                <td class="absorbing-column">@importFolder.Name</td>
                 <td>
                     @if (importFolder.ScanOnImport)
                     {

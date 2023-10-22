@@ -1,22 +1,14 @@
 ﻿<h3>Queues</h3>
 <section class="queues">
     <table class="table table-hover align-middle">
-        <thead>
-        <tr>
-            <th scope="col">Type</th>
-            <th scope="col">Message</th>
-            <th scope="col">Queued</th>
-            <th></th>
-            <th></th>
-        </tr>
-        </thead>
         <tbody>
         @foreach (var processor in Processors)
         {
             <tr>
-                <th scope="row">@Enum.GetName(processor.QueueType)</th>
                 <td class="absorbing-column text-break">
-                    @(processor.CurrentCommand?.CommandId ?? (processor.Paused && !string.IsNullOrWhiteSpace(processor.PauseReason) ? $"Paused Reason: {processor.PauseReason}" : ""))
+                    @($"{Enum.GetName(processor.QueueType)}: " +
+                      (processor.CurrentCommand?.CommandId ??
+                       (processor.Paused && !string.IsNullOrWhiteSpace(processor.PauseReason) ? $"Paused: {processor.PauseReason}" : "")))
                 </td>
                 <td class="text-center">@processor.CommandsInQueue</td>
                 <td>
