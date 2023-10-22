@@ -15,6 +15,7 @@ public partial class ManuallyLinkModal
     private int? _selected;
     private AniDbAnime? _selectedAnime;
     private bool _restrictInCollection = true;
+    private readonly Dictionary<AniDbEpisode, LocalFile> _mapping = new();
 
     [Inject]
     private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
@@ -58,9 +59,19 @@ public partial class ManuallyLinkModal
         if (_selected is null)
             return;
         using var context = ContextFactory.CreateDbContext();
-        if (context.AniDbAnimes.FirstOrDefault(a => a.Id == _selected) is { } anime)
+        if (context.AniDbAnimes.Include(a => a.AniDbEpisodes.OrderBy(ep => ep.EpisodeType)
+                .ThenBy(ep => ep.Number)).FirstOrDefault(a => a.Id == _selected) is { } anime)
         {
             _selectedAnime = anime;
+            if (SelectedFiles.Count > _selectedAnime.AniDbEpisodes.Count)
+            {
+                ToastDisplay.AddToast("More files than episodes to link", "You are trying to link more files than there are existing episodes in the anime",
+                    ToastStyle.Error);
+                _selectedAnime = null;
+                return;
+            }
+
+            foreach (var (file, ep) in SelectedFiles.Zip(_selectedAnime.AniDbEpisodes)) _mapping[ep] = file;
         }
         else
         {
@@ -73,5 +84,16 @@ public partial class ManuallyLinkModal
     private void ClearSelection()
     {
         _selectedAnime = null;
+        _mapping.Clear();
+    }
+
+    private void MoveLocalFile(AniDbEpisode ep, LocalFile localFile, int idx)
+    {
+        var newEp = _selectedAnime!.AniDbEpisodes[idx];
+        if (_mapping.TryGetValue(newEp, out var otherLocal))
+            _mapping[ep] = otherLocal;
+        else
+            _mapping.Remove(ep);
+        _mapping[newEp] = localFile;
     }
 }

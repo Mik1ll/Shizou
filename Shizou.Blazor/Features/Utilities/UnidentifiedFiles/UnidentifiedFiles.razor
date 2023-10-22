@@ -66,7 +66,9 @@
                                 <i class="bi bi-circle"></i> Unignore
                             </button>
                         }
-                        <button type="button" class="btn btn-primary" @onclick="@(async () => await CreateManualLink(_selectedFiles))">Manually Link</button>
+                        <button type="button" class="btn btn-primary" @onclick="@(async () => await CreateManualLink(_selectedFiles))">
+                            <i class="bi bi-link"></i> Manually Link
+                        </button>
                     }
                     @if (_selectedFiles.Count == 1)
                     {

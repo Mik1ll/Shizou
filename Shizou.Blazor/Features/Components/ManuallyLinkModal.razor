@@ -1,4 +1,5 @@
-﻿<ModalWrapper class="modal-lg" Cancel="@Cancel">
+﻿@using Shizou.Data.Enums
+<ModalWrapper class="modal-lg" Cancel="@Cancel">
     <div class="modal-header">
         <h4 class="modal-title">Manually Link File</h4>
     </div>
@@ -18,6 +19,52 @@
                 <button class="btn btn-outline-danger" type="button" @onclick="@ClearSelection">Clear Selected Anime</button>
             }
         </div>
+        @if (_selectedAnime is not null)
+        {
+            <table class="table table-responsive table-hover">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th>Filename</th>
+                    <th>Ep#</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var (ep, idx) in _selectedAnime.AniDbEpisodes.Select((ep, idx) => (ep, idx)))
+                {
+                    _mapping.TryGetValue(ep, out var localFile);
+                    <tr>
+                        <td>
+                            @if (localFile is not null && _selectedAnime.AniDbEpisodes.Count > 1)
+                            {
+                                <div style="width: 2.3em">
+                                    @if (idx != 0)
+                                    {
+                                        <button type="button" class="btn p-0" @onclick="@(() => MoveLocalFile(ep, localFile, idx - 1))">
+                                            <i class="bi bi-arrow-up"></i>
+                                        </button>
+                                    }
+                                    @if (idx != _selectedAnime.AniDbEpisodes.Count - 1)
+                                    {
+                                        <button type="button" class="btn p-0" @onclick="@(() => MoveLocalFile(ep, localFile, idx + 1))">
+                                            <i class="bi bi-arrow-down"></i>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </td>
+                        <td class="absorbing-column">
+                            @if (localFile is not null)
+                            {
+                                @(Path.GetFileName(localFile.PathTail))
+                            }
+                        </td>
+                        <td>@(EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number))</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" @onclick="@Cancel">Cancel</button>
