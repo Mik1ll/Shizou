@@ -1,8 +1,10 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Features.Components;
 using Shizou.Data;
+using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
 
@@ -18,6 +20,9 @@ public partial class FileCard
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
+
+    [Inject]
+    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
     [CascadingParameter(Name = nameof(App.IdentityCookie))]
     private string? IdentityCookie { get; set; }
@@ -40,6 +45,9 @@ public partial class FileCard
     [Parameter]
     [EditorRequired]
     public EpisodeWatchedState? EpisodeWatchedState { get; set; }
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
 
 
     protected override void OnParametersSet()
@@ -64,6 +72,18 @@ public partial class FileCard
             default:
                 throw new ArgumentOutOfRangeException(nameof(_watchedState));
         }
+    }
+
+    private async Task Unlink(LocalFile localFile)
+    {
+        // ReSharper disable once MethodHasAsyncOverload
+        // ReSharper disable once UseAwaitUsing
+        using var context = ContextFactory.CreateDbContext();
+        context.LocalFiles.Attach(localFile);
+        localFile.ManualLinkEpisodeId = null;
+        // ReSharper disable once MethodHasAsyncOverload
+        context.SaveChanges();
+        await OnChanged.InvokeAsync();
     }
 
     private async Task OpenVideo(int localFileId)
