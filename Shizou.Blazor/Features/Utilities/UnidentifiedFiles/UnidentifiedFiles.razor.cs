@@ -78,5 +78,6 @@ public partial class UnidentifiedFiles
     {
         await ModalService.Show<ManuallyLinkModal>(string.Empty, new ModalParameters()
             .Add(nameof(ManuallyLinkModal.SelectedFiles), localFiles)).Result;
+        LoadFiles();
     }
 }
