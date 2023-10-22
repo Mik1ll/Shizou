@@ -1,12 +1,12 @@
 ﻿@using Shizou.Data.Enums
-<table class="table table-striped table-hover resizable-table-columns">
+<table class="table table-hover">
     <thead>
     <tr>
         <th>Ep</th>
         <th>Title</th>
-        <th class="text-center">Files</th>
-        <th class="text-center">Length</th>
-        <th class="text-center">Aired</th>
+        <th class="text-end">Files</th>
+        <th class="text-end d-none d-md-table-cell">Len</th>
+        <th class="text-end d-none d-md-table-cell">Aired</th>
     </tr>
     </thead>
     <tbody class="table-group-divider">
@@ -16,16 +16,16 @@
             <td class="text-end">
                 @EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number)
             </td>
-            <td>
+            <td class="absorbing-column">
                 @(ep.TitleRomaji ?? ep.TitleEnglish)
             </td>
             <td class="text-end">
                 @(_fileCounts[ep.Id])
             </td>
-            <td class="text-nowrap text-end">
-                @($"{(ep.DurationMinutes is null ? "??" : ep.DurationMinutes.ToString())} min")
+            <td class="text-nowrap text-end d-none d-md-table-cell">
+                @($"{(ep.DurationMinutes is null ? "??" : ep.DurationMinutes.ToString())}m")
             </td>
-            <td class="text-nowrap text-end">
+            <td class="text-nowrap text-end d-none d-md-table-cell">
                 @(ep.AirDate?.ToString("yyyy-MM-dd"))
             </td>
         </tr>
