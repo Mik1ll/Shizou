@@ -27,7 +27,7 @@
                 @foreach (var (file, idx) in _localFiles.Select((file, idx) => (file, idx)))
                 {
                     <SelectRow @key="@file" TValue="@LocalFile" Index="@idx" Value="@file" class="@(file.Ignored ? "ignored-file" : "")">
-                        <td>@(file.ImportFolder?.Path)</td>
+                        <td>@(file.ImportFolder!.Path)</td>
                         <td>@(Path.GetFileName(file.PathTail))</td>
                     </SelectRow>
                 }
@@ -74,8 +74,7 @@
                                 <strong>Name:</strong> @(Path.GetFileName(localFile.PathTail))
                             </li>
                             <li class="list-group-item">
-                                <strong>Path:</strong> @(Path.Combine(localFile.ImportFolder?.Path ?? throw new NullReferenceException("Import folder can't be null, need a complete path"),
-                                                           localFile.PathTail)))
+                                <strong>Path:</strong> @(Path.Combine(localFile.ImportFolder!.Path, localFile.PathTail))
                             </li>
                             <li class="list-group-item">
                                 <strong>Size:</strong> @(Math.Round(localFile.FileSize / (1024.0 * 1024), 2)) MiB
