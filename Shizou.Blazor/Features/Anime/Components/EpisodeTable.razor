@@ -4,6 +4,7 @@
     <tr>
         <th>Ep</th>
         <th>Title</th>
+        <th></th>
         <th class="text-end">Files</th>
         <th class="text-end d-none d-md-table-cell">Len</th>
         <th class="text-end d-none d-md-table-cell">Aired</th>
@@ -18,6 +19,12 @@
             </td>
             <td class="absorbing-column">
                 @(ep.TitleRomaji ?? ep.TitleEnglish)
+            </td>
+            <td>
+                @if (_watchedEps.Contains(ep.Id))
+                {
+                    <i class="bi bi-eye"></i>
+                }
             </td>
             <td class="text-end">
                 @(_fileCounts[ep.Id])

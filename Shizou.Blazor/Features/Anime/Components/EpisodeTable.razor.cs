@@ -10,6 +10,7 @@ public partial class EpisodeTable
     private readonly Dictionary<int, bool> _episodeExpanded = new();
     private HashSet<AniDbEpisode> _episodes = default!;
     private Dictionary<int, int> _fileCounts = default!;
+    private HashSet<int> _watchedEps = default!;
 
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
@@ -22,7 +23,14 @@ public partial class EpisodeTable
     {
         foreach (var (epId, _) in _episodeExpanded.Where(ep => ep.Value))
             LoadEpisodeData(_episodes.First(ep => ep.Id == epId));
-        StateHasChanged();
+        using var context = ContextFactory.CreateDbContext();
+        _fileCounts = (from ep in context.AniDbEpisodes
+                where ep.AniDbAnimeId == AnimeId
+                select new { EpId = ep.Id, Count = ep.AniDbFiles.Count + ep.ManualLinkLocalFiles.Count })
+            .ToDictionary(x => x.EpId, x => x.Count);
+        _watchedEps = (from ep in context.AniDbEpisodes
+            where ep.AniDbAnimeId == AnimeId && (ep.EpisodeWatchedState.Watched || ep.AniDbFiles.Any(f => f.FileWatchedState.Watched))
+            select ep.Id).ToHashSet();
     }
 
     protected override void OnInitialized()
@@ -31,11 +39,7 @@ public partial class EpisodeTable
         _episodes = (from ep in context.AniDbEpisodes
             where ep.AniDbAnimeId == AnimeId
             select ep).ToHashSet();
-        _fileCounts = (from ep in context.AniDbEpisodes
-                where ep.AniDbAnimeId == AnimeId
-                select new { EpId = ep.Id, Count = ep.AniDbFiles.Count + ep.ManualLinkLocalFiles.Count })
-            .ToDictionary(x => x.EpId, x => x.Count);
-        base.OnInitialized();
+        Reload();
     }
 
     private void ToggleEpExpand(AniDbEpisode ep)

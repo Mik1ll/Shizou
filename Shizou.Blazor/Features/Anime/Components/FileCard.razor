@@ -20,7 +20,7 @@
                             <i class="bi bi-slash-circle"></i> Unlink File
                         </button>
                     }
-                    <button class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => Mark(!_watchedState.Watched))">
+                    <button class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" type="button" @onclick:stopPropagation="true" @onclick="@(async () => await Mark(!_watchedState.Watched))">
                         <i class="bi @(_watchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
                     </button>
                 </div>
