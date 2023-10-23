@@ -33,7 +33,7 @@ public partial class Anime
     protected override void OnInitialized()
     {
         using var context = ContextFactory.CreateDbContext();
-        _anime = context.AniDbAnimes.AsSingleQuery()
+        _anime = context.AniDbAnimes.AsSplitQuery()
             .Include(a => a.AniDbEpisodes)
             .ThenInclude(e => e.ManualLinkLocalFiles)
             .Include(a => a.MalAnimes)
