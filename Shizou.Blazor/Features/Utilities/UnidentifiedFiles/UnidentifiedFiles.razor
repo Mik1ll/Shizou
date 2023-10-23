@@ -14,16 +14,13 @@
             <input class="form-check-input" type="checkbox" checked="@(_includeIgnored)" @onclick="@ToggleIncludeIgnored"/> Ignored Files
         </div>
     </div>
-    <div class="row gx-2">
+    <div class="row">
         <div class="col overflow-auto">
-            <SelectTable TValue="@LocalFile" OnChange="@OnSelectChanged" class="table table-hover resizable-table-columns table-responsive" style="min-width: 50rem">
+            <SelectTable TValue="@LocalFile" OnChange="@OnSelectChanged" class="table table-hover" style="min-width: 50rem">
                 <thead>
                 <tr>
                     <th>Folder</th>
-                    <th style="width: 40%">Name</th>
-                    <th>Size</th>
-                    <th>Hash</th>
-                    <th>Updated</th>
+                    <th class="absorbing-column" style="min-width: 40%">Name</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -32,16 +29,15 @@
                     <SelectRow @key="@file" TValue="@LocalFile" Index="@idx" Value="@file" class="@(file.Ignored ? "ignored-file" : "")">
                         <td>@(file.ImportFolder?.Path)</td>
                         <td>@(Path.GetFileName(file.PathTail))</td>
-                        <td>@(Math.Round(file.FileSize / (1024.0 * 1024), 2)) MiB</td>
-                        <td>@(file.Ed2k)</td>
-                        <td>@(file.Updated?.ToLocalTime())</td>
                     </SelectRow>
                 }
                 </tbody>
             </SelectTable>
         </div>
-        <div class="col-4 col-lg-3 sticky-top" style="align-self: flex-start; top: 3.5rem">
-            <div class="card">
+    </div>
+    <div class="row sticky-bottom">
+        <div class="col">
+            <div class="card bg-body-secondary">
                 <div class="card-body">
                     <h5 class="card-title">
                         <strong>@(_selectedFiles.Count) file@(_selectedFiles.Count == 1 ? "" : "s") selected</strong>
@@ -73,7 +69,7 @@
                     @if (_selectedFiles.Count == 1)
                     {
                         var localFile = _selectedFiles.First();
-                        <ul class="list-group list-group-flush">
+                        <ul class="list-group list-group-flush overflow-y-auto mt-2" style="max-height: 35vh">
                             <li class="list-group-item">
                                 <strong>Name:</strong> @(Path.GetFileName(localFile.PathTail))
                             </li>
@@ -82,13 +78,16 @@
                                                            localFile.PathTail)))
                             </li>
                             <li class="list-group-item">
-                                <strong>Size:</strong> @(localFile.FileSize)
+                                <strong>Size:</strong> @(Math.Round(localFile.FileSize / (1024.0 * 1024), 2)) MiB
                             </li>
                             <li class="list-group-item">
                                 <strong>Hash:</strong> @(localFile.Ed2k)
                             </li>
                             <li class="list-group-item">
                                 <strong>CRC:</strong> @(localFile.Crc)
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Updated:</strong> @(localFile.Updated?.ToLocalTime())
                             </li>
                         </ul>
                     }
