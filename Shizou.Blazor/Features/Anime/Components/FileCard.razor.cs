@@ -12,8 +12,6 @@ namespace Shizou.Blazor.Features.Anime.Components;
 
 public partial class FileCard
 {
-    private IWatchedState _watchedState = default!;
-
 
     [Inject]
     private WatchStateService WatchStateService { get; set; } = default!;
@@ -36,41 +34,30 @@ public partial class FileCard
 
     [Parameter]
     [EditorRequired]
-    public FileWatchedState? FileWatchedState { get; set; }
+    public IWatchedState WatchedState { get; set; } = default!;
 
     [Parameter]
     [EditorRequired]
-    public LocalFile? LocalFile { get; set; }
-
-    [Parameter]
-    [EditorRequired]
-    public EpisodeWatchedState? EpisodeWatchedState { get; set; }
+    public LocalFile LocalFile { get; set; } = default!;
 
     [Parameter]
     public EventCallback OnChanged { get; set; }
-
-
-    protected override void OnParametersSet()
-    {
-        _watchedState = AniDbFile is null
-            ? EpisodeWatchedState ?? throw new ArgumentNullException(nameof(EpisodeWatchedState))
-            : FileWatchedState ?? throw new ArgumentNullException(nameof(FileWatchedState));
-    }
-
+    
+    
     private async Task Mark(bool watched)
     {
-        switch (_watchedState)
+        switch (WatchedState)
         {
             case FileWatchedState fws:
                 if (WatchStateService.MarkFile(fws.AniDbFileId, watched))
-                    _watchedState.Watched = watched;
+                    WatchedState.Watched = watched;
                 break;
             case EpisodeWatchedState ews:
                 if (WatchStateService.MarkEpisode(ews.AniDbEpisodeId, watched))
-                    _watchedState.Watched = watched;
+                    WatchedState.Watched = watched;
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(_watchedState));
+                throw new ArgumentOutOfRangeException(nameof(WatchedState));
         }
 
         await OnChanged.InvokeAsync();

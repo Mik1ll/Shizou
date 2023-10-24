@@ -56,8 +56,9 @@ public partial class EpisodeTable
     {
         using var context = ContextFactory.CreateDbContext();
         context.Attach(episode).Collection(ep => ep.AniDbFiles)
-            .Query().AsSingleQuery()
+            .Query().AsSplitQuery()
             .Include(f => f.LocalFile)
+            .ThenInclude(lf => lf!.ImportFolder)
             .Include(f => f.AniDbGroup)
             .Include(f => f.FileWatchedState)
             .Load();

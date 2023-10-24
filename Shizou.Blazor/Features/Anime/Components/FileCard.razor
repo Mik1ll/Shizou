@@ -1,9 +1,10 @@
-﻿<div class="card">
+﻿@using Shizou.Server.Extensions
+<div class="card">
     <ul class="list-group list-group-flush">
         <li class="list-group-item">
             <div class="d-flex justify-content-between">
                 <div>
-                    @if (LocalFile is not null)
+                    @if (!LocalFile.IsMissing())
                     {
                         <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideo(LocalFile.Id))">
                             <i class="bi bi-play"></i> Play
@@ -12,16 +13,22 @@
                             <i class="bi bi-play"></i> Play in Mpv
                         </button>
                     }
+                    else
+                    {
+                        <Tooltip Content="File Missing">
+                            <i class="bi bi-file-earmark-x text-warning btn"></i>
+                        </Tooltip>
+                    }
                 </div>
                 <div>
-                    @if (AniDbFile is null && LocalFile is not null)
+                    @if (AniDbFile is null)
                     {
                         <button class="btn btn-outline-danger" @onclick="@(() => Unlink(LocalFile))">
                             <i class="bi bi-slash-circle"></i> Unlink File
                         </button>
                     }
-                    <button class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" type="button" @onclick:stopPropagation="true" @onclick="@(async () => await Mark(!_watchedState.Watched))">
-                        <i class="bi @(_watchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
+                    <button class="btn @(WatchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" type="button" @onclick:stopPropagation="true" @onclick="@(async () => await Mark(!WatchedState.Watched))">
+                        <i class="bi @(WatchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
                     </button>
                 </div>
             </div>
@@ -48,18 +55,11 @@
                     <span>@(AniDbFile.Video.Height)x@(AniDbFile.Video.Width) @(AniDbFile.Video.ColorDepth)bit&nbsp;</span>
                 }
                 <strong>@(AniDbFile?.Source)</strong>
-                @(LocalFile?.Crc)
+                @(LocalFile.Crc)
             </span>
         </li>
         <li class="list-group-item">
-            @if (LocalFile is not null)
-            {
-                @(Path.GetFileName(LocalFile.PathTail))
-            }
-            else
-            {
-                @("Local file not found")
-            }
+            @Path.GetFileName(LocalFile.PathTail)
         </li>
     </ul>
 </div>

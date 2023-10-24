@@ -42,11 +42,14 @@
                 <td colspan="5">
                     @foreach (var aniDbFile in ep.AniDbFiles)
                     {
-                        <FileCard AniDbFile="@aniDbFile" FileWatchedState="@(aniDbFile.FileWatchedState)" LocalFile="@(aniDbFile.LocalFile)" EpisodeWatchedState="@null" OnChanged="@Reload"></FileCard>
+                        if (aniDbFile.LocalFile is not null)
+                        {
+                            <FileCard AniDbFile="@aniDbFile" WatchedState="@(aniDbFile.FileWatchedState)" LocalFile="@(aniDbFile.LocalFile)" OnChanged="@Reload"></FileCard>
+                        }
                     }
                     @foreach (var localFile in ep.ManualLinkLocalFiles)
                     {
-                        <FileCard AniDbFile="@null" FileWatchedState="@null" LocalFile="@localFile" EpisodeWatchedState="@(ep.EpisodeWatchedState)" OnChanged="@Reload"></FileCard>
+                        <FileCard AniDbFile="@null" WatchedState="@(ep.EpisodeWatchedState)" LocalFile="@localFile" OnChanged="@Reload"></FileCard>
                     }
                 </td>
             </tr>
