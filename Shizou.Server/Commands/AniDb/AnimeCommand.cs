@@ -107,6 +107,14 @@ public class AnimeCommand : Command<AnimeArgs>
     private static AniDbAnime AnimeResultToAniDbAnime(AnimeResult animeResult)
     {
         var mainTitle = animeResult.Titles.First(t => t.Type == "main");
+        var originalLangPrefix = mainTitle.Lang switch
+        {
+            "x-jat" => "ja",
+            "x-zht" => "zh-Han",
+            "x-kot" => "ko",
+            "x-tht" => "th",
+            _ => "none"
+        };
         var newAniDbAnime = new AniDbAnime
         {
             Id = animeResult.Id,
@@ -117,7 +125,11 @@ public class AnimeCommand : Command<AnimeArgs>
             AnimeType = animeResult.Type,
             EpisodeCount = animeResult.Episodecount,
             ImageFilename = animeResult.Picture,
-            Title = mainTitle.Text,
+            TitleTranscription = mainTitle.Text,
+            TitleOriginal = animeResult.Titles
+                .FirstOrDefault(t => t.Type == "official" && t.Lang.StartsWith(originalLangPrefix, StringComparison.OrdinalIgnoreCase))
+                ?.Text,
+            TitleEngish = animeResult.Titles.FirstOrDefault(t => t is { Type: "official", Lang: "en" })?.Text,
             AniDbEpisodes = animeResult.Episodes.Select(e => new AniDbEpisode
             {
                 AniDbAnimeId = animeResult.Id,
@@ -133,17 +145,9 @@ public class AnimeCommand : Command<AnimeArgs>
                 Updated = DateTime.UtcNow,
                 TitleEnglish = e.Title.First(t => t.Lang == "en")
                     .Text,
-                TitleRomaji = e.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == mainTitle.Lang)
+                TitleTranscription = e.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == mainTitle.Lang)
                     ?.Text,
-                TitleKanji = e.Title.FirstOrDefault(t =>
-                        t.Lang.StartsWith(mainTitle.Lang switch
-                            {
-                                "x-jat" => "ja",
-                                "x-zht" => "zh-han",
-                                "x-kot" => "ko",
-                                _ => "none"
-                            },
-                            StringComparison.OrdinalIgnoreCase))
+                TitleOriginal = e.Title.FirstOrDefault(t => t.Lang.StartsWith(originalLangPrefix, StringComparison.OrdinalIgnoreCase))
                     ?.Text,
                 EpisodeWatchedState = new EpisodeWatchedState
                 {

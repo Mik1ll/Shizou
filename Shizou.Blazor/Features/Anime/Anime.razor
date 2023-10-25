@@ -3,7 +3,7 @@
 <article class="container-fluid">
     @if (_anime is not null)
     {
-        <PageTitle>@_anime.Title</PageTitle>
+        <PageTitle>@_anime.TitleTranscription</PageTitle>
         <div class="row justify-content-center">
             <div class="col-xl-3 col-lg-4 col-md-5 col-sm-6 d-flex justify-content-center justify-content-md-end anime-poster">
                 @if (_anime.ImageFilename is not null)
@@ -15,7 +15,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">
-                            @_anime.Title <a href="https://anidb.net/anime/@(_anime.Id)" target="_blank">(@(_anime.Id))</a>
+                            @_anime.TitleTranscription <a href="https://anidb.net/anime/@(_anime.Id)" target="_blank">(@(_anime.Id))</a>
                         </h4>
                         <p class="card-text">
                             @foreach (var s in _splitRegex.Split(_anime.Description ?? ""))

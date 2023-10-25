@@ -10,8 +10,8 @@ public class AniDbEpisode
     public required int Id { get; set; }
 
     public required string TitleEnglish { get; set; }
-    public required string? TitleRomaji { get; set; }
-    public required string? TitleKanji { get; set; }
+    public required string? TitleTranscription { get; set; }
+    public required string? TitleOriginal { get; set; }
     public required int Number { get; set; }
     public required EpisodeType EpisodeType { get; set; }
     public required int? DurationMinutes { get; set; }

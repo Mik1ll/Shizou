@@ -26,7 +26,7 @@ public class SeededDatabaseTests
                 context.AniDbAnimes.AddRange(new AniDbAnime
                 {
                     Id = 1,
-                    Title = "blah",
+                    TitleTranscription = "blah",
                     AnimeType = AnimeType.TvSeries,
                     EpisodeCount = 12,
                     AirDate = "2022-02-15",
@@ -34,7 +34,9 @@ public class SeededDatabaseTests
                     Description = "testdescription",
                     Restricted = false,
                     ImageFilename = null,
-                    Updated = default
+                    Updated = default,
+                    TitleOriginal = null,
+                    TitleEngish = null
                 });
                 var file = context.AniDbFiles.Add(new AniDbFile
                 {

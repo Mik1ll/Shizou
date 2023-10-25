@@ -9,7 +9,9 @@ public class AniDbAnime
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required int Id { get; set; }
 
-    public required string Title { get; set; }
+    public required string TitleTranscription { get; set; }
+    public required string? TitleOriginal { get; set; }
+    public required string? TitleEngish { get; set; }
     public required AnimeType AnimeType { get; set; }
     public required int EpisodeCount { get; set; }
     public required string? AirDate { get; set; }
