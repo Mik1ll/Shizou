@@ -49,6 +49,8 @@ public class AniDbOptions
     public ushort ClientPort { get; set; } = 4556;
 
     public MyListOptions MyList { get; set; } = new();
+
+    public int FetchRelationDepth { get; set; } = 3;
 }
 
 public class MyListOptions

@@ -4,17 +4,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.FileCaches;
+using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
-public record AnimeArgs(int AnimeId) : CommandArgs($"{nameof(AnimeCommand)}_{AnimeId}");
+public record AnimeArgs(int AnimeId, int? FetchRelationDepth = null) : CommandArgs($"{nameof(AnimeCommand)}_{AnimeId}_{FetchRelationDepth}");
 
 [Command(CommandType.GetAnime, CommandPriority.Normal, QueueType.AniDbHttp)]
 public class AnimeCommand : Command<AnimeArgs>
@@ -25,7 +27,9 @@ public class AnimeCommand : Command<AnimeArgs>
     private readonly ImageService _imageService;
     private readonly MyAnimeListService _myAnimeListService;
     private readonly IAnimeRequest _animeRequest;
+    private readonly CommandService _commandService;
     private string _animeCacheFilename = null!;
+    private readonly ShizouOptions _options;
 
     public AnimeCommand(
         ILogger<AnimeCommand> logger,
@@ -33,7 +37,9 @@ public class AnimeCommand : Command<AnimeArgs>
         HttpAnimeResultCache animeResultCache,
         ImageService imageService,
         MyAnimeListService myAnimeListService,
-        IAnimeRequest animeRequest)
+        IAnimeRequest animeRequest,
+        CommandService commandService,
+        IOptionsSnapshot<ShizouOptions> optionsSnapshot)
     {
         _logger = logger;
         _context = context;
@@ -41,6 +47,8 @@ public class AnimeCommand : Command<AnimeArgs>
         _imageService = imageService;
         _myAnimeListService = myAnimeListService;
         _animeRequest = animeRequest;
+        _commandService = commandService;
+        _options = optionsSnapshot.Value;
     }
 
     public override void SetParameters(CommandArgs args)
@@ -119,6 +127,13 @@ public class AnimeCommand : Command<AnimeArgs>
         _context.AniDbAnimeRelations.RemoveRange(eAnimeRelations.ExceptBy(animeRelations.Select(toTuple), toTuple));
         _context.AniDbAnimeRelations.AddRange(animeRelations.ExceptBy(eAnimeRelations.Select(toTuple), toTuple));
         _context.SaveChanges();
+        var fetchDepth = CommandArgs.FetchRelationDepth ?? _options.AniDb.FetchRelationDepth;
+        if (fetchDepth > 0)
+        {
+            var missingAnime = _context.AniDbAnimeRelations.Where(r => r.AnimeId == animeResult.Id && !_context.AniDbAnimes.Any(a => a.Id == r.ToAnimeId))
+                .Select(r => r.ToAnimeId).ToList();
+            _commandService.DispatchRange(missingAnime.Select(aid => new AnimeArgs(aid, fetchDepth - 1)));
+        }
     }
 
     private static AniDbAnime AnimeResultToAniDbAnime(AnimeResult animeResult)
