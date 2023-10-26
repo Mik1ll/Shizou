@@ -24,7 +24,7 @@ public partial class Collection
     private void RefreshAnime()
     {
         using var context = ContextFactory.CreateDbContext();
-        _anime = context.AniDbAnimes.ToList();
+        _anime = context.AniDbAnimes.Where(a => a.AniDbEpisodes.Any(e => e.AniDbFiles.Any(f => f.LocalFile != null) || e.ManualLinkLocalFiles.Any())).ToList();
     }
 
     private void GoToAnime(int animeId)
