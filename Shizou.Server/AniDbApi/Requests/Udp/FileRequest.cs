@@ -10,18 +10,15 @@ namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public class FileRequest : AniDbUdpRequest, IFileRequest
 {
-    public const AMaskFile DefaultAMask = AMaskFile.GroupName | AMaskFile.GroupNameShort | AMaskFile.DateAnimeRecordUpdated | AMaskFile.TitleRomaji |
-                                          AMaskFile.EpisodeTitleEnglish |
-                                          AMaskFile.EpisodeNumber | AMaskFile.TotalEpisodes | AMaskFile.HighestEpisodeNumber | AMaskFile.Type |
-                                          AMaskFile.EpisodeTitleRomaji |
-                                          AMaskFile.EpisodeTitleKanji;
+    public const AMaskFile DefaultAMask = AMaskFile.GroupName | AMaskFile.GroupNameShort | AMaskFile.DateAnimeRecordUpdated;
 
-    public const FMask DefaultFMask = FMask.Crc32 | FMask.Md5 | FMask.Sha1 | FMask.Size | FMask.Quality | FMask.Source | FMask.State | FMask.AnimeId |
-                                      FMask.AudioCodecs | FMask.DubLanguages | FMask.Ed2K | FMask.EpisodeId | FMask.GroupId | FMask.IsDeprecated |
-                                      FMask.OtherEpisodes | FMask.SubLangugages | FMask.VideoCodec | FMask.VideoResolution | FMask.AudioBitRates |
-                                      FMask.EpisodeAiredDate | FMask.LengthInSeconds | FMask.MyListId | FMask.MyListOther | FMask.MyListSource |
-                                      FMask.MyListState | FMask.MyListStorage | FMask.MyListViewed | FMask.MyListFileState | FMask.MyListViewDate |
-                                      FMask.VideoBitRate | FMask.VideoColorDepth | FMask.AniDbFileName;
+    public const FMask DefaultFMask = FMask.AnimeId | FMask.EpisodeId | FMask.GroupId | FMask.MyListId | FMask.OtherEpisodes | FMask.IsDeprecated |
+                                      FMask.State |
+                                      FMask.Size | FMask.Ed2K | FMask.Md5 | FMask.Sha1 | FMask.Crc32 | FMask.VideoColorDepth |
+                                      FMask.Source | FMask.AudioCodecs | FMask.AudioBitRates | FMask.VideoCodec | FMask.VideoBitRate | FMask.VideoResolution |
+                                      FMask.DubLanguages | FMask.SubLangugages | FMask.LengthInSeconds | FMask.AniDbFileName |
+                                      FMask.MyListState | FMask.MyListFileState | FMask.MyListViewed | FMask.MyListViewDate | FMask.MyListStorage |
+                                      FMask.MyListSource | FMask.MyListOther;
 
     private AMaskFile _aMask;
     private FMask _fMask;
@@ -88,6 +85,7 @@ public class FileRequest : AniDbUdpRequest, IFileRequest
     }
 }
 
+// @formatter:off
 [Flags]
 public enum AMaskFile : uint
 {
@@ -120,7 +118,6 @@ public enum AMaskFile : uint
 
     GroupName = 1 << 7,
     GroupNameShort = 1 << 6,
-
     // Unused = 1 << 5,
     // Unused = 1 << 4,
     // Unused = 1 << 3,
@@ -146,7 +143,6 @@ public enum FMask : ulong
     Md5 = 1 << 29,
     Sha1 = 1 << 28,
     Crc32 = 1 << 27,
-
     // Unused = 1 << 26,
     VideoColorDepth = 1 << 25,
     // Unused = 1 << 24,
@@ -165,7 +161,6 @@ public enum FMask : ulong
     LengthInSeconds = 1 << 13,
     Description = 1 << 12,
     EpisodeAiredDate = 1 << 11,
-
     // Unused = 1 << 10,
     // Unused = 1 << 9,
     AniDbFileName = 1 << 8,
@@ -176,7 +171,7 @@ public enum FMask : ulong
     MyListViewDate = 1 << 4,
     MyListStorage = 1 << 3,
     MyListSource = 1 << 2,
-
     MyListOther = 1 << 1
     // Unused = 1 << 0,
 }
+// @formatter:on

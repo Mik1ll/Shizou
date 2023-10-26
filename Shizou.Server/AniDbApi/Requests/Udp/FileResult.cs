@@ -7,10 +7,6 @@ namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 public sealed record FileResult
 {
-    public FileResult()
-    {
-    }
-
     public FileResult(string responseText, FMask fMask, AMaskFile aMask)
     {
         var dataArr = responseText.TrimEnd().Split('|');
@@ -81,7 +77,7 @@ public sealed record FileResult
                         AudioCodecs = data.Split('\'').Where(e => e != "none").ToList();
                         break;
                     case FMask.AudioBitRates:
-                        AudioBitRates = data.Split('\'').Where(e => e != "none").Select(x => int.Parse(x)).ToList();
+                        AudioBitRates = data.Split('\'').Where(e => e != "none").Select(int.Parse).ToList();
                         break;
                     case FMask.VideoCodec:
                         VideoCodec = data != "none" ? data : null;
@@ -138,6 +134,7 @@ public sealed record FileResult
                         break;
                 }
             }
+
         foreach (var value in Enum.GetValues<AMaskFile>().OrderByDescending(v => v))
             if (aMask.HasFlag(value))
             {
@@ -159,11 +156,11 @@ public sealed record FileResult
                         Type = Enum.Parse<AnimeType>(data.Replace(" ", string.Empty), true);
                         break;
                     case AMaskFile.RelatedAnimeIds:
-                        RelatedAnimeIds = data.Split('\'').Select(x => int.Parse(x)).ToList();
+                        RelatedAnimeIds = data.Split('\'').Select(int.Parse).ToList();
                         break;
                     case AMaskFile.RelatedAnimeTypes:
                         RelatedAnimeTypes =
-                            data.Split('\'').Select(x => Enum.Parse<RelatedAnimeType>(x)).ToList();
+                            data.Split('\'').Select(Enum.Parse<RelatedAnimeType>).ToList();
                         break;
                     case AMaskFile.Categories:
                         Categories = data.Split(',').ToList();
@@ -222,76 +219,76 @@ public sealed record FileResult
 
     #region FMask
 
-    public int FileId { get; init; }
-    public int? AnimeId { get; init; }
-    public int? EpisodeId { get; init; }
-    public int? GroupId { get; init; }
-    public int? MyListId { get; init; }
-    public List<int>? OtherEpisodeIds { get; init; }
-    public List<float>? OtherEpisodePercentages { get; init; }
-    public bool? IsDeprecated { get; init; }
-    public FileState? State { get; init; }
+    public int FileId { get; }
+    public int? AnimeId { get; }
+    public int? EpisodeId { get; }
+    public int? GroupId { get; }
+    public int? MyListId { get; }
+    public List<int>? OtherEpisodeIds { get; }
+    public List<float>? OtherEpisodePercentages { get; }
+    public bool? IsDeprecated { get; }
+    public FileState? State { get; }
 
-    public long? Size { get; init; }
-    public string? Ed2K { get; init; }
-    public string? Md5 { get; init; }
-    public string? Sha1 { get; init; }
-    public string? Crc32 { get; init; }
-    public int? VideoColorDepth { get; init; }
+    public long? Size { get; }
+    public string? Ed2K { get; }
+    public string? Md5 { get; }
+    public string? Sha1 { get; }
+    public string? Crc32 { get; }
+    public int? VideoColorDepth { get; }
 
-    public string? Quality { get; init; }
-    public string? Source { get; init; }
-    public List<string>? AudioCodecs { get; init; }
-    public List<int>? AudioBitRates { get; init; }
-    public string? VideoCodec { get; init; }
-    public int? VideoBitRate { get; init; }
-    public string? VideoResolution { get; init; }
-    public string? FileExtension { get; init; }
+    public string? Quality { get; }
+    public string? Source { get; }
+    public List<string>? AudioCodecs { get; }
+    public List<int>? AudioBitRates { get; }
+    public string? VideoCodec { get; }
+    public int? VideoBitRate { get; }
+    public string? VideoResolution { get; }
+    public string? FileExtension { get; }
 
-    public List<string>? DubLanguages { get; init; }
-    public List<string>? SubLangugages { get; init; }
-    public int? LengthInSeconds { get; init; }
-    public string? Description { get; init; }
-    public DateTimeOffset? EpisodeAiredDate { get; init; }
-    public string? AniDbFileName { get; init; }
+    public List<string>? DubLanguages { get; }
+    public List<string>? SubLangugages { get; }
+    public int? LengthInSeconds { get; }
+    public string? Description { get; }
+    public DateTimeOffset? EpisodeAiredDate { get; }
+    public string? AniDbFileName { get; }
 
-    public MyListState? MyListState { get; init; }
-    public MyListFileState? MyListFileState { get; init; }
-    public bool? MyListViewed { get; init; }
-    public DateTimeOffset? MyListViewDate { get; init; }
-    public string? MyListStorage { get; init; }
-    public string? MyListSource { get; init; }
-    public string? MyListOther { get; init; }
+    public MyListState? MyListState { get; }
+    public MyListFileState? MyListFileState { get; }
+    public bool? MyListViewed { get; }
+    public DateTimeOffset? MyListViewDate { get; }
+    public string? MyListStorage { get; }
+    public string? MyListSource { get; }
+    public string? MyListOther { get; }
 
     #endregion FMask
 
     #region AMask
 
-    public int? TotalEpisodes { get; init; }
-    public int? HighestEpisodeNumber { get; init; }
-    public string? Year { get; init; }
-    public AnimeType? Type { get; init; }
-    public List<int>? RelatedAnimeIds { get; init; }
-    public List<RelatedAnimeType>? RelatedAnimeTypes { get; init; }
-    public List<string>? Categories { get; init; }
+    public int? TotalEpisodes { get; }
+    public int? HighestEpisodeNumber { get; }
+    public string? Year { get; }
+    public AnimeType? Type { get; }
+    public List<int>? RelatedAnimeIds { get; }
+    public List<RelatedAnimeType>? RelatedAnimeTypes { get; }
+    public List<string>? Categories { get; }
 
-    public string? TitleRomaji { get; init; }
-    public string? TitleKanji { get; init; }
-    public string? TitleEnglish { get; init; }
-    public List<string>? TitlesOther { get; init; }
-    public List<string>? TitlesShort { get; init; }
-    public List<string>? TitlesSynonym { get; init; }
+    public string? TitleRomaji { get; }
+    public string? TitleKanji { get; }
+    public string? TitleEnglish { get; }
+    public List<string>? TitlesOther { get; }
+    public List<string>? TitlesShort { get; }
+    public List<string>? TitlesSynonym { get; }
 
-    public string? EpisodeNumber { get; init; }
-    public string? EpisodeTitleEnglish { get; init; }
-    public string? EpisodeTitleRomaji { get; init; }
-    public string? EpisodeTitleKanji { get; init; }
-    public int? EpisodeRating { get; init; }
-    public int? EpisodeVoteCount { get; init; }
+    public string? EpisodeNumber { get; }
+    public string? EpisodeTitleEnglish { get; }
+    public string? EpisodeTitleRomaji { get; }
+    public string? EpisodeTitleKanji { get; }
+    public int? EpisodeRating { get; }
+    public int? EpisodeVoteCount { get; }
 
-    public string? GroupName { get; init; }
-    public string? GroupNameShort { get; init; }
-    public DateTimeOffset? DateRecordUpdated { get; init; }
+    public string? GroupName { get; }
+    public string? GroupNameShort { get; }
+    public DateTimeOffset? DateRecordUpdated { get; }
 
     #endregion AMask
 }
