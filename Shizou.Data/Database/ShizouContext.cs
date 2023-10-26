@@ -33,6 +33,7 @@ public sealed class ShizouContext : IdentityDbContext
     public DbSet<EpisodeWatchedState> EpisodeWatchedStates { get; set; } = null!;
     public DbSet<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; set; } = null!;
     public DbSet<Timer> Timers { get; set; } = null!;
+    public DbSet<AniDbAnimeRelation> AniDbAnimeRelations { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

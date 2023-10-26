@@ -101,7 +101,24 @@ public class AnimeCommand : Command<AnimeArgs>
 
         await UpdateMalXrefs(animeResult);
 
+        UpdateRelatedAnime(animeResult);
+
         Completed = true;
+    }
+
+    private void UpdateRelatedAnime(AnimeResult animeResult)
+    {
+        var eAnimeRelations = _context.AniDbAnimeRelations.Where(r => r.AnimeId == animeResult.Id).ToList();
+        var animeRelations = animeResult.Relatedanime.Select(r => new AniDbAnimeRelation
+        {
+            AnimeId = animeResult.Id,
+            ToAnimeId = r.Id,
+            RelationType = Enum.Parse<RelatedAnimeType>(r.Type.Replace(" ", string.Empty), true)
+        }).ToList();
+        Func<AniDbAnimeRelation, (int AnimeId, int ToAnimeId, RelatedAnimeType RelationType)> toTuple = r => (r.AnimeId, r.ToAnimeId, r.RelationType);
+        _context.AniDbAnimeRelations.RemoveRange(eAnimeRelations.ExceptBy(animeRelations.Select(toTuple), toTuple));
+        _context.AniDbAnimeRelations.AddRange(animeRelations.ExceptBy(eAnimeRelations.Select(toTuple), toTuple));
+        _context.SaveChanges();
     }
 
     private static AniDbAnime AnimeResultToAniDbAnime(AnimeResult animeResult)
