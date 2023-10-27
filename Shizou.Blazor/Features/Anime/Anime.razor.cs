@@ -17,6 +17,7 @@ public partial class Anime
 
     private AniDbAnime? _anime;
     private EpisodeTable _episodeTable = default!;
+    private bool _showEpisodes = true;
 
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
