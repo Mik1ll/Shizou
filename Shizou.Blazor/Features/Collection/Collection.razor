@@ -6,17 +6,7 @@
     <div class="d-flex flex-wrap justify-content-center">
         @foreach (var anime in _anime)
         {
-            <div class="card collection-card m-2" role="button" @onclick="@(() => GoToAnime(anime.Id))">
-                @if (anime.ImageFilename is not null)
-                {
-                    <img class="card-img object-fit-contain h-100" src="@($"{WebPaths.AnimePostersDir}/{anime.ImageFilename}")">
-                }
-                <div class="card-img-overlay d-flex p-0 align-items-end">
-                    <div class="p-2 text-center text-white bg-black bg-opacity-25 w-100 overflow-hidden" style="text-shadow: 2px -1px 2px #000">
-                        @(anime.TitleTranscription)
-                    </div>
-                </div>
-            </div>
+            <AnimeCard AniDbAnime="@anime"></AnimeCard>
         }
     </div>
 </article>

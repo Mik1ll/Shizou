@@ -26,9 +26,4 @@ public partial class Collection
         using var context = ContextFactory.CreateDbContext();
         _anime = context.AniDbAnimes.Where(a => a.AniDbEpisodes.Any(e => e.AniDbFiles.Any(f => f.LocalFile != null) || e.ManualLinkLocalFiles.Any())).ToList();
     }
-
-    private void GoToAnime(int animeId)
-    {
-        NavigationManager.NavigateTo($"/Collection/{animeId}");
-    }
 }
