@@ -1,9 +1,8 @@
-﻿.collection-card-img {
+﻿.collection-card {
     height: 25vh;
     min-height: 12rem;
     max-width: 35vw;
-    object-fit: contain;
-    width: 100%;
+    min-width: 10rem;
 }
 
 .collection-card-footer {
