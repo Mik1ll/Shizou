@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
+using Shizou.Server.Extensions.Query;
 
 namespace Shizou.Blazor.Features.Collection;
 
@@ -24,6 +25,6 @@ public partial class Collection
     private void RefreshAnime()
     {
         using var context = ContextFactory.CreateDbContext();
-        _anime = context.AniDbAnimes.Where(a => a.AniDbEpisodes.Any(e => e.AniDbFiles.Any(f => f.LocalFile != null) || e.ManualLinkLocalFiles.Any())).ToList();
+        _anime = context.AniDbAnimes.HasLocalFiles().ToList();
     }
 }

@@ -4,7 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Features.Anime.Components;
 using Shizou.Blazor.Features.Components;
 using Shizou.Data.Database;
+using Shizou.Data.Enums;
 using Shizou.Data.Models;
+using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Anime;
@@ -17,6 +19,7 @@ public partial class Anime
 
     private AniDbAnime? _anime;
     private EpisodeTable _episodeTable = default!;
+    private List<(RelatedAnimeType, AniDbAnime)>? _relatedAnime;
 
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
@@ -38,6 +41,10 @@ public partial class Anime
             .ThenInclude(e => e.ManualLinkLocalFiles)
             .Include(a => a.MalAnimes)
             .FirstOrDefault(a => a.Id == AnimeId);
+        _relatedAnime = (from ra in context.AniDbAnimeRelations
+            where ra.AnimeId == AnimeId
+            join a in context.AniDbAnimes.HasLocalFiles() on ra.ToAnimeId equals a.Id
+            select new { ra.RelationType, a }).AsEnumerable().Select(x => (x.RelationType, x.a)).ToList();
     }
 
     private void MarkAllWatched(AniDbAnime anime)
