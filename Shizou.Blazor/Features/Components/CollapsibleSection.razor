@@ -1,0 +1,7 @@
+﻿<button type="button" class="btn btn-secondary @(_show ? "active" : "") w-100 rounded-0 rounded-top d-flex justify-content-between" @onclick="@(() => _show = !_show)">
+    <i class="text-start bi @(_show ? "bi-chevron-up" : "bi-chevron-down")" style="flex: 1"></i><span>@Header</span><span style="flex: 1"></span>
+</button>
+@if (_show)
+{
+    @ChildContent
+}

@@ -60,13 +60,9 @@
 
             <div class="row justify-content-center">
                 <div class="mt-3 col-xl-6 col-lg-8 col-md-10 col-12">
-                    <button type="button" class="btn btn-secondary @(_showEpisodes ? "active" : "") w-100 rounded-0 rounded-top d-flex justify-content-between" @onclick="@(() => _showEpisodes = !_showEpisodes)">
-                        <i class="text-start bi @(_showEpisodes ? "bi-chevron-up" : "bi-chevron-down")" style="flex: 1"></i><span >Episodes</span><span style="flex: 1"></span>
-                    </button>
-                    @if (_showEpisodes)
-                    {
+                    <CollapsibleSection Header="Episodes" ShowDefault="true">
                         <EpisodeTable @ref="@_episodeTable" AnimeId="AnimeId"></EpisodeTable>
-                    }
+                    </CollapsibleSection>
                 </div>
             </div>
         </div>
