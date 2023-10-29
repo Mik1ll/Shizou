@@ -30,7 +30,7 @@ try
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("HttpScheme",
-            policy => { policy.WithOrigins("http://localhost:5000"); });
+            policy => { policy.WithOrigins("http://localhost"); });
     });
 
     builder.Services.AddHostedService<StartupService>();
