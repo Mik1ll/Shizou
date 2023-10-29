@@ -16,9 +16,6 @@ using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
-// using System.Xml;
-// using System.Xml.Serialization;
-
 namespace Shizou.Server.Commands.AniDb;
 
 public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}");
