@@ -1,5 +1,8 @@
-﻿<ModalWrapper class="modal-xl modal-fullscreen-lg-down">
+﻿@using Blazored.Video
+<ModalWrapper Cancel="@Cancel" class="modal-xl modal-fullscreen-lg-down">
     <div class="modal-body">
-        <video class="object-fit-contain h-100 w-100" controls src="api/FileServer/@LocalFileId"></video>
+        <BlazoredVideo id="@_videoId" class="h-100 w-100 object-fit-contain" controls="controls">
+            <source src="api/FileServer/@LocalFileId"/>
+        </BlazoredVideo>
     </div>
 </ModalWrapper>

@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="Blazored.Modal" Version="7.1.0" />
+        <PackageReference Include="Blazored.Video" Version="1.0.1" />
         <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
         <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.175" />
     </ItemGroup>

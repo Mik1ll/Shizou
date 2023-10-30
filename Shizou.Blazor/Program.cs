@@ -1,4 +1,5 @@
 using Blazored.Modal;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 using Shizou.Blazor;
@@ -15,6 +16,22 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddBlazoredModal();
+
+#region For Testing Subtitles
+
+builder.Services.Configure<StaticFileOptions>(options =>
+{
+    options.ContentTypeProvider = new FileExtensionContentTypeProvider
+    {
+        Mappings =
+        {
+            [".ass"] = "text/x-ssa",
+            [".ssa"] = "text/x-ssa"
+        }
+    };
+});
+
+#endregion
 
 builder.AddShizouOptions()
     .AddShizouLogging();

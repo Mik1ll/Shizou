@@ -41,6 +41,7 @@
 </div>
 
 <script src="lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="lib/libass-wasm/js/subtitles-octopus.min.js"></script>
 
 @* ReSharper disable Html.PathError *@
 <script src="_framework/blazor.server.js"></script>
@@ -59,6 +60,34 @@ function loadToast(element) {
     const toast = new bootstrap.Toast(element);
     toast.show();
 }
+</script>
+<script type="text/javascript">
+var subtitleHandler = {
+    instance: null,
+    loadSubtitle: function (elementId, subtitleUrl) {
+       var options = {
+           video: document.getElementById(elementId), // HTML5 video element
+           subUrl: subtitleUrl, // Link to subtitles
+           fonts: [],
+           workerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker.min.js', // Link to WebAssembly-based file "libassjs-worker.js"
+           legacyWorkerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker-legacy.min.js', // Link to non-WebAssembly worker
+           fallbackFont: '/fonts/default.woff2'
+       };
+       subtitleHandler.dispose()
+       subtitleHandler.instance = new SubtitlesOctopus(options);
+    },
+    free: function() {
+        if (subtitleHandler.instance) {
+            subtitleHandler.instance.freeTrack();
+        }
+    },
+    dispose: function() {
+        if (subtitleHandler.instance) {
+            subtitleHandler.instance.dispose();
+            subtitleHandler.instance = null;
+        }
+    }
+};
 </script>
 </body>
 </html>

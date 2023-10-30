@@ -19,6 +19,10 @@
     {
       "library": "open-iconic@1.1.1",
       "destination": "wwwroot/lib/open-iconic"
+    },
+    {
+      "library": "libass-wasm@4.1.0",
+      "destination": "wwwroot/lib/libass-wasm"
     }
   ]
 }
