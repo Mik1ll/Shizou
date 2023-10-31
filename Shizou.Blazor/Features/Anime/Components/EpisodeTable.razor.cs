@@ -26,7 +26,7 @@ public partial class EpisodeTable
         using var context = ContextFactory.CreateDbContext();
         _fileCounts = (from ep in context.AniDbEpisodes
                 where ep.AniDbAnimeId == AnimeId
-                select new { EpId = ep.Id, Count = ep.AniDbFiles.Count + ep.ManualLinkLocalFiles.Count })
+                select new { EpId = ep.Id, Count = ep.AniDbFiles.Count(f => f.LocalFile != null) + ep.ManualLinkLocalFiles.Count })
             .ToDictionary(x => x.EpId, x => x.Count);
         _watchedEps = (from ep in context.AniDbEpisodes
             where ep.AniDbAnimeId == AnimeId && (ep.EpisodeWatchedState.Watched || ep.AniDbFiles.Any(f => f.FileWatchedState.Watched))
