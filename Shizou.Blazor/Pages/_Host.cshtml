@@ -64,21 +64,29 @@ function loadToast(element) {
 <script type="text/javascript">
 var subtitleHandler = {
     instance: null,
-    loadSubtitle: function (elementId, subtitleUrl) {
-       var options = {
-           video: document.getElementById(elementId), // HTML5 video element
-           subUrl: subtitleUrl, // Link to subtitles
-           fonts: [],
-           workerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker.min.js', // Link to WebAssembly-based file "libassjs-worker.js"
-           legacyWorkerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker-legacy.min.js', // Link to non-WebAssembly worker
-           fallbackFont: '/fonts/default.woff2'
-       };
-       subtitleHandler.dispose()
-       subtitleHandler.instance = new SubtitlesOctopus(options);
-    },
-    free: function() {
-        if (subtitleHandler.instance) {
-            subtitleHandler.instance.freeTrack();
+    loadSubtitle: function (elementId, subtitleUrls) {
+        var video = document.getElementById(elementId);
+        var options = {
+            video: video, // HTML5 video element
+            subUrl: subtitleUrls[0], // Link to subtitles
+            fonts: [],
+            workerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker.min.js', // Link to WebAssembly-based file "libassjs-worker.js"
+            legacyWorkerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker-legacy.min.js', // Link to non-WebAssembly worker
+            fallbackFont: '/fonts/default.woff2'
+        };
+        subtitleHandler.dispose()
+        subtitleHandler.instance = new SubtitlesOctopus(options);
+        video.textTracks.onchange = (event) => {
+            var showingIdx = [...event.currentTarget].findIndex((track) => track.mode === 'showing');
+            if (showingIdx >= 0) {
+                if (subtitleUrls[showingIdx] !== subtitleHandler.instance.subUrl) {
+                    subtitleHandler.instance.setSubUrl(subtitleUrls[showingIdx]);
+                    subtitleHandler.instance.setTrackByUrl(subtitleUrls[showingIdx]);
+                }
+            } else {
+                subtitleHandler.instance.setSubUrl('');
+                subtitleHandler.instance.freeTrack();
+            }
         }
     },
     dispose: function() {

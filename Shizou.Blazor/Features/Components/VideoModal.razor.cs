@@ -8,6 +8,7 @@ namespace Shizou.Blazor.Features.Components;
 public partial class VideoModal
 {
     private readonly string _videoId = "videoModalId";
+    private readonly List<string> _assSubUrls = new() { "/test.ass", "/test2.ass" };
 
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
@@ -26,7 +27,7 @@ public partial class VideoModal
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JsRuntime.InvokeVoidAsync("subtitleHandler.loadSubtitle", _videoId, "/test.ass");
+        await JsRuntime.InvokeVoidAsync("subtitleHandler.loadSubtitle", _videoId, _assSubUrls);
     }
 
     private async Task Cancel()

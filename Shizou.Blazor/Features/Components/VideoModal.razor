@@ -3,6 +3,8 @@
     <div class="modal-body">
         <BlazoredVideo id="@_videoId" class="h-100 w-100 object-fit-contain" controls="controls">
             <source src="api/FileServer/@LocalFileId"/>
+            <track default kind="subtitles" src="/dummy.vtt"/>
+            <track kind="subtitles" src="/dummy.vtt"/> 
         </BlazoredVideo>
     </div>
 </ModalWrapper>

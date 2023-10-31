@@ -26,7 +26,8 @@ builder.Services.Configure<StaticFileOptions>(options =>
         Mappings =
         {
             [".ass"] = "text/x-ssa",
-            [".ssa"] = "text/x-ssa"
+            [".ssa"] = "text/x-ssa",
+            [".vtt"] = "text/vtt"
         }
     };
 });
