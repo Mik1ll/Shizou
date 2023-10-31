@@ -65,40 +65,50 @@ function loadToast(element) {
 }
 </script>
 <script type="text/javascript">
+function loadPlayer(elementId, subtitleUrls) {
+    videojs(document.getElementById(elementId), {fluid:true}, function onPlayerReady() {
+        if (subtitleUrls.length <= 0) {
+            return;
+        }
+        var video = this.tech_.el_;
+        var options = {
+            video: video, // HTML5 video element
+            subUrl: subtitleUrls[0], // Link to subtitles
+            fonts: [],
+            workerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker.min.js', // Link to WebAssembly-based file "libassjs-worker.js"
+            legacyWorkerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker-legacy.min.js', // Link to non-WebAssembly worker
+            fallbackFont: '/fonts/default.woff2'
+        };
+        subtitleHandler.dispose()
+        subtitleHandler.instance = new SubtitlesOctopus(options);
+        this.textTracks().addEventListener('change', (event) => {
+            var showingIdx = this.textTracks().tracks_.findIndex((track) => track.mode === 'showing');
+            if (showingIdx >= 0) {
+                subtitleHandler.setTrack(subtitleUrls[showingIdx]);
+            } else {
+                subtitleHandler.free();
+            }
+        });
+    });
+}
 var subtitleHandler = {
     instance: null,
-    loadSubtitle: function (elementId, subtitleUrls) {
-        var video = document.getElementById(elementId);
-        var player = videojs(video, {fluid:true}, function onPlayerReady() {
-            var video = this.tech_.el_;
-            var options = {
-                video: video, // HTML5 video element
-                subUrl: subtitleUrls[0], // Link to subtitles
-                fonts: [],
-                workerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker.min.js', // Link to WebAssembly-based file "libassjs-worker.js"
-                legacyWorkerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker-legacy.min.js', // Link to non-WebAssembly worker
-                fallbackFont: '/fonts/default.woff2'
-            };
-            subtitleHandler.dispose()
-            subtitleHandler.instance = new SubtitlesOctopus(options);
-            player.textTracks().addEventListener('change', (event) => {
-                var showingIdx = player.textTracks().tracks_.findIndex((track) => track.mode === 'showing');
-                if (showingIdx >= 0) {
-                    if (subtitleUrls[showingIdx] !== subtitleHandler.instance.subUrl) {
-                        subtitleHandler.instance.setTrackByUrl(subtitleUrls[showingIdx]);
-                        subtitleHandler.instance.setSubUrl(subtitleUrls[showingIdx]);
-                    }
-                } else {
-                    subtitleHandler.instance.freeTrack();
-                    subtitleHandler.instance.setSubUrl('');
-                }
-            });
-        });
-    },
     dispose: function() {
         if (subtitleHandler.instance) {
             subtitleHandler.instance.dispose();
             subtitleHandler.instance = null;
+        }
+    },
+    free: function() {
+        if (subtitleHandler.instance) {
+            subtitleHandler.instance.freeTrack();
+            subtitleHandler.instance.setSubUrl('');
+        }
+    },
+    setTrack: function(subUrl) {
+        if (subUrl !== subtitleHandler.instance.subUrl) {
+            subtitleHandler.instance.setTrackByUrl(subUrl);
+            subtitleHandler.instance.setSubUrl(subUrl);
         }
     }
 };

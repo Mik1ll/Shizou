@@ -54,7 +54,7 @@ public partial class VideoModal
     {
         if (_loadSubtitles)
         {
-            await JsRuntime.InvokeVoidAsync("subtitleHandler.loadSubtitle", _videoId, _assSubUrls);
+            await JsRuntime.InvokeVoidAsync("loadPlayer", _videoId, _assSubUrls);
             _loadSubtitles = false;
         }
     }
