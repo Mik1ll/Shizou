@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics;
 using Blazored.Modal;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using Shizou.Blazor.Extensions;
 using Shizou.Data.Database;
+using Shizou.Data.Models;
 
 namespace Shizou.Blazor.Features.Components;
 
@@ -13,6 +15,8 @@ public partial class VideoModal
     private readonly string _videoId = "videoModalId";
     private readonly List<string> _assSubUrls = new();
     private bool _loadSubtitles;
+    private LocalFile? _localFile;
+    private string? _localFileMimeType;
 
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
@@ -34,6 +38,14 @@ public partial class VideoModal
 
     protected override async Task OnInitializedAsync()
     {
+        // ReSharper disable once MethodHasAsyncOverload
+        // ReSharper disable once UseAwaitUsing
+        using var context = ContextFactory.CreateDbContext();
+        _localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == LocalFileId);
+        _localFileMimeType = null;
+        if (_localFile is not null)
+            new FileExtensionContentTypeProvider().TryGetContentType(_localFile.PathTail, out _localFileMimeType);
+        _localFileMimeType ??= "video/mp4";
         await GetAssStreamUrls();
         _loadSubtitles = true;
     }
@@ -55,13 +67,9 @@ public partial class VideoModal
 
     private async Task GetAssStreamUrls()
     {
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
-        using var context = ContextFactory.CreateDbContext();
-        var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == LocalFileId);
-        if (localFile is null || localFile.ImportFolder is null)
+        if (_localFile is null || _localFile.ImportFolder is null)
             return;
-        var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
+        var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(_localFile.ImportFolder.Path, _localFile.PathTail)));
         if (!fileInfo.Exists)
             return;
 

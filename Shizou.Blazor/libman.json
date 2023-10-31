@@ -23,6 +23,10 @@
     {
       "library": "libass-wasm@4.1.0",
       "destination": "wwwroot/lib/libass-wasm"
+    },
+    {
+      "library": "video.js@8.6.1",
+      "destination": "wwwroot/lib/video.js"
     }
   ]
 }

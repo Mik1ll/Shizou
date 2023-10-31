@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="lib/open-iconic/font/css/open-iconic-bootstrap.min.css"/>
     <link rel="stylesheet" href="lib/bootstrap-icons/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" href="lib/video.js/video-js.min.css"/>
     <link rel="stylesheet" href="css/site.css"/>
     @* ReSharper disable Html.PathError *@
     <link rel="stylesheet" href="Shizou.Blazor.styles.css"/>
@@ -42,10 +43,12 @@
 
 <script src="lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="lib/libass-wasm/js/subtitles-octopus.min.js"></script>
+<script src="lib/video.js/alt/video.novtt.min.js"></script>
 
 @* ReSharper disable Html.PathError *@
 <script src="_framework/blazor.server.js"></script>
 @* ReSharper restore Html.PathError *@
+
 <script type="text/javascript">
 function loadTooltip(element) {
     'use strict';
@@ -66,28 +69,31 @@ var subtitleHandler = {
     instance: null,
     loadSubtitle: function (elementId, subtitleUrls) {
         var video = document.getElementById(elementId);
-        var options = {
-            video: video, // HTML5 video element
-            subUrl: subtitleUrls[0], // Link to subtitles
-            fonts: [],
-            workerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker.min.js', // Link to WebAssembly-based file "libassjs-worker.js"
-            legacyWorkerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker-legacy.min.js', // Link to non-WebAssembly worker
-            fallbackFont: '/fonts/default.woff2'
-        };
-        subtitleHandler.dispose()
-        subtitleHandler.instance = new SubtitlesOctopus(options);
-        video.textTracks.onchange = (event) => {
-            var showingIdx = [...event.currentTarget].findIndex((track) => track.mode === 'showing');
-            if (showingIdx >= 0) {
-                if (subtitleUrls[showingIdx] !== subtitleHandler.instance.subUrl) {
-                    subtitleHandler.instance.setSubUrl(subtitleUrls[showingIdx]);
-                    subtitleHandler.instance.setTrackByUrl(subtitleUrls[showingIdx]);
+        var player = videojs(video, {fluid:true}, function onPlayerReady() {
+            var video = this.tech_.el_;
+            var options = {
+                video: video, // HTML5 video element
+                subUrl: subtitleUrls[0], // Link to subtitles
+                fonts: [],
+                workerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker.min.js', // Link to WebAssembly-based file "libassjs-worker.js"
+                legacyWorkerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker-legacy.min.js', // Link to non-WebAssembly worker
+                fallbackFont: '/fonts/default.woff2'
+            };
+            subtitleHandler.dispose()
+            subtitleHandler.instance = new SubtitlesOctopus(options);
+            player.textTracks().addEventListener('change', (event) => {
+                var showingIdx = player.textTracks().tracks_.findIndex((track) => track.mode === 'showing');
+                if (showingIdx >= 0) {
+                    if (subtitleUrls[showingIdx] !== subtitleHandler.instance.subUrl) {
+                        subtitleHandler.instance.setTrackByUrl(subtitleUrls[showingIdx]);
+                        subtitleHandler.instance.setSubUrl(subtitleUrls[showingIdx]);
+                    }
+                } else {
+                    subtitleHandler.instance.freeTrack();
+                    subtitleHandler.instance.setSubUrl('');
                 }
-            } else {
-                subtitleHandler.instance.setSubUrl('');
-                subtitleHandler.instance.freeTrack();
-            }
-        }
+            });
+        });
     },
     dispose: function() {
         if (subtitleHandler.instance) {

@@ -1,12 +1,11 @@
-﻿@using Blazored.Video
-<ModalWrapper Cancel="@Cancel" class="modal-xl modal-fullscreen-lg-down">
+﻿<ModalWrapper Cancel="@Cancel" class="modal-xl modal-fullscreen-lg-down">
     <div class="modal-body">
-        <BlazoredVideo id="@_videoId" class="h-100 w-100 object-fit-contain" controls="controls">
-            <source src="api/FileServer/@LocalFileId"/>
+        <video id="@_videoId" class="h-100 w-100 object-fit-contain video-js" controls>
+            <source src="api/FileServer/@LocalFileId" type="@(_localFileMimeType)"/>
             @foreach (var idx in _assSubUrls.Select((_, idx) => idx))
             {
                 <track default="@(idx == 0)" kind="subtitles" src="/dummy.vtt"/>
             }
-        </BlazoredVideo>
+        </video>
     </div>
 </ModalWrapper>
