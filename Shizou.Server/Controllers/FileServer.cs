@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
@@ -40,22 +41,62 @@ public class FileServer : ControllerBase
     public ActionResult Get(string localFileId)
     {
         var id = int.Parse(localFileId.Split('.')[0]);
-        var localDbFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == id);
-        if (localDbFile is null)
+        var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == id);
+        if (localFile is null)
             return NotFound();
-        if (localDbFile.ImportFolder is null)
+        if (localFile.ImportFolder is null)
         {
             _logger.LogWarning("Tried to get local file with no import folder");
             return Conflict("Import folder does not exist");
         }
-        var localFile = new FileInfo(Path.GetFullPath(Path.Combine(localDbFile.ImportFolder.Path, localDbFile.PathTail)));
-        if (!localFile.Exists)
-            return Conflict("Local file path does not exist");
-        if (!new FileExtensionContentTypeProvider().TryGetContentType(localFile.Name, out var mimeType))
-            mimeType = "application/octet-stream";
-        var fileStream = new FileStream(localFile.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 19, FileOptions.Asynchronous);
 
-        return File(fileStream, mimeType, localFile.Name, true);
+        var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
+        if (!fileInfo.Exists)
+            return Conflict("Local file path does not exist");
+        if (!new FileExtensionContentTypeProvider().TryGetContentType(fileInfo.Name, out var mimeType))
+            mimeType = "application/octet-stream";
+        var fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 19, FileOptions.Asynchronous);
+
+        return File(fileStream, mimeType, fileInfo.Name, true);
+    }
+
+    /// <summary>
+    ///     Get embedded ASS subtitle of local file
+    /// </summary>
+    /// <param name="localFileId"></param>
+    /// <param name="subtitleIndex"></param>
+    /// <returns></returns>
+    [HttpGet("AssSubs/{localFileId:int}/{subtitleIndex:int}")]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status409Conflict)]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "text/x-ssa")]
+    public ActionResult GetAssSubtitle(int localFileId, int subtitleIndex)
+    {
+        var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
+        if (localFile is null)
+            return NotFound();
+        if (localFile.ImportFolder is null)
+        {
+            _logger.LogWarning("Tried to get local file with no import folder");
+            return Conflict("Import folder does not exist");
+        }
+
+        var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
+        if (!fileInfo.Exists)
+            return Conflict("Local file path does not exist");
+
+        using var p = new Process();
+        p.StartInfo.UseShellExecute = false;
+        p.StartInfo.CreateNoWindow = true;
+        p.StartInfo.RedirectStandardOutput = true;
+        p.StartInfo.FileName = "ffmpeg";
+        p.StartInfo.Arguments = $"-hide_banner -v fatal -i \"{fileInfo.FullName}\" -map 0:{subtitleIndex} -c copy -f ass -";
+        p.Start();
+        using var memoryStream = new MemoryStream();
+        p.StandardOutput.BaseStream.CopyTo(memoryStream);
+        var result = memoryStream.ToArray();
+
+        return new FileContentResult(result, "text/x-ssa");
     }
 
     [HttpGet("{localFileId:int}/play")]

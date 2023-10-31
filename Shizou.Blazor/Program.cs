@@ -17,8 +17,6 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddBlazoredModal();
 
-#region For Testing Subtitles
-
 builder.Services.Configure<StaticFileOptions>(options =>
 {
     options.ContentTypeProvider = new FileExtensionContentTypeProvider
@@ -31,8 +29,6 @@ builder.Services.Configure<StaticFileOptions>(options =>
         }
     };
 });
-
-#endregion
 
 builder.AddShizouOptions()
     .AddShizouLogging();
