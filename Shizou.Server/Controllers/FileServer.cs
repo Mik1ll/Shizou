@@ -99,6 +99,60 @@ public class FileServer : ControllerBase
         return new FileContentResult(result, "text/x-ssa");
     }
 
+    /// <summary>
+    ///     Get embedded ASS subtitle of local file
+    /// </summary>
+    /// <param name="localFileId"></param>
+    /// <param name="fontIndex"></param>
+    /// <param name="fontName"></param>
+    /// <returns></returns>
+    [HttpGet("Fonts/{localFileId:int}/{fontIndex:int}")]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    [SwaggerResponse(StatusCodes.Status409Conflict)]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: new[] { "font/ttf", "font/otf" })]
+    public ActionResult GetFont(int localFileId, int fontIndex, [FromQuery] string? fontName)
+    {
+        var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
+        if (localFile is null)
+            return NotFound();
+        if (localFile.ImportFolder is null)
+        {
+            _logger.LogWarning("Tried to get local file with no import folder");
+            return Conflict("Import folder does not exist");
+        }
+
+        if (fontName is null)
+        {
+            _logger.LogWarning("Tried to get font without font name");
+            return BadRequest("No font name provided");
+        }
+
+        var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
+        if (!fileInfo.Exists)
+            return Conflict("Local file path does not exist");
+
+        var tempDirectory = Path.Combine(Path.GetTempPath(), "ShizouFonts", localFileId.ToString());
+        var fontPath = Path.Combine(tempDirectory, fontName);
+        if (!Path.Exists(fontPath))
+        {
+            Directory.CreateDirectory(tempDirectory);
+            using var p = new Process();
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.FileName = "ffmpeg";
+            p.StartInfo.Arguments = $"-hide_banner -v fatal -y -dump_attachment:{fontIndex} \"\" -i \"{fileInfo.FullName}\"";
+            p.StartInfo.WorkingDirectory = tempDirectory;
+            p.Start();
+            p.WaitForExit();
+        }
+
+        if (!new FileExtensionContentTypeProvider().TryGetContentType(fontName, out var mimeType))
+            mimeType = "font/ttf";
+        return PhysicalFile(fontPath, mimeType);
+    }
+
     [HttpGet("{localFileId:int}/play")]
     [Produces("text/html")]
     [SwaggerResponse(StatusCodes.Status200OK)]

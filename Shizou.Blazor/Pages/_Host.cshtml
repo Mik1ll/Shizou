@@ -65,7 +65,7 @@ function loadToast(element) {
 }
 </script>
 <script type="text/javascript">
-function loadPlayer(elementId, subtitleUrls) {
+function loadPlayer(elementId, subtitleUrls, fontUrls) {
     videojs(document.getElementById(elementId), {fluid:true}, function onPlayerReady() {
         if (subtitleUrls.length <= 0) {
             return;
@@ -74,7 +74,7 @@ function loadPlayer(elementId, subtitleUrls) {
         var options = {
             video: video, // HTML5 video element
             subUrl: subtitleUrls[0], // Link to subtitles
-            fonts: [],
+            fonts: fontUrls,
             workerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker.min.js', // Link to WebAssembly-based file "libassjs-worker.js"
             legacyWorkerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker-legacy.min.js', // Link to non-WebAssembly worker
             fallbackFont: '/fonts/default.woff2'

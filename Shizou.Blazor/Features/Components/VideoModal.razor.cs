@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using System.Web;
 using Blazored.Modal;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.StaticFiles;
@@ -16,6 +17,7 @@ public partial class VideoModal
 {
     private readonly string _videoId = "videoModalId";
     private readonly List<(string Url, string? Lang, string? Title)> _assSubs = new();
+    private readonly List<string> _fontUrls = new();
     private bool _loadSubtitles;
     private LocalFile? _localFile;
     private string? _localFileMimeType;
@@ -48,7 +50,7 @@ public partial class VideoModal
         if (_localFile is not null)
             new FileExtensionContentTypeProvider().TryGetContentType(_localFile.PathTail, out _localFileMimeType);
         _localFileMimeType ??= "video/mp4";
-        await GetAssStreamUrls();
+        await GetStreamUrls();
         _loadSubtitles = true;
     }
 
@@ -56,7 +58,7 @@ public partial class VideoModal
     {
         if (_loadSubtitles)
         {
-            await JsRuntime.InvokeVoidAsync("loadPlayer", _videoId, _assSubs.Select(s => s.Url).ToList());
+            await JsRuntime.InvokeVoidAsync("loadPlayer", _videoId, _assSubs.Select(s => s.Url).ToList(), _fontUrls);
             _loadSubtitles = false;
         }
     }
@@ -67,7 +69,7 @@ public partial class VideoModal
         await ModalInstance.CancelAsync();
     }
 
-    private async Task GetAssStreamUrls()
+    private async Task GetStreamUrls()
     {
         if (_localFile is null || _localFile.ImportFolder is null)
             return;
@@ -82,27 +84,39 @@ public partial class VideoModal
         p.StartInfo.StandardOutputEncoding = Encoding.UTF8;
         p.StartInfo.FileName = "ffprobe";
         p.StartInfo.Arguments =
-            $"-v fatal -select_streams s -show_entries \"stream=index,codec_name : stream_tags=language,title\" -of json=c=1 \"{fileInfo.FullName}\"";
+            $"-v fatal -show_entries \"stream=index,codec_name : stream_tags=language,title,filename\" -of json=c=1 \"{fileInfo.FullName}\"";
         p.Start();
         _assSubs.Clear();
         using var document = JsonDocument.Parse(await p.StandardOutput.ReadToEndAsync());
         foreach (var streamEl in document.RootElement.GetProperty("streams").EnumerateArray())
         {
-            if (!new[] { "ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext" }.Contains(streamEl.GetProperty("codec_name")
-                    .GetString()))
-                continue;
             var index = streamEl.GetProperty("index").GetInt32();
-            string? lang = null;
-            string? title = null;
-            if (streamEl.TryGetProperty("tags", out var tags))
+            var codec = streamEl.GetProperty("codec_name")
+                .GetString();
+            if (new[] { "ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext" }.Contains(codec))
             {
-                if (tags.TryGetProperty("language", out var langEl))
-                    lang = langEl.GetString();
-                if (tags.TryGetProperty("title", out var titleEl))
-                    title = titleEl.GetString();
-            }
+                string? lang = null;
+                string? title = null;
+                if (streamEl.TryGetProperty("tags", out var tags))
+                {
+                    if (tags.TryGetProperty("language", out var langEl))
+                        lang = langEl.GetString();
+                    if (tags.TryGetProperty("title", out var titleEl))
+                        title = titleEl.GetString();
+                }
 
-            _assSubs.Add(($"/api/FileServer/AssSubs/{LocalFileId}/{index}", lang, title));
+                _assSubs.Add(($"/api/FileServer/AssSubs/{LocalFileId}/{index}", lang, title));
+            }
+            else if (new[] { "ttf", "otf" }.Contains(codec))
+            {
+                string? filename = null;
+                if (streamEl.TryGetProperty("tags", out var tags))
+                    if (tags.TryGetProperty("filename", out var filenameEl))
+                        filename = filenameEl.GetString();
+
+                if (filename is not null)
+                    _fontUrls.Add($"/api/FileServer/Fonts/{LocalFileId}/{index}?fontName={HttpUtility.UrlEncode(filename)}");
+            }
         }
     }
 }
