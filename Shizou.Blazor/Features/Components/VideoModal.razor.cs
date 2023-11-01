@@ -88,7 +88,8 @@ public partial class VideoModal
         using var document = JsonDocument.Parse(await p.StandardOutput.ReadToEndAsync());
         foreach (var streamEl in document.RootElement.GetProperty("streams").EnumerateArray())
         {
-            if (streamEl.GetProperty("codec_name").GetString() != "ass")
+            if (!new[] { "ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext" }.Contains(streamEl.GetProperty("codec_name")
+                    .GetString()))
                 continue;
             var index = streamEl.GetProperty("index").GetInt32();
             string? lang = null;

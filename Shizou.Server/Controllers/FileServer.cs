@@ -90,7 +90,7 @@ public class FileServer : ControllerBase
         p.StartInfo.CreateNoWindow = true;
         p.StartInfo.RedirectStandardOutput = true;
         p.StartInfo.FileName = "ffmpeg";
-        p.StartInfo.Arguments = $"-hide_banner -v fatal -i \"{fileInfo.FullName}\" -map 0:{subtitleIndex} -c copy -f ass -";
+        p.StartInfo.Arguments = $"-hide_banner -v fatal -i \"{fileInfo.FullName}\" -map 0:{subtitleIndex} -c ass -f ass -";
         p.Start();
         using var memoryStream = new MemoryStream();
         p.StandardOutput.BaseStream.CopyTo(memoryStream);
