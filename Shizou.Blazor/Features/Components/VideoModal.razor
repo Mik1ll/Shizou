@@ -2,9 +2,9 @@
     <div class="modal-body">
         <video id="@_videoId" class="h-100 w-100 object-fit-contain video-js" controls>
             <source src="api/FileServer/@LocalFileId" type="@(_localFileMimeType)"/>
-            @foreach (var idx in _assSubUrls.Select((_, idx) => idx))
+            @foreach (var (sub, idx) in _assSubs.Select((sub, idx) => (sub,idx)))
             {
-                <track default="@(idx == 0)" kind="subtitles" src="/dummy.vtt"/>
+                <track default="@(idx == 0)" kind="subtitles" src="/dummy.vtt" srclang="@(sub.Lang)" label="@(sub.Title)"/>
             }
         </video>
     </div>

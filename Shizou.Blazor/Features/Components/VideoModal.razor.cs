@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
 using Blazored.Modal;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.StaticFiles;
@@ -13,7 +15,7 @@ namespace Shizou.Blazor.Features.Components;
 public partial class VideoModal
 {
     private readonly string _videoId = "videoModalId";
-    private readonly List<string> _assSubUrls = new();
+    private readonly List<(string Url, string? Lang, string? Title)> _assSubs = new();
     private bool _loadSubtitles;
     private LocalFile? _localFile;
     private string? _localFileMimeType;
@@ -54,7 +56,7 @@ public partial class VideoModal
     {
         if (_loadSubtitles)
         {
-            await JsRuntime.InvokeVoidAsync("loadPlayer", _videoId, _assSubUrls);
+            await JsRuntime.InvokeVoidAsync("loadPlayer", _videoId, _assSubs.Select(s => s.Url).ToList());
             _loadSubtitles = false;
         }
     }
@@ -77,17 +79,29 @@ public partial class VideoModal
         p.StartInfo.UseShellExecute = false;
         p.StartInfo.CreateNoWindow = true;
         p.StartInfo.RedirectStandardOutput = true;
+        p.StartInfo.StandardOutputEncoding = Encoding.UTF8;
         p.StartInfo.FileName = "ffprobe";
-        p.StartInfo.Arguments = $"-v fatal -select_streams s -show_entries stream=index,codec_name -of csv=p=0 \"{fileInfo.FullName}\"";
+        p.StartInfo.Arguments =
+            $"-v fatal -select_streams s -show_entries \"stream=index,codec_name : stream_tags=language,title\" -of json=c=1 \"{fileInfo.FullName}\"";
         p.Start();
-        _assSubUrls.Clear();
-        while (await p.StandardOutput.ReadLineAsync() is { } line)
+        _assSubs.Clear();
+        using var document = JsonDocument.Parse(await p.StandardOutput.ReadToEndAsync());
+        foreach (var streamEl in document.RootElement.GetProperty("streams").EnumerateArray())
         {
-            var split = line.Split(',');
-            if (split[1] != "ass")
+            if (streamEl.GetProperty("codec_name").GetString() != "ass")
                 continue;
-            var index = int.Parse(split[0]);
-            _assSubUrls.Add($"/api/FileServer/AssSubs/{LocalFileId}/{index}");
+            var index = streamEl.GetProperty("index").GetInt32();
+            string? lang = null;
+            string? title = null;
+            if (streamEl.TryGetProperty("tags", out var tags))
+            {
+                if (tags.TryGetProperty("language", out var langEl))
+                    lang = langEl.GetString();
+                if (tags.TryGetProperty("title", out var titleEl))
+                    title = titleEl.GetString();
+            }
+
+            _assSubs.Add(($"/api/FileServer/AssSubs/{LocalFileId}/{index}", lang, title));
         }
     }
 }
