@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
@@ -29,23 +30,23 @@ public class QueueController : ControllerBase
     [HttpPut("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    public ActionResult Pause(QueueType queueType)
+    public Ok Pause(QueueType queueType)
     {
         GetProcessor(queueType).Pause();
-        return Ok();
+        return TypedResults.Ok();
     }
 
     [HttpPut("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    public ActionResult Unpause(QueueType queueType)
+    public Results<Ok, Conflict<string>> Unpause(QueueType queueType)
     {
         var processor = GetProcessor(queueType);
         if (processor.Unpause())
-            return Ok();
+            return TypedResults.Ok();
         else
-            return Conflict($"Pause state locked: {processor.PauseReason}");
+            return TypedResults.Conflict($"Pause state locked: {processor.PauseReason}");
     }
 
     [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]
@@ -55,10 +56,10 @@ public class QueueController : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
-    public ActionResult<PauseResult> PauseState(QueueType queueType)
+    public Ok<PauseResult> PauseState(QueueType queueType)
     {
         var processor = GetProcessor(queueType);
-        return Ok(new PauseResult(processor.Paused, processor.PauseReason));
+        return TypedResults.Ok(new PauseResult(processor.Paused, processor.PauseReason));
     }
 
 
@@ -67,26 +68,26 @@ public class QueueController : ControllerBase
     [SwaggerResponse(StatusCodes.Status204NoContent)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
-    public ActionResult<CommandRequest?> Current(QueueType queueType)
+    public Ok<CommandRequest?> Current(QueueType queueType)
     {
-        return Ok(GetProcessor(queueType).CurrentCommand);
+        return TypedResults.Ok<CommandRequest?>(GetProcessor(queueType).CurrentCommand);
     }
 
     [HttpGet("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
-    public ActionResult<IEnumerable<CommandRequest>> Queued(QueueType queueType)
+    public Ok<List<CommandRequest>> Queued(QueueType queueType)
     {
-        return Ok(GetProcessor(queueType).GetQueuedCommands());
+        return TypedResults.Ok(GetProcessor(queueType).GetQueuedCommands());
     }
 
     [HttpPut("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    public ActionResult Clear(QueueType queueType)
+    public Ok Clear(QueueType queueType)
     {
         GetProcessor(queueType).ClearQueue();
-        return Ok();
+        return TypedResults.Ok();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
@@ -21,16 +22,16 @@ public class AniDbFilesController : EntityGetController<AniDbFile>
     [HttpPut("{fileId}/MarkWatched")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    public ActionResult MarkWatched(int fileId)
+    public Results<Ok, NotFound> MarkWatched(int fileId)
     {
-        return _watchStateService.MarkFile(fileId, true) ? Ok() : NotFound();
+        return _watchStateService.MarkFile(fileId, true) ? TypedResults.Ok() : TypedResults.NotFound();
     }
 
     [HttpPut("{fileId}/MarkUnwatched")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    public ActionResult MarkUnwatched(int fileId)
+    public Results<Ok, NotFound> MarkUnwatched(int fileId)
     {
-        return _watchStateService.MarkFile(fileId, false) ? Ok() : NotFound();
+        return _watchStateService.MarkFile(fileId, false) ? TypedResults.Ok() : TypedResults.NotFound();
     }
 }

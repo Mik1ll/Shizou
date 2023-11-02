@@ -38,7 +38,7 @@ public class EntityGetController<TEntity> : ControllerBase where TEntity : class
     [Produces("application/json")]
     public virtual ActionResult<List<TEntity>> Get()
     {
-        return DbSet.AsNoTracking().ToList();
+        return Ok(DbSet.AsNoTracking().ToList());
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public class EntityGetController<TEntity> : ControllerBase where TEntity : class
         var result = DbSet.AsNoTracking().SingleOrDefault(exp);
         if (result is null)
             return NotFound();
-        return result;
+        return Ok(result);
     }
 
     protected Expression<Func<TEntity, bool>> KeyEqualsExpression(int id)

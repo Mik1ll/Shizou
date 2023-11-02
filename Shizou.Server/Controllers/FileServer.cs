@@ -2,8 +2,10 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -38,26 +40,25 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: "application/octet-stream")]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
-    public ActionResult Get(string localFileId)
+    public Results<FileStreamHttpResult, Conflict<string>, NotFound> Get(string localFileId)
     {
         var id = int.Parse(localFileId.Split('.')[0]);
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == id);
         if (localFile is null)
-            return NotFound();
+            return TypedResults.NotFound();
         if (localFile.ImportFolder is null)
         {
             _logger.LogWarning("Tried to get local file with no import folder");
-            return Conflict("Import folder does not exist");
+            return TypedResults.Conflict("Import folder does not exist");
         }
 
         var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
         if (!fileInfo.Exists)
-            return Conflict("Local file path does not exist");
+            return TypedResults.Conflict("Local file path does not exist");
         if (!new FileExtensionContentTypeProvider().TryGetContentType(fileInfo.Name, out var mimeType))
             mimeType = "application/octet-stream";
         var fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 19, FileOptions.Asynchronous);
-
-        return File(fileStream, mimeType, fileInfo.Name, true);
+        return TypedResults.File(fileStream, mimeType, fileInfo.Name, enableRangeProcessing: true);
     }
 
     /// <summary>
@@ -70,20 +71,20 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "text/x-ssa")]
-    public ActionResult GetAssSubtitle(int localFileId, int subtitleIndex)
+    public async Task<Results<FileContentHttpResult, NotFound, Conflict<string>>> GetAssSubtitle(int localFileId, int subtitleIndex)
     {
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
         if (localFile is null)
-            return NotFound();
+            return TypedResults.NotFound();
         if (localFile.ImportFolder is null)
         {
             _logger.LogWarning("Tried to get local file with no import folder");
-            return Conflict("Import folder does not exist");
+            return TypedResults.Conflict("Import folder does not exist");
         }
 
         var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
         if (!fileInfo.Exists)
-            return Conflict("Local file path does not exist");
+            return TypedResults.Conflict("Local file path does not exist");
 
         using var p = new Process();
         p.StartInfo.UseShellExecute = false;
@@ -93,10 +94,9 @@ public class FileServer : ControllerBase
         p.StartInfo.Arguments = $"-hide_banner -v fatal -i \"{fileInfo.FullName}\" -map 0:{subtitleIndex} -c ass -f ass -";
         p.Start();
         using var memoryStream = new MemoryStream();
-        p.StandardOutput.BaseStream.CopyTo(memoryStream);
+        await p.StandardOutput.BaseStream.CopyToAsync(memoryStream);
         var result = memoryStream.ToArray();
-
-        return new FileContentResult(result, "text/x-ssa");
+        return TypedResults.File(result, "text/x-ssa");
     }
 
     /// <summary>
@@ -108,29 +108,30 @@ public class FileServer : ControllerBase
     /// <returns></returns>
     [HttpGet("Fonts/{localFileId:int}/{fontIndex:int}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    [SwaggerResponse(StatusCodes.Status409Conflict)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(string))]
+    [SwaggerResponse(StatusCodes.Status409Conflict, type: typeof(string))]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: new[] { "font/ttf", "font/otf" })]
-    public ActionResult GetFont(int localFileId, int fontIndex, [FromQuery] string? fontName)
+    public async Task<Results<PhysicalFileHttpResult, BadRequest<string>, Conflict<string>, NotFound>> GetFont(int localFileId, int fontIndex,
+        [FromQuery] string? fontName)
     {
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
         if (localFile is null)
-            return NotFound();
+            return TypedResults.NotFound();
         if (localFile.ImportFolder is null)
         {
             _logger.LogWarning("Tried to get local file with no import folder");
-            return Conflict("Import folder does not exist");
+            return TypedResults.Conflict("Import folder does not exist");
         }
 
         if (fontName is null)
         {
             _logger.LogWarning("Tried to get font without font name");
-            return BadRequest("No font name provided");
+            return TypedResults.BadRequest("No font name provided");
         }
 
         var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
         if (!fileInfo.Exists)
-            return Conflict("Local file path does not exist");
+            return TypedResults.Conflict("Local file path does not exist");
 
         var tempDirectory = Path.Combine(Path.GetTempPath(), "ShizouFonts", localFileId.ToString());
         var fontPath = Path.Combine(tempDirectory, fontName);
@@ -145,25 +146,25 @@ public class FileServer : ControllerBase
             p.StartInfo.Arguments = $"-hide_banner -v fatal -y -dump_attachment:{fontIndex} \"\" -i \"{fileInfo.FullName}\"";
             p.StartInfo.WorkingDirectory = tempDirectory;
             p.Start();
-            p.WaitForExit();
+            await p.WaitForExitAsync();
         }
 
         if (!new FileExtensionContentTypeProvider().TryGetContentType(fontName, out var mimeType))
             mimeType = "font/ttf";
-        return PhysicalFile(fontPath, mimeType);
+        return TypedResults.PhysicalFile(fontPath, mimeType);
     }
 
     [HttpGet("{localFileId:int}/play")]
     [Produces("text/html")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    public ActionResult BrowserPlay(int localFileId)
+    public Results<ContentHttpResult, NotFound> BrowserPlay(int localFileId)
     {
         _logger.LogInformation("Playing file {LocalFileId} in browser", localFileId);
         var localDbFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
         if (localDbFile is null)
-            return NotFound();
-        return Content(@$"<!DOCTYPE html><html><body>
+            return TypedResults.NotFound();
+        return TypedResults.Content(@$"<!DOCTYPE html><html><body>
 <video controls
 src=""{HttpContext.Request.GetEncodedUrl().Remove(HttpContext.Request.GetEncodedUrl().IndexOf("/play", StringComparison.Ordinal))}""></video>
 </body></html>

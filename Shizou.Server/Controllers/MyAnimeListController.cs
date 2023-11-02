@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Shizou.Server.Services;
@@ -23,29 +24,29 @@ public class MyAnimeListController : ControllerBase
     [HttpGet("Authenticate")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public ActionResult Authenticate()
+    public Results<Ok<string>, BadRequest> Authenticate()
     {
         var url = _myAnimeListService.GetAuthenticationUrl(HttpContext.Connection.RemoteIpAddress!.ToString());
         if (url is null)
-            return BadRequest();
-        return Ok(url);
+            return TypedResults.BadRequest();
+        return TypedResults.Ok(url);
     }
 
     [HttpGet("GetToken")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public async Task<ActionResult> GetToken(string code, string? state)
+    public async Task<Results<Ok, BadRequest, Conflict>> GetToken(string code, string? state)
     {
         if (string.IsNullOrWhiteSpace(state))
         {
             _logger.LogError("State was not provided");
-            return BadRequest();
+            return TypedResults.BadRequest();
         }
 
         if (!await _myAnimeListService.GetToken(code, state))
-            return Conflict();
-        return Ok();
+            return TypedResults.Conflict();
+        return TypedResults.Ok();
     }
     
 }

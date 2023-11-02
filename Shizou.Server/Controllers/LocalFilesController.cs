@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
@@ -22,9 +23,9 @@ public class LocalFilesController : EntityGetController<LocalFile>
 
     [HttpPut("ProcessFile/{id}")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public ActionResult ProcessFile(int id)
+    public Ok ProcessFile(int id)
     {
         _commandService.Dispatch(new ProcessArgs(id, IdTypeLocalFile.LocalId));
-        return Ok();
+        return TypedResults.Ok();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Shizou.Server.Options;
@@ -24,9 +25,9 @@ public class OptionsController : ControllerBase
     [HttpGet]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [Produces("application/json")]
-    public ActionResult<ShizouOptions> Get()
+    public Ok<ShizouOptions> Get()
     {
-        return Ok(_options);
+        return TypedResults.Ok(_options);
     }
 
     /// <summary>
@@ -35,9 +36,9 @@ public class OptionsController : ControllerBase
     /// <param name="options"></param>
     /// <returns></returns>
     [HttpPut]
-    public ActionResult Save([FromBody] ShizouOptions options)
+    public Ok Save([FromBody] ShizouOptions options)
     {
         options.SaveToFile();
-        return Ok();
+        return TypedResults.Ok();
     }
 }

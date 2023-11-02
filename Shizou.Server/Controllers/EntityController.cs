@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -62,12 +63,13 @@ public class EntityController<TEntity> : EntityGetController<TEntity> where TEnt
     [SwaggerResponse(StatusCodes.Status204NoContent)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status409Conflict)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(string))]
     [Consumes("application/json")]
-    public virtual ActionResult Put([FromBody] TEntity entity)
+    public virtual Results<NoContent, NotFound, Conflict, BadRequest<string>> Put([FromBody] TEntity entity)
     {
         var id = Selector.Compile()(entity);
         if (id == 0)
-            return BadRequest("Entity id cannot be 0");
+            return TypedResults.BadRequest("Entity id cannot be 0");
         Context.Entry(entity).State = EntityState.Modified;
         try
         {
@@ -77,10 +79,11 @@ public class EntityController<TEntity> : EntityGetController<TEntity> where TEnt
         catch (DbUpdateException)
         {
             if (!Exists(id))
-                return NotFound();
+                return TypedResults.NotFound();
             throw;
         }
-        return NoContent();
+
+        return TypedResults.NoContent();
     }
 
     /// <summary>
@@ -90,19 +93,17 @@ public class EntityController<TEntity> : EntityGetController<TEntity> where TEnt
     /// <returns></returns>
     /// <response code="204">Entity deleted</response>
     /// <response code="404">Not Found</response>
-    /// <response code="409">Conflict when trying to delete in database</response>
     [HttpDelete("{id}")]
     [SwaggerResponse(StatusCodes.Status204NoContent)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status409Conflict)]
-    public virtual ActionResult Delete(int id)
+    public virtual Results<NoContent, NotFound> Delete(int id)
     {
         var entity = DbSet.FirstOrDefault(KeyEqualsExpression(id));
         if (entity is null)
-            return NotFound();
+            return TypedResults.NotFound();
         DbSet.Remove(entity);
         Context.SaveChanges();
-        return NoContent();
+        return TypedResults.NoContent();
     }
 
     protected bool Exists(int id)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -18,9 +19,9 @@ public class ImagesController : ControllerBase
 
     [HttpPut("[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public ActionResult GetMissingAnimePosters()
+    public Ok GetMissingAnimePosters()
     {
         _imageService.GetMissingAnimePosters();
-        return Ok();
+        return TypedResults.Ok();
     }
 }

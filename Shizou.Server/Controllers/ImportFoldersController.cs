@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
@@ -23,11 +24,11 @@ public class ImportFoldersController : EntityController<ImportFolder>
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [Produces("application/json")]
-    public ActionResult<ImportFolder> GetByPath(string path)
+    public Results<Ok<ImportFolder>, NotFound> GetByPath(string path)
     {
         var importFolder = Context.ImportFolders.ByPath(path);
         if (importFolder is null)
-            return NotFound();
-        return importFolder;
+            return TypedResults.NotFound();
+        return TypedResults.Ok(importFolder);
     }
 }

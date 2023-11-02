@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,26 +30,25 @@ public class AccountController : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK)]
     [Consumes("application/json")]
     [AllowAnonymous]
-    public async Task<ActionResult> Login([FromBody] string? password)
+    public async Task<Results<Ok<string>, BadRequest<string>>> Login([FromBody] string? password)
     {
-        if (password is null) return BadRequest("Password not supplied");
+        if (password is null) return TypedResults.BadRequest("Password not supplied");
         var signInResult = await _signInManager.PasswordSignInAsync("Admin", password, true, false);
         var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == Constants.IdentityCookieName);
-        if (signInResult.Succeeded && token is not null) return Ok(token.Value.Value);
-
-        return BadRequest();
+        if (!signInResult.Succeeded || token is null) return TypedResults.BadRequest("Failed to log in");
+        return TypedResults.Ok(token.Value.Value);
     }
 
     [HttpPost("SetPassword")]
-    [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    [SwaggerResponse(StatusCodes.Status500InternalServerError, type: typeof(ProblemDetails))]
     [Consumes("application/json")]
     [AllowAnonymous]
-    public async Task<ActionResult> SetPassword([FromBody] string? password)
+    public async Task<Results<Ok<string>, BadRequest<string>, ProblemHttpResult>> SetPassword([FromBody] string? password)
     {
-        if (password is null) return BadRequest("Password not supplied");
-        if (!NetworkUtility.IsLoopBackAddress(HttpContext.Request.Host.Host)) return BadRequest("Must be local to change password");
+        if (password is null) return TypedResults.BadRequest("Password not supplied");
+        if (!NetworkUtility.IsLoopBackAddress(HttpContext.Request.Host.Host)) return TypedResults.BadRequest("Must be local to change password");
         var identity = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == "Admin");
         IdentityResult result;
         if (identity is null)
@@ -61,15 +61,15 @@ public class AccountController : ControllerBase
             result = await _userManager.ResetPasswordAsync(identity, await _userManager.GeneratePasswordResetTokenAsync(identity), password);
         }
 
-        if (result.Succeeded)
-        {
-            var signInResult = await _signInManager.PasswordSignInAsync("Admin", password, true, false);
-            var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == Constants.IdentityCookieName);
-            if (signInResult.Succeeded && token is not null) return Ok(token.Value.Value);
+        if (!result.Succeeded)
+            return TypedResults.Problem(title: "Something went wrong when creating account/changing password",
+                statusCode: StatusCodes.Status500InternalServerError);
 
-            return StatusCode(StatusCodes.Status500InternalServerError, "Something went wrong when logging in after changing password");
-        }
-
-        return StatusCode(StatusCodes.Status500InternalServerError, "Something went wrong when creating account/changing password");
+        var signInResult = await _signInManager.PasswordSignInAsync("Admin", password, true, false);
+        var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == Constants.IdentityCookieName);
+        if (!signInResult.Succeeded || token is null)
+            return TypedResults.Problem(title: "Something went wrong when logging in after changing password",
+                statusCode: StatusCodes.Status500InternalServerError);
+        return TypedResults.Ok(token.Value.Value);
     }
 }

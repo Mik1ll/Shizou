@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -22,10 +23,10 @@ public class ImportController : ControllerBase
     /// <returns></returns>
     [HttpPut("start")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public ActionResult StartImport()
+    public Ok StartImport()
     {
         _importService.Import();
-        return Ok();
+        return TypedResults.Ok();
     }
 
     /// <summary>
@@ -35,9 +36,9 @@ public class ImportController : ControllerBase
     /// <returns></returns>
     [HttpPut("scan/{folderId}")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public ActionResult ScanFolder(int folderId)
+    public Ok ScanFolder(int folderId)
     {
         _importService.ScanImportFolder(folderId);
-        return Ok();
+        return TypedResults.Ok();
     }
 }
