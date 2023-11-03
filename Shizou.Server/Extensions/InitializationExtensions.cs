@@ -85,6 +85,8 @@ public static class InitializationExtensions
             .WriteTo.File(Path.Combine(FilePaths.LogsDir, ".log"), outputTemplate: logTemplate, rollingInterval: RollingInterval.Day)
             .WriteTo.Seq("http://localhost:5341")
             .Enrich.FromLogContext()
+            .Enrich.WithThreadId()
+            .Enrich.WithThreadName()
             .Filter.ByExcluding(logEvent => logEvent.IsSuppressed());
     }
 

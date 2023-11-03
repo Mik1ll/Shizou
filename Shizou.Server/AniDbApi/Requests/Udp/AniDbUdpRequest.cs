@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,7 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
     protected readonly AniDbUdpState AniDbUdpState;
     protected readonly ILogger<AniDbUdpRequest> Logger;
     private string? _requestText;
+    private readonly TimeSpan _receiveTimeout = TimeSpan.FromSeconds(10);
 
     protected AniDbUdpRequest(string command, ILogger<AniDbUdpRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter)
     {
@@ -43,15 +45,25 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
         if (!ParametersSet)
             throw new ArgumentException($"Parameters not set before {nameof(Process)} called");
         await PrepareRequest();
+        var retry = false;
         using (await _rateLimiter.AcquireAsync())
         {
             await SendRequest();
-            await ReceiveResponse();
+            try
+            {
+                await ReceiveResponse();
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.LogWarning("Failed to receive a response before timeout ({Timeout}s)", _receiveTimeout.TotalSeconds);
+                retry = true;
+            }
         }
 
-        var retry = HandleSharedErrors();
+        retry = retry || HandleSharedErrors();
         if (retry)
         {
+            Logger.LogDebug("Error handled, retrying request");
             using (await _rateLimiter.AcquireAsync())
             {
                 await SendRequest();
@@ -79,7 +91,13 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
     /// <exception cref="AniDbUdpRequestException"></exception>
     private async Task SendRequest()
     {
-        var dgramBytes = Encoding.GetBytes(_requestText!);
+        if (_requestText is null)
+        {
+            Logger.LogError("Request text was not set before sending");
+            throw new AniDbUdpRequestException("Tried to send unprepared udp request text");
+        }
+
+        var dgramBytes = Encoding.GetBytes(_requestText);
         if (AniDbUdpState.Banned)
         {
             Logger.LogWarning("Banned, aborting UDP request: {RequestText}", _requestText);
@@ -94,6 +112,7 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
 
     private async Task PrepareRequest()
     {
+        Logger.LogTrace("Preparing {Command} request", Command);
         var requestBuilder = new StringBuilder(Command + " ");
         if (!new List<string> { "PING", "ENCRYPT", "AUTH", "VERSION" }.Contains(Command))
         {
@@ -128,7 +147,14 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
         ResponseText = null;
         ResponseCode = null;
         ResponseCodeString = null;
-        var receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync()).Buffer;
+        byte[] receivedBytes;
+        Logger.LogTrace("Waiting to receive raw UDP response");
+        using (var cancelSource = new CancellationTokenSource(_receiveTimeout))
+        {
+            receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync(cancelSource.Token)).Buffer;
+        }
+
+        Logger.LogTrace("Got raw UDP response");
         // Two null bytes and two bytes of Zlib header, seems to ignore trailer automatically
         // ReSharper disable once UseAwaitUsing
         using Stream memStream = receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0

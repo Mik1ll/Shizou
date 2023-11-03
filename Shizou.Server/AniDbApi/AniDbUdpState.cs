@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Timers;
 using Microsoft.EntityFrameworkCore;
@@ -43,6 +44,9 @@ public sealed class AniDbUdpState : IDisposable
         _serverHost = options.AniDb.ServerHost;
         _serverPort = options.AniDb.UdpServerPort;
         UdpClient = new UdpClient(options.AniDb.ClientPort, AddressFamily.InterNetwork);
+        UdpClient.Client.ReceiveBufferSize = 1 << 15;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            UdpClient.AllowNatTraversal(true);
         _logger = logger;
 
         _bannedTimer = new Timer(BanPeriod.TotalMilliseconds);
@@ -63,7 +67,7 @@ public sealed class AniDbUdpState : IDisposable
 
 
         _logoutTimer = new Timer(LogoutPeriod.TotalMilliseconds);
-        _logoutTimer.Elapsed += (_, _) => { Logout().Wait(); };
+        _logoutTimer.Elapsed += async (_, _) => { await Logout(); };
         _logoutTimer.AutoReset = false;
 
         NatUtility.DeviceFound += (_, e) => _router = _router?.NatProtocol == NatProtocol.Pmp ? _router : e.Device;
