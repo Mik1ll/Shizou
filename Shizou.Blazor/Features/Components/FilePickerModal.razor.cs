@@ -25,14 +25,13 @@ public partial class FilePickerModal
     private BlazoredModalInstance ModalInstance { get; set; } = default!;
 
     [Parameter]
-    public string? FolderPath { get; set; }
+    public FilePickerType FilePickerType { get; set; }
 
     [Parameter]
-    public FilePickerType FilePickerType { get; set; }
+    public string? InitialPath { get; set; }
 
     public override Task SetParametersAsync(ParameterView parameters)
     {
-        parameters.EnsureParametersSet(nameof(FolderPath));
         parameters.EnsureParametersSet(nameof(FilePickerType));
         return base.SetParametersAsync(parameters);
     }
@@ -46,14 +45,14 @@ public partial class FilePickerModal
             FilePickerType.FileOrDirectory => "File or Folder",
             _ => throw new ArgumentOutOfRangeException()
         };
-        if (string.IsNullOrWhiteSpace(FolderPath))
+        if (string.IsNullOrWhiteSpace(InitialPath))
         {
             _parentPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             GetEntries();
         }
         else
         {
-            var fullPath = Path.GetFullPath(FolderPath);
+            var fullPath = Path.GetFullPath(InitialPath);
             _parentPath = GetParentPath(fullPath);
             GetEntries();
             SelectEntry(GetFileName(fullPath));
@@ -86,11 +85,11 @@ public partial class FilePickerModal
             return;
         }
 
+        _entries.AddRange(Directory.EnumerateDirectories(_parentPath, "*", new EnumerationOptions { IgnoreInaccessible = true })
+            .Select(s => (GetFileName(s), false)));
         if (FilePickerType.HasFlag(FilePickerType.File))
             _entries.AddRange(Directory.EnumerateFiles(_parentPath, "*", new EnumerationOptions { IgnoreInaccessible = true })
                 .Select(s => (GetFileName(s), true)));
-        _entries.AddRange(Directory.EnumerateDirectories(_parentPath, "*", new EnumerationOptions { IgnoreInaccessible = true })
-            .Select(s => (GetFileName(s), false)));
     }
 
     private async Task Confirm()

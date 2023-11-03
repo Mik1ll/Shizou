@@ -12,7 +12,9 @@
                 @ondblclick="@GoDown">
             @foreach (var entry in _entries)
             {
-                <option @key="@entry" value="@(entry.Name)" selected=@(entry == _selectedEntry)>@(entry.Name)</option>
+                <option @key="@entry" value="@(entry.Name)" selected=@(entry == _selectedEntry) style="font-family: bootstrap-icons, sans-serif;">
+                    @($"{(entry.IsFile ? '\uF392' : '\uF3D7')} {entry.Name}")
+                </option>
             }
         </select>
     </div>
