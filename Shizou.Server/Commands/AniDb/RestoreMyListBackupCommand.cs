@@ -13,12 +13,13 @@ using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
+using Shizou.Server.AniDbApi.Requests.Http.SubElements;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
-public record RestoreMyListBackupArgs(DateOnly Date) : CommandArgs($"{nameof(RestoreMyListBackupCommand)}");
+public record RestoreMyListBackupArgs(DateOnly? Date = null, string? Path = null) : CommandArgs($"{nameof(RestoreMyListBackupCommand)}");
 
 [Command(CommandType.RestoreMyListBackup, CommandPriority.Low, QueueType.AniDbHttp)]
 public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
@@ -44,7 +45,12 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
 
     protected override async Task ProcessInner()
     {
-        var backupPath = Path.Combine(FilePaths.MyListBackupDir, CommandArgs.Date.ToString("yyyy-MM-dd") + ".xml");
+        var backupPath = CommandArgs switch
+        {
+            { Date: { } date } => Path.Combine(FilePaths.MyListBackupDir, date.ToString("yyyy-MM-dd") + ".xml"),
+            { Path: { } path } => path,
+            _ => throw new ArgumentOutOfRangeException()
+        };
         var backup = new XmlSerializer(typeof(MyListResult)).Deserialize(new XmlTextReader(backupPath)) as MyListResult;
         if (backup is null)
         {
@@ -73,9 +79,9 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
 
         var backupMyList = backup.MyListItems.DistinctBy(i => i.Id).ToList();
         var myList = _myListRequest.MyListResult.MyListItems.DistinctBy(i => i.Id).ToList();
-        var joined = (from bitem in backupMyList
+        List<(MyListItemResult bitem, MyListItemResult? item)> joined = (from bitem in backupMyList
             join item in myList on bitem.Fid equals item.Fid into lj
-            select new { bitem, item = lj.SingleOrDefault() }).ToList();
+            select (bitem, item: lj.SingleOrDefault())).ToList();
         foreach (var pair in joined)
         {
             var bitem = pair.bitem;
@@ -83,7 +89,7 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
             var expectedState = _options.AniDb.MyList.AbsentFileState;
             var watched = false;
             DateTimeOffset? watchedDate = null;
-            if ((bitem.Viewdate ?? item.Viewdate) is { } viewDate)
+            if ((bitem.Viewdate ?? item?.Viewdate) is { } viewDate)
             {
                 watched = true;
                 watchedDate = DateTimeOffset.Parse(viewDate);
