@@ -9,4 +9,5 @@
     <button type="button" class="btn btn-primary" @onclick="@GetMissingPosters">Get Missing Posters</button>
     <button type="button" class="btn btn-primary" @onclick="@OpenMalAuth" disabled="@(!NetworkUtility.IsLoopBackAddress(ServerIp))">Auth MAL</button>
     <button type="button" class="btn btn-primary" @onclick="@GetMalList">Get MAL List</button>
+    <button type="button" class="btn btn-primary" @onclick="@RestoreFromBackupFile">Restore Backup</button>
 </div>

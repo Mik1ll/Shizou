@@ -1,8 +1,10 @@
-﻿using Blazored.Modal.Services;
+﻿using Blazored.Modal;
+using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using Shizou.Blazor.Features.Components;
+using Shizou.Data;
 using Shizou.Server.Commands;
 using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Options;
@@ -71,5 +73,16 @@ public partial class Actions
     private async Task GetMalList()
     {
         await ServiceProvider.GetRequiredService<MyAnimeListService>().GetUserAnimeList();
+    }
+
+    private async Task RestoreFromBackupFile()
+    {
+        var res = await ModalService.Show<FilePickerModal>("", new ModalParameters
+        {
+            { nameof(FilePickerModal.FilePickerType), FilePickerType.File },
+            { nameof(FilePickerModal.InitialPath), FilePaths.MyListBackupDir }
+        }).Result;
+        if (res is { Confirmed: true, Data: string path })
+            ServiceProvider.GetRequiredService<CommandService>().Dispatch(new RestoreMyListBackupArgs(Path: path));
     }
 }
