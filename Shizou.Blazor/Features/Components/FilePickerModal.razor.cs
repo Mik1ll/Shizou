@@ -15,10 +15,10 @@ public enum FilePickerType
 
 public partial class FilePickerModal
 {
-    private string _pathParent = string.Empty;
-    private (string Name, bool IsFile)? _pathChild;
-
     private readonly List<(string Name, bool IsFile)> _entries = new();
+    private string _typeStr = string.Empty;
+    private string _parentPath = string.Empty;
+    private (string Name, bool IsFile)? _selectedEntry;
 
 
     [CascadingParameter]
@@ -37,25 +37,32 @@ public partial class FilePickerModal
         return base.SetParametersAsync(parameters);
     }
 
-    private void SelectEntry(ChangeEventArgs e)
-    {
-        _pathChild = _entries.FirstOrDefault(en => en.Name == e.Value as string);
-    }
-
     protected override void OnInitialized()
     {
+        _typeStr = FilePickerType switch
+        {
+            FilePickerType.File => "File",
+            FilePickerType.Directory => "Folder",
+            FilePickerType.FileOrDirectory => "File or Folder",
+            _ => throw new ArgumentOutOfRangeException()
+        };
         if (string.IsNullOrWhiteSpace(FolderPath))
         {
-            _pathParent = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            _parentPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             GetEntries();
         }
         else
         {
             var fullPath = Path.GetFullPath(FolderPath);
-            _pathParent = GetParentPath(fullPath);
+            _parentPath = GetParentPath(fullPath);
             GetEntries();
-            _pathChild = _entries.FirstOrDefault(e => e.Name == GetFileName(fullPath));
+            SelectEntry(GetFileName(fullPath));
         }
+    }
+
+    private void SelectEntry(string name)
+    {
+        _selectedEntry = _entries.FirstOrDefault(e => e.Name == name);
     }
 
     private string GetFileName(string path)
@@ -71,7 +78,7 @@ public partial class FilePickerModal
     private void GetEntries()
     {
         _entries.Clear();
-        if (_pathParent == string.Empty)
+        if (_parentPath == string.Empty)
         {
             _entries.AddRange(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? Directory.GetLogicalDrives().Select(s => (s, false))
@@ -80,23 +87,23 @@ public partial class FilePickerModal
         }
 
         if (FilePickerType.HasFlag(FilePickerType.File))
-            _entries.AddRange(Directory.EnumerateFiles(_pathParent, "*", new EnumerationOptions { IgnoreInaccessible = true })
+            _entries.AddRange(Directory.EnumerateFiles(_parentPath, "*", new EnumerationOptions { IgnoreInaccessible = true })
                 .Select(s => (GetFileName(s), true)));
-        _entries.AddRange(Directory.EnumerateDirectories(_pathParent, "*", new EnumerationOptions { IgnoreInaccessible = true })
+        _entries.AddRange(Directory.EnumerateDirectories(_parentPath, "*", new EnumerationOptions { IgnoreInaccessible = true })
             .Select(s => (GetFileName(s), false)));
     }
 
     private async Task Confirm()
     {
-        if (ValidSelection() && _pathChild is not null)
-            await ModalInstance.CloseAsync(ModalResult.Ok(Path.Combine(_pathParent, _pathChild.Value.Name)));
+        if (ValidSelection() && _selectedEntry is not null)
+            await ModalInstance.CloseAsync(ModalResult.Ok(Path.Combine(_parentPath, _selectedEntry.Value.Name)));
         else
             await Cancel();
     }
 
     private bool ValidSelection()
     {
-        return _pathChild is not null && (FilePickerType == FilePickerType.FileOrDirectory || (_pathChild.Value.IsFile
+        return _selectedEntry is not null && (FilePickerType == FilePickerType.FileOrDirectory || (_selectedEntry.Value.IsFile
             ? FilePickerType.HasFlag(FilePickerType.File)
             : FilePickerType.HasFlag(FilePickerType.Directory)));
     }
@@ -108,19 +115,19 @@ public partial class FilePickerModal
 
     private void GoDown()
     {
-        if (_pathChild?.IsFile is true or null)
+        if (_selectedEntry?.IsFile is true or null)
             return;
-        _pathParent = Path.Combine(_pathParent, _pathChild.Value.Name);
-        _pathChild = null;
+        _parentPath = Path.Combine(_parentPath, _selectedEntry.Value.Name);
+        _selectedEntry = null;
         GetEntries();
     }
 
     private void GoUp()
     {
-        if (_pathParent == string.Empty)
+        if (_parentPath == string.Empty)
             return;
-        _pathChild = (GetFileName(_pathParent), false);
-        _pathParent = GetParentPath(_pathParent);
+        _selectedEntry = (GetFileName(_parentPath), false);
+        _parentPath = GetParentPath(_parentPath);
         GetEntries();
     }
 }

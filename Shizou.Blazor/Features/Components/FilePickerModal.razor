@@ -1,16 +1,18 @@
 ﻿<ModalWrapper Cancel="@Cancel">
     <div class="modal-header">
-        <h4 class="modal-title">Pick folder</h4>
+        <h4 class="modal-title">Pick a @_typeStr</h4>
     </div>
     <div class="modal-body">
         <div class="d-flex mb-3">
             <button type="button" class="justify-content-left me-2 btn btn-primary bi bi-box-arrow-up" @onclick="@GoUp"></button>
-            <input type="text" class="form-control justify-content-center" value="@Path.Combine(_pathParent, _pathChild?.Name ?? string.Empty)" disabled readonly>
+            <input type="text" class="form-control justify-content-center" value="@Path.Combine(_parentPath, _selectedEntry?.Name ?? string.Empty)" disabled readonly>
         </div>
-        <select class="form-select" size="@Math.Min(Math.Max(_entries.Count, 2), 15)" @onchange="@SelectEntry" @ondblclick="@GoDown">
+        <select class="form-select" size="@Math.Min(Math.Max(_entries.Count, 2), 15)"
+                @onchange="@(e => SelectEntry(e.Value as string ?? string.Empty))"
+                @ondblclick="@GoDown">
             @foreach (var entry in _entries)
             {
-                <option @key="@entry" value="@(entry.Name)" selected=@(entry == _pathChild)>@(entry.Name)</option>
+                <option @key="@entry" value="@(entry.Name)" selected=@(entry == _selectedEntry)>@(entry.Name)</option>
             }
         </select>
     </div>
