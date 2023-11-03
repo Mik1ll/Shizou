@@ -34,8 +34,9 @@ public partial class ImportFolderModal
     private async Task OpenFolderPicker()
     {
         var res = await ModalService
-            .Show<FolderPickerModal>(string.Empty, new ModalParameters()
-                .Add(nameof(FolderPickerModal.FolderPath), MyImportFolder.Path)).Result;
+            .Show<FilePickerModal>(string.Empty, new ModalParameters()
+                .Add(nameof(FilePickerModal.FolderPath), MyImportFolder.Path)
+                .Add(nameof(FilePickerModal.FilePickerType), FilePickerType.Directory)).Result;
         if (res.Confirmed)
             MyImportFolder.Path = (string?)res.Data ?? string.Empty;
     }
