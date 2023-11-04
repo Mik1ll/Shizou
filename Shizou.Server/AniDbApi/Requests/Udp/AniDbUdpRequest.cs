@@ -194,6 +194,7 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
             case AniDbResponseCode.Banned:
                 AniDbUdpState.Banned = true;
                 AniDbUdpState.BanReason = ResponseText;
+                AniDbUdpState.ResetBannedTimer();
                 Logger.LogWarning("Banned: {BanReason}, waiting {Hours}hr {Minutes}min ({UnbanTime})", AniDbUdpState.BanReason, AniDbUdpState.BanPeriod.Hours,
                     AniDbUdpState.BanPeriod.Minutes, DateTimeOffset.Now + AniDbUdpState.BanPeriod);
                 throw new AniDbUdpRequestException($"Udp banned, waiting until {DateTimeOffset.Now + AniDbUdpState.BanPeriod}", ResponseCode);

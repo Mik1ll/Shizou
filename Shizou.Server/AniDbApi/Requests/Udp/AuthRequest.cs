@@ -58,6 +58,7 @@ public class AuthRequest : AniDbUdpRequest, IAuthRequest
                 }
 
                 AniDbUdpState.LoggedIn = true;
+                AniDbUdpState.ResetLogoutTimer();
                 break;
             case AniDbResponseCode.LoginFailed:
                 throw new AniDbUdpRequestException("Login failed, change credentials", ResponseCode);

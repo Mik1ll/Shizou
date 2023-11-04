@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,23 +13,26 @@ using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 using Shizou.Server.Exceptions;
 using Shizou.Server.Options;
+using Timer = System.Timers.Timer;
 
 namespace Shizou.Server.AniDbApi;
 
-public sealed class AniDbUdpState : IDisposable, IAsyncDisposable
+public sealed class AniDbUdpState : IDisposable
 {
+    private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
     private readonly Func<IAuthRequest> _authRequestFactory;
     private readonly Timer _bannedTimer;
     private readonly ILogger<AniDbUdpState> _logger;
     private readonly Func<ILogoutRequest> _logoutRequestFactory;
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
     private readonly Timer _logoutTimer;
-    private readonly Timer? _mappingTimer;
+    private readonly Timer _mappingTimer;
     private readonly string _serverHost;
     private readonly ushort _serverPort;
+    private readonly SemaphoreSlim _natLock = new(1, 1);
     private bool _banned;
-    private bool _loggedIn;
     private INatDevice? _router;
+    private Mapping? _natMapping;
 
     public AniDbUdpState(
         IOptionsMonitor<ShizouOptions> optionsMonitor,
@@ -38,6 +41,7 @@ public sealed class AniDbUdpState : IDisposable, IAsyncDisposable
         Func<ILogoutRequest> logoutRequestFactory,
         IDbContextFactory<ShizouContext> contextFactory)
     {
+        _optionsMonitor = optionsMonitor;
         _authRequestFactory = authRequestFactory;
         _logoutRequestFactory = logoutRequestFactory;
         _contextFactory = contextFactory;
@@ -50,54 +54,30 @@ public sealed class AniDbUdpState : IDisposable, IAsyncDisposable
             UdpClient.AllowNatTraversal(true);
         _logger = logger;
 
-        _bannedTimer = new Timer(BanPeriod.TotalMilliseconds);
+        _bannedTimer = new Timer();
+        _bannedTimer.AutoReset = false;
         _bannedTimer.Elapsed += (_, _) =>
         {
             _logger.LogInformation("Udp ban timer has elapsed: {BanPeriod}", BanPeriod);
             Banned = false;
         };
-        _bannedTimer.AutoReset = false;
         using var context = _contextFactory.CreateDbContext();
         var currentBan = context.Timers.FirstOrDefault(t => t.Type == TimerType.UdpBan)?.Expires;
         if (currentBan is not null)
-            if (currentBan > DateTime.UtcNow)
+            if (currentBan > DateTime.UtcNow + TimeSpan.FromSeconds(5))
             {
-                _bannedTimer.Interval = (currentBan.Value - DateTime.UtcNow).TotalMilliseconds;
                 Banned = true;
+                _bannedTimer.Interval = (currentBan.Value - DateTime.UtcNow).TotalMilliseconds;
+                _bannedTimer.Start();
             }
 
-
-        _logoutTimer = new Timer(LogoutPeriod.TotalMilliseconds);
-        _logoutTimer.Elapsed += async (_, _) => { await Logout(); };
+        _logoutTimer = new Timer();
         _logoutTimer.AutoReset = false;
+        _logoutTimer.Elapsed += async (_, _) => { await Logout(); };
 
-        NatUtility.DeviceFound += (_, e) => _router = _router?.NatProtocol == NatProtocol.Pmp ? _router : e.Device;
-        NatUtility.StartDiscovery();
-        Task.Delay(2000).Wait();
-        NatUtility.StopDiscovery();
+        _mappingTimer = new Timer();
 
-        if (_router is null)
-        {
-            logger.LogInformation("Could not find router, assuming no IP masquerading");
-        }
-        else
-        {
-            _logger.LogInformation("Creating port mapping on port {AniDbClientPort}", options.AniDb.ClientPort);
-            var mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, options.AniDb.ClientPort,
-                options.AniDb.ClientPort));
-            if (mapping.Lifetime > 0)
-            {
-                _mappingTimer = new Timer(TimeSpan.FromSeconds(mapping.Lifetime - 60).TotalMilliseconds);
-                _mappingTimer.Elapsed += (_, _) =>
-                {
-                    var optionsVal = optionsMonitor.CurrentValue;
-                    _logger.LogInformation("Recreating port mapping on port {AniDbClientPort}", optionsVal.AniDb.ClientPort);
-                    mapping = _router.CreatePortMap(new Mapping(Protocol.Udp, optionsVal.AniDb.ClientPort, optionsVal.AniDb.ClientPort));
-                };
-                _mappingTimer.AutoReset = true;
-                _mappingTimer.Start();
-            }
-        }
+        SetupNat();
     }
 
 
@@ -107,19 +87,7 @@ public sealed class AniDbUdpState : IDisposable, IAsyncDisposable
     public UdpClient UdpClient { get; }
     public string? SessionKey { get; set; }
 
-    public bool LoggedIn
-    {
-        get => _loggedIn;
-        set
-        {
-            _loggedIn = value;
-            if (value)
-            {
-                _logoutTimer.Stop();
-                _logoutTimer.Start();
-            }
-        }
-    }
+    public bool LoggedIn { get; set; }
 
     public bool Banned
     {
@@ -127,33 +95,37 @@ public sealed class AniDbUdpState : IDisposable, IAsyncDisposable
         set
         {
             _banned = value;
-            if (value)
-            {
-                _bannedTimer.Stop();
-                _bannedTimer.Interval = BanPeriod.TotalMilliseconds;
-                _bannedTimer.Start();
-                using var context = _contextFactory.CreateDbContext();
-                var bannedTimer = context.Timers.FirstOrDefault(t => t.Type == TimerType.UdpBan);
-                var banExpires = DateTime.UtcNow + BanPeriod;
-                if (bannedTimer is null)
-                    context.Timers.Add(new Data.Models.Timer
-                    {
-                        Type = TimerType.UdpBan,
-                        Expires = banExpires
-                    });
-                else
-                    bannedTimer.Expires = banExpires;
-                context.SaveChanges();
-            }
-            else
-            {
-                BanReason = null;
-            }
+            if (!value) BanReason = null;
         }
     }
 
     public string? BanReason { get; set; }
 
+    public void ResetBannedTimer()
+    {
+        _bannedTimer.Stop();
+        _bannedTimer.Interval = BanPeriod.TotalMilliseconds;
+        _bannedTimer.Start();
+        using var context = _contextFactory.CreateDbContext();
+        var bannedTimer = context.Timers.FirstOrDefault(t => t.Type == TimerType.UdpBan);
+        var banExpires = DateTime.UtcNow + BanPeriod;
+        if (bannedTimer is null)
+            context.Timers.Add(new Data.Models.Timer
+            {
+                Type = TimerType.UdpBan,
+                Expires = banExpires
+            });
+        else
+            bannedTimer.Expires = banExpires;
+        context.SaveChanges();
+    }
+
+    public void ResetLogoutTimer()
+    {
+        _logoutTimer.Stop();
+        _logoutTimer.Interval = LogoutPeriod.TotalMilliseconds;
+        _logoutTimer.Start();
+    }
 
     public void Connect()
     {
@@ -165,8 +137,7 @@ public sealed class AniDbUdpState : IDisposable, IAsyncDisposable
     {
         if (LoggedIn)
         {
-            _logoutTimer.Stop();
-            _logoutTimer.Start();
+            ResetLogoutTimer();
             return true;
         }
 
@@ -201,25 +172,60 @@ public sealed class AniDbUdpState : IDisposable, IAsyncDisposable
     {
         _bannedTimer.Dispose();
         _logoutTimer.Dispose();
-        _mappingTimer?.Dispose();
+        _mappingTimer.Dispose();
         UdpClient.Dispose();
+        _natLock.Dispose();
     }
 
-    public async ValueTask DisposeAsync()
+    private void SetupNat()
     {
-        await CastAndDispose(_bannedTimer);
-        await CastAndDispose(_logoutTimer);
-        if (_mappingTimer != null) await CastAndDispose(_mappingTimer);
-        await CastAndDispose(UdpClient);
+        var stopSearchTokenSource = new CancellationTokenSource();
 
-        return;
-
-        static async ValueTask CastAndDispose(IDisposable resource)
+        void OnDeviceFound(object? _, DeviceEventArgs e)
         {
-            if (resource is IAsyncDisposable resourceAsyncDisposable)
-                await resourceAsyncDisposable.DisposeAsync();
-            else
-                resource.Dispose();
+            // ReSharper disable once MethodSupportsCancellation
+            _natLock.Wait();
+            if (_router?.NatProtocol != NatProtocol.Pmp)
+                _router = e.Device;
+            if (_router.NatProtocol == NatProtocol.Pmp)
+                stopSearchTokenSource.Cancel();
+            _natLock.Release();
         }
+
+        NatUtility.DeviceFound += OnDeviceFound;
+        NatUtility.StartDiscovery();
+        try
+        {
+            // ReSharper disable once MethodSupportsCancellation
+            Task.Delay(1000).Wait(stopSearchTokenSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
+        NatUtility.StopDiscovery();
+
+        if (_router is null)
+        {
+            _logger.LogInformation("Could not find router, assuming no IP masquerading");
+        }
+        else
+        {
+            CreateNatMapping();
+            if (_natMapping?.Lifetime > 0)
+            {
+                _mappingTimer.Interval = TimeSpan.FromSeconds(_natMapping.Lifetime - 60).TotalMilliseconds;
+                _mappingTimer.Elapsed += (_, _) => { CreateNatMapping(); };
+                _mappingTimer.AutoReset = true;
+                _mappingTimer.Start();
+            }
+        }
+    }
+
+    private void CreateNatMapping()
+    {
+        var optionsVal = _optionsMonitor.CurrentValue;
+        _logger.LogInformation("Creating port mapping on port {AniDbClientPort}", optionsVal.AniDb.ClientPort);
+        _natMapping = _router.CreatePortMap(new Mapping(Protocol.Udp, optionsVal.AniDb.ClientPort, optionsVal.AniDb.ClientPort));
     }
 }
