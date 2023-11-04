@@ -20,7 +20,6 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
     protected readonly AniDbUdpState AniDbUdpState;
     protected readonly ILogger<AniDbUdpRequest> Logger;
     private string? _requestText;
-    private readonly TimeSpan _receiveTimeout = TimeSpan.FromSeconds(10);
 
     protected AniDbUdpRequest(string command, ILogger<AniDbUdpRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter)
     {
@@ -45,22 +44,13 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
         if (!ParametersSet)
             throw new ArgumentException($"Parameters not set before {nameof(Process)} called");
         await PrepareRequest();
-        var retry = false;
         using (await _rateLimiter.AcquireAsync())
         {
             await SendRequest();
-            try
-            {
-                await ReceiveResponse();
-            }
-            catch (OperationCanceledException)
-            {
-                Logger.LogWarning("Failed to receive a response before timeout ({Timeout}s)", _receiveTimeout.TotalSeconds);
-                retry = true;
-            }
+            await ReceiveResponse();
         }
 
-        retry = retry || HandleSharedErrors();
+        var retry = HandleSharedErrors();
         if (retry)
         {
             Logger.LogDebug("Error handled, retrying request");
@@ -149,9 +139,17 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
         ResponseCodeString = null;
         byte[] receivedBytes;
         Logger.LogTrace("Waiting to receive raw UDP response");
-        using (var cancelSource = new CancellationTokenSource(_receiveTimeout))
+        var receiveTimeout = TimeSpan.FromSeconds(10);
+        try
         {
+            using var cancelSource = new CancellationTokenSource(receiveTimeout);
             receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync(cancelSource.Token)).Buffer;
+        }
+        catch (OperationCanceledException)
+        {
+            ResponseCode = AniDbResponseCode.Timeout;
+            Logger.LogWarning("Failed to receive a response before timeout ({Timeout}s)", receiveTimeout.TotalSeconds);
+            return;
         }
 
         Logger.LogTrace("Got raw UDP response");
@@ -209,6 +207,8 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
             case AniDbResponseCode.AccessDenied:
                 Logger.LogError("Access denied");
                 throw new AniDbUdpRequestException("Access was denied", ResponseCode);
+            case AniDbResponseCode.Timeout:
+                return true;
             case AniDbResponseCode.InternalServerError or (> AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700):
                 Logger.LogCritical("AniDB Server CRITICAL ERROR {ErrorCode} : {ErrorCodeStr}", ResponseCode, ResponseCodeString);
                 throw new AniDbUdpRequestException($"Critical error with server {ResponseCode} {ResponseCodeString}", ResponseCode);
@@ -226,9 +226,7 @@ public abstract class AniDbUdpRequest : IAniDbUdpRequest
                     throw new AniDbUdpRequestException($"Unknown response code: {ResponseCode}: {ResponseCodeString}");
                 }
 
-                break;
+                return false;
         }
-
-        return false;
     }
 }
