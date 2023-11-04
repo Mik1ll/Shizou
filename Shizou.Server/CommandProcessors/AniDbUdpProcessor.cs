@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi;
+using Shizou.Server.Exceptions;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.CommandProcessors;
@@ -40,6 +41,12 @@ public class AniDbUdpProcessor : CommandProcessor
 
     protected override void ShutdownInner()
     {
-        _aniDbUdpState.Logout().Wait();
+        try
+        {
+            _aniDbUdpState.Logout().Wait();
+        }
+        catch (AniDbUdpRequestException)
+        {
+        }
     }
 }

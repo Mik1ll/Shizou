@@ -11,11 +11,12 @@ using Mono.Nat;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
+using Shizou.Server.Exceptions;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.AniDbApi;
 
-public sealed class AniDbUdpState : IDisposable
+public sealed class AniDbUdpState : IDisposable, IAsyncDisposable
 {
     private readonly Func<IAuthRequest> _authRequestFactory;
     private readonly Timer _bannedTimer;
@@ -153,20 +154,13 @@ public sealed class AniDbUdpState : IDisposable
 
     public string? BanReason { get; set; }
 
-    public void Dispose()
-    {
-        Logout().Wait();
-        _bannedTimer.Dispose();
-        _logoutTimer.Dispose();
-        UdpClient.Dispose();
-        _mappingTimer?.Dispose();
-    }
 
     public void Connect()
     {
         UdpClient.Connect(_serverHost, _serverPort);
     }
 
+    /// <exception cref="AniDbUdpRequestException"></exception>
     public async Task<bool> Login()
     {
         if (LoggedIn)
@@ -190,6 +184,7 @@ public sealed class AniDbUdpState : IDisposable
         return false;
     }
 
+    /// <exception cref="AniDbUdpRequestException"></exception>
     public async Task<bool> Logout()
     {
         if (!LoggedIn)
@@ -200,5 +195,31 @@ public sealed class AniDbUdpState : IDisposable
         if (!LoggedIn)
             return true;
         return false;
+    }
+
+    public void Dispose()
+    {
+        _bannedTimer.Dispose();
+        _logoutTimer.Dispose();
+        _mappingTimer?.Dispose();
+        UdpClient.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await CastAndDispose(_bannedTimer);
+        await CastAndDispose(_logoutTimer);
+        if (_mappingTimer != null) await CastAndDispose(_mappingTimer);
+        await CastAndDispose(UdpClient);
+
+        return;
+
+        static async ValueTask CastAndDispose(IDisposable resource)
+        {
+            if (resource is IAsyncDisposable resourceAsyncDisposable)
+                await resourceAsyncDisposable.DisposeAsync();
+            else
+                resource.Dispose();
+        }
     }
 }
