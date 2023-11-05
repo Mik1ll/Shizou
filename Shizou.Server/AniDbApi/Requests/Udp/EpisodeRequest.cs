@@ -1,18 +1,21 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public class EpisodeRequest : AniDbUdpRequest, IEpisodeRequest
+public class EpisodeResponse : UdpResponse
+{
+    public EpisodeResult? EpisodeResult { get; init; }
+}
+
+public class EpisodeRequest : AniDbUdpRequest<EpisodeResponse>, IEpisodeRequest
 {
     public EpisodeRequest(ILogger<EpisodeRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("EPISODE", logger, aniDbUdpState,
         rateLimiter)
     {
     }
 
-    public EpisodeResult? EpisodeResult { get; private set; }
 
     public void SetParameters(int episodeId)
     {
@@ -27,18 +30,27 @@ public class EpisodeRequest : AniDbUdpRequest, IEpisodeRequest
         Args["epno"] = episodeNumber;
         ParametersSet = true;
     }
-    
-    protected override Task HandleResponse()
+
+    protected override EpisodeResponse CreateResponse(string responseText, AniDbResponseCode responseCode, string responseCodeText)
     {
-        switch (ResponseCode)
+        EpisodeResult? episodeResult = null;
+        switch (responseCode)
         {
             case AniDbResponseCode.Episode:
-                if (!string.IsNullOrWhiteSpace(ResponseText))
-                    EpisodeResult = new EpisodeResult(ResponseText);
+                if (!string.IsNullOrWhiteSpace(responseText))
+                    episodeResult = new EpisodeResult(responseText);
                 break;
             case AniDbResponseCode.NoSuchEpisode:
                 break;
         }
-        return Task.CompletedTask;
+
+        return new EpisodeResponse
+        {
+            ResponseText = responseText,
+            ResponseCode = responseCode,
+            ResponseCodeText = responseCodeText,
+            EpisodeResult = episodeResult
+        };
     }
+    
 }

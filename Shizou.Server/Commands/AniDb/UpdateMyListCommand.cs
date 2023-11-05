@@ -60,35 +60,35 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
             default: throw new ArgumentException($"{nameof(UpdateMyListArgs)} not valid");
         }
 
-        await _myListAddRequest.Process();
-        switch (_myListAddRequest.ResponseCode)
+        var response = await _myListAddRequest.Process();
+        switch (response?.ResponseCode)
         {
             case AniDbResponseCode.MyListAdded:
                 if (CommandArgs is { Aid: { } aid, EpNo: { } epno } && epno != "0" && !epno.StartsWith("-"))
                 {
                     _myListEntryRequest.SetParameters(aid, epno);
-                    await _myListEntryRequest.Process();
-                    if (_myListEntryRequest.MyListEntryResult is { } result)
+                    var entryResponse = await _myListEntryRequest.Process();
+                    if (entryResponse?.MyListEntryResult is { } entryResult)
                         // ReSharper disable once MethodHasAsyncOverload
-                        if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == result.EpisodeId) is { } eWs)
+                        if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == entryResult.EpisodeId) is { } eWs)
                         {
                             _logger.LogDebug("Updating episode {EpisodeId} with generic file id {GenericId} and mylist id {MyListId}",
-                                result.EpisodeId, result.FileId, result.MyListId);
-                            eWs.AniDbFileId = result.FileId;
-                            eWs.MyListId = result.MyListId;
+                                entryResult.EpisodeId, entryResult.FileId, entryResult.MyListId);
+                            eWs.AniDbFileId = entryResult.FileId;
+                            eWs.MyListId = entryResult.MyListId;
                             // ReSharper disable once MethodHasAsyncOverload
                             _context.SaveChanges();
                         }
                 }
-                else if (_myListAddRequest.AddedEntryId is not null && CommandArgs.Fid is not null)
+                else if (response.AddedEntryId is not null && CommandArgs.Fid is not null)
                 {
-                    SaveMyListId(CommandArgs.Fid.Value, _myListAddRequest.AddedEntryId.Value);
+                    SaveMyListId(CommandArgs.Fid.Value, response.AddedEntryId.Value);
                 }
 
                 break;
             case AniDbResponseCode.FileInMyList:
                 if (CommandArgs is { Fid: not null })
-                    SaveMyListId(_myListAddRequest.ExistingEntryResult!.FileId, _myListAddRequest.ExistingEntryResult!.MyListId);
+                    SaveMyListId(response.ExistingEntryResult!.FileId, response.ExistingEntryResult!.MyListId);
                 break;
             case AniDbResponseCode.MultipleMyListEntries:
                 break;
@@ -96,6 +96,12 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
                 break;
             case AniDbResponseCode.NoSuchMyListEntry:
                 break;
+            case null:
+                _logger.LogWarning("Did not recieve response");
+                return;
+            default:
+                _logger.LogWarning("Unexpected response code {ResponseCode}", response.ResponseCode);
+                return;
         }
 
         Completed = true;

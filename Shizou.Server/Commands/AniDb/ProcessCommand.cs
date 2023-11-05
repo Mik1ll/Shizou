@@ -321,9 +321,9 @@ public class ProcessCommand : Command<ProcessArgs>
                 throw new ArgumentOutOfRangeException(nameof(CommandArgs.IdType), CommandArgs.IdType, null);
         }
 
-        await _fileRequest.Process();
-        result = _fileRequest.FileResult;
-        if (_fileRequest.ResponseCode == AniDbResponseCode.NoSuchFile)
+        var response = await _fileRequest.Process();
+        result = response?.FileResult;
+        if (response?.ResponseCode == AniDbResponseCode.NoSuchFile)
         {
             _logger.LogInformation("Skipped processing {IdName}: {Id}, file not found on anidb", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
             Completed = true;

@@ -1,14 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public class FileRequest : AniDbUdpRequest, IFileRequest
+public class FileResponse : UdpResponse
+{
+    public FileResult? FileResult { get; init; }
+    public List<int>? MultipleFilesResult { get; init; }
+}
+
+public class FileRequest : AniDbUdpRequest<FileResponse>, IFileRequest
 {
     public const AMaskFile DefaultAMask = AMaskFile.GroupName | AMaskFile.GroupNameShort | AMaskFile.DateAnimeRecordUpdated;
 
@@ -26,11 +31,6 @@ public class FileRequest : AniDbUdpRequest, IFileRequest
     public FileRequest(ILogger<FileRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("FILE", logger, aniDbUdpState, rateLimiter)
     {
     }
-
-
-    public FileResult? FileResult { get; private set; }
-    public List<int>? MultipleFilesResult { get; private set; }
-
 
     private void SetParameters(FMask fMask, AMaskFile aMask)
     {
@@ -65,23 +65,31 @@ public class FileRequest : AniDbUdpRequest, IFileRequest
         ParametersSet = true;
     }
 
-    protected override Task HandleResponse()
+    protected override FileResponse CreateResponse(string responseText, AniDbResponseCode responseCode, string responseCodeText)
     {
-        switch (ResponseCode)
+        FileResult? fileResult = null;
+        List<int>? multipleFilesResult = null;
+        switch (responseCode)
         {
             case AniDbResponseCode.File:
-                if (!string.IsNullOrWhiteSpace(ResponseText))
-                    FileResult = new FileResult(ResponseText, _fMask, _aMask);
+                if (!string.IsNullOrWhiteSpace(responseText))
+                    fileResult = new FileResult(responseText, _fMask, _aMask);
                 break;
             case AniDbResponseCode.MultipleFilesFound:
-                if (ResponseText is not null)
-                    MultipleFilesResult = ResponseText.Split('|').Select(fid => int.Parse(fid)).ToList();
+                multipleFilesResult = responseText.Split('|').Select(int.Parse).ToList();
                 break;
             case AniDbResponseCode.NoSuchFile:
                 break;
         }
 
-        return Task.CompletedTask;
+        return new FileResponse
+        {
+            ResponseText = responseText,
+            ResponseCode = responseCode,
+            ResponseCodeText = responseCodeText,
+            FileResult = fileResult,
+            MultipleFilesResult = multipleFilesResult
+        };
     }
 }
 

@@ -1,12 +1,11 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 // ReSharper disable once ClassNeverInstantiated.Global
-public class LogoutRequest : AniDbUdpRequest, ILogoutRequest
+public class LogoutRequest : AniDbUdpRequest<UdpResponse>, ILogoutRequest
 {
     public LogoutRequest(ILogger<LogoutRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("LOGOUT", logger, aniDbUdpState,
         rateLimiter)
@@ -18,9 +17,9 @@ public class LogoutRequest : AniDbUdpRequest, ILogoutRequest
         ParametersSet = true;
     }
 
-    protected override Task HandleResponse()
+    protected override UdpResponse CreateResponse(string responseText, AniDbResponseCode responseCode, string responseCodeText)
     {
-        switch (ResponseCode)
+        switch (responseCode)
         {
             case AniDbResponseCode.LoggedOut:
                 Logger.LogInformation("Sucessfully logged out of AniDB");
@@ -33,6 +32,7 @@ public class LogoutRequest : AniDbUdpRequest, ILogoutRequest
                 AniDbUdpState.LoggedIn = false;
                 break;
         }
-        return Task.CompletedTask;
+
+        return base.CreateResponse(responseText, responseCode, responseCodeText);
     }
 }

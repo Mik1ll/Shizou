@@ -1,12 +1,16 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public class AnimeRequest : AniDbUdpRequest, IAnimeRequest
+public class AnimeResponse : UdpResponse
+{
+    public AnimeResult? AnimeResult { get; init; }
+}
+
+public class AnimeRequest : AniDbUdpRequest<AnimeResponse>, IAnimeRequest
 {
     public const AMaskAnime DefaultAMask = AMaskAnime.DateRecordUpdated | AMaskAnime.TitleRomaji | AMaskAnime.TotalEpisodes | AMaskAnime.HighestEpisodeNumber |
                                            AMaskAnime.Type |
@@ -19,8 +23,6 @@ public class AnimeRequest : AniDbUdpRequest, IAnimeRequest
     {
     }
 
-    public AnimeResult? AnimeResult { get; private set; }
-
     public void SetParameters(int aid, AMaskAnime aMask)
     {
         _aMask = aMask;
@@ -29,19 +31,26 @@ public class AnimeRequest : AniDbUdpRequest, IAnimeRequest
         ParametersSet = true;
     }
 
-    protected override Task HandleResponse()
+    protected sealed override AnimeResponse CreateResponse(string responseText, AniDbResponseCode responseCode, string responseCodeText)
     {
-        switch (ResponseCode)
+        AnimeResult? animeResult = null;
+        switch (responseCode)
         {
             case AniDbResponseCode.Anime:
-                if (!string.IsNullOrWhiteSpace(ResponseText))
-                    AnimeResult = new AnimeResult(ResponseText, _aMask);
+                if (!string.IsNullOrWhiteSpace(responseText))
+                    animeResult = new AnimeResult(responseText, _aMask);
                 break;
             case AniDbResponseCode.NoSuchAnime:
                 break;
         }
 
-        return Task.CompletedTask;
+        return new AnimeResponse
+        {
+            ResponseText = responseText,
+            ResponseCode = responseCode,
+            ResponseCodeText = responseCodeText,
+            AnimeResult = animeResult
+        };
     }
 }
 

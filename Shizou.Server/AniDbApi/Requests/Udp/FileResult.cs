@@ -102,7 +102,7 @@ public sealed record FileResult
                         LengthInSeconds = data != "0" ? int.Parse(data) : null;
                         break;
                     case FMask.Description:
-                        Description = AniDbUdpRequest.DataUnescape(data);
+                        Description = data;
                         break;
                     case FMask.EpisodeAiredDate:
                         EpisodeAiredDate = data != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(data)) : null;

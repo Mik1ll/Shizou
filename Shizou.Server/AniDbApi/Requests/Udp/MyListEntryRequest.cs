@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi.RateLimiters;
@@ -7,16 +6,18 @@ using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public class MyListEntryRequest : AniDbUdpRequest, IMyListEntryRequest
+public class MyListEntryResponse : UdpResponse
 {
-    public MyListEntryResult? MyListEntryResult { get; private set; }
+    public MyListEntryResult? MyListEntryResult { get; init; }
+}
 
+public class MyListEntryRequest : AniDbUdpRequest<MyListEntryResponse>, IMyListEntryRequest
+{
     public MyListEntryRequest(ILogger<MyListEntryRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("MYLIST", logger,
         aniDbUdpState, rateLimiter)
     {
     }
-
-
+    
     public void SetParameters(int aid, string epno)
     {
         Args["aid"] = aid.ToString();
@@ -35,15 +36,16 @@ public class MyListEntryRequest : AniDbUdpRequest, IMyListEntryRequest
         ParametersSet = true;
     }
 
-    protected override Task HandleResponse()
+    protected override MyListEntryResponse CreateResponse(string responseText, AniDbResponseCode responseCode, string responseCodeText)
     {
-        switch (ResponseCode)
+        MyListEntryResult? myListEntryResult = null;
+        switch (responseCode)
         {
             case AniDbResponseCode.MyList:
-                if (string.IsNullOrWhiteSpace(ResponseText))
-                    return Task.CompletedTask;
-                var data = ResponseText.Split('|');
-                MyListEntryResult = new MyListEntryResult(data);
+                if (string.IsNullOrWhiteSpace(responseText))
+                    break;
+                var data = responseText.Split('|');
+                myListEntryResult = new MyListEntryResult(data);
                 break;
             case AniDbResponseCode.MultipleMyListEntries:
                 break;
@@ -51,6 +53,12 @@ public class MyListEntryRequest : AniDbUdpRequest, IMyListEntryRequest
                 break;
         }
 
-        return Task.CompletedTask;
+        return new MyListEntryResponse
+        {
+            ResponseText = responseText,
+            ResponseCode = responseCode,
+            ResponseCodeText = responseCodeText,
+            MyListEntryResult = myListEntryResult
+        };
     }
 }

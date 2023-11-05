@@ -2,7 +2,7 @@
 
 namespace Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
-public interface IGenericRequest : IAniDbUdpRequest
+public interface IGenericRequest : IAniDbUdpRequest<UdpResponse>
 {
     void SetParameters(string command, Dictionary<string, string> args);
 }

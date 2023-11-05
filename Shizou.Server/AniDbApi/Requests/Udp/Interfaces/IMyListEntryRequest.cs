@@ -2,9 +2,8 @@
 
 namespace Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
-public interface IMyListEntryRequest : IAniDbUdpRequest
+public interface IMyListEntryRequest : IAniDbUdpRequest<MyListEntryResponse>
 {
-    MyListEntryResult? MyListEntryResult { get; }
     void SetParameters(int aid, string epno);
     void SetParameters(int id, IdTypeFileMyList idType);
 }

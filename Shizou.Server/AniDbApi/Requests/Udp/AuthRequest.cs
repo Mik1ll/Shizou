@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
@@ -9,7 +8,7 @@ using Shizou.Server.Options;
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
 // ReSharper disable once ClassNeverInstantiated.Global
-public class AuthRequest : AniDbUdpRequest, IAuthRequest
+public class AuthRequest : AniDbUdpRequest<UdpResponse>, IAuthRequest
 {
     private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
 
@@ -40,18 +39,18 @@ public class AuthRequest : AniDbUdpRequest, IAuthRequest
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>
-    protected override Task HandleResponse()
+    protected override UdpResponse CreateResponse(string responseText, AniDbResponseCode responseCode, string responseCodeText)
     {
-        switch (ResponseCode)
+        switch (responseCode)
         {
             case AniDbResponseCode.LoginAccepted or AniDbResponseCode.LoginAcceptedNewVersion:
-                var split = ResponseCodeString?.Split(" ");
-                AniDbUdpState.SessionKey = split?[0];
+                var split = responseCodeText.Split(" ");
+                AniDbUdpState.SessionKey = split[0];
                 // ReSharper disable once UnusedVariable
-                var ipEndpoint = split?[1];
-                var imageServer = ResponseText?.Trim();
+                var ipEndpoint = split[1];
+                var imageServer = responseText.Trim();
                 var opts = _optionsMonitor.CurrentValue;
-                if (imageServer is not null && opts.AniDb.ImageServerHost != imageServer)
+                if (opts.AniDb.ImageServerHost != imageServer)
                 {
                     opts.AniDb.ImageServerHost = imageServer;
                     opts.SaveToFile();
@@ -59,17 +58,19 @@ public class AuthRequest : AniDbUdpRequest, IAuthRequest
 
                 AniDbUdpState.LoggedIn = true;
                 AniDbUdpState.ResetLogoutTimer();
+                Logger.LogInformation("Logged into AniDB");
                 break;
             case AniDbResponseCode.LoginFailed:
-                throw new AniDbUdpRequestException("Login failed, change credentials", ResponseCode);
+                AniDbUdpState.LoggedIn = false;
+                throw new AniDbUdpRequestException("Login failed, change credentials", responseCode);
             case AniDbResponseCode.ClientOutdated:
-                throw new AniDbUdpRequestException("Login failed, client outdated", ResponseCode);
+                AniDbUdpState.LoggedIn = false;
+                throw new AniDbUdpRequestException("Login failed, client outdated", responseCode);
             case AniDbResponseCode.ClientBanned:
-                throw new AniDbUdpRequestException("Login failed, client banned", ResponseCode);
-            case null:
-                throw new AniDbUdpRequestException("No auth response");
+                AniDbUdpState.LoggedIn = false;
+                throw new AniDbUdpRequestException("Login failed, client banned", responseCode);
         }
 
-        return Task.CompletedTask;
+        return base.CreateResponse(responseText, responseCode, responseCodeText);
     }
 }

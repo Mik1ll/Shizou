@@ -47,8 +47,10 @@ public class CommandController : ControllerBase
     public async Task<string?> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
         _genericRequest.SetParameters(command, args);
-        await _genericRequest.Process();
-        return _genericRequest.ResponseCodeString + "\n" + _genericRequest.ResponseText;
+        var resp = await _genericRequest.Process();
+        if (resp is not null)
+            return resp.ResponseCodeText + "\n" + resp.ResponseText;
+        return string.Empty;
     }
 
     [HttpPut("RestoreMyListBackup")]

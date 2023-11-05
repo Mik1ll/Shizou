@@ -133,39 +133,28 @@ public sealed class AniDbUdpState : IDisposable
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>
-    public async Task<bool> Login()
+    public async Task Login()
     {
         if (LoggedIn)
         {
             ResetLogoutTimer();
-            return true;
+            return;
         }
 
         var req = _authRequestFactory();
         _logger.LogInformation("Attempting to log into AniDB");
         req.SetParameters();
         await req.Process();
-        if (LoggedIn)
-        {
-            _logger.LogInformation("Logged into AniDB");
-            return true;
-        }
-
-        _logger.LogWarning("Failed to log into AniDB");
-        return false;
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>
-    public async Task<bool> Logout()
+    public async Task Logout()
     {
         if (!LoggedIn)
-            return true;
+            return;
         var req = _logoutRequestFactory();
         req.SetParameters();
         await req.Process();
-        if (!LoggedIn)
-            return true;
-        return false;
     }
 
     public void Dispose()

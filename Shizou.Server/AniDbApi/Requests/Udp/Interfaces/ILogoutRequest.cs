@@ -1,6 +1,6 @@
 ﻿namespace Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
-public interface ILogoutRequest : IAniDbUdpRequest
+public interface ILogoutRequest : IAniDbUdpRequest<UdpResponse>
 {
     void SetParameters();
 }

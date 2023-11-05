@@ -3,12 +3,8 @@ using Shizou.Data.Enums;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
-public interface IMyListAddRequest : IAniDbUdpRequest
+public interface IMyListAddRequest : IAniDbUdpRequest<MyListAddResponse>
 {
-    MyListEntryResult? ExistingEntryResult { get; }
-    int? AddedEntryId { get; }
-    int EntriesAffected { get; }
-
     void SetParameters(
         int fid, bool edit, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null
     );

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi.RateLimiters;
@@ -7,16 +6,19 @@ using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
-public class MyListAddRequest : AniDbUdpRequest, IMyListAddRequest
+public class MyListAddResponse : UdpResponse
+{
+    public MyListEntryResult? ExistingEntryResult { get; init; }
+    public int? AddedEntryId { get; init; }
+    public int? EntriesAffected { get; init; }
+}
+
+public class MyListAddRequest : AniDbUdpRequest<MyListAddResponse>, IMyListAddRequest
 {
     public MyListAddRequest(ILogger<MyListAddRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("MYLISTADD", logger,
         aniDbUdpState, rateLimiter)
     {
     }
-
-    public MyListEntryResult? ExistingEntryResult { get; private set; }
-    public int? AddedEntryId { get; private set; }
-    public int EntriesAffected { get; private set; }
 
     public void SetParameters(
         int fid, bool edit, bool? watched = null, DateTimeOffset? watchedDate = null, MyListState? state = null
@@ -62,36 +64,38 @@ public class MyListAddRequest : AniDbUdpRequest, IMyListAddRequest
             Args["state"] = ((int)state).ToString();
     }
 
-
-    protected override Task HandleResponse()
+    protected override MyListAddResponse CreateResponse(string responseText, AniDbResponseCode responseCode, string responseCodeText)
     {
-        switch (ResponseCode)
+        int? addedEntryId = null;
+        int? entriesAffected = null;
+        MyListEntryResult? existingEntryResult = null;
+        switch (responseCode)
         {
             case AniDbResponseCode.MyListAdded:
-                if (string.IsNullOrWhiteSpace(ResponseText))
-                    return Task.CompletedTask;
+                if (string.IsNullOrWhiteSpace(responseText))
+                    break;
                 if (Args.ContainsKey("fid") || Args.ContainsKey("ed2k"))
                 {
-                    AddedEntryId = int.Parse(ResponseText);
-                    EntriesAffected = 1;
+                    addedEntryId = int.Parse(responseText);
+                    entriesAffected = 1;
                 }
                 else
                 {
-                    EntriesAffected = int.Parse(ResponseText);
+                    entriesAffected = int.Parse(responseText);
                 }
 
                 break;
             case AniDbResponseCode.MyListEdited:
-                EntriesAffected = string.IsNullOrWhiteSpace(ResponseText) ? 1 : int.Parse(ResponseText);
+                entriesAffected = string.IsNullOrWhiteSpace(responseText) ? 1 : int.Parse(responseText);
                 break;
             case AniDbResponseCode.MultipleFilesFound:
                 // May only occur if using group name / gid?
                 break;
             case AniDbResponseCode.FileInMyList:
-                if (string.IsNullOrWhiteSpace(ResponseText))
-                    return Task.CompletedTask;
-                var data = ResponseText.Split('|');
-                ExistingEntryResult = new MyListEntryResult(data);
+                if (string.IsNullOrWhiteSpace(responseText))
+                    break;
+                var data = responseText.Split('|');
+                existingEntryResult = new MyListEntryResult(data);
                 break;
             case AniDbResponseCode.NoSuchFile:
                 break;
@@ -101,6 +105,14 @@ public class MyListAddRequest : AniDbUdpRequest, IMyListAddRequest
                 break;
         }
 
-        return Task.CompletedTask;
+        return new MyListAddResponse
+        {
+            ResponseText = responseText,
+            ResponseCode = responseCode,
+            ResponseCodeText = responseCodeText,
+            ExistingEntryResult = existingEntryResult,
+            AddedEntryId = addedEntryId,
+            EntriesAffected = entriesAffected
+        };
     }
 }
