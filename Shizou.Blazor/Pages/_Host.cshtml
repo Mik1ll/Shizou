@@ -79,10 +79,17 @@ function loadPlayer(elementId, subtitleUrls, fontUrls) {
             legacyWorkerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker-legacy.min.js', // Link to non-WebAssembly worker
             fallbackFont: '/fonts/default.woff2'
         };
+        
         subtitleHandler.dispose()
         subtitleHandler.instance = new SubtitlesOctopus(options);
         this.textTracks().addEventListener('change', (event) => {
-            var showingIdx = this.textTracks().tracks_.findIndex((track) => track.mode === 'showing');
+            var tracks = this.textTracks().tracks_;
+            var showingIdx = tracks.findIndex((track) => track.mode === 'showing');
+            for (let i = 0; i < tracks.length; i++) {
+                if (i != showingIdx) {
+                    tracks[i].mode = 'disabled';
+                }
+            }
             if (showingIdx >= 0) {
                 subtitleHandler.setTrack(subtitleUrls[showingIdx]);
             } else {
@@ -106,7 +113,8 @@ var subtitleHandler = {
         }
     },
     setTrack: function(subUrl) {
-        if (subUrl !== subtitleHandler.instance.subUrl) {
+        if (subtitleHandler.instance && subUrl !== subtitleHandler.instance.subUrl) {
+            subtitleHandler.free();
             subtitleHandler.instance.setTrackByUrl(subUrl);
             subtitleHandler.instance.setSubUrl(subUrl);
         }
