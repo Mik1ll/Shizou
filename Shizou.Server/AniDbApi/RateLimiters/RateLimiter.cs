@@ -51,7 +51,7 @@ public abstract class RateLimiter
             _activeWatch.Restart();
         _watch.Restart();
         NextAvailable = DateTimeOffset.UtcNow + (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay);
-        Logger.LogDebug("Rate limiter released");
+        Logger.LogTrace("Rate limiter released");
         _rateSemaphore.Release();
     }
 

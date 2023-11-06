@@ -14,9 +14,6 @@ public partial class Collection
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
-    [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
-
     protected override void OnInitialized()
     {
         RefreshAnime();

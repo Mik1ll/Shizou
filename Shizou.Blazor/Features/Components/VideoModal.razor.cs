@@ -91,8 +91,19 @@ public partial class VideoModal
         foreach (var streamEl in document.RootElement.GetProperty("streams").EnumerateArray())
         {
             var index = streamEl.GetProperty("index").GetInt32();
-            var codec = streamEl.GetProperty("codec_name")
-                .GetString();
+            if (!streamEl.TryGetProperty("codec_name", out var codecEl) || codecEl.GetString() is not { } codec)
+            {
+                codec = string.Empty;
+                if (streamEl.TryGetProperty("tags", out var tagsEl))
+                    if (tagsEl.TryGetProperty("filename", out var filenameEl))
+                        codec = filenameEl.GetString() switch
+                        {
+                            [.., 't', 't', 'f'] => "ttf",
+                            [.., 'o', 't', 'f'] => "otf",
+                            _ => string.Empty
+                        };
+            }
+
             if (new[] { "ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext" }.Contains(codec))
             {
                 string? lang = null;
