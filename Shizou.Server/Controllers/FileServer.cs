@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
+using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
@@ -20,12 +21,14 @@ namespace Shizou.Server.Controllers;
 public class FileServer : ControllerBase
 {
     private readonly ShizouContext _context;
+    private readonly SubtitleService _subtitleService;
     private readonly ILogger<FileServer> _logger;
 
-    public FileServer(ILogger<FileServer> logger, ShizouContext context)
+    public FileServer(ILogger<FileServer> logger, ShizouContext context, SubtitleService subtitleService)
     {
         _logger = logger;
         _context = context;
+        _subtitleService = subtitleService;
     }
 
 
@@ -64,39 +67,23 @@ public class FileServer : ControllerBase
     /// <summary>
     ///     Get embedded ASS subtitle of local file
     /// </summary>
-    /// <param name="localFileId"></param>
-    /// <param name="subtitleIndex"></param>
+    /// <param name="ed2k"></param>
+    /// <param name="index"></param>
     /// <returns></returns>
-    [HttpGet("AssSubs/{localFileId:int}/{subtitleIndex:int}")]
+    [HttpGet("Subs/{ed2k}/{index:int}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status409Conflict)]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "text/x-ssa")]
-    public async Task<Results<FileContentHttpResult, NotFound, Conflict<string>>> GetAssSubtitle(int localFileId, int subtitleIndex)
+    // ReSharper disable once InconsistentNaming
+    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetSubtitle(string ed2k, int index)
     {
-        var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
-        if (localFile is null)
-            return TypedResults.NotFound();
-        if (localFile.ImportFolder is null)
-        {
-            _logger.LogWarning("Tried to get local file with no import folder");
-            return TypedResults.Conflict("Import folder does not exist");
-        }
-
-        var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
+        var fileInfo = new FileInfo(SubtitleService.GetSubPath(ed2k, index));
         if (!fileInfo.Exists)
-            return TypedResults.Conflict("Local file path does not exist");
+            await _subtitleService.ExtractSubtitles(ed2k);
 
-        using var p = new Process();
-        p.StartInfo.UseShellExecute = false;
-        p.StartInfo.CreateNoWindow = true;
-        p.StartInfo.RedirectStandardOutput = true;
-        p.StartInfo.FileName = "ffmpeg";
-        p.StartInfo.Arguments = $"-hide_banner -v fatal -i \"{fileInfo.FullName}\" -map 0:{subtitleIndex} -c ass -f ass -";
-        p.Start();
-        using var memoryStream = new MemoryStream();
-        await p.StandardOutput.BaseStream.CopyToAsync(memoryStream);
-        var result = memoryStream.ToArray();
-        return TypedResults.File(result, "text/x-ssa");
+        if (!fileInfo.Exists)
+            return TypedResults.NotFound();
+
+        return TypedResults.PhysicalFile(fileInfo.FullName, "text/x-ssa");
     }
 
     /// <summary>

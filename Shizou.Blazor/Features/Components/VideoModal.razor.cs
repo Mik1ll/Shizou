@@ -10,6 +10,7 @@ using Microsoft.JSInterop;
 using Shizou.Blazor.Extensions;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
+using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Components;
 
@@ -104,7 +105,7 @@ public partial class VideoModal
                         };
             }
 
-            if (new[] { "ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext" }.Contains(codec))
+            if (SubtitleService.ValidSubFormats.Contains(codec))
             {
                 string? lang = null;
                 string? title = null;
@@ -116,7 +117,7 @@ public partial class VideoModal
                         title = titleEl.GetString();
                 }
 
-                _assSubs.Add(($"/api/FileServer/AssSubs/{LocalFileId}/{index}", lang, title));
+                _assSubs.Add(($"/api/FileServer/Subs/{_localFile.Ed2k}/{index}", lang, title));
             }
             else if (new[] { "ttf", "otf" }.Contains(codec))
             {
