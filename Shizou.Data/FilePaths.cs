@@ -12,4 +12,5 @@ public static class FilePaths
     public static readonly string ImagesDir = Path.Combine(ApplicationDataDir, "Images");
     public static readonly string AnimePostersDir = Path.Combine(ImagesDir, "AnimePosters");
     public static readonly string AnimeTitlesPath = Path.Combine(ApplicationDataDir, "AnimeTitles.dat");
+    public static readonly string ExtraFileDataDir = Path.Combine(ApplicationDataDir, "ExtraFileData");
 }
