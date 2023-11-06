@@ -79,7 +79,7 @@ public class FileServer : ControllerBase
         var fileInfo = new FileInfo(SubtitleService.GetSubPath(ed2k, index));
         if (!fileInfo.Exists)
             await _subtitleService.ExtractSubtitles(ed2k);
-
+        fileInfo.Refresh();
         if (!fileInfo.Exists)
             return TypedResults.NotFound();
 
