@@ -92,43 +92,28 @@ public partial class VideoModal
         foreach (var streamEl in document.RootElement.GetProperty("streams").EnumerateArray())
         {
             var index = streamEl.GetProperty("index").GetInt32();
-            if (!streamEl.TryGetProperty("codec_name", out var codecEl) || codecEl.GetString() is not { } codec)
+            var codec = string.Empty;
+            if (streamEl.TryGetProperty("codec_name", out var codecEl))
+                codec = codecEl.GetString() ?? string.Empty;
+
+            string? filename = null;
+            string? lang = null;
+            string? title = null;
+            if (streamEl.TryGetProperty("tags", out var tagsEl))
             {
-                codec = string.Empty;
-                if (streamEl.TryGetProperty("tags", out var tagsEl))
-                    if (tagsEl.TryGetProperty("filename", out var filenameEl))
-                        codec = filenameEl.GetString() switch
-                        {
-                            [.., 't', 't', 'f'] => "ttf",
-                            [.., 'o', 't', 'f'] => "otf",
-                            _ => string.Empty
-                        };
+                if (tagsEl.TryGetProperty("filename", out var filenameEl))
+                    filename = filenameEl.GetString();
+                if (tagsEl.TryGetProperty("language", out var langEl))
+                    lang = langEl.GetString();
+                if (tagsEl.TryGetProperty("title", out var titleEl))
+                    title = titleEl.GetString();
             }
 
             if (SubtitleService.ValidSubFormats.Contains(codec))
-            {
-                string? lang = null;
-                string? title = null;
-                if (streamEl.TryGetProperty("tags", out var tags))
-                {
-                    if (tags.TryGetProperty("language", out var langEl))
-                        lang = langEl.GetString();
-                    if (tags.TryGetProperty("title", out var titleEl))
-                        title = titleEl.GetString();
-                }
-
                 _assSubs.Add(($"/api/FileServer/Subs/{_localFile.Ed2k}/{index}", lang, title));
-            }
-            else if (new[] { "ttf", "otf" }.Contains(codec))
-            {
-                string? filename = null;
-                if (streamEl.TryGetProperty("tags", out var tags))
-                    if (tags.TryGetProperty("filename", out var filenameEl))
-                        filename = filenameEl.GetString();
-
-                if (filename is not null)
-                    _fontUrls.Add($"/api/FileServer/Fonts/{LocalFileId}/{index}?fontName={HttpUtility.UrlEncode(filename)}");
-            }
+            else if (filename is not null && (SubtitleService.ValidFontFormats.Contains(codec) ||
+                                              SubtitleService.ValidFontFormats.Any(f => filename.EndsWith(f, StringComparison.OrdinalIgnoreCase))))
+                _fontUrls.Add($"/api/FileServer/Fonts/{_localFile.Ed2k}/{HttpUtility.UrlEncode(filename)}");
         }
     }
 }

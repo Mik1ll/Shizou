@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -89,56 +88,25 @@ public class FileServer : ControllerBase
     /// <summary>
     ///     Get embedded ASS subtitle of local file
     /// </summary>
-    /// <param name="localFileId"></param>
-    /// <param name="fontIndex"></param>
+    /// <param name="ed2k"></param>
     /// <param name="fontName"></param>
     /// <returns></returns>
-    [HttpGet("Fonts/{localFileId:int}/{fontIndex:int}")]
+    [HttpGet("Fonts/{ed2k}/{fontName}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(string))]
-    [SwaggerResponse(StatusCodes.Status409Conflict, type: typeof(string))]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: new[] { "font/ttf", "font/otf" })]
-    public async Task<Results<PhysicalFileHttpResult, BadRequest<string>, Conflict<string>, NotFound>> GetFont(int localFileId, int fontIndex,
-        [FromQuery] string? fontName)
+    // ReSharper disable once InconsistentNaming
+    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont(string ed2k, string fontName)
     {
-        var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
-        if (localFile is null)
-            return TypedResults.NotFound();
-        if (localFile.ImportFolder is null)
-        {
-            _logger.LogWarning("Tried to get local file with no import folder");
-            return TypedResults.Conflict("Import folder does not exist");
-        }
-
-        if (fontName is null)
-        {
-            _logger.LogWarning("Tried to get font without font name");
-            return TypedResults.BadRequest("No font name provided");
-        }
-
-        var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
+        var fileInfo = new FileInfo(SubtitleService.GetFontPath(ed2k, fontName));
         if (!fileInfo.Exists)
-            return TypedResults.Conflict("Local file path does not exist");
-
-        var tempDirectory = Path.Combine(Path.GetTempPath(), "ShizouFonts", localFileId.ToString());
-        var fontPath = Path.Combine(tempDirectory, fontName);
-        if (!Path.Exists(fontPath))
-        {
-            Directory.CreateDirectory(tempDirectory);
-            using var p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.FileName = "ffmpeg";
-            p.StartInfo.Arguments = $"-hide_banner -v fatal -y -dump_attachment:{fontIndex} \"\" -i \"{fileInfo.FullName}\"";
-            p.StartInfo.WorkingDirectory = tempDirectory;
-            p.Start();
-            await p.WaitForExitAsync();
-        }
+            await _subtitleService.ExtractFonts(ed2k);
+        fileInfo.Refresh();
+        if (!fileInfo.Exists)
+            return TypedResults.NotFound();
 
         if (!new FileExtensionContentTypeProvider().TryGetContentType(fontName, out var mimeType))
-            mimeType = "font/ttf";
-        return TypedResults.PhysicalFile(fontPath, mimeType);
+            mimeType = "font/otf";
+        return TypedResults.PhysicalFile(fileInfo.FullName, mimeType);
     }
 
     [HttpGet("{localFileId:int}/play")]
