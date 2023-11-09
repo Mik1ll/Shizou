@@ -1,7 +1,9 @@
-﻿<ModalWrapper Cancel="@Cancel" class="modal-xl modal-fullscreen-lg-down">
+﻿@using Shizou.Server.Controllers
+<ModalWrapper Cancel="@Cancel" class="modal-xl modal-fullscreen-lg-down">
     <div class="modal-body">
         <video id="@_videoId" class="h-100 w-100 object-fit-contain video-js" controls>
-            <source src="api/FileServer/@LocalFileId" type="@(_localFileMimeType)"/>
+            @* ReSharper disable once RedundantAnonymousTypePropertyName *@
+            <source src="@(LinkGenerator.GetPathByAction(nameof(FileServer.Get), nameof(FileServer), new { LocalFileId = LocalFileId }) ?? throw new ArgumentException())" type="@(_localFileMimeType)"/>
             @foreach (var (sub, idx) in _assSubs.Select((sub, idx) => (sub,idx)))
             {
                 <track default="@(idx == 0)" kind="subtitles" src="/dummy.vtt" srclang="@(sub.Lang)" label="@(sub.Title)"/>

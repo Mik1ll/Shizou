@@ -6,13 +6,13 @@ using Shizou.Blazor.Features.Components;
 using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
+using Shizou.Server.Controllers;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Anime.Components;
 
 public partial class FileCard
 {
-
     [Inject]
     private WatchStateService WatchStateService { get; set; } = default!;
 
@@ -21,6 +21,12 @@ public partial class FileCard
 
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+
+    [Inject]
+    private LinkGenerator LinkGenerator { get; set; } = default!;
+
+    [Inject]
+    private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
 
     [CascadingParameter(Name = nameof(App.IdentityCookie))]
     private string? IdentityCookie { get; set; }
@@ -42,8 +48,8 @@ public partial class FileCard
 
     [Parameter]
     public EventCallback OnChanged { get; set; }
-    
-    
+
+
     private async Task Mark(bool watched)
     {
         switch (WatchedState)
@@ -84,7 +90,9 @@ public partial class FileCard
     {
         if (IdentityCookie is null)
             return;
+        var uri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.Get),
+            nameof(FileServer), new { LocalFileId = $"{file.Id}{Path.GetExtension(file.PathTail)}" }) ?? throw new ArgumentException();
         NavigationManager.NavigateTo(
-            $"mpv:{NavigationManager.BaseUri}api/FileServer/{file.Id}{Path.GetExtension(file.PathTail)}?{Constants.IdentityCookieName}={IdentityCookie}");
+            $"mpv:{uri}?{Constants.IdentityCookieName}={IdentityCookie}");
     }
 }

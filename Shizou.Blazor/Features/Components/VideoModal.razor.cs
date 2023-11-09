@@ -9,6 +9,7 @@ using Microsoft.JSInterop;
 using Shizou.Blazor.Extensions;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
+using Shizou.Server.Controllers;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Components;
@@ -27,6 +28,9 @@ public partial class VideoModal
 
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+
+    [Inject]
+    private LinkGenerator LinkGenerator { get; set; } = default!;
 
     [CascadingParameter]
     private BlazoredModalInstance ModalInstance { get; set; } = default!;
@@ -108,11 +112,20 @@ public partial class VideoModal
                     title = titleEl.GetString();
             }
 
+
             if (SubtitleService.ValidSubFormats.Contains(codec))
-                _assSubs.Add(($"/api/FileServer/Subs/{_localFile.Ed2k}/{index}", lang, title));
+            {
+                var subUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetSubtitle), nameof(FileServer),
+                    new FileServer.GetSubtitleArgs(_localFile.Ed2k, index)) ?? throw new ArgumentException();
+                _assSubs.Add((subUrl, lang, title));
+            }
             else if (filename is not null && (SubtitleService.ValidFontFormats.Contains(codec) ||
                                               SubtitleService.ValidFontFormats.Any(f => filename.EndsWith(f, StringComparison.OrdinalIgnoreCase))))
-                _fontUrls.Add($"/api/FileServer/Fonts/{_localFile.Ed2k}/{Uri.EscapeDataString(filename)}");
+            {
+                var fontUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetFont), nameof(FileServer),
+                    new FileServer.GetFontArgs(_localFile.Ed2k, filename)) ?? throw new ArgumentException();
+                _fontUrls.Add(fontUrl);
+            }
         }
     }
 }

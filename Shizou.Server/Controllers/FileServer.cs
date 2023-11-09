@@ -63,18 +63,21 @@ public class FileServer : ControllerBase
         return TypedResults.File(fileStream, mimeType, fileInfo.Name, enableRangeProcessing: true);
     }
 
+
+    public record GetSubtitleArgs(string Ed2K, int Index);
+
     /// <summary>
     ///     Get embedded ASS subtitle of local file
     /// </summary>
-    /// <param name="ed2k"></param>
-    /// <param name="index"></param>
+    /// <param name="args"></param>
     /// <returns></returns>
     [HttpGet("Subs/{ed2k}/{index:int}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "text/x-ssa")]
-    // ReSharper disable once InconsistentNaming
-    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetSubtitle(string ed2k, int index)
+    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetSubtitle([FromRoute] GetSubtitleArgs args)
     {
+        // ReSharper disable once InconsistentNaming
+        var (ed2k, index) = args;
         var fileInfo = new FileInfo(SubtitleService.GetSubPath(ed2k, index));
         if (!fileInfo.Exists)
         {
@@ -87,18 +90,20 @@ public class FileServer : ControllerBase
         return TypedResults.PhysicalFile(fileInfo.FullName, "text/x-ssa");
     }
 
+    public record GetFontArgs(string Ed2K, string FontName);
+
     /// <summary>
-    ///     Get embedded ASS subtitle of local file
+    ///     Get embedded font of local file
     /// </summary>
-    /// <param name="ed2k"></param>
-    /// <param name="fontName"></param>
+    /// <param name="args"></param>
     /// <returns></returns>
     [HttpGet("Fonts/{ed2k}/{fontName}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: new[] { "font/ttf", "font/otf" })]
-    // ReSharper disable once InconsistentNaming
-    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont(string ed2k, string fontName)
+    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont([FromRoute] GetFontArgs args)
     {
+        // ReSharper disable once InconsistentNaming
+        var (ed2k, fontName) = args;
         var fileInfo = new FileInfo(SubtitleService.GetFontPath(ed2k, fontName));
         if (!fileInfo.Exists)
         {
