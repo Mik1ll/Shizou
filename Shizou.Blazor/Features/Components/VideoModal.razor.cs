@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using System.Web;
 using Blazored.Modal;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.StaticFiles;
@@ -113,7 +112,7 @@ public partial class VideoModal
                 _assSubs.Add(($"/api/FileServer/Subs/{_localFile.Ed2k}/{index}", lang, title));
             else if (filename is not null && (SubtitleService.ValidFontFormats.Contains(codec) ||
                                               SubtitleService.ValidFontFormats.Any(f => filename.EndsWith(f, StringComparison.OrdinalIgnoreCase))))
-                _fontUrls.Add($"/api/FileServer/Fonts/{_localFile.Ed2k}/{HttpUtility.UrlEncode(filename)}");
+                _fontUrls.Add($"/api/FileServer/Fonts/{_localFile.Ed2k}/{Uri.EscapeDataString(filename)}");
         }
     }
 }

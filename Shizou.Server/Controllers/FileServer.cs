@@ -77,10 +77,12 @@ public class FileServer : ControllerBase
     {
         var fileInfo = new FileInfo(SubtitleService.GetSubPath(ed2k, index));
         if (!fileInfo.Exists)
+        {
             await _subtitleService.ExtractSubtitles(ed2k);
-        fileInfo.Refresh();
-        if (!fileInfo.Exists)
-            return TypedResults.NotFound();
+            fileInfo.Refresh();
+            if (!fileInfo.Exists)
+                return TypedResults.NotFound();
+        }
 
         return TypedResults.PhysicalFile(fileInfo.FullName, "text/x-ssa");
     }
@@ -99,10 +101,12 @@ public class FileServer : ControllerBase
     {
         var fileInfo = new FileInfo(SubtitleService.GetFontPath(ed2k, fontName));
         if (!fileInfo.Exists)
+        {
             await _subtitleService.ExtractFonts(ed2k);
-        fileInfo.Refresh();
-        if (!fileInfo.Exists)
-            return TypedResults.NotFound();
+            fileInfo.Refresh();
+            if (!fileInfo.Exists)
+                return TypedResults.NotFound();
+        }
 
         if (!new FileExtensionContentTypeProvider().TryGetContentType(fontName, out var mimeType))
             mimeType = "font/otf";
