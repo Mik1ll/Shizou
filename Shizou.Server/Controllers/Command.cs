@@ -12,12 +12,12 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CommandController : ControllerBase
+public class Command : ControllerBase
 {
     private readonly CommandService _commandService;
     private readonly IGenericRequest _genericRequest;
 
-    public CommandController(
+    public Command(
         CommandService commandService,
         IGenericRequest genericRequest
     )

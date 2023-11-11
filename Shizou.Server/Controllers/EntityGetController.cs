@@ -11,16 +11,14 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class EntityGetController<TEntity> : ControllerBase where TEntity : class
+public abstract class EntityGetController<TEntity> : ControllerBase where TEntity : class
 {
     protected readonly ShizouContext Context;
     protected readonly Expression<Func<TEntity, int>> Selector;
     protected readonly ILogger<EntityGetController<TEntity>> Logger;
     protected readonly DbSet<TEntity> DbSet;
 
-    public EntityGetController(ILogger<EntityGetController<TEntity>> logger, ShizouContext context, Expression<Func<TEntity, int>> selector)
+    protected EntityGetController(ILogger<EntityGetController<TEntity>> logger, ShizouContext context, Expression<Func<TEntity, int>> selector)
     {
         Logger = logger;
         Context = context;

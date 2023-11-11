@@ -11,9 +11,10 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
-public class EntityController<TEntity> : EntityGetController<TEntity> where TEntity : class
+public abstract class EntityController<TEntity> : EntityGetController<TEntity> where TEntity : class
 {
-    public EntityController(ILogger<EntityController<TEntity>> logger, ShizouContext context, Expression<Func<TEntity, int>> selector) : base(logger, context,
+    protected EntityController(ILogger<EntityController<TEntity>> logger, ShizouContext context, Expression<Func<TEntity, int>> selector) : base(logger,
+        context,
         selector)
     {
     }

@@ -9,11 +9,11 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class OptionsController : ControllerBase
+public class Options : ControllerBase
 {
     private readonly ShizouOptions _options;
 
-    public OptionsController(IOptionsSnapshot<ShizouOptions> options)
+    public Options(IOptionsSnapshot<ShizouOptions> options)
     {
         _options = options.Value;
     }

@@ -9,11 +9,13 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
-public class AniDbFilesController : EntityGetController<AniDbFile>
+[ApiController]
+[Route("api/[controller]")]
+public class AniDbFiles : EntityGetController<AniDbFile>
 {
     private readonly WatchStateService _watchStateService;
 
-    public AniDbFilesController(ILogger<AniDbFilesController> logger, ShizouContext context, WatchStateService watchStateService) : base(logger, context,
+    public AniDbFiles(ILogger<AniDbFiles> logger, ShizouContext context, WatchStateService watchStateService) : base(logger, context,
         file => file.Id)
     {
         _watchStateService = watchStateService;

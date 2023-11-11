@@ -9,9 +9,11 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
-public class ImportFoldersController : EntityController<ImportFolder>
+[ApiController]
+[Route("api/[controller]")]
+public class ImportFolders : EntityController<ImportFolder>
 {
-    public ImportFoldersController(ILogger<ImportFoldersController> logger, ShizouContext context) : base(logger, context, folder => folder.Id)
+    public ImportFolders(ILogger<ImportFolders> logger, ShizouContext context) : base(logger, context, folder => folder.Id)
     {
     }
 

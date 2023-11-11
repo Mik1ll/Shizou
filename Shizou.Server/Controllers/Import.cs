@@ -8,11 +8,11 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ImportController : ControllerBase
+public class Import : ControllerBase
 {
     private readonly ImportService _importService;
 
-    public ImportController(ImportService importService)
+    public Import(ImportService importService)
     {
         _importService = importService;
     }

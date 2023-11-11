@@ -13,11 +13,11 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class QueueController : ControllerBase
+public class Queues : ControllerBase
 {
     private readonly IList<CommandProcessor> _processors;
 
-    public QueueController(IEnumerable<CommandProcessor> processors)
+    public Queues(IEnumerable<CommandProcessor> processors)
     {
         _processors = processors.ToList();
     }

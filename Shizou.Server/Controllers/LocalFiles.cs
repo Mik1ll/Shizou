@@ -11,11 +11,13 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
-public class LocalFilesController : EntityGetController<LocalFile>
+[ApiController]
+[Route("api/[controller]")]
+public class LocalFiles : EntityGetController<LocalFile>
 {
     private readonly CommandService _commandService;
 
-    public LocalFilesController(ILogger<LocalFilesController> logger, ShizouContext context, CommandService commandService) : base(logger, context,
+    public LocalFiles(ILogger<LocalFiles> logger, ShizouContext context, CommandService commandService) : base(logger, context,
         file => file.Id)
     {
         _commandService = commandService;

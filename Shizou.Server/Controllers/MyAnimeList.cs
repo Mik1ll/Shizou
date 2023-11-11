@@ -10,12 +10,12 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class MyAnimeListController : ControllerBase
+public class MyAnimeList : ControllerBase
 {
-    private readonly ILogger<MyAnimeListController> _logger;
+    private readonly ILogger<MyAnimeList> _logger;
     private readonly MyAnimeListService _myAnimeListService;
 
-    public MyAnimeListController(ILogger<MyAnimeListController> logger, MyAnimeListService myAnimeListService)
+    public MyAnimeList(ILogger<MyAnimeList> logger, MyAnimeListService myAnimeListService)
     {
         _logger = logger;
         _myAnimeListService = myAnimeListService;
