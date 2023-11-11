@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shizou.Data.Models;
@@ -37,9 +38,16 @@ public sealed class ShizouContext : IdentityDbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        var connectionString = new SqliteConnectionStringBuilder
+        {
+            DataSource = FilePaths.DatabasePath,
+            ForeignKeys = true,
+            Cache = SqliteCacheMode.Private,
+            Pooling = true
+        }.ConnectionString;
         if (!optionsBuilder.IsConfigured)
             optionsBuilder
-                .UseSqlite(@$"Data Source={Path.Combine(FilePaths.ApplicationDataDir, "ShizouDB.sqlite3")};Foreign Keys=True;")
+                .UseSqlite(connectionString)
                 .EnableSensitiveDataLogging();
     }
 
