@@ -104,11 +104,11 @@ public class CommandService
         context.SaveChanges();
     }
 
-    public ICommand CommandFromRequest(CommandRequest commandRequest, IServiceScope serviceScope)
+    public ICommand<CommandArgs> CommandFromRequest(CommandRequest commandRequest, IServiceScope serviceScope)
     {
         var (_, type, argsType) = Commands.Single(x => commandRequest.Type == x.Attr.Type);
         var args = (CommandArgs)JsonSerializer.Deserialize(commandRequest.CommandArgs, argsType)!;
-        var cmd = (ICommand)serviceScope.ServiceProvider.GetRequiredService(type);
+        var cmd = (ICommand<CommandArgs>)serviceScope.ServiceProvider.GetRequiredService(type);
         cmd.SetParameters(args);
         return cmd;
     }

@@ -26,7 +26,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
     private readonly IServiceScopeFactory _scopeFactory;
     private int _commandsInQueue;
-    private ICommand? _currentCommand;
+    private ICommand<CommandArgs>? _currentCommand;
     private bool _paused = true;
     private int _pollStep;
     private CancellationTokenSource? _wakeupTokenSource;
@@ -72,7 +72,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     public QueueType QueueType { get; }
 
-    public ICommand? CurrentCommand
+    public ICommand<CommandArgs>? CurrentCommand
     {
         get => _currentCommand;
         private set => SetField(ref _currentCommand, value);

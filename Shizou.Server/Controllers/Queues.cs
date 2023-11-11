@@ -69,9 +69,9 @@ public class Queues : ControllerBase
     [SwaggerResponse(StatusCodes.Status204NoContent)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
-    public Ok<ICommand?> Current(QueueType queueType)
+    public Ok<ICommand<CommandArgs>?> Current(QueueType queueType)
     {
-        return TypedResults.Ok<ICommand?>(GetProcessor(queueType).CurrentCommand);
+        return TypedResults.Ok<ICommand<CommandArgs>?>(GetProcessor(queueType).CurrentCommand);
     }
 
     [HttpGet("{queueType}/[action]")]
