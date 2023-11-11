@@ -38,17 +38,19 @@ public sealed class ShizouContext : IdentityDbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var connectionString = new SqliteConnectionStringBuilder
-        {
-            DataSource = FilePaths.DatabasePath,
-            ForeignKeys = true,
-            Cache = SqliteCacheMode.Private,
-            Pooling = true
-        }.ConnectionString;
         if (!optionsBuilder.IsConfigured)
+        {
+            var connectionString = new SqliteConnectionStringBuilder
+            {
+                DataSource = FilePaths.DatabasePath,
+                ForeignKeys = true,
+                Cache = SqliteCacheMode.Private,
+                Pooling = true
+            }.ConnectionString;
             optionsBuilder
                 .UseSqlite(connectionString)
                 .EnableSensitiveDataLogging();
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
