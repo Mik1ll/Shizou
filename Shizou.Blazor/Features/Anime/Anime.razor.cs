@@ -27,6 +27,9 @@ public partial class Anime
     [Inject]
     private WatchStateService WatchStateService { get; set; } = default!;
 
+    [Inject]
+    private LinkGenerator LinkGenerator { get; set; } = default!;
+
     [CascadingParameter]
     private ToastDisplay ToastDisplay { get; set; } = default!;
 

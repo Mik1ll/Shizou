@@ -8,6 +8,9 @@ public partial class AnimeCard
     [Inject]
     public NavigationManager NavigationManager { get; set; } = default!;
 
+    [Inject]
+    private LinkGenerator LinkGenerator { get; set; } = default!;
+
     [Parameter]
     [EditorRequired]
     public AniDbAnime AniDbAnime { get; set; } = default!;

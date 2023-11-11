@@ -60,12 +60,6 @@ app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(FilePaths.ImagesDir),
-    RequestPath = WebPaths.ImagesDir
-});
-
 app.UseRouting();
 
 app.UseAuthentication();

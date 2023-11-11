@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -205,7 +206,8 @@ public static class InitializationExtensions
                     }
                 });
                 opt.OperationFilter<SecurityOperationFilter>();
-            });
+            })
+            .AddTransient<IContentTypeProvider, FileExtensionContentTypeProvider>();
         return services;
     }
 
