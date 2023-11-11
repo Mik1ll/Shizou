@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.CommandProcessors;
+using Shizou.Server.Commands;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
@@ -68,16 +69,16 @@ public class Queues : ControllerBase
     [SwaggerResponse(StatusCodes.Status204NoContent)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
-    public Ok<CommandRequest?> Current(QueueType queueType)
+    public Ok<ICommand?> Current(QueueType queueType)
     {
-        return TypedResults.Ok<CommandRequest?>(GetProcessor(queueType).CurrentCommand);
+        return TypedResults.Ok<ICommand?>(GetProcessor(queueType).CurrentCommand);
     }
 
     [HttpGet("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
-    public Ok<List<CommandRequest>> Queued(QueueType queueType)
+    public Ok<List<CommandRequest>> QueuedRequests(QueueType queueType)
     {
         return TypedResults.Ok(GetProcessor(queueType).GetQueuedCommands());
     }

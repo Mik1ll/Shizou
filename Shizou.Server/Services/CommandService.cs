@@ -42,20 +42,8 @@ public class CommandService
         where TArgs : CommandArgs
     {
         var cmdRequest = RequestFromArgs(commandArgs);
-        using var context = _contextFactory.CreateDbContext();
-        using var transaction = context.Database.BeginTransaction();
-        if (!context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
-        {
-            context.CommandRequests.Add(cmdRequest);
-            context.SaveChanges();
-            transaction.Commit();
-            var processor = _processors.Single(cp => cp.QueueType == cmdRequest.QueueType);
-            processor.UpdateCommandsInQueue(context);
-        }
-        else
-        {
-            _logger.LogDebug("Command {CommandId} already exists in database", cmdRequest.CommandId);
-        }
+        var processor = _processors.Single(cp => cp.QueueType == cmdRequest.QueueType);
+        processor.QueueCommand(cmdRequest);
     }
 
     public void DispatchRange<TArgs>(IEnumerable<TArgs> commandArgsEnumerable)
@@ -84,6 +72,7 @@ public class CommandService
         if (!context.ScheduledCommands.Any(cr => cr.CommandId == scheduledCommand.CommandId))
         {
             context.ScheduledCommands.Add(scheduledCommand);
+            context.SaveChanges();
             _logger.LogInformation("Command {CommandId} scheduled for {RunTimes} runs, starting at {NextRun}, every {Frequency} minutes",
                 scheduledCommand.CommandId, runTimes, nextRun.LocalDateTime, frequency?.TotalMinutes);
         }
@@ -91,8 +80,6 @@ public class CommandService
         {
             _logger.LogWarning("Command {CommandId} already scheduled, ignoring", scheduledCommand.CommandId);
         }
-
-        context.SaveChanges();
     }
 
     public void CreateScheduledCommands(QueueType queueType)
@@ -107,13 +94,14 @@ public class CommandService
             if (cmd.RunsLeft <= 1 || cmd.FrequencyMinutes is null)
             {
                 context.ScheduledCommands.Remove(cmd);
-                context.SaveChanges();
             }
             else
             {
                 cmd.RunsLeft -= 1;
                 cmd.NextRunTime = DateTime.UtcNow + TimeSpan.FromMinutes(cmd.FrequencyMinutes.Value);
             }
+
+        context.SaveChanges();
     }
 
     public ICommand CommandFromRequest(CommandRequest commandRequest, IServiceScope serviceScope)

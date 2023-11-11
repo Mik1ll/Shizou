@@ -14,6 +14,13 @@ public static class CommandRequestsExtensions
             select cq;
     }
 
+    public static IQueryable<CommandRequest> ByQueue(this IQueryable<CommandRequest> query, QueueType queueType)
+    {
+        return from cq in query
+            where cq.QueueType == queueType
+            select cq;
+    }
+
     public static CommandRequest? Next(this IQueryable<CommandRequest> query, QueueType queueType)
     {
         return query.ByQueueOrdered(queueType).FirstOrDefault();
