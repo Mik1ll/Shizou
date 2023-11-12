@@ -12,11 +12,13 @@ public class SubtitleService
 {
     private readonly ILogger<SubtitleService> _logger;
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly FfmpegService _ffmpegService;
 
-    public SubtitleService(ILogger<SubtitleService> logger, IDbContextFactory<ShizouContext> contextFactory)
+    public SubtitleService(ILogger<SubtitleService> logger, IDbContextFactory<ShizouContext> contextFactory, FfmpegService ffmpegService)
     {
         _logger = logger;
         _contextFactory = contextFactory;
+        _ffmpegService = ffmpegService;
     }
 
     public static string[] ValidSubFormats { get; } = { "ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext" };
@@ -77,14 +79,14 @@ public class SubtitleService
         var subsDir = GetSubsDir(localFile.Ed2k);
         Directory.CreateDirectory(subsDir);
 
-        var subStreams = await FfmpegService.GetSubtitleStreams(fileInfo, ValidSubFormats, GetSubName);
+        var subStreams = await _ffmpegService.GetSubtitleStreams(fileInfo, ValidSubFormats, GetSubName);
         if (subStreams.Count <= 0)
         {
             _logger.LogDebug("No valid streams for {LocalFileId}, skipping subtitle extraction", localFile.Id);
             return;
         }
 
-        await FfmpegService.ExtractSubtitles(fileInfo, subStreams, GetSubsDir(localFile.Ed2k));
+        await _ffmpegService.ExtractSubtitles(fileInfo, subStreams, GetSubsDir(localFile.Ed2k));
     }
 
     // ReSharper disable once InconsistentNaming
@@ -113,13 +115,13 @@ public class SubtitleService
         var fontsDir = GetFontsDir(localFile.Ed2k);
         Directory.CreateDirectory(fontsDir);
 
-        var fontStreams = await FfmpegService.GetFontStreams(fileInfo, ValidFontFormats);
+        var fontStreams = await _ffmpegService.GetFontStreams(fileInfo, ValidFontFormats);
         if (fontStreams.Count <= 0)
         {
             _logger.LogDebug("No valid streams for {LocalFileId}, skipping subtitle extraction", localFile.Id);
             return;
         }
 
-        await FfmpegService.ExtractFonts(fileInfo, fontStreams, GetFontsDir(localFile.Ed2k));
+        await _ffmpegService.ExtractFonts(fileInfo, fontStreams, GetFontsDir(localFile.Ed2k));
     }
 }
