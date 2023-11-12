@@ -40,7 +40,7 @@ public class Images : ControllerBase
         var posterName = _context.AniDbAnimes.Where(a => a.Id == animeId).Select(a => a.ImageFilename).FirstOrDefault();
         if (posterName is null)
             return TypedResults.NotFound();
-        var path = _imageService.GetAnimePosterPath(posterName);
+        var path = ImageService.GetAnimePosterPath(posterName);
         _contentTypeProvider.TryGetContentType(posterName, out var mimeType);
         return TypedResults.PhysicalFile(path, mimeType);
     }

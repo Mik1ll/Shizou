@@ -72,7 +72,7 @@ public class ImageService
         _commandService.Dispatch(new GetImageCommandArgs(uri, path));
     }
 
-    public string GetAnimePosterPath(string imageFilename)
+    public static string GetAnimePosterPath(string imageFilename)
     {
         return Path.Combine(FilePaths.AnimePostersDir, imageFilename);
     }
