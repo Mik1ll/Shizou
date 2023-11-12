@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
+using Shizou.Server.Controllers;
 
 namespace Shizou.Blazor.Features.Anime.Components;
 
@@ -14,6 +15,9 @@ public partial class EpisodeTable
 
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+
+    [Inject]
+    private LinkGenerator LinkGenerator { get; set; } = default!;
 
     [Parameter]
     [EditorRequired]
@@ -64,5 +68,11 @@ public partial class EpisodeTable
             .Load();
         context.Entry(episode).Collection(ep => ep.ManualLinkLocalFiles).Load();
         context.Entry(episode).Reference(ep => ep.EpisodeWatchedState).Load();
+    }
+
+    private string GetEpisodeThumbnailPath(int episodeId)
+    {
+        return LinkGenerator.GetPathByAction(nameof(Images.GetEpisodeThumbnail), nameof(Images), new { EpisodeId = episodeId }) ??
+               throw new InvalidOperationException();
     }
 }

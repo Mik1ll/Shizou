@@ -27,7 +27,7 @@ public class SubtitleService
     // ReSharper disable once InconsistentNaming
     public static string GetSubsDir(string ed2k)
     {
-        return Path.Combine(FilePaths.ExtraFileDataDir, ed2k, "Subtitles");
+        return Path.Combine(FilePaths.ExtraFileDataSubDir(ed2k), "Subtitles");
     }
 
     public static string GetSubName(int index)
@@ -44,7 +44,7 @@ public class SubtitleService
     // ReSharper disable once InconsistentNaming
     public static string GetFontsDir(string ed2k)
     {
-        return Path.Combine(FilePaths.ExtraFileDataDir, ed2k, "Fonts");
+        return Path.Combine(FilePaths.ExtraFileDataSubDir(ed2k), "Fonts");
     }
 
     // ReSharper disable once InconsistentNaming

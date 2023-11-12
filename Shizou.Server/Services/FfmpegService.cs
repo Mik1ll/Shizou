@@ -99,6 +99,24 @@ public class FfmpegService
         return null;
     }
 
+    public async Task ExtractThumbnail(FileInfo fileInfo, double duration, string outputPath)
+    {
+        using var process = NewFfmpegProcess();
+        process.StartInfo.Arguments =
+            $"-v fatal -ss {duration * .4} -i \"{fileInfo.FullName}\" -map 0:v:0 -vf \"fps=3,select='min(eq(selected_n,0)+gt(scene,0.5),1)',thumbnail=90,scale=-2:480\" -frames:v 1 -pix_fmt yuv420p -c:v libwebp -compression_level 6 -preset drawing \"{outputPath}\"";
+        process.Start();
+        await process.WaitForExitAsync();
+    }
+
+    public async Task<bool> HasVideo(FileInfo fileInfo)
+    {
+        using var process = NewFfprobeProcess();
+        process.StartInfo.Arguments = $"-v fatal -select_streams v -show_entries stream=codec_name -of csv \"{fileInfo.FullName}\"";
+        process.Start();
+        var hasVideo = await process.StandardOutput.ReadToEndAsync();
+        return !string.IsNullOrWhiteSpace(hasVideo);
+    }
+
     private Process NewFfprobeProcess()
     {
         var streamsP = new Process();

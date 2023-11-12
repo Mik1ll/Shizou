@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -43,5 +45,21 @@ public class Images : ControllerBase
         var path = ImageService.GetAnimePosterPath(posterName);
         _contentTypeProvider.TryGetContentType(posterName, out var mimeType);
         return TypedResults.PhysicalFile(path, mimeType);
+    }
+
+    [HttpGet("[action]/{episodeId:int}")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    // ReSharper disable once InconsistentNaming
+    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetEpisodeThumbnail(int episodeId)
+    {
+        // ReSharper disable once InconsistentNaming
+        var ed2k = await _imageService.GetEpisodeThumbnail(episodeId);
+        if (ed2k is null)
+            return TypedResults.NotFound();
+        var fileInfo = new FileInfo(ImageService.GetFileThumbnailPath(ed2k));
+
+        _contentTypeProvider.TryGetContentType(fileInfo.Name, out var mimeType);
+        return TypedResults.PhysicalFile(fileInfo.FullName, mimeType);
     }
 }
