@@ -45,6 +45,7 @@ public class FfmpegService
 
     public async Task ExtractFonts(FileInfo fileInfo, List<(int Idx, string Codec, string FileName)> fontStreams, string outputDir)
     {
+        Directory.CreateDirectory(outputDir);
         using var process = NewFfmpegProcess();
         process.StartInfo.Arguments =
             $"-v fatal -y {string.Join(" ", fontStreams.Select(s => $"-dump_attachment:{s.Idx} \"{Path.Combine(outputDir, s.FileName)}\""))} -i \"{fileInfo.FullName}\"";
@@ -75,6 +76,7 @@ public class FfmpegService
 
     public async Task ExtractSubtitles(FileInfo fileInfo, List<(int Idx, string Codec, string FileName)> subStreams, string outputDir)
     {
+        Directory.CreateDirectory(outputDir);
         using var process = NewFfmpegProcess();
         process.StartInfo.Arguments =
             $"-v fatal -y -i \"{fileInfo.FullName}\" {string.Join(" ", subStreams.Select(s => $"-map 0:{s.Idx} -c ass \"{Path.Combine(outputDir, s.FileName)}\""))}";
@@ -101,6 +103,8 @@ public class FfmpegService
 
     public async Task ExtractThumbnail(FileInfo fileInfo, double duration, string outputPath)
     {
+        if (Path.GetDirectoryName(outputPath) is { Length: > 0 } parentPath)
+            Directory.CreateDirectory(parentPath);
         using var process = NewFfmpegProcess();
         process.StartInfo.Arguments =
             $"-v fatal -ss {duration * .4} -i \"{fileInfo.FullName}\" -map 0:v:0 -vf \"fps=3,select='min(eq(selected_n,0)+gt(scene,0.5),1)',thumbnail=90,scale=-2:480\" -frames:v 1 -pix_fmt yuv420p -c:v libwebp -compression_level 6 -preset drawing \"{outputPath}\"";
