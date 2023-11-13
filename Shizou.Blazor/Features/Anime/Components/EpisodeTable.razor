@@ -15,9 +15,13 @@
     {
         <tr role="button" @onclick="@(() => ToggleEpExpand(ep))">
             <td class="text-end">
-                @EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number)
+                @(EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number))
             </td>
             <td class="absorbing-column">
+                @if (_fileCounts[ep.Id] > 0)
+                {
+                    <img src="@(GetEpisodeThumbnailPath(ep.Id))" class="me-2" style="height: 5em"/>
+                }
                 @(ep.TitleTranscription ?? ep.TitleEnglish)
             </td>
             <td>
