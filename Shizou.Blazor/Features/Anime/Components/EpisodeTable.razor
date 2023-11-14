@@ -18,11 +18,20 @@
                 @(EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number))
             </td>
             <td class="absorbing-column">
-                @if (_fileCounts[ep.Id] > 0)
-                {
-                    <img src="@(GetEpisodeThumbnailPath(ep.Id))" class="me-2" style="height: 5em"/>
-                }
-                @(ep.TitleTranscription ?? ep.TitleEnglish)
+                <div class="d-inline-flex">
+                    @if (_fileCounts[ep.Id] > 0)
+                    {
+                        <div class="d-inline-block align-self-center">
+                            <img src="@(GetEpisodeThumbnailPath(ep.Id))" class="me-2 d-inline-block" style="height: 5em"/>
+                        </div>
+                    }
+                    <div class="d-inline-block">
+                        <span class="text-body">@(ep.TitleTranscription ?? ep.TitleEnglish)</span><br/>
+                        <p class="text-body-secondary">
+                            <small>@(ep.Summary)</small>
+                        </p>
+                    </div>
+                </div>
             </td>
             <td>
                 @if (_watchedEps.Contains(ep.Id))

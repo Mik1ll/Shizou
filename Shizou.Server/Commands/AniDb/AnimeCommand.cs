@@ -174,6 +174,7 @@ public class AnimeCommand : Command<AnimeArgs>
                     ? null
                     : DateTime.Parse(e.Airdate,
                         styles: DateTimeStyles.AssumeUniversal),
+                Summary = e.Summary,
                 Updated = DateTime.UtcNow,
                 TitleEnglish = e.Title.First(t => t.Lang == "en")
                     .Text,

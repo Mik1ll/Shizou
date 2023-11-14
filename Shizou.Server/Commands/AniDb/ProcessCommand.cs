@@ -62,8 +62,7 @@ public class ProcessCommand : Command<ProcessArgs>
             FileVersion = result.State!.Value.FileVersion(),
             Updated = DateTime.UtcNow,
             Audio = result.AudioCodecs!.Zip(result.AudioBitRates!,
-                    (codec,
-                        bitrate) => (codec, bitrate))
+                    (codec, bitrate) => (codec, bitrate))
                 .Zip(result.DubLanguages!,
                     (tup,
                         lang) => (tup.codec, tup.bitrate, lang))

@@ -17,6 +17,8 @@ public class AniDbEpisode
     public required int? DurationMinutes { get; set; }
     public required DateTime? AirDate { get; set; }
 
+    public required string? Summary { get; set; }
+
     public required DateTime Updated { get; set; }
 
     public required int AniDbAnimeId { get; set; }
