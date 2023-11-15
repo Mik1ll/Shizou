@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
+using Shizou.Data.Utilities.Extensions;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.FileCaches;
@@ -121,7 +122,7 @@ public class AnimeCommand : Command<AnimeArgs>
         {
             AnimeId = animeResult.Id,
             ToAnimeId = r.Id,
-            RelationType = Enum.Parse<RelatedAnimeType>(r.Type.Replace(" ", string.Empty), true)
+            RelationType = Enum.Parse<RelatedAnimeType>(r.Type.WithoutSpaces(), true)
         }).ToList();
         Func<AniDbAnimeRelation, (int AnimeId, int ToAnimeId, RelatedAnimeType RelationType)> toTuple = r => (r.AnimeId, r.ToAnimeId, r.RelationType);
         _context.AniDbAnimeRelations.RemoveRange(eAnimeRelations.ExceptBy(animeRelations.Select(toTuple), toTuple));

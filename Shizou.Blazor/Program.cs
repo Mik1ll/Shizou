@@ -1,9 +1,6 @@
 using Blazored.Modal;
 using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Extensions.FileProviders;
 using Serilog;
-using Shizou.Blazor;
-using Shizou.Data;
 using Shizou.Server;
 using Shizou.Server.Extensions;
 

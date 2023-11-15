@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Shizou.Data.Enums;
+using Shizou.Data.Utilities.Extensions;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
@@ -153,7 +154,7 @@ public sealed record FileResult
                         Year = data;
                         break;
                     case AMaskFile.Type:
-                        Type = Enum.Parse<AnimeType>(data.Replace(" ", string.Empty), true);
+                        Type = Enum.Parse<AnimeType>(data.WithoutSpaces(), true);
                         break;
                     case AMaskFile.RelatedAnimeIds:
                         RelatedAnimeIds = data.Split('\'').Select(int.Parse).ToList();

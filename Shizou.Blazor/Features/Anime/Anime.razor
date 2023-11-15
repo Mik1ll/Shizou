@@ -1,4 +1,5 @@
 ﻿@page "/Collection/{AnimeId:int}"
+@using Shizou.Data.Utilities.Extensions
 @using Shizou.Server.Controllers
 
 <article class="container-fluid">
@@ -35,7 +36,7 @@
                         </p>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">Aired: @(_anime.AirDate ?? "??") - @(_anime.EndDate ?? "??")</li>
-                            <li class="list-group-item">Type: @(_anime.AnimeType.ToString())</li>
+                            <li class="list-group-item">Type: @(_anime.AnimeType.ToStringUpperCaseSpaced())</li>
                             @if (_anime.Restricted)
                             {
                                 <li class="list-group-item">Hentai</li>
