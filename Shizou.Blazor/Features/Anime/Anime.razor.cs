@@ -6,6 +6,7 @@ using Shizou.Blazor.Features.Components;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
+using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
 
@@ -30,6 +31,9 @@ public partial class Anime
     [Inject]
     private LinkGenerator LinkGenerator { get; set; } = default!;
 
+    [Inject]
+    private CommandService CommandService { get; set; } = default!;
+
     [CascadingParameter]
     private ToastDisplay ToastDisplay { get; set; } = default!;
 
@@ -50,12 +54,18 @@ public partial class Anime
             select new { ra.RelationType, a }).AsEnumerable().Select(x => (x.RelationType, x.a)).ToList();
     }
 
-    private void MarkAllWatched(AniDbAnime anime)
+    private void MarkAllWatched()
     {
-        if (WatchStateService.MarkAnime(anime.Id, true))
+        if (WatchStateService.MarkAnime(AnimeId, true))
             ToastDisplay.AddToast("Success", "Anime files marked watched", ToastStyle.Success);
         else
             ToastDisplay.AddToast("Error", "Something went wrong while marking anime files watched", ToastStyle.Error);
         _episodeTable.Reload();
+    }
+
+    private void RefreshAnime()
+    {
+        CommandService.Dispatch(new AnimeArgs(AnimeId));
+        ToastDisplay.AddToast("Info", "Anime queued for refresh, check again after completed", ToastStyle.Info);
     }
 }

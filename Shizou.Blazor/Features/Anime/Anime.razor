@@ -41,9 +41,12 @@
                                 <li class="list-group-item">Hentai</li>
                             }
                             <li class="list-group-item">@(_anime.EpisodeCount) Episode@(_anime.EpisodeCount == 1 ? "" : "s")</li>
-                            <li class="list-group-item">
-                                <button class="btn btn-outline-success me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => MarkAllWatched(_anime))">
+                            <li class="list-group-item d-flex gap-2">
+                                <button class="btn btn-outline-success" type="button" @onclick="@MarkAllWatched">
                                     <i class="bi bi-eye"></i> Mark All Watched
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" @onclick="@RefreshAnime">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh Data
                                 </button>
                             </li>
                             @if (_anime.MalAnimes.Count > 0)
