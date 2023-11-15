@@ -23,14 +23,13 @@
                         <p class="card-text">
                             @foreach (var s in _splitRegex.Split(_anime.Description ?? ""))
                             {
-                                var res = _matchRegex.Match(s);
-                                if (res.Success)
+                                if (_matchRegex.Match(s) is { Success:true } res)
                                 {
                                     <a href="@res.Groups[1]" target="_blank">@res.Groups[2]</a>
                                 }
                                 else
                                 {
-                                    @s
+                                    <text>@s</text>
                                 }
                             }
                         </p>
