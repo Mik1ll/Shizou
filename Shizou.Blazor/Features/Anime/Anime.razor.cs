@@ -19,6 +19,7 @@ public partial class Anime
     private AniDbAnime? _anime;
     private EpisodeTable? _episodeTable;
     private List<(RelatedAnimeType, AniDbAnime)>? _relatedAnime;
+    private string[] _splitDescription = default!;
 
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
@@ -48,6 +49,7 @@ public partial class Anime
             where ra.AnimeId == AnimeId
             join a in context.AniDbAnimes.HasLocalFiles() on ra.ToAnimeId equals a.Id
             select new { ra.RelationType, a }).AsEnumerable().Select(x => (x.RelationType, x.a)).ToList();
+        _splitDescription = _splitRegex.Split(_anime?.Description ?? "");
     }
 
     private void MarkAllWatched()
