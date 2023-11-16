@@ -21,15 +21,19 @@
                             @_anime.TitleTranscription <a href="https://anidb.net/anime/@(_anime.Id)" target="_blank">(@(_anime.Id))</a>
                         </h4>
                         <p class="card-text">
-                            @foreach (var s in _splitRegex.Split(_anime.Description ?? ""))
-                            {
-                                if (_matchRegex.Match(s) is { Success:true } res)
+                            @{
+                                var splitDescription = _splitRegex.Split(_anime.Description ?? "");
+                                for (var i = 0; i < splitDescription.Length; i++)
                                 {
-                                    <a href="@res.Groups[1]" target="_blank">@res.Groups[2]</a>
-                                }
-                                else
-                                {
-                                    <text>@s</text>
+                                    switch (i % 3)
+                                    {
+                                        case 0:
+                                            <text>@(splitDescription[i])</text>
+                                            break;
+                                        case 1:
+                                            <a href="@(splitDescription[i])" target="_blank">@(splitDescription[i + 1])</a>
+                                            break;
+                                    }
                                 }
                             }
                         </p>

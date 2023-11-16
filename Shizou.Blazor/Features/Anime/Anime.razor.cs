@@ -14,12 +14,10 @@ namespace Shizou.Blazor.Features.Anime;
 
 public partial class Anime
 {
-    private readonly Regex _matchRegex = new(@"(https?:\/\/\S*?) \[(.*?)\]", RegexOptions.Compiled);
-
-    private readonly Regex _splitRegex = new(@"(?<=https?:\/\/\S*? \[.*?\])|(?=https?:\/\/\S*? \[.*?\])", RegexOptions.Compiled);
+    private readonly Regex _splitRegex = new(@"(https?:\/\/\S*?) \[(.+?)\]", RegexOptions.Compiled);
 
     private AniDbAnime? _anime;
-    private EpisodeTable _episodeTable = default!;
+    private EpisodeTable? _episodeTable;
     private List<(RelatedAnimeType, AniDbAnime)>? _relatedAnime;
 
     [Inject]
@@ -43,9 +41,7 @@ public partial class Anime
     protected override void OnInitialized()
     {
         using var context = ContextFactory.CreateDbContext();
-        _anime = context.AniDbAnimes.AsSplitQuery()
-            .Include(a => a.AniDbEpisodes)
-            .ThenInclude(e => e.ManualLinkLocalFiles)
+        _anime = context.AniDbAnimes
             .Include(a => a.MalAnimes)
             .FirstOrDefault(a => a.Id == AnimeId);
         _relatedAnime = (from ra in context.AniDbAnimeRelations
@@ -60,7 +56,7 @@ public partial class Anime
             ToastDisplay.AddToast("Success", "Anime files marked watched", ToastStyle.Success);
         else
             ToastDisplay.AddToast("Error", "Something went wrong while marking anime files watched", ToastStyle.Error);
-        _episodeTable.Reload();
+        _episodeTable?.Reload();
     }
 
     private void RefreshAnime()
