@@ -37,18 +37,16 @@ public partial class Toast
             ToastStyle.Error => "text-bg-danger",
             _ => throw new ArgumentOutOfRangeException()
         };
-        base.OnInitialized();
     }
 
 
-    protected override Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!_isLoaded)
         {
-            JsRuntime.InvokeVoidAsync("loadToast", _elementReference);
+            await JsRuntime.InvokeVoidAsync("loadToast", _elementReference);
             _isLoaded = true;
         }
 
-        return base.OnAfterRenderAsync(firstRender);
     }
 }

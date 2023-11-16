@@ -22,11 +22,11 @@ public partial class Tooltip
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> AdditionalAttributes { get; set; } = new();
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!_isLoaded)
         {
-            JsRuntime.InvokeVoidAsync("loadTooltip", _elementReference);
+            await JsRuntime.InvokeVoidAsync("loadTooltip", _elementReference);
             _isLoaded = true;
         }
     }
