@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 
 namespace Shizou.Blazor.Features.Components;
 
 public partial class Offcanvas
 {
-    private bool _isLoaded;
     private bool _open;
-    private ElementReference _elementReference;
+    private string _displayClass = string.Empty;
 
     private string OffCanvasDirectionClass =>
         Direction switch
@@ -30,9 +28,6 @@ public partial class Offcanvas
         OffcanvasDirection.End => "left: calc((var(--bs-offcanvas-padding-x) + .8rem) * -1)",
         _ => throw new ArgumentOutOfRangeException()
     };
-    
-    [Inject]
-    private IJSRuntime JsRuntime { get; set; } = default!;
 
     [Parameter]
     [EditorRequired]
@@ -45,9 +40,17 @@ public partial class Offcanvas
     {
         _open = !_open;
         if (_open)
-            await JsRuntime.InvokeVoidAsync("showOffcanvas", _elementReference);
+        {
+            _displayClass = "showing";
+            await Task.Delay(300);
+            _displayClass = "show";
+        }
         else
-            await JsRuntime.InvokeVoidAsync("hideOffcanvas", _elementReference);
+        {
+            _displayClass = "hiding";
+            await Task.Delay(300);
+            _displayClass = string.Empty;
+        }
     }
 }
 

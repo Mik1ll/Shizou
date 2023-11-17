@@ -64,16 +64,6 @@ function loadToast(element) {
 }
 </script>
 <script type="text/javascript">
-function showOffcanvas(element) {
-    const offcanvas = bootstrap.Offcanvas.getOrCreateInstance(element, {backdrop:'static'});
-    offcanvas.show();
-}
-function hideOffcanvas(element) {
-    const offcanvas = bootstrap.Offcanvas.getOrCreateInstance(element, {backdrop:'static'});
-    offcanvas.hide();
-}
-</script>
-<script type="text/javascript">
 function loadPlayer(elementId, subtitleUrls, fontUrls) {
     videojs(document.getElementById(elementId), {fluid:true}, function onPlayerReady() {
         if (subtitleUrls.length <= 0) {
