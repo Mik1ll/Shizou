@@ -1,6 +1,6 @@
 ﻿@if (!IsDelete)
 {
-    <ModalWrapper Cancel="@Cancel">
+    <Modal @ref="@_modal">
         <div class="modal-header">
             <h4 class="modal-title">Edit Import Folder</h4>
         </div>
@@ -34,11 +34,11 @@
             <button type="button" class="btn btn-secondary" @onclick="@Cancel">Cancel</button>
             <button type="submit" form="editImportFolderForm" class="btn btn-success">Submit</button>
         </div>
-    </ModalWrapper>
+    </Modal>
 }
 else
 {
-    <ModalWrapper Cancel="@Cancel">
+    <Modal @ref="@_modal">
         <div class="modal-header">
             <h4 class="modal-title">Remove Import Folder: @(MyImportFolder.Name)</h4>
         </div>
@@ -46,5 +46,5 @@ else
             <button type="button" class="btn btn-secondary" @onclick="@Cancel">Cancel</button>
             <button type="button" class="btn btn-danger" @onclick=@Remove>Remove</button>
         </div>
-    </ModalWrapper>
+    </Modal>
 }

@@ -1,5 +1,5 @@
 ﻿@using Shizou.Data.Enums
-<ModalWrapper class="modal-lg" Cancel="@Cancel">
+<Modal @ref="@_modal" class="modal-lg">
     <div class="modal-header">
         <h4 class="modal-title">Manually Link File</h4>
     </div>
@@ -75,4 +75,4 @@
         }
         <button type="button" class="btn btn-outline-secondary" @onclick="@Cancel">Cancel</button>
     </div>
-</ModalWrapper>
+</Modal>

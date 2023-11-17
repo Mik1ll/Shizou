@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Shizou.Blazor.Extensions;
@@ -19,11 +18,8 @@ public partial class FilePickerModal
     private string _typeStr = string.Empty;
     private string _parentPath = string.Empty;
     private (string Name, bool IsFile)? _selectedEntry;
-
-
-    [CascadingParameter]
-    private BlazoredModalInstance ModalInstance { get; set; } = default!;
-
+    private Modal _modal = default!;
+    
     [Parameter]
     public FilePickerType FilePickerType { get; set; }
 
@@ -95,7 +91,7 @@ public partial class FilePickerModal
     private async Task Confirm()
     {
         if (ValidSelection() && _selectedEntry is not null)
-            await ModalInstance.CloseAsync(ModalResult.Ok(Path.Combine(_parentPath, _selectedEntry.Value.Name)));
+            await _modal.CloseAsync(ModalResult.Ok(Path.Combine(_parentPath, _selectedEntry.Value.Name)));
         else
             await Cancel();
     }
@@ -109,7 +105,7 @@ public partial class FilePickerModal
 
     private async Task Cancel()
     {
-        await ModalInstance.CancelAsync();
+        await _modal.CancelAsync();
     }
 
     private void GoDown()

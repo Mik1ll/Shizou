@@ -1,12 +1,14 @@
 ﻿using Blazored.Modal;
+using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 
 namespace Shizou.Blazor.Features.Components;
 
-public partial class ModalWrapper
+public partial class Modal
 {
     private FocusTrap? _focusTrap;
     private string _classes = string.Empty;
+    private string _animationClass = "fade-in";
 
     [CascadingParameter]
     private BlazoredModalInstance ModalInstance { get; set; } = default!;
@@ -16,10 +18,37 @@ public partial class ModalWrapper
     public RenderFragment ChildContent { get; set; } = default!;
 
     [Parameter]
-    public EventCallback Cancel { get; set; }
+    public EventCallback OnCancel { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> AdditionalAttributes { get; set; } = new();
+
+    public async Task CloseAsync()
+    {
+        await CloseAsync(ModalResult.Ok());
+    }
+
+    public async Task CloseAsync(ModalResult modalResult)
+    {
+        _animationClass += " fade-out";
+        StateHasChanged();
+        await Task.Delay(400);
+        await ModalInstance.CloseAsync(modalResult);
+    }
+
+    public async Task CancelAsync()
+    {
+        if (OnCancel.HasDelegate)
+            await OnCancel.InvokeAsync();
+        await CloseAsync(ModalResult.Cancel());
+    }
+
+    public async Task CancelAsync<TPayload>(TPayload payload)
+    {
+        if (OnCancel.HasDelegate)
+            await OnCancel.InvokeAsync();
+        await CloseAsync(ModalResult.Cancel(payload));
+    }
 
     protected override void OnParametersSet()
     {
@@ -33,13 +62,5 @@ public partial class ModalWrapper
     protected override void OnAfterRender(bool firstRender)
     {
         ModalInstance.FocusTrap = _focusTrap;
-    }
-
-    private async Task CancelWrapped()
-    {
-        if (Cancel.HasDelegate)
-            await Cancel.InvokeAsync();
-        else
-            await ModalInstance.CancelAsync();
     }
 }

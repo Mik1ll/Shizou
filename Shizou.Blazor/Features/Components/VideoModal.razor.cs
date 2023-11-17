@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using Blazored.Modal;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -31,9 +30,6 @@ public partial class VideoModal
 
     [Inject]
     private LinkGenerator LinkGenerator { get; set; } = default!;
-
-    [CascadingParameter]
-    private BlazoredModalInstance ModalInstance { get; set; } = default!;
 
     [Parameter]
     public int LocalFileId { get; set; }
@@ -67,10 +63,9 @@ public partial class VideoModal
         }
     }
 
-    private async Task Cancel()
+    private async Task DisposeJavascript()
     {
         await JsRuntime.InvokeVoidAsync("subtitleHandler.dispose");
-        await ModalInstance.CancelAsync();
     }
 
     private async Task GetStreamUrls()

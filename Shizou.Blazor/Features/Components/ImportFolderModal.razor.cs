@@ -10,14 +10,13 @@ namespace Shizou.Blazor.Features.Components;
 
 public partial class ImportFolderModal
 {
+    private Modal _modal = default!;
+    
     [Inject]
     private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
-
-    [CascadingParameter]
-    private BlazoredModalInstance ModalInstance { get; set; } = default!;
 
     [Parameter]
     public ImportFolder MyImportFolder { get; set; } = default!;
@@ -62,7 +61,7 @@ public partial class ImportFolderModal
 
         // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
-        await ModalInstance.CloseAsync();
+        await _modal.CloseAsync();
     }
 
     private async Task Remove()
@@ -77,11 +76,11 @@ public partial class ImportFolderModal
         context.ImportFolders.Remove(MyImportFolder);
         // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
-        await ModalInstance.CloseAsync();
+        await _modal.CloseAsync();
     }
 
     private async Task Cancel()
     {
-        await ModalInstance.CancelAsync();
+        await _modal.CancelAsync();
     }
 }

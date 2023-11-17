@@ -1,5 +1,4 @@
-﻿using Blazored.Modal;
-using Blazored.Modal.Services;
+﻿using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Extensions;
@@ -16,6 +15,7 @@ public partial class ManuallyLinkModal
     private AniDbAnime? _selectedAnime;
     private bool _restrictInCollection = true;
     private readonly Dictionary<AniDbEpisode, LocalFile> _mapping = new();
+    private Modal _modal = default!;
 
     [Inject]
     private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
@@ -28,9 +28,6 @@ public partial class ManuallyLinkModal
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
-
-    [CascadingParameter]
-    private BlazoredModalInstance ModalInstance { get; set; } = default!;
 
     [CascadingParameter]
     private ToastDisplay ToastDisplay { get; set; } = default!;
@@ -46,7 +43,7 @@ public partial class ManuallyLinkModal
 
     private async Task Cancel()
     {
-        await ModalInstance.CancelAsync();
+        await _modal.CancelAsync();
     }
 
     private async Task<List<(int, string)>?> GetTitles(string query)
@@ -109,6 +106,6 @@ public partial class ManuallyLinkModal
 
         // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
-        await ModalInstance.CloseAsync();
+        await _modal.CloseAsync();
     }
 }
