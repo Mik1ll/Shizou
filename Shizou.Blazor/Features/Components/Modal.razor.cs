@@ -8,7 +8,7 @@ public partial class Modal
 {
     private FocusTrap? _focusTrap;
     private string _classes = string.Empty;
-    private string _animationClass = "fade-in";
+    private string _displayClass = string.Empty;
 
     [CascadingParameter]
     private BlazoredModalInstance ModalInstance { get; set; } = default!;
@@ -30,9 +30,8 @@ public partial class Modal
 
     public async Task CloseAsync(ModalResult modalResult)
     {
-        _animationClass += " fade-out";
-        StateHasChanged();
-        await Task.Delay(400);
+        _displayClass = string.Empty;
+        await Task.Delay(300);
         await ModalInstance.CloseAsync(modalResult);
     }
 
@@ -57,6 +56,16 @@ public partial class Modal
             _classes = s;
         else
             _classes = string.Empty;
+    }
+
+    protected override void OnInitialized()
+    {
+        Task.Run(async () =>
+        {
+            await Task.Delay(15);
+            _displayClass = "show";
+            await InvokeAsync(StateHasChanged);
+        });
     }
 
     protected override void OnAfterRender(bool firstRender)

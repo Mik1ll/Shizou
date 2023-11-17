@@ -1,6 +1,5 @@
 ﻿<FocusTrap @ref="@_focusTrap" IsActive="true">
-    <div class="modal fade show d-block @_classes @_animationClass" aria-modal="true" role="dialog" @attributes="@AdditionalAttributes">
-        <div class="modal-backdrop fade show" @onclick="@(async () => await CancelAsync())"></div>
+    <div class="modal fade d-block @_classes @_displayClass" aria-modal="true" role="dialog" @attributes="@AdditionalAttributes">
         <div class="modal-dialog" style="z-index: var(--bs-modal-zindex)">
             <div class="modal-content">
                 @ChildContent
@@ -8,3 +7,7 @@
         </div>
     </div>
 </FocusTrap>
+@if (!string.IsNullOrEmpty(_displayClass))
+{
+    <div class="modal-backdrop fade @_displayClass" @onclick="@(async () => await CancelAsync())"></div>
+}
