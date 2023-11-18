@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Text.Json.Serialization;
 using Shizou.Data.Models;
 
 namespace Shizou.Data.Filters;
@@ -10,35 +11,49 @@ public enum AirDateCriteria
     Missing = 3
 }
 
-public class AirDateFilter : IAnimeFilter
+public class AirDateFilter : AnimeFilter
 {
-    public int? Year { get; init; }
-    public int? Month { get; init; }
-    public int? Day { get; init; }
-    public AirDateCriteria AirDateCriteria { get; init; }
-
-    public Expression<Func<AniDbAnime, bool>> AnimeFilter
+    [JsonConstructor]
+    public AirDateFilter(bool negate, AirDateCriteria airDateCriteria, int? year = null, int? month = null, int? day = null)
+        : base(Create(airDateCriteria, year, month, day), negate)
     {
-        get
+        AirDateCriteria = airDateCriteria;
+        Year = year;
+        Month = month;
+        Day = day;
+    }
+
+    [JsonInclude]
+    public int? Year { get; }
+
+    [JsonInclude]
+    public int? Month { get; }
+
+    [JsonInclude]
+    public int? Day { get; }
+
+    [JsonInclude]
+    public AirDateCriteria AirDateCriteria { get; }
+
+    private static Expression<Func<AniDbAnime, bool>> Create(AirDateCriteria airDateCriteria, int? year, int? month, int? day)
+    {
+        if (new[] { year, month, day }.Any(x => x is not null) && airDateCriteria == AirDateCriteria.Missing)
+            throw new ArgumentException("Date cannot be specified for missing criteria");
+        if (month is null && day is not null)
+            throw new ArgumentException("Cannot specify day without month");
+        var date = $"{year:d4}";
+        if (month is not null)
+            date += $"-{month:d2}";
+        if (day is not null)
+            date += $"-{day:d2}";
+        return airDateCriteria switch
         {
-            if (new[] { Year, Month, Day }.Any(x => x is not null) && AirDateCriteria == AirDateCriteria.Missing)
-                throw new ArgumentException("Date cannot be specified for missing criteria");
-            if (Month is null && Day is not null)
-                throw new ArgumentException("Cannot specify day without month");
-            var date = $"{Year:d4}";
-            if (Month is not null)
-                date += $"-{Month:d2}";
-            if (Day is not null)
-                date += $"-{Day:d2}";
-            return AirDateCriteria switch
-            {
-                // ReSharper disable once StringCompareIsCultureSpecific.1
-                AirDateCriteria.OnOrAfter => anime => anime.AirDate != null && string.Compare(anime.AirDate, date) >= 0,
-                // ReSharper disable once StringCompareIsCultureSpecific.1
-                AirDateCriteria.Before => anime => anime.AirDate != null && string.Compare(anime.AirDate, date) < 0,
-                AirDateCriteria.Missing => anime => anime.AirDate == null,
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }
+            // ReSharper disable once StringCompareIsCultureSpecific.1
+            AirDateCriteria.OnOrAfter => anime => anime.AirDate != null && string.Compare(anime.AirDate, date) >= 0,
+            // ReSharper disable once StringCompareIsCultureSpecific.1
+            AirDateCriteria.Before => anime => anime.AirDate != null && string.Compare(anime.AirDate, date) < 0,
+            AirDateCriteria.Missing => anime => anime.AirDate == null,
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 }

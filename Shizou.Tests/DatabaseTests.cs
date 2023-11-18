@@ -1,4 +1,6 @@
+using System.Linq.Expressions;
 using Shizou.Data.Filters;
+using Shizou.Data.Models;
 
 namespace Shizou.Tests;
 
@@ -28,20 +30,25 @@ public class DatabaseTests : SeededDatabaseTests
     public void TestFilters()
     {
         using var context = GetContext();
-        var filters = new[]
+
+        var animeParam = Expression.Parameter(typeof(AniDbAnime), "anime");
+        var andFilters1 = new[]
         {
-            new AirDateFilter { Year = 2000, AirDateCriteria = AirDateCriteria.Before },
-            new AirDateFilter { Year = 2005, Month = 5, AirDateCriteria = AirDateCriteria.OnOrAfter }
+            new AirDateFilter(false, AirDateCriteria.Before, 2000),
+            new AirDateFilter(false, year: 2005, month: 5, airDateCriteria: AirDateCriteria.OnOrAfter)
         };
 
-        var filters2 = new[]
+        var andFilters2 = new[]
         {
-            new AirDateFilter { Year = 1995, AirDateCriteria = AirDateCriteria.Before },
-            new AirDateFilter { Year = 2005, Month = 12, AirDateCriteria = AirDateCriteria.OnOrAfter }
+            new AirDateFilter(true, year: 1995, airDateCriteria: AirDateCriteria.Before),
+            new AirDateFilter(true, year: 2005, month: 12, airDateCriteria: AirDateCriteria.OnOrAfter)
         };
-        var res1 = filters.Aggregate(context.AniDbAnimes.AsQueryable(), (animes, filter) => animes.Where(filter.AnimeFilter));
-        var res2 = filters2.Aggregate(context.AniDbAnimes.AsQueryable(), (animes, filter) => animes.Where(filter.AnimeFilter));
-        var res3 = res1.Union(res2);
-        ;
+        var orFilters = new[] { andFilters1, andFilters2 };
+        var expression2 = orFilters.Select(x => x.Select(y => ParameterReplacer.Replace(y.Filter, animeParam))
+                .Aggregate(Expression.AndAlso))
+            .Aggregate(Expression.OrElse);
+        var lambda2 = Expression.Lambda<Func<AniDbAnime, bool>>(expression2, true, animeParam);
+        var res = context.AniDbAnimes.Where(lambda2);
+        _ = res.ToList();
     }
 }
