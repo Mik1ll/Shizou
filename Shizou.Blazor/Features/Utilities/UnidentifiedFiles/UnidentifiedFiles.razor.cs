@@ -76,7 +76,7 @@ public partial class UnidentifiedFiles
         LoadFiles();
     }
 
-    private async Task CreateManualLink(List<LocalFile> localFiles)
+    private async Task CreateManualLinkAsync(List<LocalFile> localFiles)
     {
         await ModalService.Show<ManuallyLinkModal>(string.Empty, new ModalParameters()
             .Add(nameof(ManuallyLinkModal.SelectedFiles), localFiles)).Result;

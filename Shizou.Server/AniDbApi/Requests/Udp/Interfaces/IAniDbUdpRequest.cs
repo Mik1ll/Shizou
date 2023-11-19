@@ -9,5 +9,5 @@ public interface IAniDbUdpRequest<TResponse>
 {
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="AniDbUdpRequestException"></exception>
-    Task<TResponse?> Process();
+    Task<TResponse?> ProcessAsync();
 }

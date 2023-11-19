@@ -24,7 +24,7 @@
             </ul>
             <ul class="navbar-nav mb-2 mb-md-0">
                 <li class="nav-item">
-                    <button type="button" class="btn nav-link w-100" @onclick="@ToggleDarkMode">
+                    <button type="button" class="btn nav-link w-100" @onclick="@ToggleDarkModeAsync">
                         <i class="bi @(_isDarkMode ? "bi-moon-stars-fill" : "bi-sun-fill")" aria-hidden="true"></i>
                         <span class="d-md-none">&nbsp;Toggle Theme</span>
                     </button>

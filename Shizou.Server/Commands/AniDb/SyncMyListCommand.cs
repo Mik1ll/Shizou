@@ -45,9 +45,9 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         _options = options.Value;
     }
 
-    protected override async Task ProcessInner()
+    protected override async Task ProcessInnerAsync()
     {
-        var myListResult = await GetMyList();
+        var myListResult = await GetMyListAsync().ConfigureAwait(false);
 
         if (myListResult is null)
         {
@@ -215,7 +215,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         }
     }
 
-    private async Task<MyListResult?> GetMyList()
+    private async Task<MyListResult?> GetMyListAsync()
     {
         // return new XmlSerializer(typeof(MyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as MyListResult;
         var requestable = true;
@@ -229,11 +229,11 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         }
 
         _myListRequest.SetParameters();
-        await _myListRequest.Process();
+        await _myListRequest.ProcessAsync().ConfigureAwait(false);
         if (_myListRequest.MyListResult is null)
         {
             if (!File.Exists(FilePaths.MyListPath))
-                await File.Create(FilePaths.MyListPath).DisposeAsync();
+                await File.Create(FilePaths.MyListPath).DisposeAsync().ConfigureAwait(false);
             File.SetLastWriteTimeUtc(FilePaths.MyListPath, DateTime.UtcNow);
             _logger.LogWarning("Failed to get mylist data from AniDb, retry in {Hours} hours", _myListRequestPeriod.TotalHours);
         }
@@ -241,10 +241,10 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         {
             _logger.LogDebug("Overwriting mylist file");
             Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.MyListPath)!);
-            await File.WriteAllTextAsync(FilePaths.MyListPath, _myListRequest.ResponseText, Encoding.UTF8);
+            await File.WriteAllTextAsync(FilePaths.MyListPath, _myListRequest.ResponseText, Encoding.UTF8).ConfigureAwait(false);
             var backupFilePath = Path.Combine(FilePaths.MyListBackupDir, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".xml");
             Directory.CreateDirectory(FilePaths.MyListBackupDir);
-            await File.WriteAllTextAsync(backupFilePath, _myListRequest.ResponseText, Encoding.UTF8);
+            await File.WriteAllTextAsync(backupFilePath, _myListRequest.ResponseText, Encoding.UTF8).ConfigureAwait(false);
             _logger.LogInformation("HTTP Get mylist succeeded");
         }
 

@@ -50,7 +50,7 @@ public partial class FileCard
     public EventCallback OnChanged { get; set; }
 
 
-    private async Task Mark(bool watched)
+    private async Task MarkAsync(bool watched)
     {
         switch (WatchedState)
         {
@@ -69,7 +69,7 @@ public partial class FileCard
         await OnChanged.InvokeAsync();
     }
 
-    private async Task Unlink(LocalFile localFile)
+    private async Task UnlinkAsync(LocalFile localFile)
     {
         // ReSharper disable once MethodHasAsyncOverload
         // ReSharper disable once UseAwaitUsing
@@ -81,7 +81,7 @@ public partial class FileCard
         await OnChanged.InvokeAsync();
     }
 
-    private async Task OpenVideo(int localFileId)
+    private async Task OpenVideoAsync(int localFileId)
     {
         await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), localFileId)).Result;
     }

@@ -19,7 +19,7 @@ public partial class MyAnimeListItem
     public MalAnime MalAnime { get; set; } = default!;
 
 
-    private async Task UpdateStatus()
+    private async Task UpdateStatusAsync()
     {
         if (MalAnime.Status is null)
         {
@@ -27,13 +27,13 @@ public partial class MyAnimeListItem
             return;
         }
 
-        if (await MyAnimeListService.UpdateAnimeStatus(MalAnime.Id, MalAnime.Status))
+        if (await MyAnimeListService.UpdateAnimeStatusAsync(MalAnime.Id, MalAnime.Status))
             ToastDisplay.AddToast("Success", "MyAnimeList status updated successfully", ToastStyle.Success);
         else
             ToastDisplay.AddToast("Error", "MyAnimeList status failed to update", ToastStyle.Error);
     }
 
-    private async Task AddStatus()
+    private async Task AddStatusAsync()
     {
         if (MalAnime.Status is not null)
         {
@@ -48,7 +48,7 @@ public partial class MyAnimeListItem
             Updated = DateTime.UtcNow
         };
 
-        if (await MyAnimeListService.UpdateAnimeStatus(MalAnime.Id, status))
+        if (await MyAnimeListService.UpdateAnimeStatusAsync(MalAnime.Id, status))
         {
             MalAnime.Status = status;
             ToastDisplay.AddToast("Success", "MyAnimeList status added", ToastStyle.Success);

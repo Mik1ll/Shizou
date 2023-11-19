@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods")]
 public class MyAnimeList : ControllerBase
 {
     private readonly ILogger<MyAnimeList> _logger;
@@ -44,7 +46,7 @@ public class MyAnimeList : ControllerBase
             return TypedResults.BadRequest();
         }
 
-        if (!await _myAnimeListService.GetToken(code, state))
+        if (!await _myAnimeListService.GetTokenAsync(code, state).ConfigureAwait(false))
             return TypedResults.Conflict();
         return TypedResults.Ok();
     }

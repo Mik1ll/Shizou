@@ -6,7 +6,7 @@
                 <div>
                     @if (!LocalFile.IsMissing())
                     {
-                        <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideo(LocalFile.Id))">
+                        <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideoAsync(LocalFile.Id))">
                             <i class="bi bi-play"></i> Play
                         </button>
                         <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenInMpv(LocalFile))">
@@ -23,11 +23,11 @@
                 <div>
                     @if (AniDbFile is null)
                     {
-                        <button class="btn btn-outline-danger" @onclick="@(() => Unlink(LocalFile))">
+                        <button class="btn btn-outline-danger" @onclick="@(() => UnlinkAsync(LocalFile))">
                             <i class="bi bi-slash-circle"></i> Unlink File
                         </button>
                     }
-                    <button class="btn @(WatchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" type="button" @onclick:stopPropagation="true" @onclick="@(async () => await Mark(!WatchedState.Watched))">
+                    <button class="btn @(WatchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" type="button" @onclick:stopPropagation="true" @onclick="@(async () => await MarkAsync(!WatchedState.Watched))">
                         <i class="bi @(WatchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
                     </button>
                 </div>

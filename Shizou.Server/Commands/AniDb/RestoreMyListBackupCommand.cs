@@ -43,7 +43,7 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
         _myListRequest = myListRequest;
     }
 
-    protected override async Task ProcessInner()
+    protected override async Task ProcessInnerAsync()
     {
         var backupPath = CommandArgs switch
         {
@@ -60,7 +60,7 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
         }
 
         _myListRequest.SetParameters();
-        await _myListRequest.Process();
+        await _myListRequest.ProcessAsync().ConfigureAwait(false);
         if (_myListRequest.MyListResult is null)
         {
             _logger.LogError("Failed to get mylist from anidb");

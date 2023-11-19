@@ -35,11 +35,11 @@ public class CommandTests
     }
 
     [TestMethod]
-    public void TestAnimeTitles()
+    public async Task TestAnimeTitlesAsync()
     {
         var clientFact = Mock.Of<IHttpClientFactory>(c => c.CreateClient(It.IsAny<string>()) == new HttpClient());
         var dbcontextfact = Mock.Of<IDbContextFactory<ShizouContext>>(c => c.CreateDbContext() == new ShizouContext());
         var service = new AnimeTitleSearchService(Mock.Of<ILogger<AnimeTitleSearchService>>(), clientFact, dbcontextfact);
-        _ = service.Search("Appleseed").Result;
+        _ = await service.SearchAsync("Appleseed");
     }
 }

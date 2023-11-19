@@ -36,7 +36,7 @@ public partial class Offcanvas
     [Parameter]
     public RenderFragment ChildContent { get; set; } = default!;
 
-    private async Task Toggle()
+    private async Task ToggleAsync()
     {
         _open = !_open;
         if (_open)

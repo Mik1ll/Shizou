@@ -25,14 +25,14 @@
                 </td>
                 <td>
                     <Tooltip Content="Edit">
-                        <button type="button" class="btn p-0" @onclick="@(() => Edit(importFolder))">
+                        <button type="button" class="btn p-0" @onclick="@(() => EditAsync(importFolder))">
                             <i class="bi bi-pencil-square"></i>
                         </button>
                     </Tooltip>
                 </td>
                 <td>
                     <Tooltip Content="Remove">
-                        <button type="button" class="btn p-0" @onclick="@(() => Remove(importFolder))">
+                        <button type="button" class="btn p-0" @onclick="@(() => RemoveAsync(importFolder))">
                             <i class="bi bi-trash"></i>
                         </button>
                     </Tooltip>
@@ -41,5 +41,5 @@
         }
         </tbody>
     </table>
-    <button type="button" class="btn btn-primary" @onclick="@Add">Add Import Folder</button>
+    <button type="button" class="btn btn-primary" @onclick="@AddAsync">Add Import Folder</button>
 </section>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods")]
 public class Command : ControllerBase
 {
     private readonly CommandService _commandService;
@@ -47,7 +49,7 @@ public class Command : ControllerBase
     public async Task<string?> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
         _genericRequest.SetParameters(command, args);
-        var resp = await _genericRequest.Process();
+        var resp = await _genericRequest.ProcessAsync().ConfigureAwait(false);
         if (resp is not null)
             return resp.ResponseCodeText + "\n" + resp.ResponseText;
         return string.Empty;

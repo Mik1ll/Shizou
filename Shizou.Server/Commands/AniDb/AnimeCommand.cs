@@ -58,9 +58,9 @@ public class AnimeCommand : Command<AnimeArgs>
         base.SetParameters(args);
     }
 
-    protected override async Task ProcessInner()
+    protected override async Task ProcessInnerAsync()
     {
-        var animeResult = await GetAnime();
+        var animeResult = await GetAnimeAsync().ConfigureAwait(false);
 
         if (animeResult is null)
         {
@@ -108,7 +108,7 @@ public class AnimeCommand : Command<AnimeArgs>
         if (aniDbAnime.ImageFilename is not null)
             _imageService.GetAnimePoster(aniDbAnime.Id);
 
-        await UpdateMalXrefs(animeResult);
+        await UpdateMalXrefsAsync(animeResult).ConfigureAwait(false);
 
         UpdateRelatedAnime(animeResult);
 
@@ -195,14 +195,14 @@ public class AnimeCommand : Command<AnimeArgs>
         return newAniDbAnime;
     }
 
-    private async Task<AnimeResult?> GetAnime()
+    private async Task<AnimeResult?> GetAnimeAsync()
     {
         // ReSharper disable once MethodHasAsyncOverload
         var timer = _context.Timers.FirstOrDefault(t => t.Type == TimerType.AnimeRequest && t.ExtraId == CommandArgs.AnimeId);
         if (timer is not null && timer.Expires > DateTime.UtcNow)
         {
             _logger.LogWarning("Anime {AnimeId} already requested recently, trying cache for HTTP anime request", CommandArgs.AnimeId);
-            return await _animeResultCache.Get(_animeCacheFilename);
+            return await _animeResultCache.GetAsync(_animeCacheFilename).ConfigureAwait(false);
         }
 
         var rateLimit = TimeSpan.FromDays(1);
@@ -220,21 +220,21 @@ public class AnimeCommand : Command<AnimeArgs>
         _context.SaveChanges();
         _logger.LogInformation("Getting Anime {AnimeId} from HTTP anime request", CommandArgs.AnimeId);
         _animeRequest.SetParameters(CommandArgs.AnimeId);
-        await _animeRequest.Process();
-        await _animeResultCache.Save(_animeCacheFilename, _animeRequest.ResponseText ?? string.Empty);
+        await _animeRequest.ProcessAsync().ConfigureAwait(false);
+        await _animeResultCache.SaveAsync(_animeCacheFilename, _animeRequest.ResponseText ?? string.Empty).ConfigureAwait(false);
         if (_animeRequest.AnimeResult is null)
             _logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", rateLimit.TotalHours);
         return _animeRequest.AnimeResult;
     }
 
-    private async Task UpdateMalXrefs(AnimeResult animeResult)
+    private async Task UpdateMalXrefsAsync(AnimeResult animeResult)
     {
         var xrefs = animeResult.Resources.Where(r => (ResourceType)r.Type == ResourceType.Mal)
             .SelectMany(r => r.ExternalEntities.SelectMany(e => e.Identifiers)
                 .Select(id => new MalAniDbXref { AniDbAnimeId = CommandArgs.AnimeId, MalAnimeId = int.Parse(id) })).ToList();
         var eMalIds = _context.MalAnimes.Select(a => a.Id).ToHashSet();
         foreach (var xref in xrefs.ExceptBy(eMalIds, x => x.MalAnimeId))
-            await _myAnimeListService.GetAnime(xref.MalAnimeId);
+            await _myAnimeListService.GetAnimeAsync(xref.MalAnimeId).ConfigureAwait(false);
         eMalIds = _context.MalAnimes.Select(a => a.Id).ToHashSet();
         var eXrefs = _context.MalAniDbXrefs.Where(xref => xref.AniDbAnimeId == CommandArgs.AnimeId).ToList();
         _context.RemoveRange(eXrefs.ExceptBy(xrefs.Select(x => x.MalAnimeId), x => x.MalAnimeId));

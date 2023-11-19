@@ -43,7 +43,7 @@ public class AniDbUdpProcessor : CommandProcessor
     {
         try
         {
-            _aniDbUdpState.LogoutAsync().Wait();
+            _aniDbUdpState.LogoutAsync();
         }
         catch (AniDbUdpRequestException)
         {

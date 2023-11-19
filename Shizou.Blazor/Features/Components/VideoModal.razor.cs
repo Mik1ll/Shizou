@@ -50,7 +50,7 @@ public partial class VideoModal
         if (_localFile is not null)
             new FileExtensionContentTypeProvider().TryGetContentType(_localFile.PathTail, out _localFileMimeType);
         _localFileMimeType ??= "video/mp4";
-        await GetStreamUrls();
+        await GetStreamUrlsAsync();
         _loadSubtitles = true;
     }
 
@@ -63,12 +63,12 @@ public partial class VideoModal
         }
     }
 
-    private async Task DisposeJavascript()
+    private async Task DisposeJavascriptAsync()
     {
         await JsRuntime.InvokeVoidAsync("subtitleHandler.dispose");
     }
 
-    private async Task GetStreamUrls()
+    private async Task GetStreamUrlsAsync()
     {
         if (_localFile is null || _localFile.ImportFolder is null)
             return;

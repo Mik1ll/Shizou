@@ -23,16 +23,17 @@ public class ImageRequest
         _rateLimiter = rateLimiter;
     }
 
-    public async Task Process()
+    public async Task ProcessAsync()
     {
         if (Url is null || SavePath is null)
-            throw new ArgumentException($"Url/Save path not set before {nameof(Process)} called");
-        using (await _rateLimiter.AcquireAsync())
+            throw new ArgumentException($"Url/Save path not set before {nameof(ProcessAsync)} called");
+        using (await _rateLimiter.AcquireAsync().ConfigureAwait(false))
         {
             _logger.LogInformation("Sending Image request: {Url}", Url);
             Directory.CreateDirectory(Path.GetDirectoryName(SavePath)!);
-            await using var fileStream = new FileStream(SavePath, FileMode.Create);
-            await (await _httpClient.GetStreamAsync(Url)).CopyToAsync(fileStream);
+            var fileStream = new FileStream(SavePath, FileMode.Create);
+            await using var _ = fileStream.ConfigureAwait(false);
+            await (await _httpClient.GetStreamAsync(Url).ConfigureAwait(false)).CopyToAsync(fileStream).ConfigureAwait(false);
         }
     }
 }

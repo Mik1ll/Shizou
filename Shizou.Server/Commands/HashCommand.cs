@@ -37,7 +37,7 @@ public class HashCommand : Command<HashArgs>
         _hashService = hashService;
     }
 
-    protected override async Task ProcessInner()
+    protected override async Task ProcessInnerAsync()
     {
         var file = new FileInfo(CommandArgs.Path);
         var importFolder = _context.ImportFolders.ByPath(file.FullName);
@@ -49,7 +49,7 @@ public class HashCommand : Command<HashArgs>
         }
 
         var pathTail = file.FullName.Substring(importFolder.Path.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        var signature = await _hashService.GetFileSignatureAsync(file);
+        var signature = await _hashService.GetFileSignatureAsync(file).ConfigureAwait(false);
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder)
             .FirstOrDefault(l => l.Signature == signature
                                  || (l.ImportFolderId == importFolder.Id && l.PathTail == pathTail));
@@ -78,7 +78,7 @@ public class HashCommand : Command<HashArgs>
                 _logger.LogInformation("Found local file with mismatched signature, rehashing: \"{Path}\"", file.FullName);
             else
                 _logger.LogInformation("Hashing new file: \"{Path}\"", file.FullName);
-            var hashes = await _hashService.GetFileHashesAsync(file, HashIds.Ed2k | HashIds.Crc32);
+            var hashes = await _hashService.GetFileHashesAsync(file, HashIds.Ed2k | HashIds.Crc32).ConfigureAwait(false);
             var newLocalFile = new LocalFile
             {
                 Id = localFile?.Id ?? 0,

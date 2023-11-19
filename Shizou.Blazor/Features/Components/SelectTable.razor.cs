@@ -24,7 +24,7 @@ public partial class SelectTable<TValue>
         _rows.Add(row);
     }
 
-    public async Task RowClicked(SelectRow<TValue> row, MouseEventArgs args)
+    public async Task RowClickedAsync(SelectRow<TValue> row, MouseEventArgs args)
     {
         if (args.ShiftKey && _lastClicked is not null && row != _lastClicked)
         {
@@ -50,10 +50,10 @@ public partial class SelectTable<TValue>
             _lastClicked = row;
         }
 
-        await Changed();
+        await ChangedAsync();
     }
 
-    public async Task Changed()
+    public async Task ChangedAsync()
     {
         await OnChange.InvokeAsync(_rows.Where(r => r.Active).Select(r => r.Value).ToList());
     }

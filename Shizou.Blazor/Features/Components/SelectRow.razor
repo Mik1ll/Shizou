@@ -1,4 +1,4 @@
 ﻿@typeparam TValue
-<tr class="unselectable @(string.Join(' ', _classes))" @attributes="@AdditionalAttributes" @onclick="@Clicked" @onclick:stopPropagation="true">
+<tr class="unselectable @(string.Join(' ', _classes))" @attributes="@AdditionalAttributes" @onclick="@ClickedAsync" @onclick:stopPropagation="true">
     @ChildContent
 </tr>

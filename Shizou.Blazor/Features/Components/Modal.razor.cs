@@ -58,9 +58,9 @@ public partial class Modal
             _classes = string.Empty;
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        Task.Run(async () =>
+        await Task.Run(async () =>
         {
             await Task.Delay(15);
             _displayClass = "show";

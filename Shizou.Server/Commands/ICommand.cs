@@ -10,5 +10,5 @@ public interface ICommand<out T> where T : CommandArgs
     // ReSharper disable once UnusedMemberInSuper.Global
     T CommandArgs { get; }
     void SetParameters(CommandArgs args);
-    Task Process();
+    Task ProcessAsync();
 }

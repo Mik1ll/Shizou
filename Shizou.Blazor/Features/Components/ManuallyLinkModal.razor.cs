@@ -41,14 +41,14 @@ public partial class ManuallyLinkModal
         return base.SetParametersAsync(parameters);
     }
 
-    private async Task Cancel()
+    private async Task CancelAsync()
     {
         await _modal.CancelAsync();
     }
 
-    private async Task<List<(int, string)>?> GetTitles(string query)
+    private async Task<List<(int, string)>?> GetTitlesAsync(string query)
     {
-        return (await AnimeTitleSearchService.Search(query, _restrictInCollection))?.Select(p => (p.Item1, $"{p.Item1} {p.Item2}")).ToList();
+        return (await AnimeTitleSearchService.SearchAsync(query, _restrictInCollection))?.Select(p => (p.Item1, $"{p.Item1} {p.Item2}")).ToList();
     }
 
     private void SelectAnime()
@@ -94,7 +94,7 @@ public partial class ManuallyLinkModal
         _mapping[newEp] = localFile;
     }
 
-    private async Task LinkFiles()
+    private async Task LinkFilesAsync()
     {
         // ReSharper disable once UseAwaitUsing
         // ReSharper disable once MethodHasAsyncOverload

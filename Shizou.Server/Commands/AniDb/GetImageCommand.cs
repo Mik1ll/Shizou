@@ -20,11 +20,11 @@ public class GetImageCommand : Command<GetImageCommandArgs>
         _imageRequest = imageRequest;
     }
 
-    protected override async Task ProcessInner()
+    protected override async Task ProcessInnerAsync()
     {
         _imageRequest.Url = CommandArgs.Url;
         _imageRequest.SavePath = CommandArgs.SavePath;
-        await _imageRequest.Process();
+        await _imageRequest.ProcessAsync().ConfigureAwait(false);
 
         var fileInfo = new FileInfo(CommandArgs.SavePath);
         if (fileInfo is { Exists: true, Length: > 4 })

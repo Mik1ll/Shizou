@@ -4,7 +4,7 @@
     <a href="https://myanimelist.net/anime/@(MalAnime.Id)" target="_blank" class="align-middle">@(MalAnime.Title)</a>
     @if (MalAnime.Status is not null)
     {
-        <EditForm Model="MalAnime.Status" OnSubmit="@UpdateStatus">
+        <EditForm Model="MalAnime.Status" OnSubmit="@UpdateStatusAsync">
             <InputSelect @bind-Value="@(MalAnime.Status.State)">
                 @foreach (var state in Enum.GetValues<AnimeState>())
                 {
@@ -17,7 +17,7 @@
     }
     else
     {
-        <button type="button" class="btn btn-link" @onclick="@AddStatus">
+        <button type="button" class="btn btn-link" @onclick="@AddStatusAsync">
             <i class="bi bi-plus-circle-fill text-success"></i>
         </button>
     }

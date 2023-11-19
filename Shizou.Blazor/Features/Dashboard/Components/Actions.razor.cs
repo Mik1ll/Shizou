@@ -63,19 +63,19 @@ public partial class Actions
         ServiceProvider.GetRequiredService<ImageService>().GetMissingAnimePosters();
     }
 
-    private void OpenMalAuth()
+    private async Task OpenMalAuthAsync()
     {
         var url = ServiceProvider.GetRequiredService<MyAnimeListService>().GetAuthenticationUrl(ServerIp);
         if (url is not null)
-            JsRuntime.InvokeVoidAsync("open", url, "_blank");
+            await JsRuntime.InvokeVoidAsync("open", url, "_blank");
     }
 
-    private async Task GetMalList()
+    private async Task GetMalListAsync()
     {
-        await ServiceProvider.GetRequiredService<MyAnimeListService>().GetUserAnimeList();
+        await ServiceProvider.GetRequiredService<MyAnimeListService>().GetUserAnimeListAsync();
     }
 
-    private async Task RestoreFromBackupFile()
+    private async Task RestoreFromBackupFileAsync()
     {
         var res = await ModalService.Show<FilePickerModal>("", new ModalParameters
         {

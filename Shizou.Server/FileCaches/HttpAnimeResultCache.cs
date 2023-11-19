@@ -26,7 +26,8 @@ public class HttpAnimeResultCache : FileCacheBase<string, AnimeResult>
 
     protected override async Task SerializeAsync(string value, FileStream file)
     {
-        await using var sw = new StreamWriter(file);
-        await sw.WriteAsync(value);
+        var sw = new StreamWriter(file);
+        await using var _ = sw.ConfigureAwait(false);
+        await sw.WriteAsync(value).ConfigureAwait(false);
     }
 }

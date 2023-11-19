@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Timers;
+using Microsoft.AspNetCore.Components;
 using Timer = System.Timers.Timer;
 
 namespace Shizou.Blazor.Features.Components;
@@ -34,45 +35,49 @@ public partial class LiveSearchBox
         {
             AutoReset = false
         };
-        _searchTimer.Elapsed += async (_, _) =>
-        {
-            if (string.IsNullOrWhiteSpace(_query))
-            {
-                _results.Clear();
-                await InvokeAsync(StateHasChanged);
-                return;
-            }
-
-            var res = await GetResults(_query);
-            if (res is null)
-            {
-                ToastDisplay.AddToast("Search failed", "Search was unable to retrieve results", ToastStyle.Error);
-            }
-            else
-            {
-                _results = res;
-                await InvokeAsync(StateHasChanged);
-            }
-        };
+        _searchTimer.Elapsed += OnSearchTimerElapsed;
     }
 
-    private async Task UpdateSelected(int? selected)
+#pragma warning disable VSTHRD100
+    private async void OnSearchTimerElapsed(object? o, ElapsedEventArgs elapsedEventArgs)
+#pragma warning restore VSTHRD100
+    {
+        if (string.IsNullOrWhiteSpace(_query))
+        {
+            _results.Clear();
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        var res = await GetResults(_query);
+        if (res is null)
+        {
+            ToastDisplay.AddToast("Search failed", "Search was unable to retrieve results", ToastStyle.Error);
+        }
+        else
+        {
+            _results = res;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task UpdateSelectedAsync(int? selected)
     {
         Selected = selected;
         await SelectedChanged.InvokeAsync(Selected);
     }
 
-    private async Task OnSelectChanged(ChangeEventArgs e)
+    private async Task OnSelectChangedAsync(ChangeEventArgs e)
     {
         var selected = int.Parse(((string[])e.Value!).Single());
-        await UpdateSelected(selected);
+        await UpdateSelectedAsync(selected);
         _query = _results.First(r => r.Item1 == selected).Item2.ToString();
         _results.Clear();
     }
 
-    private async Task OnInputChanged(ChangeEventArgs e)
+    private async Task OnInputChangedAsync(ChangeEventArgs e)
     {
-        await UpdateSelected(null);
+        await UpdateSelectedAsync(null);
         _query = (string?)e.Value;
         _searchTimer.Stop();
         _searchTimer.Start();

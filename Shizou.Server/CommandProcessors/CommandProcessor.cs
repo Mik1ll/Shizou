@@ -173,7 +173,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_wakeupTokenSource.Token, stoppingToken);
                 try
                 {
-                    await Task.Delay(PollInterval, linkedTokenSource.Token);
+                    await Task.Delay(PollInterval, linkedTokenSource.Token).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException)
                 {
@@ -204,8 +204,8 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 LastThreeCommands.Enqueue(CurrentCommand.CommandId);
                 while (LastThreeCommands.Count > 3)
                     LastThreeCommands.Dequeue();
-                var task = CurrentCommand.Process();
-                await task.WaitAsync(stoppingToken);
+                var task = CurrentCommand.ProcessAsync();
+                await task.WaitAsync(stoppingToken).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {

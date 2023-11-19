@@ -62,7 +62,7 @@
                                 <i class="bi bi-circle"></i> Unignore
                             </button>
                         }
-                        <button type="button" class="btn btn-primary" @onclick="@(async () => await CreateManualLink(_selectedFiles))">
+                        <button type="button" class="btn btn-primary" @onclick="@(async () => await CreateManualLinkAsync(_selectedFiles))">
                             <i class="bi bi-link"></i> Manually Link
                         </button>
                     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods")]
 public class FileServer : ControllerBase
 {
     private readonly ShizouContext _context;
@@ -81,7 +83,7 @@ public class FileServer : ControllerBase
         var fileInfo = new FileInfo(SubtitleService.GetSubPath(ed2k, index));
         if (!fileInfo.Exists)
         {
-            await _subtitleService.ExtractSubtitles(ed2k);
+            await _subtitleService.ExtractSubtitlesAsync(ed2k).ConfigureAwait(false);
             fileInfo.Refresh();
             if (!fileInfo.Exists)
                 return TypedResults.NotFound();
@@ -107,7 +109,7 @@ public class FileServer : ControllerBase
         var fileInfo = new FileInfo(SubtitleService.GetFontPath(ed2k, fontName));
         if (!fileInfo.Exists)
         {
-            await _subtitleService.ExtractFonts(ed2k);
+            await _subtitleService.ExtractFontsAsync(ed2k).ConfigureAwait(false);
             fileInfo.Refresh();
             if (!fileInfo.Exists)
                 return TypedResults.NotFound();

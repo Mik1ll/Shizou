@@ -89,7 +89,7 @@ public class ImageService
         return Path.Combine(FilePaths.ExtraFileDataSubDir(ed2k), "thumb.webp");
     }
 
-    public async Task<string?> GetEpisodeThumbnail(int episodeId)
+    public async Task<string?> GetEpisodeThumbnailAsync(int episodeId)
     {
         // ReSharper disable once MethodHasAsyncOverload
         // ReSharper disable once UseAwaitUsing
@@ -101,7 +101,7 @@ public class ImageService
                 return localFile.Ed2k;
         foreach (var localFile in localFiles)
         {
-            await GetFileThumbnail(localFile);
+            await GetFileThumbnailAsync(localFile).ConfigureAwait(false);
             if (File.Exists(GetFileThumbnailPath(localFile.Ed2k)))
                 return localFile.Ed2k;
         }
@@ -109,7 +109,7 @@ public class ImageService
         return null;
     }
 
-    public async Task GetFileThumbnail(LocalFile localFile, bool forceRefresh = false)
+    public async Task GetFileThumbnailAsync(LocalFile localFile, bool forceRefresh = false)
     {
         // ReSharper disable once InconsistentNaming
         var ed2k = localFile.Ed2k;
@@ -138,25 +138,25 @@ public class ImageService
             return;
         }
 
-        if (!await _ffmpegService.HasVideo(fileInfo))
+        if (!await _ffmpegService.HasVideoAsync(fileInfo).ConfigureAwait(false))
         {
             _logger.LogInformation("File for local file {LocalFileId} at \"{FilePath}\" has no video stream, not creating thumbnail", localFile.Id,
                 fileInfo.FullName);
             return;
         }
 
-        var duration = await _ffmpegService.GetDuration(fileInfo);
+        var duration = await _ffmpegService.GetDurationAsync(fileInfo).ConfigureAwait(false);
         if (duration is null)
         {
             _logger.LogWarning("Failed to get duration of video for local file {LocalFileId} at \"{FilePath}\"", localFile.Id, fileInfo.FullName);
             return;
         }
 
-        await _ffmpegService.ExtractThumbnail(fileInfo, duration.Value, thumbnailFileInfo.FullName);
+        await _ffmpegService.ExtractThumbnailAsync(fileInfo, duration.Value, thumbnailFileInfo.FullName).ConfigureAwait(false);
     }
 
     // ReSharper disable once InconsistentNaming
-    public async Task GetFileThumbnail(string ed2k, bool forceRefresh = false)
+    public async Task GetFileThumbnailAsync(string ed2k, bool forceRefresh = false)
     {
         // ReSharper disable once MethodHasAsyncOverload
         // ReSharper disable once UseAwaitUsing
@@ -168,7 +168,7 @@ public class ImageService
             return;
         }
 
-        await GetFileThumbnail(localFile, forceRefresh);
+        await GetFileThumbnailAsync(localFile, forceRefresh).ConfigureAwait(false);
     }
 
     private string GetAnimePosterUri(string imageServer, string filename)

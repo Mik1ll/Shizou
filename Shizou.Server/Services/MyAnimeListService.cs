@@ -73,7 +73,7 @@ public class MyAnimeListService
         return url;
     }
 
-    public async Task<bool> GetToken(string code, string state)
+    public async Task<bool> GetTokenAsync(string code, string state)
     {
         _logger.LogInformation("Got auth code, requesting new tokens");
         var options = _optionsMonitor.CurrentValue;
@@ -112,11 +112,11 @@ public class MyAnimeListService
                 new("code_verifier", _codeChallengeAndVerifier)
             })
         };
-        var result = await httpClient.SendAsync(request);
+        var result = await httpClient.SendAsync(request).ConfigureAwait(false);
         if (!HandleStatusCode(result, options))
             return false;
 
-        if (!await SaveToken(result, options))
+        if (!await SaveTokenAsync(result, options).ConfigureAwait(false))
             return false;
 
         _state = null;
@@ -124,9 +124,9 @@ public class MyAnimeListService
         return true;
     }
 
-    private async Task<bool> SaveToken(HttpResponseMessage result, ShizouOptions options)
+    private async Task<bool> SaveTokenAsync(HttpResponseMessage result, ShizouOptions options)
     {
-        var token = await result.Content.ReadFromJsonAsync<TokenResponse>();
+        var token = await result.Content.ReadFromJsonAsync<TokenResponse>().ConfigureAwait(false);
         if (token is null)
         {
             _logger.LogError("Couldn't get token from response body");
@@ -142,7 +142,7 @@ public class MyAnimeListService
         return true;
     }
 
-    private async Task<bool> RefreshToken(ShizouOptions options)
+    private async Task<bool> RefreshTokenAsync(ShizouOptions options)
     {
         if (options.MyAnimeList.MyAnimeListToken is null)
         {
@@ -177,17 +177,17 @@ public class MyAnimeListService
             })
         };
 
-        var result = await httpClient.SendAsync(request);
+        var result = await httpClient.SendAsync(request).ConfigureAwait(false);
         if (!HandleStatusCode(result, options))
             return false;
 
-        if (!await SaveToken(result, options))
+        if (!await SaveTokenAsync(result, options).ConfigureAwait(false))
             return false;
 
         return true;
     }
 
-    public async Task GetAnime(int animeId)
+    public async Task GetAnimeAsync(int animeId)
     {
         var options = _optionsMonitor.CurrentValue;
         if (options.MyAnimeList.MyAnimeListToken is null)
@@ -196,7 +196,7 @@ public class MyAnimeListService
             return;
         }
 
-        if (!await RefreshToken(options))
+        if (!await RefreshTokenAsync(options).ConfigureAwait(false))
             return;
 
         var httpClient = _httpClientFactory.CreateClient();
@@ -208,12 +208,12 @@ public class MyAnimeListService
             { "fields", "id,title,media_type,num_episodes,my_list_status{status,num_episodes_watched,updated_at}" }
         });
 
-        var result = await httpClient.GetAsync(url);
+        var result = await httpClient.GetAsync(url).ConfigureAwait(false);
         if (!HandleStatusCode(result, options))
             return;
         try
         {
-            using var doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
+            using var doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false);
             var animeJson = doc.RootElement;
             var anime = AnimeFromJson(animeJson);
 
@@ -233,7 +233,7 @@ public class MyAnimeListService
         }
     }
 
-    public async Task GetUserAnimeList()
+    public async Task GetUserAnimeListAsync()
     {
         var options = _optionsMonitor.CurrentValue;
         if (options.MyAnimeList.MyAnimeListToken is null)
@@ -242,7 +242,7 @@ public class MyAnimeListService
             return;
         }
 
-        if (!await RefreshToken(options))
+        if (!await RefreshTokenAsync(options).ConfigureAwait(false))
             return;
 
         var animeWithStatus = new HashSet<int>();
@@ -262,13 +262,13 @@ public class MyAnimeListService
         });
         while (url is not null)
         {
-            var result = await httpClient.GetAsync(url);
+            var result = await httpClient.GetAsync(url).ConfigureAwait(false);
             if (!HandleStatusCode(result, options))
                 return;
 
             try
             {
-                using var doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
+                using var doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false);
                 var root = doc.RootElement;
                 var nextPage = root.GetProperty("paging").TryGetProperty("next", out var nextPageElem) ? nextPageElem.GetString() : null;
                 var data = root.GetProperty("data");
@@ -301,7 +301,7 @@ public class MyAnimeListService
         context.SaveChanges();
     }
 
-    public async Task<bool> UpdateAnimeStatus(int animeId, MalStatus status)
+    public async Task<bool> UpdateAnimeStatusAsync(int animeId, MalStatus status)
     {
         var options = _optionsMonitor.CurrentValue;
         if (options.MyAnimeList.MyAnimeListToken is null)
@@ -310,7 +310,7 @@ public class MyAnimeListService
             return false;
         }
 
-        if (!await RefreshToken(options))
+        if (!await RefreshTokenAsync(options).ConfigureAwait(false))
             return false;
 
         // ReSharper disable once MethodHasAsyncOverload
@@ -351,13 +351,13 @@ public class MyAnimeListService
             })
         };
 
-        var result = await httpClient.SendAsync(request);
+        var result = await httpClient.SendAsync(request).ConfigureAwait(false);
         if (!HandleStatusCode(result, options))
             return false;
 
         try
         {
-            using var doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync());
+            using var doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false);
             var statusJson = doc.RootElement;
             anime.Status = StatusFromJson(statusJson);
 

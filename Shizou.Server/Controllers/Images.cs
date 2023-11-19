@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +14,7 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods")]
 public class Images : ControllerBase
 {
     private readonly ImageService _imageService;
@@ -54,7 +56,7 @@ public class Images : ControllerBase
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetEpisodeThumbnail(int episodeId)
     {
         // ReSharper disable once InconsistentNaming
-        var ed2k = await _imageService.GetEpisodeThumbnail(episodeId);
+        var ed2k = await _imageService.GetEpisodeThumbnailAsync(episodeId).ConfigureAwait(false);
         if (ed2k is null)
             return TypedResults.NotFound();
         var fileInfo = new FileInfo(ImageService.GetFileThumbnailPath(ed2k));

@@ -44,9 +44,9 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
 
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="AniDbUdpRequestException"></exception>
-    public async Task<TResponse?> Process()
+    public async Task<TResponse?> ProcessAsync()
     {
-        var response = await ProcessInner();
+        var response = await ProcessInnerAsync().ConfigureAwait(false);
         if (response is { } r)
             return CreateResponse(r.responseText, r.responseCode, r.responseCodeText);
         return null;
@@ -62,27 +62,27 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         };
     }
 
-    private async Task<(string responseText, AniDbResponseCode responseCode, string responseCodeText)?> ProcessInner()
+    private async Task<(string responseText, AniDbResponseCode responseCode, string responseCodeText)?> ProcessInnerAsync()
     {
         if (!ParametersSet)
-            throw new ArgumentException($"Parameters not set before {nameof(Process)} called");
+            throw new ArgumentException($"Parameters not set before {nameof(ProcessAsync)} called");
 
         (string responseText, AniDbResponseCode responseCode, string responseCodeText)? response;
-        await PrepareRequest();
-        using (await _rateLimiter.AcquireAsync())
+        await PrepareRequestAsync().ConfigureAwait(false);
+        using (await _rateLimiter.AcquireAsync().ConfigureAwait(false))
         {
-            await SendRequest();
-            response = await ReceiveResponse();
+            await SendRequestAsync().ConfigureAwait(false);
+            response = await ReceiveResponseAsync().ConfigureAwait(false);
         }
 
         var retry = HandleSharedErrors(response);
         if (retry)
         {
             Logger.LogDebug("Error handled, retrying request");
-            using (await _rateLimiter.AcquireAsync())
+            using (await _rateLimiter.AcquireAsync().ConfigureAwait(false))
             {
-                await SendRequest();
-                response = await ReceiveResponse();
+                await SendRequestAsync().ConfigureAwait(false);
+                response = await ReceiveResponseAsync().ConfigureAwait(false);
             }
 
             HandleSharedErrors(response);
@@ -92,7 +92,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>
-    private async Task SendRequest()
+    private async Task SendRequestAsync()
     {
         if (_requestText is null)
         {
@@ -110,17 +110,17 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         Logger.LogDebug("Sending AniDb UDP text: {RequestText}", _requestText);
         if (!AniDbUdpState.UdpClient.Client.Connected)
             AniDbUdpState.Connect();
-        await AniDbUdpState.UdpClient.SendAsync(dgramBytes, dgramBytes.Length);
+        await AniDbUdpState.UdpClient.SendAsync(dgramBytes, dgramBytes.Length).ConfigureAwait(false);
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>
-    private async Task PrepareRequest()
+    private async Task PrepareRequestAsync()
     {
         Logger.LogTrace("Preparing {Command} request", Command);
         var requestBuilder = new StringBuilder(Command + " ");
         if (!new List<string> { "PING", "ENCRYPT", "AUTH", "VERSION" }.Contains(Command))
         {
-            await AniDbUdpState.LoginAsync();
+            await AniDbUdpState.LoginAsync().ConfigureAwait(false);
 
             if (!string.IsNullOrWhiteSpace(AniDbUdpState.SessionKey))
                 Args["s"] = AniDbUdpState.SessionKey;
@@ -137,7 +137,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
 
 
     /// <exception cref="AniDbUdpRequestException"></exception>
-    private async Task<(string responseText, AniDbResponseCode responseCode, string responseCodeText)?> ReceiveResponse()
+    private async Task<(string responseText, AniDbResponseCode responseCode, string responseCodeText)?> ReceiveResponseAsync()
     {
         byte[] receivedBytes;
         Logger.LogTrace("Waiting to receive raw UDP response");
@@ -145,7 +145,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         try
         {
             using var cancelSource = new CancellationTokenSource(receiveTimeout);
-            receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync(cancelSource.Token)).Buffer;
+            receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync(cancelSource.Token).ConfigureAwait(false)).Buffer;
         }
         catch (OperationCanceledException)
         {
@@ -160,10 +160,8 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
             ? new DeflateStream(new MemoryStream(receivedBytes, 4, receivedBytes.Length - 4), CompressionMode.Decompress)
             : new MemoryStream(receivedBytes);
         using var reader = new StreamReader(memStream, Encoding);
-        // ReSharper disable once MethodHasAsyncOverload
-        var codeLine = reader.ReadLine();
-        // ReSharper disable once MethodHasAsyncOverload
-        var responseText = reader.ReadToEnd();
+        var codeLine = await reader.ReadLineAsync().ConfigureAwait(false);
+        var responseText = await reader.ReadToEndAsync().ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(codeLine) || codeLine.Length <= 2)
             throw new AniDbUdpRequestException("AniDB response is empty");
         Logger.LogDebug("Received AniDB UDP response {CodeString}", codeLine);

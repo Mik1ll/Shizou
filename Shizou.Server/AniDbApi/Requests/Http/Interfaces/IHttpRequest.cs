@@ -10,5 +10,5 @@ public interface IHttpRequest
 
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="HttpRequestException"></exception>
-    Task Process();
+    Task ProcessAsync();
 }

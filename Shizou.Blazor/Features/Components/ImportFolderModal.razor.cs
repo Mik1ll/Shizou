@@ -30,7 +30,7 @@ public partial class ImportFolderModal
         return base.SetParametersAsync(parameters);
     }
 
-    private async Task OpenFolderPicker()
+    private async Task OpenFolderPickerAsync()
     {
         var res = await ModalService
             .Show<FilePickerModal>(string.Empty, new ModalParameters
@@ -42,7 +42,7 @@ public partial class ImportFolderModal
             MyImportFolder.Path = (string?)res.Data ?? string.Empty;
     }
 
-    private async Task Upsert()
+    private async Task UpsertAsync()
     {
         // ReSharper disable once MethodHasAsyncOverload
         // ReSharper disable once UseAwaitUsing
@@ -64,7 +64,7 @@ public partial class ImportFolderModal
         await _modal.CloseAsync();
     }
 
-    private async Task Remove()
+    private async Task RemoveAsync()
     {
         // ReSharper disable once MethodHasAsyncOverload
         // ReSharper disable once UseAwaitUsing
@@ -79,7 +79,7 @@ public partial class ImportFolderModal
         await _modal.CloseAsync();
     }
 
-    private async Task Cancel()
+    private async Task CancelAsync()
     {
         await _modal.CancelAsync();
     }

@@ -21,8 +21,10 @@ public partial class Queues : IDisposable
             processor.PropertyChanged += OnCommandChanged;
     }
 
-    private void OnCommandChanged(object? sender, PropertyChangedEventArgs eventArgs)
+#pragma warning disable VSTHRD100
+    private async void OnCommandChanged(object? sender, PropertyChangedEventArgs e)
+#pragma warning restore VSTHRD100
     {
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
     }
 }

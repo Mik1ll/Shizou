@@ -28,7 +28,7 @@ public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArg
         _options = options.Value;
     }
 
-    protected override Task ProcessInner()
+    protected override Task ProcessInnerAsync()
     {
         var filesMissingMyListId = (from ws in _context.FileWatchedStates
             where ws.MyListId == null && ws.AniDbFile.LocalFile != null

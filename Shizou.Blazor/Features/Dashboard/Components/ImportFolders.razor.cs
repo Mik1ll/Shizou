@@ -33,7 +33,7 @@ public partial class ImportFolders
         _importFolders = context.ImportFolders.ToList();
     }
 
-    private async Task Add()
+    private async Task AddAsync()
     {
         await ModalService.Show<ImportFolderModal>(string.Empty, new ModalParameters()
             .Add(nameof(ImportFolderModal.MyImportFolder), new ImportFolder
@@ -46,7 +46,7 @@ public partial class ImportFolders
         RefreshFolders();
     }
 
-    private async Task Edit(ImportFolder importFolder)
+    private async Task EditAsync(ImportFolder importFolder)
     {
         await ModalService.Show<ImportFolderModal>(string.Empty, new ModalParameters()
             .Add(nameof(ImportFolderModal.MyImportFolder), importFolder)
@@ -54,7 +54,7 @@ public partial class ImportFolders
         RefreshFolders();
     }
 
-    private async Task Remove(ImportFolder importFolder)
+    private async Task RemoveAsync(ImportFolder importFolder)
     {
         await ModalService.Show<ImportFolderModal>(string.Empty, new ModalParameters()
             .Add(nameof(ImportFolderModal.MyImportFolder), importFolder)
