@@ -1,8 +1,8 @@
 using Blazored.Modal;
 using Microsoft.AspNetCore.StaticFiles;
 using Serilog;
-using Shizou.Server;
 using Shizou.Server.Extensions;
+using Shizou.Server.Services;
 
 Log.Logger = new LoggerConfiguration()
     .ConfigureSerilog()

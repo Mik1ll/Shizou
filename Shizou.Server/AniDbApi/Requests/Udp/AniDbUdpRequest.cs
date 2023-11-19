@@ -120,7 +120,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         var requestBuilder = new StringBuilder(Command + " ");
         if (!new List<string> { "PING", "ENCRYPT", "AUTH", "VERSION" }.Contains(Command))
         {
-            await AniDbUdpState.Login();
+            await AniDbUdpState.LoginAsync();
 
             if (!string.IsNullOrWhiteSpace(AniDbUdpState.SessionKey))
                 Args["s"] = AniDbUdpState.SessionKey;

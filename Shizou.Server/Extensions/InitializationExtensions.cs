@@ -122,6 +122,7 @@ public static class InitializationExtensions
                 };
                 opts.Cookie.Name = Constants.IdentityCookieName;
             })
+            .AddHostedService<StartupService>()
             .AddTransient<AniDbFileResultCache>()
             .AddTransient<HttpAnimeResultCache>()
             .AddTransient<HashCommand>()
