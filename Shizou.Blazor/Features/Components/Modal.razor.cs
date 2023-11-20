@@ -9,6 +9,7 @@ public partial class Modal
     private FocusTrap? _focusTrap;
     private string _classes = string.Empty;
     private string _displayClass = string.Empty;
+    private bool _opened = false;
 
     [CascadingParameter]
     private BlazoredModalInstance ModalInstance { get; set; } = default!;
@@ -31,6 +32,7 @@ public partial class Modal
     public async Task CloseAsync(ModalResult modalResult)
     {
         _displayClass = string.Empty;
+        StateHasChanged();
         await Task.Delay(300);
         await ModalInstance.CloseAsync(modalResult);
     }
@@ -58,18 +60,14 @@ public partial class Modal
             _classes = string.Empty;
     }
 
-    protected override void OnInitialized()
-    {
-        Task.Run(async () =>
-        {
-            await Task.Delay(15);
-            _displayClass = "show";
-            await InvokeAsync(StateHasChanged);
-        });
-    }
-
     protected override void OnAfterRender(bool firstRender)
     {
         ModalInstance.FocusTrap = _focusTrap;
+        if (!_opened)
+        {
+            _displayClass = "show";
+            _opened = true;
+            StateHasChanged();
+        }
     }
 }
