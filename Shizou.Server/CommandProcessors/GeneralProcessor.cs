@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
@@ -10,7 +9,7 @@ namespace Shizou.Server.CommandProcessors;
 
 public class GeneralProcessor : CommandProcessor
 {
-    public GeneralProcessor(ILogger<GeneralProcessor> logger, IDbContextFactory<ShizouContext> contextFactory,
+    public GeneralProcessor(ILogger<GeneralProcessor> logger, IShizouContextFactory contextFactory,
         IServiceScopeFactory scopeFactory, Func<CommandService> commandServiceFactory) : base(logger, QueueType.General, contextFactory, scopeFactory,
         commandServiceFactory)
     {

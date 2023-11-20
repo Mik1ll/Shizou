@@ -1,6 +1,6 @@
 ﻿namespace Shizou.Data.Database;
 
-public interface IShizouDbContextFactory
+public interface IShizouContextFactory
 {
     IShizouContext CreateDbContext();
 }

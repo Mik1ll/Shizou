@@ -23,7 +23,7 @@ namespace Shizou.Server.CommandProcessors;
 public abstract class CommandProcessor : BackgroundService, INotifyPropertyChanged
 {
     private readonly Func<CommandService> _commandServiceFactory;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private readonly IServiceScopeFactory _scopeFactory;
     private int _commandsInQueue;
     private ICommand<CommandArgs>? _currentCommand;
@@ -33,7 +33,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     protected CommandProcessor(ILogger<CommandProcessor> logger,
         QueueType queueType,
-        IDbContextFactory<ShizouContext> contextFactory,
+        IShizouContextFactory contextFactory,
         IServiceScopeFactory scopeFactory,
         Func<CommandService> commandServiceFactory)
     {
@@ -258,7 +258,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     }
 
     [SuppressMessage("ReSharper.DPA", "DPA0006: Large number of DB commands", MessageId = "count: 2000")]
-    private void UpdateCommandsInQueue(ShizouContext context)
+    private void UpdateCommandsInQueue(IShizouContext context)
     {
         CommandsInQueue = context.CommandRequests.ByQueue(QueueType).Count();
     }

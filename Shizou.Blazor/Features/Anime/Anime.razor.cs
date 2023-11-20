@@ -22,7 +22,7 @@ public partial class Anime
     private string[] _splitDescription = default!;
 
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [Inject]
     private WatchStateService WatchStateService { get; set; } = default!;

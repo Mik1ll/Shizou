@@ -21,7 +21,7 @@ public partial class UnidentifiedFiles
     private bool _includeIgnored;
 
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [Inject]
     private CommandService CommandService { get; set; } = default!;

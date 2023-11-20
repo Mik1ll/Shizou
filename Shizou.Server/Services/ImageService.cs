@@ -16,7 +16,7 @@ namespace Shizou.Server.Services;
 public class ImageService
 {
     private readonly ILogger<ImageService> _logger;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
     private readonly CommandService _commandService;
     private readonly FfmpegService _ffmpegService;
@@ -24,7 +24,7 @@ public class ImageService
 
     public ImageService(
         ILogger<ImageService> logger,
-        IDbContextFactory<ShizouContext> contextFactory,
+        IShizouContextFactory contextFactory,
         IOptionsMonitor<ShizouOptions> optionsMonitor,
         CommandService commandService,
         FfmpegService ffmpegService)

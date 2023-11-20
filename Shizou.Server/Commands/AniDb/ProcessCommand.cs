@@ -23,14 +23,14 @@ public class ProcessCommand : Command<ProcessArgs>
 {
     private readonly CommandService _commandService;
     private readonly ILogger<ProcessCommand> _logger;
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly AniDbFileResultCache _fileResultCache;
     private readonly IFileRequest _fileRequest;
     private readonly ShizouOptions _options;
 
     public ProcessCommand(
         ILogger<ProcessCommand> logger,
-        ShizouContext context,
+        IShizouContext context,
         CommandService commandService,
         AniDbFileResultCache fileResultCache,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,

@@ -11,10 +11,10 @@ namespace Shizou.Server.Services;
 public class SubtitleService
 {
     private readonly ILogger<SubtitleService> _logger;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private readonly FfmpegService _ffmpegService;
 
-    public SubtitleService(ILogger<SubtitleService> logger, IDbContextFactory<ShizouContext> contextFactory, FfmpegService ffmpegService)
+    public SubtitleService(ILogger<SubtitleService> logger, IShizouContextFactory contextFactory, FfmpegService ffmpegService)
     {
         _logger = logger;
         _contextFactory = contextFactory;

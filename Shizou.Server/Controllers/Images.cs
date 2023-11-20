@@ -18,10 +18,10 @@ namespace Shizou.Server.Controllers;
 public class Images : ControllerBase
 {
     private readonly ImageService _imageService;
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly IContentTypeProvider _contentTypeProvider;
 
-    public Images(ImageService imageService, ShizouContext context, IContentTypeProvider contentTypeProvider)
+    public Images(ImageService imageService, IShizouContext context, IContentTypeProvider contentTypeProvider)
     {
         _imageService = imageService;
         _context = context;

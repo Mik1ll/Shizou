@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
@@ -15,7 +14,7 @@ public sealed class UniqueAttribute : ValidationAttribute
 
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
-        var contextFactory = (IDbContextFactory<ShizouContext>)validationContext.GetRequiredService(typeof(IDbContextFactory<ShizouContext>));
+        var contextFactory = (IShizouContextFactory)validationContext.GetRequiredService(typeof(IShizouContextFactory));
         using var context = contextFactory.CreateDbContext();
         var unique = validationContext.ObjectInstance switch
         {

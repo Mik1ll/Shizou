@@ -106,7 +106,7 @@ public class SeededDatabaseTests
         }
     }
 
-    protected static ShizouContext GetContext()
+    protected static IShizouContext GetContext()
     {
         return new ShizouContext(new DbContextOptionsBuilder<ShizouContext>().UseSqlite(ConnectionString).Options);
     }

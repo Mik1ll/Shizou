@@ -1,7 +1,6 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Features.Components;
 using Shizou.Data;
 using Shizou.Data.Database;
@@ -20,7 +19,7 @@ public partial class FileCard
     private NavigationManager NavigationManager { get; set; } = default!;
 
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [Inject]
     private LinkGenerator LinkGenerator { get; set; } = default!;

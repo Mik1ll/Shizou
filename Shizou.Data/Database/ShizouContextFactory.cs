@@ -2,10 +2,10 @@
 
 namespace Shizou.Data.Database;
 
-public class ShizouDbContextFactory : IShizouDbContextFactory
+public class ShizouContextFactory : IShizouContextFactory
 {
     private readonly IDbContextFactory<ShizouContext> _contextFactory;
 
-    public ShizouDbContextFactory(IDbContextFactory<ShizouContext> contextFactory) => _contextFactory = contextFactory;
+    public ShizouContextFactory(IDbContextFactory<ShizouContext> contextFactory) => _contextFactory = contextFactory;
     public IShizouContext CreateDbContext() => _contextFactory.CreateDbContext();
 }

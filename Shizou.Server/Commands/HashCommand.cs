@@ -22,11 +22,11 @@ public class HashCommand : Command<HashArgs>
     private readonly ILogger<HashCommand> _logger;
     private readonly CommandService _commandService;
     private readonly HashService _hashService;
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
 
     public HashCommand(
         ILogger<HashCommand> logger,
-        ShizouContext context,
+        IShizouContext context,
         CommandService commandService,
         HashService hashService
     )

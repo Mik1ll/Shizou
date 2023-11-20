@@ -24,7 +24,7 @@ public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}");
 public class SyncMyListCommand : Command<SyncMyListArgs>
 {
     private readonly CommandService _commandService;
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly ILogger<SyncMyListCommand> _logger;
     private readonly IMyListRequest _myListRequest;
     private readonly TimeSpan _myListRequestPeriod = TimeSpan.FromHours(24);
@@ -32,7 +32,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
 
     public SyncMyListCommand(
         ILogger<SyncMyListCommand> logger,
-        ShizouContext context,
+        IShizouContext context,
         CommandService commandService,
         IOptionsSnapshot<ShizouOptions> options,
         IMyListRequest myListRequest

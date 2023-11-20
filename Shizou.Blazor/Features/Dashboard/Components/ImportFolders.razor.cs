@@ -1,7 +1,6 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Features.Components;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
@@ -14,7 +13,7 @@ public partial class ImportFolders
     private List<ImportFolder> _importFolders = default!;
 
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [Inject]
     private ImportService ImportService { get; set; } = default!;

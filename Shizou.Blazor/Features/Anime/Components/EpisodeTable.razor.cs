@@ -14,7 +14,7 @@ public partial class EpisodeTable
     private HashSet<int> _watchedEps = default!;
 
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [Inject]
     private LinkGenerator LinkGenerator { get; set; } = default!;

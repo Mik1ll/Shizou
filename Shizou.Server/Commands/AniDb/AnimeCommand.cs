@@ -23,7 +23,7 @@ public record AnimeArgs(int AnimeId, int? FetchRelationDepth = null) : CommandAr
 public class AnimeCommand : Command<AnimeArgs>
 {
     private readonly ILogger<AnimeCommand> _logger;
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly HttpAnimeResultCache _animeResultCache;
     private readonly ImageService _imageService;
     private readonly MyAnimeListService _myAnimeListService;
@@ -34,7 +34,7 @@ public class AnimeCommand : Command<AnimeArgs>
 
     public AnimeCommand(
         ILogger<AnimeCommand> logger,
-        ShizouContext context,
+        IShizouContext context,
         HttpAnimeResultCache animeResultCache,
         ImageService imageService,
         MyAnimeListService myAnimeListService,

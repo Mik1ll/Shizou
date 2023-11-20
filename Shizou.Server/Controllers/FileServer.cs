@@ -21,11 +21,11 @@ namespace Shizou.Server.Controllers;
 [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods")]
 public class FileServer : ControllerBase
 {
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly SubtitleService _subtitleService;
     private readonly ILogger<FileServer> _logger;
 
-    public FileServer(ILogger<FileServer> logger, ShizouContext context, SubtitleService subtitleService)
+    public FileServer(ILogger<FileServer> logger, IShizouContext context, SubtitleService subtitleService)
     {
         _logger = logger;
         _context = context;

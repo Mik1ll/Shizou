@@ -26,7 +26,7 @@ public partial class VideoModal
     private IJSRuntime JsRuntime { get; set; } = default!;
 
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [Inject]
     private LinkGenerator LinkGenerator { get; set; } = default!;

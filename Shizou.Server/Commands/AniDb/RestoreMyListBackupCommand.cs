@@ -25,13 +25,13 @@ public record RestoreMyListBackupArgs(DateOnly? Date = null, string? Path = null
 public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
 {
     private readonly CommandService _commandService;
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly ILogger<RestoreMyListBackupCommand> _logger;
     private readonly IMyListRequest _myListRequest;
     private readonly ShizouOptions _options;
 
     public RestoreMyListBackupCommand(ILogger<RestoreMyListBackupCommand> logger,
-        ShizouContext context,
+        IShizouContext context,
         IOptionsSnapshot<ShizouOptions> options,
         CommandService commandService,
         IMyListRequest myListRequest)

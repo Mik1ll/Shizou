@@ -10,7 +10,6 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
@@ -26,7 +25,7 @@ public class MyAnimeListService
 {
     private string? _codeChallengeAndVerifier;
     private string? _state;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<MyAnimeListService> _logger;
     private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
@@ -35,7 +34,7 @@ public class MyAnimeListService
         ILogger<MyAnimeListService> logger,
         IHttpClientFactory httpClientFactory,
         IOptionsMonitor<ShizouOptions> optionsMonitor,
-        IDbContextFactory<ShizouContext> contextFactory)
+        IShizouContextFactory contextFactory)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
@@ -374,7 +373,7 @@ public class MyAnimeListService
         return true;
     }
 
-    private static void UpsertAnime(ShizouContext context, MalAnime anime)
+    private static void UpsertAnime(IShizouContext context, MalAnime anime)
     {
         var eAnime = context.MalAnimes.Find(anime.Id);
         if (eAnime is null)

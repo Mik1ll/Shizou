@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
@@ -15,7 +14,7 @@ public class AniDbUdpProcessor : CommandProcessor
     private readonly AniDbUdpState _aniDbUdpState;
 
     public AniDbUdpProcessor(ILogger<AniDbUdpProcessor> logger, AniDbUdpState aniDbUdpState,
-        IDbContextFactory<ShizouContext> contextFactory, IServiceScopeFactory scopeFactory, Func<CommandService> commandServiceFactory)
+        IShizouContextFactory contextFactory, IServiceScopeFactory scopeFactory, Func<CommandService> commandServiceFactory)
         : base(logger, QueueType.AniDbUdp, contextFactory, scopeFactory, commandServiceFactory)
     {
         _aniDbUdpState = aniDbUdpState;

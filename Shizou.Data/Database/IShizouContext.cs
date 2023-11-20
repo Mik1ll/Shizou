@@ -39,7 +39,6 @@ public interface IShizouContext : IDisposable
     IShizouDbSet<TEntity> Set<TEntity>(string name) where TEntity : class;
     int SaveChanges();
     int SaveChanges(bool acceptAllChangesOnSuccess);
-    void Dispose();
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
     EntityEntry Entry(object entity);
     EntityEntry<TEntity> Add<TEntity>(TEntity entity) where TEntity : class;

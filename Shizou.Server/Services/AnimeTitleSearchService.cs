@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using FuzzySharp;
 using FuzzySharp.SimilarityRatio;
 using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data;
 using Shizou.Data.Database;
@@ -25,13 +24,13 @@ public class AnimeTitleSearchService
     private readonly Regex _removeSpecial = new(@"[][【】「」『』、…〜（）`()\\,<>/;:：'""-]+", RegexOptions.Compiled);
     private readonly ILogger<AnimeTitleSearchService> _logger;
     private readonly IHttpClientFactory _clientFactory;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private List<AnimeTitle>? _animeTitlesMemCache;
 
     public AnimeTitleSearchService(
         ILogger<AnimeTitleSearchService> logger,
         IHttpClientFactory clientFactory,
-        IDbContextFactory<ShizouContext> contextFactory)
+        IShizouContextFactory contextFactory)
     {
         _logger = logger;
         _clientFactory = clientFactory;

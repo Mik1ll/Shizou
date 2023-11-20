@@ -25,14 +25,14 @@ public record UpdateMyListArgs(
 [Command(CommandType.UpdateMyList, CommandPriority.Normal, QueueType.AniDbUdp)]
 public class UpdateMyListCommand : Command<UpdateMyListArgs>
 {
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly ILogger<UpdateMyListCommand> _logger;
     private readonly IMyListAddRequest _myListAddRequest;
     private readonly IMyListEntryRequest _myListEntryRequest;
 
     public UpdateMyListCommand(
         ILogger<UpdateMyListCommand> logger,
-        ShizouContext context,
+        IShizouContext context,
         IMyListAddRequest myListAddRequest,
         IMyListEntryRequest myListEntryRequest
     )

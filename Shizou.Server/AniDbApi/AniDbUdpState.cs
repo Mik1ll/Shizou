@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
@@ -24,7 +23,7 @@ public sealed class AniDbUdpState : IDisposable
     private readonly Timer _bannedTimer;
     private readonly ILogger<AniDbUdpState> _logger;
     private readonly Func<ILogoutRequest> _logoutRequestFactory;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private readonly Timer _logoutTimer;
     private readonly Timer _mappingTimer;
     private readonly string _serverHost;
@@ -39,7 +38,7 @@ public sealed class AniDbUdpState : IDisposable
         ILogger<AniDbUdpState> logger,
         Func<IAuthRequest> authRequestFactory,
         Func<ILogoutRequest> logoutRequestFactory,
-        IDbContextFactory<ShizouContext> contextFactory)
+        IShizouContextFactory contextFactory)
     {
         _optionsMonitor = optionsMonitor;
         _authRequestFactory = authRequestFactory;
