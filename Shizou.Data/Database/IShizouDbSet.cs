@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using System.ComponentModel;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Shizou.Data.Database;
 
-public interface IShizouDbSet<TEntity> where TEntity : class
+public interface IShizouDbSet<TEntity> : IQueryable<TEntity>, IListSource where TEntity : class
 {
     bool Equals(object? obj);
     int GetHashCode();

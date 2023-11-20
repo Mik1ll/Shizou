@@ -122,6 +122,9 @@ public static class InitializationExtensions
                 };
                 opts.Cookie.Name = Constants.IdentityCookieName;
             })
+            .AddScoped<IShizouContext, ShizouContext>(p => p.GetRequiredService<ShizouContext>())
+            .AddSingleton<IShizouDbContextFactory, ShizouDbContextFactory>(p =>
+                new ShizouDbContextFactory(p.GetRequiredService<IDbContextFactory<ShizouContext>>()))
             .AddHostedService<StartupService>()
             .AddTransient<AniDbFileResultCache>()
             .AddTransient<HttpAnimeResultCache>()

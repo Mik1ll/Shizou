@@ -8,7 +8,7 @@ using Timer = Shizou.Data.Models.Timer;
 
 namespace Shizou.Data.Database;
 
-public interface IShizouContext
+public interface IShizouContext : IDisposable
 {
     IShizouDbSet<CommandRequest> CommandRequests { get; }
     IShizouDbSet<ImportFolder> ImportFolders { get; }
