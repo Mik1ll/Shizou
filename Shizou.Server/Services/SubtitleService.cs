@@ -11,10 +11,10 @@ namespace Shizou.Server.Services;
 public class SubtitleService
 {
     private readonly ILogger<SubtitleService> _logger;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private readonly FfmpegService _ffmpegService;
 
-    public SubtitleService(ILogger<SubtitleService> logger, IDbContextFactory<ShizouContext> contextFactory, FfmpegService ffmpegService)
+    public SubtitleService(ILogger<SubtitleService> logger, IShizouContextFactory contextFactory, FfmpegService ffmpegService)
     {
         _logger = logger;
         _contextFactory = contextFactory;
@@ -54,10 +54,8 @@ public class SubtitleService
     }
 
     // ReSharper disable once InconsistentNaming
-    public async Task ExtractSubtitles(string ed2k)
+    public async Task ExtractSubtitlesAsync(string ed2k)
     {
-        // ReSharper disable once UseAwaitUsing
-        // ReSharper disable once MethodHasAsyncOverload
         using var context = _contextFactory.CreateDbContext();
         var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2k);
         if (localFile is null)
@@ -79,21 +77,19 @@ public class SubtitleService
         var subsDir = GetSubsDir(localFile.Ed2k);
         Directory.CreateDirectory(subsDir);
 
-        var subStreams = await _ffmpegService.GetSubtitleStreams(fileInfo, ValidSubFormats, GetSubName);
+        var subStreams = await _ffmpegService.GetSubtitleStreamsAsync(fileInfo, ValidSubFormats, GetSubName).ConfigureAwait(false);
         if (subStreams.Count <= 0)
         {
             _logger.LogDebug("No valid streams for {LocalFileId}, skipping subtitle extraction", localFile.Id);
             return;
         }
 
-        await _ffmpegService.ExtractSubtitles(fileInfo, subStreams, GetSubsDir(localFile.Ed2k));
+        await _ffmpegService.ExtractSubtitlesAsync(fileInfo, subStreams, GetSubsDir(localFile.Ed2k)).ConfigureAwait(false);
     }
 
     // ReSharper disable once InconsistentNaming
-    public async Task ExtractFonts(string ed2k)
+    public async Task ExtractFontsAsync(string ed2k)
     {
-        // ReSharper disable once UseAwaitUsing
-        // ReSharper disable once MethodHasAsyncOverload
         using var context = _contextFactory.CreateDbContext();
         var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2k);
         if (localFile is null)
@@ -115,13 +111,13 @@ public class SubtitleService
         var fontsDir = GetFontsDir(localFile.Ed2k);
         Directory.CreateDirectory(fontsDir);
 
-        var fontStreams = await _ffmpegService.GetFontStreams(fileInfo, ValidFontFormats);
+        var fontStreams = await _ffmpegService.GetFontStreamsAsync(fileInfo, ValidFontFormats).ConfigureAwait(false);
         if (fontStreams.Count <= 0)
         {
             _logger.LogDebug("No valid streams for {LocalFileId}, skipping subtitle extraction", localFile.Id);
             return;
         }
 
-        await _ffmpegService.ExtractFonts(fileInfo, fontStreams, GetFontsDir(localFile.Ed2k));
+        await _ffmpegService.ExtractFontsAsync(fileInfo, fontStreams, GetFontsDir(localFile.Ed2k)).ConfigureAwait(false);
     }
 }

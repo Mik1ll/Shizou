@@ -14,11 +14,11 @@ public sealed record AddMissingMyListEntriesArgs() : CommandArgs($"{nameof(AddMi
 public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArgs>
 {
     private readonly CommandService _commandService;
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly ShizouOptions _options;
 
     public AddMissingMyListEntriesCommand(
-        ShizouContext context,
+        IShizouContext context,
         CommandService commandService,
         IOptionsSnapshot<ShizouOptions> options
     )
@@ -28,7 +28,7 @@ public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArg
         _options = options.Value;
     }
 
-    protected override Task ProcessInner()
+    protected override Task ProcessInnerAsync()
     {
         var filesMissingMyListId = (from ws in _context.FileWatchedStates
             where ws.MyListId == null && ws.AniDbFile.LocalFile != null

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
@@ -24,13 +23,13 @@ public class CommandService
             let argsType = type.BaseType!.GetGenericArguments()[0]
             select (cmdAttr, type, argsType)).ToList();
 
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private readonly ILogger<CommandService> _logger;
     private readonly List<CommandProcessor> _processors;
 
     public CommandService(
         ILogger<CommandService> logger,
-        IDbContextFactory<ShizouContext> contextFactory,
+        IShizouContextFactory contextFactory,
         IEnumerable<CommandProcessor> processors)
     {
         _logger = logger;

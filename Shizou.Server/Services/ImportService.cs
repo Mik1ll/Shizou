@@ -14,9 +14,9 @@ public class ImportService
 {
     private readonly CommandService _commandService;
     private readonly ILogger<ImportService> _logger;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
 
-    public ImportService(ILogger<ImportService> logger, IDbContextFactory<ShizouContext> contextFactory, CommandService commandService)
+    public ImportService(ILogger<ImportService> logger, IShizouContextFactory contextFactory, CommandService commandService)
     {
         _logger = logger;
         _contextFactory = contextFactory;

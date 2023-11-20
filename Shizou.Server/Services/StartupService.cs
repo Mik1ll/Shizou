@@ -4,14 +4,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Shizou.Data.Database;
-using Shizou.Server.CommandProcessors;
-using Shizou.Server.Options;
+using Shizou.Server.AniDbApi;
 
 // ReSharper disable UnusedVariable
 
-namespace Shizou.Server;
+namespace Shizou.Server.Services;
 
 public sealed class StartupService : BackgroundService
 {
@@ -26,13 +23,10 @@ public sealed class StartupService : BackgroundService
     {
         await Task.Yield();
         using var scope = _serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<ShizouContext>();
         var log = scope.ServiceProvider.GetRequiredService<ILogger<StartupService>>();
-        var options = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<ShizouOptions>>().Value;
         log.LogInformation("Started startup service");
-        
-        var processors = scope.ServiceProvider.GetServices<CommandProcessor>();
-        //foreach (var processor in processors) processor.Unpause();
+        var udpState = _serviceProvider.GetRequiredService<AniDbUdpState>();
+        await udpState.SetupNatAsync().ConfigureAwait(false);
         
         log.LogInformation("Startup service finished");
     }

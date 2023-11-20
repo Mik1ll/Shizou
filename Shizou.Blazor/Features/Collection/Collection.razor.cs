@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Extensions.Query;
@@ -12,7 +11,7 @@ public partial class Collection
     private List<AniDbAnime> _anime = default!;
 
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     protected override void OnInitialized()
     {

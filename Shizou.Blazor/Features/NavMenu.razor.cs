@@ -24,7 +24,7 @@ public partial class NavMenu
         _collapseNavMenu = !_collapseNavMenu;
     }
 
-    private async Task ToggleDarkMode()
+    private async Task ToggleDarkModeAsync()
     {
         _isDarkMode = await JsRuntime.InvokeAsync<string>("toggleTheme") == "dark";
     }

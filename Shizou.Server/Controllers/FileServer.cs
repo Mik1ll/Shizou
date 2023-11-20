@@ -19,11 +19,11 @@ namespace Shizou.Server.Controllers;
 [Route("api/[controller]")]
 public class FileServer : ControllerBase
 {
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly SubtitleService _subtitleService;
     private readonly ILogger<FileServer> _logger;
 
-    public FileServer(ILogger<FileServer> logger, ShizouContext context, SubtitleService subtitleService)
+    public FileServer(ILogger<FileServer> logger, IShizouContext context, SubtitleService subtitleService)
     {
         _logger = logger;
         _context = context;
@@ -63,9 +63,6 @@ public class FileServer : ControllerBase
         return TypedResults.File(fileStream, mimeType, fileInfo.Name, enableRangeProcessing: true);
     }
 
-
-    public record GetSubtitleArgs(string Ed2K, int Index);
-
     /// <summary>
     ///     Get embedded ASS subtitle of local file
     /// </summary>
@@ -81,7 +78,7 @@ public class FileServer : ControllerBase
         var fileInfo = new FileInfo(SubtitleService.GetSubPath(ed2k, index));
         if (!fileInfo.Exists)
         {
-            await _subtitleService.ExtractSubtitles(ed2k);
+            await _subtitleService.ExtractSubtitlesAsync(ed2k).ConfigureAwait(false);
             fileInfo.Refresh();
             if (!fileInfo.Exists)
                 return TypedResults.NotFound();
@@ -89,8 +86,6 @@ public class FileServer : ControllerBase
 
         return TypedResults.PhysicalFile(fileInfo.FullName, "text/x-ssa");
     }
-
-    public record GetFontArgs(string Ed2K, string FontName);
 
     /// <summary>
     ///     Get embedded font of local file
@@ -107,7 +102,7 @@ public class FileServer : ControllerBase
         var fileInfo = new FileInfo(SubtitleService.GetFontPath(ed2k, fontName));
         if (!fileInfo.Exists)
         {
-            await _subtitleService.ExtractFonts(ed2k);
+            await _subtitleService.ExtractFontsAsync(ed2k).ConfigureAwait(false);
             fileInfo.Refresh();
             if (!fileInfo.Exists)
                 return TypedResults.NotFound();
@@ -134,4 +129,9 @@ src=""{HttpContext.Request.GetEncodedUrl().Remove(HttpContext.Request.GetEncoded
 </body></html>
 ", "text/html");
     }
+
+
+    public record GetSubtitleArgs(string Ed2K, int Index);
+
+    public record GetFontArgs(string Ed2K, string FontName);
 }

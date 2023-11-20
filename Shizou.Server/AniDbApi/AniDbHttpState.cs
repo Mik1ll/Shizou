@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Timers;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
@@ -14,10 +13,10 @@ public class AniDbHttpState : IDisposable
 
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private readonly ILogger<AniDbHttpState> _logger;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private bool _banned;
 
-    public AniDbHttpState(ILogger<AniDbHttpState> logger, IDbContextFactory<ShizouContext> contextFactory)
+    public AniDbHttpState(ILogger<AniDbHttpState> logger, IShizouContextFactory contextFactory)
     {
         _logger = logger;
         _contextFactory = contextFactory;

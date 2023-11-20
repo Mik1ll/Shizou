@@ -21,7 +21,7 @@ public abstract class FileCacheBase<TIn, TOut>
         _retentionDuration = retentionDuration;
     }
 
-    public async Task<TOut?> Get(string filename)
+    public async Task<TOut?> GetAsync(string filename)
     {
         var path = Path.Combine(_basePath, filename);
         if (!InsideRetentionPeriod(filename))
@@ -37,17 +37,19 @@ public abstract class FileCacheBase<TIn, TOut>
         }
 
         _logger.LogDebug("{Path} found in cache", path);
-        await using var file = new FileStream(path, FileMode.Open, FileAccess.Read);
-        return await DeserializeAsync(file);
+        var file = new FileStream(path, FileMode.Open, FileAccess.Read);
+        await using var _ = file.ConfigureAwait(false);
+        return await DeserializeAsync(file).ConfigureAwait(false);
     }
 
-    public async Task Save(string filename, TIn value)
+    public async Task SaveAsync(string filename, TIn value)
     {
         if (!Directory.Exists(_basePath))
             Directory.CreateDirectory(_basePath);
         var path = Path.Combine(_basePath, filename);
-        await using var file = new FileStream(path, FileMode.Create, FileAccess.Write);
-        await SerializeAsync(value, file);
+        var file = new FileStream(path, FileMode.Create, FileAccess.Write);
+        await using var _ = file.ConfigureAwait(false);
+        await SerializeAsync(value, file).ConfigureAwait(false);
         _logger.LogDebug("{Path} saved to cache", path);
     }
 
@@ -60,7 +62,7 @@ public abstract class FileCacheBase<TIn, TOut>
 
     protected virtual async Task<TOut?> DeserializeAsync(FileStream file)
     {
-        return await JsonSerializer.DeserializeAsync<TOut>(file);
+        return await JsonSerializer.DeserializeAsync<TOut>(file).ConfigureAwait(false);
     }
 
     protected virtual Task SerializeAsync(TIn value, FileStream file)

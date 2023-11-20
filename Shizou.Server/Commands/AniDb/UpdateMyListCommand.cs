@@ -25,14 +25,14 @@ public record UpdateMyListArgs(
 [Command(CommandType.UpdateMyList, CommandPriority.Normal, QueueType.AniDbUdp)]
 public class UpdateMyListCommand : Command<UpdateMyListArgs>
 {
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly ILogger<UpdateMyListCommand> _logger;
     private readonly IMyListAddRequest _myListAddRequest;
     private readonly IMyListEntryRequest _myListEntryRequest;
 
     public UpdateMyListCommand(
         ILogger<UpdateMyListCommand> logger,
-        ShizouContext context,
+        IShizouContext context,
         IMyListAddRequest myListAddRequest,
         IMyListEntryRequest myListEntryRequest
     )
@@ -43,7 +43,7 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
         _myListEntryRequest = myListEntryRequest;
     }
 
-    protected override async Task ProcessInner()
+    protected override async Task ProcessInnerAsync()
     {
         switch (CommandArgs)
         {
@@ -60,23 +60,21 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
             default: throw new ArgumentException($"{nameof(UpdateMyListArgs)} not valid");
         }
 
-        var response = await _myListAddRequest.Process();
+        var response = await _myListAddRequest.ProcessAsync().ConfigureAwait(false);
         switch (response?.ResponseCode)
         {
             case AniDbResponseCode.MyListAdded:
                 if (CommandArgs is { Aid: { } aid, EpNo: { } epno } && epno != "0" && !epno.StartsWith("-"))
                 {
                     _myListEntryRequest.SetParameters(aid, epno);
-                    var entryResponse = await _myListEntryRequest.Process();
+                    var entryResponse = await _myListEntryRequest.ProcessAsync().ConfigureAwait(false);
                     if (entryResponse?.MyListEntryResult is { } entryResult)
-                        // ReSharper disable once MethodHasAsyncOverload
                         if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == entryResult.EpisodeId) is { } eWs)
                         {
                             _logger.LogDebug("Updating episode {EpisodeId} with generic file id {GenericId} and mylist id {MyListId}",
                                 entryResult.EpisodeId, entryResult.FileId, entryResult.MyListId);
                             eWs.AniDbFileId = entryResult.FileId;
                             eWs.MyListId = entryResult.MyListId;
-                            // ReSharper disable once MethodHasAsyncOverload
                             _context.SaveChanges();
                         }
                 }

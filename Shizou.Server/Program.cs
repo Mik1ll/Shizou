@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Shizou.Data;
-using Shizou.Server;
 using Shizou.Server.Extensions;
 
 Log.Logger = new LoggerConfiguration()
@@ -32,8 +31,6 @@ try
         options.AddPolicy("HttpScheme",
             policy => { policy.WithOrigins("http://localhost"); });
     });
-
-    builder.Services.AddHostedService<StartupService>();
 
     var app = builder.Build();
 

@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mono.Nat;
@@ -24,7 +23,7 @@ public sealed class AniDbUdpState : IDisposable
     private readonly Timer _bannedTimer;
     private readonly ILogger<AniDbUdpState> _logger;
     private readonly Func<ILogoutRequest> _logoutRequestFactory;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private readonly Timer _logoutTimer;
     private readonly Timer _mappingTimer;
     private readonly string _serverHost;
@@ -39,7 +38,7 @@ public sealed class AniDbUdpState : IDisposable
         ILogger<AniDbUdpState> logger,
         Func<IAuthRequest> authRequestFactory,
         Func<ILogoutRequest> logoutRequestFactory,
-        IDbContextFactory<ShizouContext> contextFactory)
+        IShizouContextFactory contextFactory)
     {
         _optionsMonitor = optionsMonitor;
         _authRequestFactory = authRequestFactory;
@@ -73,13 +72,16 @@ public sealed class AniDbUdpState : IDisposable
 
         _logoutTimer = new Timer();
         _logoutTimer.AutoReset = false;
-        _logoutTimer.Elapsed += async (_, _) => { await Logout(); };
+#pragma warning disable VSTHRD101
+        _logoutTimer.Elapsed += async (_, _) => await LogoutAsync().ConfigureAwait(false);
+#pragma warning restore VSTHRD101
 
         _mappingTimer = new Timer();
-
-        SetupNat();
+        _logoutTimer.AutoReset = false;
+#pragma warning disable VSTHRD101
+        _mappingTimer.Elapsed += async (_, _) => await CreateNatMappingAsync().ConfigureAwait(false);
+#pragma warning restore VSTHRD101
     }
-
 
     public TimeSpan BanPeriod { get; } = new(12, 0, 0);
     public TimeSpan LogoutPeriod { get; } = new(0, 10, 0);
@@ -133,7 +135,7 @@ public sealed class AniDbUdpState : IDisposable
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>
-    public async Task Login()
+    public async Task LoginAsync()
     {
         if (LoggedIn)
         {
@@ -144,17 +146,59 @@ public sealed class AniDbUdpState : IDisposable
         var req = _authRequestFactory();
         _logger.LogInformation("Attempting to log into AniDB");
         req.SetParameters();
-        await req.Process();
+        await req.ProcessAsync().ConfigureAwait(false);
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>
-    public async Task Logout()
+    public async Task LogoutAsync()
     {
         if (!LoggedIn)
             return;
         var req = _logoutRequestFactory();
         req.SetParameters();
-        await req.Process();
+        await req.ProcessAsync().ConfigureAwait(false);
+    }
+
+    public async Task SetupNatAsync()
+    {
+        var stopSearchTokenSource = new CancellationTokenSource();
+
+#pragma warning disable VSTHRD100
+        async void OnDeviceFound(object? sender, DeviceEventArgs e)
+#pragma warning restore VSTHRD100
+        {
+            // ReSharper disable once MethodSupportsCancellation
+            await _natLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_router?.NatProtocol != NatProtocol.Pmp)
+                    _router = e.Device;
+                if (_router.NatProtocol == NatProtocol.Pmp)
+                    stopSearchTokenSource.Cancel();
+            }
+            finally
+            {
+                _natLock.Release();
+            }
+        }
+
+        NatUtility.DeviceFound -= OnDeviceFound;
+        NatUtility.DeviceFound += OnDeviceFound;
+        NatUtility.StartDiscovery();
+        try
+        {
+            await Task.Delay(5000, stopSearchTokenSource.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
+        NatUtility.StopDiscovery();
+
+        if (_router is null)
+            _logger.LogInformation("Could not find router, assuming no IP masquerading");
+        else
+            await CreateNatMappingAsync().ConfigureAwait(false);
     }
 
     public void Dispose()
@@ -166,55 +210,19 @@ public sealed class AniDbUdpState : IDisposable
         _natLock.Dispose();
     }
 
-    private void SetupNat()
+    private async Task CreateNatMappingAsync()
     {
-        var stopSearchTokenSource = new CancellationTokenSource();
-
-        void OnDeviceFound(object? _, DeviceEventArgs e)
-        {
-            // ReSharper disable once MethodSupportsCancellation
-            _natLock.Wait();
-            if (_router?.NatProtocol != NatProtocol.Pmp)
-                _router = e.Device;
-            if (_router.NatProtocol == NatProtocol.Pmp)
-                stopSearchTokenSource.Cancel();
-            _natLock.Release();
-        }
-
-        NatUtility.DeviceFound += OnDeviceFound;
-        NatUtility.StartDiscovery();
-        try
-        {
-            // ReSharper disable once MethodSupportsCancellation
-            Task.Delay(1000).Wait(stopSearchTokenSource.Token);
-        }
-        catch (OperationCanceledException)
-        {
-        }
-
-        NatUtility.StopDiscovery();
-
         if (_router is null)
-        {
-            _logger.LogInformation("Could not find router, assuming no IP masquerading");
-        }
-        else
-        {
-            CreateNatMapping();
-            if (_natMapping?.Lifetime > 0)
-            {
-                _mappingTimer.Interval = TimeSpan.FromSeconds(_natMapping.Lifetime - 60).TotalMilliseconds;
-                _mappingTimer.Elapsed += (_, _) => { CreateNatMapping(); };
-                _mappingTimer.AutoReset = true;
-                _mappingTimer.Start();
-            }
-        }
-    }
-
-    private void CreateNatMapping()
-    {
+            return;
         var optionsVal = _optionsMonitor.CurrentValue;
-        _logger.LogInformation("Creating port mapping on port {AniDbClientPort}", optionsVal.AniDb.ClientPort);
-        _natMapping = _router.CreatePortMap(new Mapping(Protocol.Udp, optionsVal.AniDb.ClientPort, optionsVal.AniDb.ClientPort));
+        _natMapping = await _router.CreatePortMapAsync(_natMapping ?? new Mapping(Protocol.Udp, optionsVal.AniDb.ClientPort, optionsVal.AniDb.ClientPort))
+            .ConfigureAwait(false);
+        _logger.LogInformation("Created port mapping on port private: {ClientPrivatePort} public: {ClientPublicPort} with NAT type: {NatType}",
+            _natMapping.PrivatePort, _natMapping.PublicPort, _router.NatProtocol);
+        if (_natMapping?.Lifetime > 0)
+        {
+            _mappingTimer.Interval = TimeSpan.FromSeconds(_natMapping.Lifetime * .9).TotalMilliseconds;
+            _mappingTimer.Start();
+        }
     }
 }

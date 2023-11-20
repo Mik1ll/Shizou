@@ -1,7 +1,6 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Extensions;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
@@ -11,9 +10,9 @@ namespace Shizou.Blazor.Features.Components;
 public partial class ImportFolderModal
 {
     private Modal _modal = default!;
-    
+
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
@@ -30,7 +29,7 @@ public partial class ImportFolderModal
         return base.SetParametersAsync(parameters);
     }
 
-    private async Task OpenFolderPicker()
+    private async Task OpenFolderPickerAsync()
     {
         var res = await ModalService
             .Show<FilePickerModal>(string.Empty, new ModalParameters
@@ -42,10 +41,8 @@ public partial class ImportFolderModal
             MyImportFolder.Path = (string?)res.Data ?? string.Empty;
     }
 
-    private async Task Upsert()
+    private async Task UpsertAsync()
     {
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = ContextFactory.CreateDbContext();
         if (MyImportFolder.Id == 0)
         {
@@ -53,33 +50,28 @@ public partial class ImportFolderModal
         }
         else
         {
-            // ReSharper disable once MethodHasAsyncOverload
             var importFolder = context.ImportFolders.Find(MyImportFolder.Id);
             if (importFolder is not null)
                 context.Entry(importFolder).CurrentValues.SetValues(MyImportFolder);
         }
 
-        // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
         await _modal.CloseAsync();
     }
 
-    private async Task Remove()
+    private async Task RemoveAsync()
     {
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = ContextFactory.CreateDbContext();
 
         // Need to load related for client set null cascading
-        // ReSharper disable once MethodHasAsyncOverload
         context.Attach(MyImportFolder).Collection(i => i.LocalFiles).Load();
         context.ImportFolders.Remove(MyImportFolder);
-        // ReSharper disable once MethodHasAsyncOverload
+
         context.SaveChanges();
         await _modal.CloseAsync();
     }
 
-    private async Task Cancel()
+    private async Task CancelAsync()
     {
         await _modal.CancelAsync();
     }

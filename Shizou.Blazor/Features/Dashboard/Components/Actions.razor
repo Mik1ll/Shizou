@@ -7,7 +7,7 @@
     <button type="button" class="btn btn-primary" @onclick="@DispatchMyListSync">Sync MyList</button>
     <button type="button" class="btn btn-primary" @onclick="@ScheduleNoop">Schedule Noop</button>
     <button type="button" class="btn btn-primary" @onclick="@GetMissingPosters">Get Missing Posters</button>
-    <button type="button" class="btn btn-primary" @onclick="@OpenMalAuth" disabled="@(!NetworkUtility.IsLoopBackAddress(ServerIp))">Auth MAL</button>
-    <button type="button" class="btn btn-primary" @onclick="@GetMalList">Get MAL List</button>
-    <button type="button" class="btn btn-primary" @onclick="@RestoreFromBackupFile">Restore Backup</button>
+    <button type="button" class="btn btn-primary" @onclick="@OpenMalAuthAsync" disabled="@(!NetworkUtility.IsLoopBackAddress(ServerIp))">Auth MAL</button>
+    <button type="button" class="btn btn-primary" @onclick="@GetMalListAsync">Get MAL List</button>
+    <button type="button" class="btn btn-primary" @onclick="@RestoreFromBackupFileAsync">Restore Backup</button>
 </div>

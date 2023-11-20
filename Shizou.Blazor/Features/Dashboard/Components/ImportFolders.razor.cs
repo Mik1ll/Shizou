@@ -1,7 +1,6 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Features.Components;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
@@ -14,7 +13,7 @@ public partial class ImportFolders
     private List<ImportFolder> _importFolders = default!;
 
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [Inject]
     private ImportService ImportService { get; set; } = default!;
@@ -33,7 +32,7 @@ public partial class ImportFolders
         _importFolders = context.ImportFolders.ToList();
     }
 
-    private async Task Add()
+    private async Task AddAsync()
     {
         await ModalService.Show<ImportFolderModal>(string.Empty, new ModalParameters()
             .Add(nameof(ImportFolderModal.MyImportFolder), new ImportFolder
@@ -46,7 +45,7 @@ public partial class ImportFolders
         RefreshFolders();
     }
 
-    private async Task Edit(ImportFolder importFolder)
+    private async Task EditAsync(ImportFolder importFolder)
     {
         await ModalService.Show<ImportFolderModal>(string.Empty, new ModalParameters()
             .Add(nameof(ImportFolderModal.MyImportFolder), importFolder)
@@ -54,7 +53,7 @@ public partial class ImportFolders
         RefreshFolders();
     }
 
-    private async Task Remove(ImportFolder importFolder)
+    private async Task RemoveAsync(ImportFolder importFolder)
     {
         await ModalService.Show<ImportFolderModal>(string.Empty, new ModalParameters()
             .Add(nameof(ImportFolderModal.MyImportFolder), importFolder)

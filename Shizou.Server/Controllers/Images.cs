@@ -16,10 +16,10 @@ namespace Shizou.Server.Controllers;
 public class Images : ControllerBase
 {
     private readonly ImageService _imageService;
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly IContentTypeProvider _contentTypeProvider;
 
-    public Images(ImageService imageService, ShizouContext context, IContentTypeProvider contentTypeProvider)
+    public Images(ImageService imageService, IShizouContext context, IContentTypeProvider contentTypeProvider)
     {
         _imageService = imageService;
         _context = context;
@@ -54,7 +54,7 @@ public class Images : ControllerBase
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetEpisodeThumbnail(int episodeId)
     {
         // ReSharper disable once InconsistentNaming
-        var ed2k = await _imageService.GetEpisodeThumbnail(episodeId);
+        var ed2k = await _imageService.GetEpisodeThumbnailAsync(episodeId).ConfigureAwait(false);
         if (ed2k is null)
             return TypedResults.NotFound();
         var fileInfo = new FileInfo(ImageService.GetFileThumbnailPath(ed2k));

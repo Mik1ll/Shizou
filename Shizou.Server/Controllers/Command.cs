@@ -47,7 +47,7 @@ public class Command : ControllerBase
     public async Task<string?> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
         _genericRequest.SetParameters(command, args);
-        var resp = await _genericRequest.Process();
+        var resp = await _genericRequest.ProcessAsync().ConfigureAwait(false);
         if (resp is not null)
             return resp.ResponseCodeText + "\n" + resp.ResponseText;
         return string.Empty;

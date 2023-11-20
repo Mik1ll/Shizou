@@ -13,7 +13,7 @@ namespace Shizou.Server.Controllers;
 
 public abstract class EntityController<TEntity> : EntityGetController<TEntity> where TEntity : class
 {
-    protected EntityController(ILogger<EntityController<TEntity>> logger, ShizouContext context, Expression<Func<TEntity, int>> selector) : base(logger,
+    protected EntityController(ILogger<EntityController<TEntity>> logger, IShizouContext context, Expression<Func<TEntity, int>> selector) : base(logger,
         context,
         selector)
     {

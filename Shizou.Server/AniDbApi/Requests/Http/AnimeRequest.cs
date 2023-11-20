@@ -32,7 +32,7 @@ public class AnimeRequest : HttpRequest, IAnimeRequest
         ParametersSet = true;
     }
 
-    protected override Task HandleResponse()
+    protected override Task HandleResponseAsync()
     {
         if (ResponseText is not null)
         {

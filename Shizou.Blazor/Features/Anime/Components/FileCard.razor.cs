@@ -1,7 +1,6 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Features.Components;
 using Shizou.Data;
 using Shizou.Data.Database;
@@ -20,7 +19,7 @@ public partial class FileCard
     private NavigationManager NavigationManager { get; set; } = default!;
 
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [Inject]
     private LinkGenerator LinkGenerator { get; set; } = default!;
@@ -50,7 +49,7 @@ public partial class FileCard
     public EventCallback OnChanged { get; set; }
 
 
-    private async Task Mark(bool watched)
+    private async Task MarkAsync(bool watched)
     {
         switch (WatchedState)
         {
@@ -69,19 +68,17 @@ public partial class FileCard
         await OnChanged.InvokeAsync();
     }
 
-    private async Task Unlink(LocalFile localFile)
+    private async Task UnlinkAsync(LocalFile localFile)
     {
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = ContextFactory.CreateDbContext();
         context.LocalFiles.Attach(localFile);
         localFile.ManualLinkEpisodeId = null;
-        // ReSharper disable once MethodHasAsyncOverload
+
         context.SaveChanges();
         await OnChanged.InvokeAsync();
     }
 
-    private async Task OpenVideo(int localFileId)
+    private async Task OpenVideoAsync(int localFileId)
     {
         await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), localFileId)).Result;
     }

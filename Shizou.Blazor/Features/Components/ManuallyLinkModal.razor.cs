@@ -24,7 +24,7 @@ public partial class ManuallyLinkModal
     private CommandService CommandService { get; set; } = default!;
 
     [Inject]
-    private IDbContextFactory<ShizouContext> ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
@@ -41,14 +41,14 @@ public partial class ManuallyLinkModal
         return base.SetParametersAsync(parameters);
     }
 
-    private async Task Cancel()
+    private async Task CancelAsync()
     {
         await _modal.CancelAsync();
     }
 
-    private async Task<List<(int, string)>?> GetTitles(string query)
+    private async Task<List<(int, string)>?> GetTitlesAsync(string query)
     {
-        return (await AnimeTitleSearchService.Search(query, _restrictInCollection))?.Select(p => (p.Item1, $"{p.Item1} {p.Item2}")).ToList();
+        return (await AnimeTitleSearchService.SearchAsync(query, _restrictInCollection))?.Select(p => (p.Item1, $"{p.Item1} {p.Item2}")).ToList();
     }
 
     private void SelectAnime()
@@ -94,17 +94,14 @@ public partial class ManuallyLinkModal
         _mapping[newEp] = localFile;
     }
 
-    private async Task LinkFiles()
+    private async Task LinkFilesAsync()
     {
-        // ReSharper disable once UseAwaitUsing
-        // ReSharper disable once MethodHasAsyncOverload
         using var context = ContextFactory.CreateDbContext();
         context.LocalFiles.AttachRange(SelectedFiles);
         foreach (var ep in _selectedAnime!.AniDbEpisodes)
             if (_mapping.TryGetValue(ep, out var localFile))
                 localFile.ManualLinkEpisodeId = ep.Id;
 
-        // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
         await _modal.CloseAsync();
     }

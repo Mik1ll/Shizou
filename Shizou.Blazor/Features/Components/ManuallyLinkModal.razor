@@ -9,7 +9,7 @@
             <label class="form-check-label" for="restrictCollectionCheck">Only Anime in Collection</label>
         </div>
         <div class="input-group">
-            <LiveSearchBox GetResults="@GetTitles" PlaceholderText="Select Anime..." Disabled="@(_selectedAnime is not null)" @bind-Selected="@_selected"></LiveSearchBox>
+            <LiveSearchBox GetResults="@GetTitlesAsync" PlaceholderText="Select Anime..." Disabled="@(_selectedAnime is not null)" @bind-Selected="@_selected"></LiveSearchBox>
             @if (_selectedAnime is null)
             {
                 <button class="btn btn-primary" type="button" @onclick="@SelectAnime">Select Anime</button>
@@ -71,8 +71,8 @@
     <div class="modal-footer">
         @if (_selectedAnime is not null)
         {
-            <button type="button" class="btn btn-success" @onclick="@LinkFiles">Link Files</button>
+            <button type="button" class="btn btn-success" @onclick="@LinkFilesAsync">Link Files</button>
         }
-        <button type="button" class="btn btn-outline-secondary" @onclick="@Cancel">Cancel</button>
+        <button type="button" class="btn btn-outline-secondary" @onclick="@CancelAsync">Cancel</button>
     </div>
 </Modal>

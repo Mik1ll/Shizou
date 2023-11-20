@@ -43,21 +43,21 @@ public abstract class HttpRequest : IHttpRequest
 
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="HttpRequestException"></exception>
-    public async Task Process()
+    public async Task ProcessAsync()
     {
         if (!ParametersSet)
-            throw new ArgumentException($"Parameters not set before {nameof(Process)} called");
-        await SendRequest();
-        await HandleResponse();
+            throw new ArgumentException($"Parameters not set before {nameof(ProcessAsync)} called");
+        await SendRequestAsync().ConfigureAwait(false);
+        await HandleResponseAsync().ConfigureAwait(false);
     }
 
-    protected abstract Task HandleResponse();
+    protected abstract Task HandleResponseAsync();
 
     /// <exception cref="HttpRequestException"></exception>
-    private async Task SendRequest()
+    private async Task SendRequestAsync()
     {
         var url = QueryHelpers.AddQueryString(_builder.Uri.AbsoluteUri, Args);
-        using (await _rateLimiter.AcquireAsync())
+        using (await _rateLimiter.AcquireAsync().ConfigureAwait(false))
         {
             if (_httpState.Banned)
             {
@@ -66,7 +66,7 @@ public abstract class HttpRequest : IHttpRequest
             }
 
             _logger.LogInformation("Sending HTTP request: {Url}", url);
-            ResponseText = await _httpClient.GetStringAsync(url);
+            ResponseText = await _httpClient.GetStringAsync(url).ConfigureAwait(false);
         }
 
         if (string.IsNullOrWhiteSpace(ResponseText))

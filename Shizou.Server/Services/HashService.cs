@@ -22,10 +22,11 @@ public class HashService
             throw new FileNotFoundException("Couldn't find file when trying to get file hash");
         var hasher = new RHasher(hashIds);
         var bufSize = 1 << 20;
-        await using var stream = file.OpenRead();
+        var stream = file.OpenRead();
+        await using var _ = stream.ConfigureAwait(false);
         var buf = new byte[bufSize];
         int len;
-        while ((len = await stream.ReadAsync(buf, 0, buf.Length)) > 0)
+        while ((len = await stream.ReadAsync(buf, 0, buf.Length).ConfigureAwait(false)) > 0)
             hasher.Update(buf, len);
 
         hasher.Finish();
@@ -46,10 +47,11 @@ public class HashService
         var bufSize = 1 << 20;
         var seekLen = Math.Max(file.Length / 30 - bufSize, 0);
         var hasher = new RHasher(HashIds.Sha1);
-        await using var stream = file.OpenRead();
+        var stream = file.OpenRead();
+        await using var _ = stream.ConfigureAwait(false);
         var buf = new byte[bufSize];
         int len;
-        while ((len = await stream.ReadAsync(buf, 0, buf.Length)) > 0)
+        while ((len = await stream.ReadAsync(buf, 0, buf.Length).ConfigureAwait(false)) > 0)
         {
             hasher.Update(buf, len);
             stream.Seek(seekLen, SeekOrigin.Current);

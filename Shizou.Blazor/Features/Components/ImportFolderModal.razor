@@ -5,7 +5,7 @@
             <h4 class="modal-title">Edit Import Folder</h4>
         </div>
         <div class="modal-body">
-            <EditForm Model="@MyImportFolder" id="editImportFolderForm" OnValidSubmit="@Upsert">
+            <EditForm Model="@MyImportFolder" id="editImportFolderForm" OnValidSubmit="@UpsertAsync">
                 <DataAnnotationsValidator/>
                 <div class="mb-3">
                     <div class="form-floating mb-1">
@@ -20,7 +20,7 @@
                             <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(MyImportFolder.Path)"></InputText>
                             <label for="pathInput">Path</label>
                         </div>
-                        <button type="button" class="input-group-text" @onclick="@OpenFolderPicker">Browse</button>
+                        <button type="button" class="input-group-text" @onclick="@OpenFolderPickerAsync">Browse</button>
                     </div>
                     <ValidationMessage For="@(() => MyImportFolder.Path)"></ValidationMessage>
                 </div>
@@ -31,7 +31,7 @@
             </EditForm>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @onclick="@Cancel">Cancel</button>
+            <button type="button" class="btn btn-secondary" @onclick="@CancelAsync">Cancel</button>
             <button type="submit" form="editImportFolderForm" class="btn btn-success">Submit</button>
         </div>
     </Modal>
@@ -43,8 +43,8 @@ else
             <h4 class="modal-title">Remove Import Folder: @(MyImportFolder.Name)</h4>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @onclick="@Cancel">Cancel</button>
-            <button type="button" class="btn btn-danger" @onclick=@Remove>Remove</button>
+            <button type="button" class="btn btn-secondary" @onclick="@CancelAsync">Cancel</button>
+            <button type="button" class="btn btn-danger" @onclick=@RemoveAsync>Remove</button>
         </div>
     </Modal>
 }

@@ -13,12 +13,12 @@ namespace Shizou.Server.Controllers;
 
 public abstract class EntityGetController<TEntity> : ControllerBase where TEntity : class
 {
-    protected readonly ShizouContext Context;
+    protected readonly IShizouContext Context;
     protected readonly Expression<Func<TEntity, int>> Selector;
     protected readonly ILogger<EntityGetController<TEntity>> Logger;
-    protected readonly DbSet<TEntity> DbSet;
+    protected readonly IShizouDbSet<TEntity> DbSet;
 
-    protected EntityGetController(ILogger<EntityGetController<TEntity>> logger, ShizouContext context, Expression<Func<TEntity, int>> selector)
+    protected EntityGetController(ILogger<EntityGetController<TEntity>> logger, IShizouContext context, Expression<Func<TEntity, int>> selector)
     {
         Logger = logger;
         Context = context;

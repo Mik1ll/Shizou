@@ -23,14 +23,14 @@ public class ProcessCommand : Command<ProcessArgs>
 {
     private readonly CommandService _commandService;
     private readonly ILogger<ProcessCommand> _logger;
-    private readonly ShizouContext _context;
+    private readonly IShizouContext _context;
     private readonly AniDbFileResultCache _fileResultCache;
     private readonly IFileRequest _fileRequest;
     private readonly ShizouOptions _options;
 
     public ProcessCommand(
         ILogger<ProcessCommand> logger,
-        ShizouContext context,
+        IShizouContext context,
         CommandService commandService,
         AniDbFileResultCache fileResultCache,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,
@@ -121,9 +121,9 @@ public class ProcessCommand : Command<ProcessArgs>
         return result.Ed2K is null && result.State == 0;
     }
 
-    protected override async Task ProcessInner()
+    protected override async Task ProcessInnerAsync()
     {
-        var result = await GetFileResult();
+        var result = await GetFileResultAsync().ConfigureAwait(false);
 
         if (result is null)
             return;
@@ -283,7 +283,7 @@ public class ProcessCommand : Command<ProcessArgs>
                 });
     }
 
-    private async Task<FileResult?> GetFileResult()
+    private async Task<FileResult?> GetFileResultAsync()
     {
         string? fileCacheFilename;
         FileResult? result;
@@ -291,7 +291,6 @@ public class ProcessCommand : Command<ProcessArgs>
         {
             case IdTypeLocalFile.LocalId:
             {
-                // ReSharper disable once MethodHasAsyncOverload
                 var localFile = _context.LocalFiles.Find(CommandArgs.Id);
                 if (localFile is null)
                 {
@@ -301,7 +300,7 @@ public class ProcessCommand : Command<ProcessArgs>
                 }
 
                 fileCacheFilename = $"File_Ed2k={localFile.Ed2k}.json";
-                result = await _fileResultCache.Get(fileCacheFilename);
+                result = await _fileResultCache.GetAsync(fileCacheFilename).ConfigureAwait(false);
                 if (result is not null)
                     return result;
                 _logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2k);
@@ -310,7 +309,7 @@ public class ProcessCommand : Command<ProcessArgs>
             }
             case IdTypeLocalFile.FileId:
                 fileCacheFilename = $"File_Id={CommandArgs.Id}.json";
-                result = await _fileResultCache.Get(fileCacheFilename);
+                result = await _fileResultCache.GetAsync(fileCacheFilename).ConfigureAwait(false);
                 if (result is not null)
                     return result;
                 _logger.LogInformation("Processing file id: {FileId}", CommandArgs.Id);
@@ -320,7 +319,7 @@ public class ProcessCommand : Command<ProcessArgs>
                 throw new ArgumentOutOfRangeException(nameof(CommandArgs.IdType), CommandArgs.IdType, null);
         }
 
-        var response = await _fileRequest.Process();
+        var response = await _fileRequest.ProcessAsync().ConfigureAwait(false);
         result = response?.FileResult;
         if (response?.ResponseCode == AniDbResponseCode.NoSuchFile)
         {
@@ -333,7 +332,7 @@ public class ProcessCommand : Command<ProcessArgs>
         }
         else
         {
-            await _fileResultCache.Save(fileCacheFilename, result);
+            await _fileResultCache.SaveAsync(fileCacheFilename, result).ConfigureAwait(false);
         }
 
         return result;

@@ -44,9 +44,8 @@ public class MyAnimeList : ControllerBase
             return TypedResults.BadRequest();
         }
 
-        if (!await _myAnimeListService.GetToken(code, state))
+        if (!await _myAnimeListService.GetTokenAsync(code, state).ConfigureAwait(false))
             return TypedResults.Conflict();
         return TypedResults.Ok();
     }
-    
 }

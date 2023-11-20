@@ -9,7 +9,7 @@ namespace Shizou.Server.Controllers;
 [Route("api/[controller]")]
 public class AniDbEpisodes : EntityGetController<AniDbEpisode>
 {
-    public AniDbEpisodes(ILogger<AniDbEpisodes> logger, ShizouContext context) : base(logger, context, episode => episode.Id)
+    public AniDbEpisodes(ILogger<AniDbEpisodes> logger, IShizouContext context) : base(logger, context, episode => episode.Id)
     {
     }
 }

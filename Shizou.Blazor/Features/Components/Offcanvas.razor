@@ -1,5 +1,5 @@
 ﻿<div class="offcanvas @_displayClass @OffCanvasDirectionClass" tabindex="-1">
-    <button type="button" class="btn btn-secondary position-absolute visible @ButtonDirectionClass" style="top:25vh; @ButtonDirectionStyle" @onclick="@Toggle">
+    <button type="button" class="btn btn-secondary position-absolute visible @ButtonDirectionClass" style="top:25vh; @ButtonDirectionStyle" @onclick="@ToggleAsync">
         <i class="bi @(_open ^ Direction == OffcanvasDirection.End ? "bi-chevron-left" : "bi-chevron-right")"></i>
     </button>
     @ChildContent

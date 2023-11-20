@@ -20,13 +20,14 @@ public class FfmpegService
         _logger = logger;
     }
 
-    public async Task<List<(int Idx, string Codec, string FileName)>> GetFontStreams(FileInfo fileInfo, string[] validFontFormats)
+    public async Task<List<(int Idx, string Codec, string FileName)>> GetFontStreamsAsync(FileInfo fileInfo, string[] validFontFormats)
     {
         using var process = NewFfprobeProcess();
         process.StartInfo.Arguments =
             $"-v fatal -select_streams t -show_entries stream=index,codec_name:stream_tags=filename -of csv=p=0 \"{fileInfo.FullName}\"";
         process.Start();
-        var streams = (await process.StandardOutput.ReadToEndAsync()).Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+        var streams = (await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false))
+            .Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
             .Select(s =>
             {
                 var split = s.Split(',');
@@ -45,23 +46,24 @@ public class FfmpegService
         return validStreams;
     }
 
-    public async Task ExtractFonts(FileInfo fileInfo, List<(int Idx, string Codec, string FileName)> fontStreams, string outputDir)
+    public async Task ExtractFontsAsync(FileInfo fileInfo, List<(int Idx, string Codec, string FileName)> fontStreams, string outputDir)
     {
         Directory.CreateDirectory(outputDir);
         using var process = NewFfmpegProcess();
         process.StartInfo.Arguments =
             $"-v fatal -y {string.Join(" ", fontStreams.Select(s => $"-dump_attachment:{s.Idx} \"{Path.Combine(outputDir, s.FileName)}\""))} -i \"{fileInfo.FullName}\"";
         process.Start();
-        await process.WaitForExitAsync();
+        await process.WaitForExitAsync().ConfigureAwait(false);
     }
 
-    public async Task<List<(int Idx, string Codec, string FileName)>> GetSubtitleStreams(FileInfo fileInfo, string[] validSubFormats,
+    public async Task<List<(int Idx, string Codec, string FileName)>> GetSubtitleStreamsAsync(FileInfo fileInfo, string[] validSubFormats,
         Func<int, string> getFileName)
     {
         using var process = NewFfprobeProcess();
         process.StartInfo.Arguments = $"-v fatal -select_streams s -show_entries stream=index,codec_name -of csv=p=0 \"{fileInfo.FullName}\"";
         process.Start();
-        var streams = (await process.StandardOutput.ReadToEndAsync()).Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+        var streams = (await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false))
+            .Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
             .Select(s =>
             {
                 var split = s.Split(',');
@@ -76,23 +78,23 @@ public class FfmpegService
         return validStreams;
     }
 
-    public async Task ExtractSubtitles(FileInfo fileInfo, List<(int Idx, string Codec, string FileName)> subStreams, string outputDir)
+    public async Task ExtractSubtitlesAsync(FileInfo fileInfo, List<(int Idx, string Codec, string FileName)> subStreams, string outputDir)
     {
         Directory.CreateDirectory(outputDir);
         using var process = NewFfmpegProcess();
         process.StartInfo.Arguments =
             $"-v fatal -y -i \"{fileInfo.FullName}\" {string.Join(" ", subStreams.Select(s => $"-map 0:{s.Idx} -c ass \"{Path.Combine(outputDir, s.FileName)}\""))}";
         process.Start();
-        await process.WaitForExitAsync();
+        await process.WaitForExitAsync().ConfigureAwait(false);
     }
 
-    public async Task<double?> GetDuration(FileInfo fileInfo)
+    public async Task<double?> GetDurationAsync(FileInfo fileInfo)
     {
         using var process = NewFfprobeProcess();
         process.StartInfo.Arguments =
             $"-v fatal -select_streams V -show_entries format=duration:stream=duration:stream_tags -sexagesimal -of json \"{fileInfo.FullName}\"";
         process.Start();
-        using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream);
+        using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream).ConfigureAwait(false);
         var rootEl = doc.RootElement;
         if (rootEl.TryGetProperty("streams", out var streamsEl))
             foreach (var stream in streamsEl.EnumerateArray())
@@ -125,7 +127,7 @@ public class FfmpegService
         }
     }
 
-    public async Task ExtractThumbnail(FileInfo fileInfo, double duration, string outputPath)
+    public async Task ExtractThumbnailAsync(FileInfo fileInfo, double duration, string outputPath)
     {
         if (Path.GetDirectoryName(outputPath) is { Length: > 0 } parentPath)
             Directory.CreateDirectory(parentPath);
@@ -138,15 +140,15 @@ public class FfmpegService
             $"-vf \"fps={fps},select='min(eq(selected_n,0)+gt(scene,0.4),1)',thumbnail={thumbnailWindow * fps},scale=-2:{height}\" " +
             $"-frames:v 1 -pix_fmt yuv420p -c:v libwebp -compression_level 6 -preset drawing \"{outputPath}\"";
         process.Start();
-        await process.WaitForExitAsync();
+        await process.WaitForExitAsync().ConfigureAwait(false);
     }
 
-    public async Task<bool> HasVideo(FileInfo fileInfo)
+    public async Task<bool> HasVideoAsync(FileInfo fileInfo)
     {
         using var process = NewFfprobeProcess();
         process.StartInfo.Arguments = $"-v fatal -select_streams V -show_entries stream=codec_name -of csv \"{fileInfo.FullName}\"";
         process.Start();
-        var hasVideo = await process.StandardOutput.ReadToEndAsync();
+        var hasVideo = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
         return !string.IsNullOrWhiteSpace(hasVideo);
     }
 

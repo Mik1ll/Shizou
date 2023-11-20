@@ -8,9 +8,9 @@ public sealed record NoopArgs(int Testint) : CommandArgs($"{nameof(NoopCommand)}
 [Command(CommandType.Noop, CommandPriority.Normal, QueueType.General)]
 public sealed class NoopCommand : Command<NoopArgs>
 {
-    protected override async Task ProcessInner()
+    protected override async Task ProcessInnerAsync()
     {
-        await Task.Delay(10_000);
+        await Task.Delay(10_000).ConfigureAwait(false);
         Completed = true;
     }
 }

@@ -32,12 +32,12 @@ public abstract class RateLimiter
     public async Task<IDisposable> AcquireAsync()
     {
         Logger.LogTrace("Waiting on rate limiter");
-        await _rateSemaphore.WaitAsync();
+        await _rateSemaphore.WaitAsync().ConfigureAwait(false);
         Logger.LogTrace("Got rate limiter");
         if (!Available && NextAvailable - DateTimeOffset.UtcNow is var timeUntilNext && timeUntilNext > TimeSpan.Zero)
         {
             Logger.LogDebug("Time since last command: {WatchElapsed}, waiting for {TimeUntilNext}", _watch.Elapsed, timeUntilNext);
-            await Task.Delay(timeUntilNext);
+            await Task.Delay(timeUntilNext).ConfigureAwait(false);
         }
 
         return new ReleaseWrapper(this);

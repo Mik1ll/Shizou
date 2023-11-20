@@ -49,8 +49,8 @@ public partial class SelectRow<TValue>
         Active = active;
     }
 
-    private async Task Clicked(MouseEventArgs args)
+    private async Task ClickedAsync(MouseEventArgs args)
     {
-        await ParentTable.RowClicked(this, args);
+        await ParentTable.RowClickedAsync(this, args);
     }
 }

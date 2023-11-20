@@ -88,12 +88,12 @@ public partial class FilePickerModal
                 .Select(s => (GetFileName(s), true)));
     }
 
-    private async Task Confirm()
+    private async Task ConfirmAsync()
     {
         if (ValidSelection() && _selectedEntry is not null)
             await _modal.CloseAsync(ModalResult.Ok(Path.Combine(_parentPath, _selectedEntry.Value.Name)));
         else
-            await Cancel();
+            await CancelAsync();
     }
 
     private bool ValidSelection()
@@ -103,7 +103,7 @@ public partial class FilePickerModal
             : FilePickerType.HasFlag(FilePickerType.Directory)));
     }
 
-    private async Task Cancel()
+    private async Task CancelAsync()
     {
         await _modal.CancelAsync();
     }

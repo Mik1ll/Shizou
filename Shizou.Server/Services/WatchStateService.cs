@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
@@ -14,11 +13,11 @@ namespace Shizou.Server.Services;
 public class WatchStateService
 {
     private readonly CommandService _commandService;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private readonly ILogger<WatchStateService> _logger;
     private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
 
-    public WatchStateService(ILogger<WatchStateService> logger, IDbContextFactory<ShizouContext> contextFactory, CommandService commandService,
+    public WatchStateService(ILogger<WatchStateService> logger, IShizouContextFactory contextFactory, CommandService commandService,
         IOptionsMonitor<ShizouOptions> optionsMonitor)
     {
         _logger = logger;

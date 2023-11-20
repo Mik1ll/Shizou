@@ -23,7 +23,7 @@ namespace Shizou.Server.CommandProcessors;
 public abstract class CommandProcessor : BackgroundService, INotifyPropertyChanged
 {
     private readonly Func<CommandService> _commandServiceFactory;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private readonly IServiceScopeFactory _scopeFactory;
     private int _commandsInQueue;
     private ICommand<CommandArgs>? _currentCommand;
@@ -33,7 +33,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     protected CommandProcessor(ILogger<CommandProcessor> logger,
         QueueType queueType,
-        IDbContextFactory<ShizouContext> contextFactory,
+        IShizouContextFactory contextFactory,
         IServiceScopeFactory scopeFactory,
         Func<CommandService> commandServiceFactory)
     {
@@ -156,8 +156,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            // ReSharper disable once MethodHasAsyncOverloadWithCancellation
-            // ReSharper disable once UseAwaitUsing
             using var context = _contextFactory.CreateDbContext();
             var commandService = _commandServiceFactory();
             using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
@@ -173,7 +171,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_wakeupTokenSource.Token, stoppingToken);
                 try
                 {
-                    await Task.Delay(PollInterval, linkedTokenSource.Token);
+                    await Task.Delay(PollInterval, linkedTokenSource.Token).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException)
                 {
@@ -204,8 +202,8 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 LastThreeCommands.Enqueue(CurrentCommand.CommandId);
                 while (LastThreeCommands.Count > 3)
                     LastThreeCommands.Dequeue();
-                var task = CurrentCommand.Process();
-                await task.WaitAsync(stoppingToken);
+                var task = CurrentCommand.ProcessAsync();
+                await task.WaitAsync(stoppingToken).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {
@@ -224,7 +222,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                     context.CommandRequests.Remove(CurrentCommandRequest);
                     using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
                     {
-                        // ReSharper disable once MethodHasAsyncOverloadWithCancellation
                         context.SaveChanges();
                     }
                 }
@@ -258,7 +255,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     }
 
     [SuppressMessage("ReSharper.DPA", "DPA0006: Large number of DB commands", MessageId = "count: 2000")]
-    private void UpdateCommandsInQueue(ShizouContext context)
+    private void UpdateCommandsInQueue(IShizouContext context)
     {
         CommandsInQueue = context.CommandRequests.ByQueue(QueueType).Count();
     }

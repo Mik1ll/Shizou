@@ -15,7 +15,7 @@ public class AniDbFiles : EntityGetController<AniDbFile>
 {
     private readonly WatchStateService _watchStateService;
 
-    public AniDbFiles(ILogger<AniDbFiles> logger, ShizouContext context, WatchStateService watchStateService) : base(logger, context,
+    public AniDbFiles(ILogger<AniDbFiles> logger, IShizouContext context, WatchStateService watchStateService) : base(logger, context,
         file => file.Id)
     {
         _watchStateService = watchStateService;

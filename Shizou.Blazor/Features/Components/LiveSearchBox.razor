@@ -1,11 +1,11 @@
 ﻿<div>
     <div class="form-floating">
-        <input type="search" disabled="@Disabled" class="form-control" id="queryInput" placeholder="@PlaceholderText" @bind="@_query" @oninput="@OnInputChanged">
+        <input type="search" disabled="@Disabled" class="form-control" id="queryInput" placeholder="@PlaceholderText" @bind="@_query" @oninput="@OnInputChangedAsync">
         <label for="queryInput">@PlaceholderText</label>
     </div>
     <select size="@(Math.Min(_results.Count, 15))" multiple
             class="dropdown-menu @(_results.Count > 0 ? "show" : "")" style="overflow-y: auto"
-            @onchange="@OnSelectChanged">
+            @onchange="@OnSelectChangedAsync">
         @foreach (var result in _results)
         {
             <option class="dropdown-item" value="@(result.Item1)">

@@ -9,10 +9,10 @@ namespace Shizou.Tests;
 public class HashTests
 {
     [TestMethod]
-    public async Task TestHashSpeed()
+    public async Task TestHashSpeedAsync()
     {
         var stopWatch = new Stopwatch();
-        var file = await CreateTestFile(300, "hashTestFile.bin");
+        var file = await CreateTestFileAsync(300, "hashTestFile.bin");
 
         stopWatch.Start();
         var hashes = await new HashService().GetFileHashesAsync(file, HashIds.Ed2k);
@@ -23,9 +23,9 @@ public class HashTests
     }
 
     [TestMethod]
-    public async Task TestSmallFile()
+    public async Task TestSmallFileAsync()
     {
-        var file = await CreateTestFile(1, "hashTestFile.bin");
+        var file = await CreateTestFileAsync(1, "hashTestFile.bin");
 
         var hashes = await new HashService().GetFileHashesAsync(file, HashIds.Ed2k);
         Console.WriteLine($"Small file hash: {hashes[HashIds.Ed2k]}");
@@ -40,7 +40,7 @@ public class HashTests
     }
 
     // ReSharper disable once InconsistentNaming
-    private static async Task<FileInfo> CreateTestFile(int sizeInMB, string testFileName)
+    private static async Task<FileInfo> CreateTestFileAsync(int sizeInMB, string testFileName)
     {
         var file = new FileInfo(Path.Combine(FilePaths.ApplicationDataDir, testFileName));
         var data = new byte[sizeInMB * 1024 * 1024];

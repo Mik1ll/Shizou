@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using FuzzySharp;
 using FuzzySharp.SimilarityRatio;
 using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data;
 using Shizou.Data.Database;
@@ -25,13 +24,13 @@ public class AnimeTitleSearchService
     private readonly Regex _removeSpecial = new(@"[][【】「」『』、…〜（）`()\\,<>/;:：'""-]+", RegexOptions.Compiled);
     private readonly ILogger<AnimeTitleSearchService> _logger;
     private readonly IHttpClientFactory _clientFactory;
-    private readonly IDbContextFactory<ShizouContext> _contextFactory;
+    private readonly IShizouContextFactory _contextFactory;
     private List<AnimeTitle>? _animeTitlesMemCache;
 
     public AnimeTitleSearchService(
         ILogger<AnimeTitleSearchService> logger,
         IHttpClientFactory clientFactory,
-        IDbContextFactory<ShizouContext> contextFactory)
+        IShizouContextFactory contextFactory)
     {
         _logger = logger;
         _clientFactory = clientFactory;
@@ -46,19 +45,17 @@ public class AnimeTitleSearchService
         Official = 4
     }
 
-    public async Task<List<(int, string)>?> Search(string query, bool restrictInCollection = false)
+    public async Task<List<(int, string)>?> SearchAsync(string query, bool restrictInCollection = false)
     {
-        await GetTitles();
+        await GetTitlesAsync().ConfigureAwait(false);
         if (_animeTitlesMemCache is null)
             return null;
         return SearchTitles(_animeTitlesMemCache, query, restrictInCollection).Select(t => (t.Aid, t.Title)).ToList();
     }
 
-    private async Task GetTitles()
+    private async Task GetTitlesAsync()
     {
         string? data;
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = _contextFactory.CreateDbContext();
         var timer = context.Timers.FirstOrDefault(t => t.Type == TimerType.AnimeTitlesRequest);
         if (timer is not null && timer.Expires > DateTime.UtcNow)
@@ -66,7 +63,7 @@ public class AnimeTitleSearchService
             if (_animeTitlesMemCache is null)
             {
                 _logger.LogInformation("Anime titles requested recently, getting from local file");
-                data = await GetFromFile();
+                data = await GetFromFileAsync().ConfigureAwait(false);
             }
             else
             {
@@ -86,9 +83,9 @@ public class AnimeTitleSearchService
                     Type = TimerType.AnimeTitlesRequest,
                     Expires = rateLimitExpires
                 });
-            // ReSharper disable once MethodHasAsyncOverload
+
             context.SaveChanges();
-            data = await GetFromAniDb();
+            data = await GetFromAniDbAsync().ConfigureAwait(false);
         }
 
         if (data is null)
@@ -96,32 +93,34 @@ public class AnimeTitleSearchService
         _animeTitlesMemCache = ParseContent(data);
     }
 
-    private async Task<string?> GetFromFile()
+    private async Task<string?> GetFromFileAsync()
     {
         if (File.Exists(FilePaths.AnimeTitlesPath))
-            return await File.ReadAllTextAsync(FilePaths.AnimeTitlesPath, Encoding.UTF8);
+            return await File.ReadAllTextAsync(FilePaths.AnimeTitlesPath, Encoding.UTF8).ConfigureAwait(false);
         _logger.LogError("Could not find anime titles file at \"{AnimeTitlesPath}\"", FilePaths.AnimeTitlesPath);
         return null;
     }
 
-    private async Task<string?> GetFromAniDb()
+    private async Task<string?> GetFromAniDbAsync()
     {
         // Not using gzip client, didn't work. Maybe it requires a gzip content header in the response
         var client = _clientFactory.CreateClient(string.Empty);
         client.DefaultRequestHeaders.UserAgent.ParseAdd("Shizou");
-        using var response = await client.GetAsync("https://anidb.net/api/anime-titles.dat.gz");
+        using var response = await client.GetAsync("https://anidb.net/api/anime-titles.dat.gz").ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Anime titles request failed: {StatusCode} {StatusMessage}", response.StatusCode, response.ReasonPhrase);
             return null;
         }
 
-        await using var httpStream = await response.Content.ReadAsStreamAsync();
-        await using var decompStream = new GZipStream(httpStream, CompressionMode.Decompress);
+        var httpStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+        await using var _ = httpStream.ConfigureAwait(false);
+        var decompStream = new GZipStream(httpStream, CompressionMode.Decompress);
+        await using var __ = decompStream.ConfigureAwait(false);
         using var reader = new StreamReader(decompStream);
-        var data = await reader.ReadToEndAsync();
+        var data = await reader.ReadToEndAsync().ConfigureAwait(false);
         Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.AnimeTitlesPath)!);
-        await File.WriteAllTextAsync(FilePaths.AnimeTitlesPath, data, Encoding.UTF8);
+        await File.WriteAllTextAsync(FilePaths.AnimeTitlesPath, data, Encoding.UTF8).ConfigureAwait(false);
         return data;
     }
 
@@ -164,6 +163,7 @@ public class AnimeTitleSearchService
             titles = titles.Where(t => aidsInCollection.Contains(t.Aid)).ToList();
             scorer = ScorerCache.Get<PartialTokenSetScorer>();
         }
+
         query = _removeSpecial.Replace(query.ToUpperInvariant(), " ").Trim();
         var results = Process.ExtractTop(
             new AnimeTitle(0, TitleType.Primary, "", "", query),

@@ -17,12 +17,12 @@ public abstract class Command<T> : ICommand<T> where T : CommandArgs
         _parametersSet = true;
     }
 
-    public async Task Process()
+    public async Task ProcessAsync()
     {
         if (!_parametersSet)
-            throw new ArgumentException($"Parameters not set before {nameof(Process)} called");
-        await ProcessInner();
+            throw new ArgumentException($"Parameters not set before {nameof(ProcessAsync)} called");
+        await ProcessInnerAsync().ConfigureAwait(false);
     }
 
-    protected abstract Task ProcessInner();
+    protected abstract Task ProcessInnerAsync();
 }
