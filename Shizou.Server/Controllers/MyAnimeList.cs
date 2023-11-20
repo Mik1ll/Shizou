@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -49,5 +48,4 @@ public class MyAnimeList : ControllerBase
             return TypedResults.Conflict();
         return TypedResults.Ok();
     }
-    
 }

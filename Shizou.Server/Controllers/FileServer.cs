@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -64,9 +63,6 @@ public class FileServer : ControllerBase
         return TypedResults.File(fileStream, mimeType, fileInfo.Name, enableRangeProcessing: true);
     }
 
-
-    public record GetSubtitleArgs(string Ed2K, int Index);
-
     /// <summary>
     ///     Get embedded ASS subtitle of local file
     /// </summary>
@@ -90,8 +86,6 @@ public class FileServer : ControllerBase
 
         return TypedResults.PhysicalFile(fileInfo.FullName, "text/x-ssa");
     }
-
-    public record GetFontArgs(string Ed2K, string FontName);
 
     /// <summary>
     ///     Get embedded font of local file
@@ -135,4 +129,9 @@ src=""{HttpContext.Request.GetEncodedUrl().Remove(HttpContext.Request.GetEncoded
 </body></html>
 ", "text/html");
     }
+
+
+    public record GetSubtitleArgs(string Ed2K, int Index);
+
+    public record GetFontArgs(string Ed2K, string FontName);
 }
