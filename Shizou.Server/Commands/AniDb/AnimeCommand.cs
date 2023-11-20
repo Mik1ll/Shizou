@@ -85,7 +85,6 @@ public class AnimeCommand : Command<AnimeArgs>
 
         foreach (var ep in aniDbAnime.AniDbEpisodes)
         {
-            // ReSharper disable once MethodHasAsyncOverload
             if (_context.AniDbEpisodes.Find(ep.Id) is { } eEp)
                 _context.Entry(eEp).CurrentValues.SetValues(ep);
             else
@@ -102,7 +101,6 @@ public class AnimeCommand : Command<AnimeArgs>
             }
         }
 
-        // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
 
         if (aniDbAnime.ImageFilename is not null)
@@ -197,7 +195,6 @@ public class AnimeCommand : Command<AnimeArgs>
 
     private async Task<AnimeResult?> GetAnimeAsync()
     {
-        // ReSharper disable once MethodHasAsyncOverload
         var timer = _context.Timers.FirstOrDefault(t => t.Type == TimerType.AnimeRequest && t.ExtraId == CommandArgs.AnimeId);
         if (timer is not null && timer.Expires > DateTime.UtcNow)
         {
@@ -216,7 +213,7 @@ public class AnimeCommand : Command<AnimeArgs>
                 ExtraId = CommandArgs.AnimeId,
                 Expires = rateLimitExpires
             });
-        // ReSharper disable once MethodHasAsyncOverload
+
         _context.SaveChanges();
         _logger.LogInformation("Getting Anime {AnimeId} from HTTP anime request", CommandArgs.AnimeId);
         _animeRequest.SetParameters(CommandArgs.AnimeId);
@@ -241,7 +238,7 @@ public class AnimeCommand : Command<AnimeArgs>
         _context.AddRange(xrefs.ExceptBy(eXrefs.Select(x => x.MalAnimeId), x => x.MalAnimeId)
             .Where(x => eMalIds.Contains(x.MalAnimeId)));
 
-        // ReSharper disable once MethodHasAsyncOverload
+
         _context.SaveChanges();
     }
 }

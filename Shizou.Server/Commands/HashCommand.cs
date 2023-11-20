@@ -101,7 +101,6 @@ public class HashCommand : Command<HashArgs>
 
         var eAniDbFileId = _context.AniDbFiles.Where(f => f.Ed2k == localFile.Ed2k).Select(f => new { f.Id }).FirstOrDefault()?.Id;
         localFile.AniDbFileId = eAniDbFileId;
-        // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
 
         if (eAniDbFileId is null)

@@ -11,7 +11,6 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods")]
 public class MyAnimeList : ControllerBase
 {
     private readonly ILogger<MyAnimeList> _logger;

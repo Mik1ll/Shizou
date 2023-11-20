@@ -155,8 +155,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
 
         Logger.LogTrace("Got raw UDP response");
         // Two null bytes and two bytes of Zlib header, seems to ignore trailer automatically
-        // ReSharper disable once UseAwaitUsing
-        using Stream memStream = receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0
+        await using Stream memStream = receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0
             ? new DeflateStream(new MemoryStream(receivedBytes, 4, receivedBytes.Length - 4), CompressionMode.Decompress)
             : new MemoryStream(receivedBytes);
         using var reader = new StreamReader(memStream, Encoding);

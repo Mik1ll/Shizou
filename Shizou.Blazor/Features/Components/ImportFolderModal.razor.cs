@@ -10,7 +10,7 @@ namespace Shizou.Blazor.Features.Components;
 public partial class ImportFolderModal
 {
     private Modal _modal = default!;
-    
+
     [Inject]
     private IShizouContextFactory ContextFactory { get; set; } = default!;
 
@@ -43,8 +43,6 @@ public partial class ImportFolderModal
 
     private async Task UpsertAsync()
     {
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = ContextFactory.CreateDbContext();
         if (MyImportFolder.Id == 0)
         {
@@ -52,28 +50,23 @@ public partial class ImportFolderModal
         }
         else
         {
-            // ReSharper disable once MethodHasAsyncOverload
             var importFolder = context.ImportFolders.Find(MyImportFolder.Id);
             if (importFolder is not null)
                 context.Entry(importFolder).CurrentValues.SetValues(MyImportFolder);
         }
 
-        // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
         await _modal.CloseAsync();
     }
 
     private async Task RemoveAsync()
     {
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = ContextFactory.CreateDbContext();
 
         // Need to load related for client set null cascading
-        // ReSharper disable once MethodHasAsyncOverload
         context.Attach(MyImportFolder).Collection(i => i.LocalFiles).Load();
         context.ImportFolders.Remove(MyImportFolder);
-        // ReSharper disable once MethodHasAsyncOverload
+
         context.SaveChanges();
         await _modal.CloseAsync();
     }

@@ -156,8 +156,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            // ReSharper disable once MethodHasAsyncOverloadWithCancellation
-            // ReSharper disable once UseAwaitUsing
             using var context = _contextFactory.CreateDbContext();
             var commandService = _commandServiceFactory();
             using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
@@ -224,7 +222,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                     context.CommandRequests.Remove(CurrentCommandRequest);
                     using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
                     {
-                        // ReSharper disable once MethodHasAsyncOverloadWithCancellation
                         context.SaveChanges();
                     }
                 }

@@ -14,7 +14,6 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods")]
 public class Images : ControllerBase
 {
     private readonly ImageService _imageService;

@@ -42,8 +42,6 @@ public partial class VideoModal
 
     protected override async Task OnInitializedAsync()
     {
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = ContextFactory.CreateDbContext();
         _localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == LocalFileId);
         _localFileMimeType = null;

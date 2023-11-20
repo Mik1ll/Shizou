@@ -219,11 +219,9 @@ public class MyAnimeListService
             if (animeJson.TryGetProperty("my_list_status", out var statusJson))
                 anime.Status = StatusFromJson(statusJson);
 
-            // ReSharper disable once MethodHasAsyncOverload
-            // ReSharper disable once UseAwaitUsing
             using var context = _contextFactory.CreateDbContext();
             UpsertAnime(context, anime);
-            // ReSharper disable once MethodHasAsyncOverload
+
             context.SaveChanges();
         }
         catch (JsonException ex)
@@ -246,8 +244,6 @@ public class MyAnimeListService
 
         var animeWithStatus = new HashSet<int>();
 
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = _contextFactory.CreateDbContext();
         var malAnimes = context.MalAnimes.ToDictionary(a => a.Id);
 
@@ -296,7 +292,7 @@ public class MyAnimeListService
         foreach (var anime in malAnimes.Values.ExceptBy(animeWithStatus, x => x.Id))
             anime.Status = null;
 
-        // ReSharper disable once MethodHasAsyncOverload
+
         context.SaveChanges();
     }
 
@@ -312,10 +308,7 @@ public class MyAnimeListService
         if (!await RefreshTokenAsync(options).ConfigureAwait(false))
             return false;
 
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = _contextFactory.CreateDbContext();
-        // ReSharper disable once MethodHasAsyncOverload
         var anime = context.MalAnimes.Find(animeId);
         if (anime is null)
         {
@@ -361,7 +354,7 @@ public class MyAnimeListService
             anime.Status = StatusFromJson(statusJson);
 
             UpsertAnime(context, anime);
-            // ReSharper disable once MethodHasAsyncOverload
+
             context.SaveChanges();
         }
         catch (JsonException ex)

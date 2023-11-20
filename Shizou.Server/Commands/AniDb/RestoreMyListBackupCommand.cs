@@ -112,7 +112,6 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
                 toUpdate.Add(new UpdateMyListArgs(true, expectedState, watched, watchedDate, item.Id));
         }
 
-        // ReSharper disable once MethodHasAsyncOverload
         _context.SaveChanges();
 
         _commandService.DispatchRange(toUpdate);

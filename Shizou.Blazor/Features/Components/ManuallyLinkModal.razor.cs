@@ -96,15 +96,12 @@ public partial class ManuallyLinkModal
 
     private async Task LinkFilesAsync()
     {
-        // ReSharper disable once UseAwaitUsing
-        // ReSharper disable once MethodHasAsyncOverload
         using var context = ContextFactory.CreateDbContext();
         context.LocalFiles.AttachRange(SelectedFiles);
         foreach (var ep in _selectedAnime!.AniDbEpisodes)
             if (_mapping.TryGetValue(ep, out var localFile))
                 localFile.ManualLinkEpisodeId = ep.Id;
 
-        // ReSharper disable once MethodHasAsyncOverload
         context.SaveChanges();
         await _modal.CloseAsync();
     }

@@ -91,8 +91,6 @@ public class ImageService
 
     public async Task<string?> GetEpisodeThumbnailAsync(int episodeId)
     {
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = _contextFactory.CreateDbContext();
         var localFiles = context.LocalFiles.AsNoTracking().Include(lf => lf.ImportFolder).Where(lf =>
             lf.AniDbFile!.AniDbEpisodeFileXrefs.Any(ep => ep.AniDbEpisodeId == episodeId) || lf.ManualLinkEpisodeId == episodeId).ToList();
@@ -158,8 +156,6 @@ public class ImageService
     // ReSharper disable once InconsistentNaming
     public async Task GetFileThumbnailAsync(string ed2k, bool forceRefresh = false)
     {
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = _contextFactory.CreateDbContext();
         var localFile = context.LocalFiles.AsNoTracking().Include(lf => lf.ImportFolder).FirstOrDefault(lf => lf.Ed2k == ed2k);
         if (localFile is null)

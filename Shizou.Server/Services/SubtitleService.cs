@@ -56,8 +56,6 @@ public class SubtitleService
     // ReSharper disable once InconsistentNaming
     public async Task ExtractSubtitlesAsync(string ed2k)
     {
-        // ReSharper disable once UseAwaitUsing
-        // ReSharper disable once MethodHasAsyncOverload
         using var context = _contextFactory.CreateDbContext();
         var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2k);
         if (localFile is null)
@@ -92,8 +90,6 @@ public class SubtitleService
     // ReSharper disable once InconsistentNaming
     public async Task ExtractFontsAsync(string ed2k)
     {
-        // ReSharper disable once UseAwaitUsing
-        // ReSharper disable once MethodHasAsyncOverload
         using var context = _contextFactory.CreateDbContext();
         var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2k);
         if (localFile is null)

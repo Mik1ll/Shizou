@@ -15,7 +15,6 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods")]
 public class Account : ControllerBase
 {
     private readonly SignInManager<IdentityUser> _signInManager;

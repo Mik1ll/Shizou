@@ -56,8 +56,6 @@ public class AnimeTitleSearchService
     private async Task GetTitlesAsync()
     {
         string? data;
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = _contextFactory.CreateDbContext();
         var timer = context.Timers.FirstOrDefault(t => t.Type == TimerType.AnimeTitlesRequest);
         if (timer is not null && timer.Expires > DateTime.UtcNow)
@@ -85,7 +83,7 @@ public class AnimeTitleSearchService
                     Type = TimerType.AnimeTitlesRequest,
                     Expires = rateLimitExpires
                 });
-            // ReSharper disable once MethodHasAsyncOverload
+
             context.SaveChanges();
             data = await GetFromAniDbAsync().ConfigureAwait(false);
         }
@@ -165,6 +163,7 @@ public class AnimeTitleSearchService
             titles = titles.Where(t => aidsInCollection.Contains(t.Aid)).ToList();
             scorer = ScorerCache.Get<PartialTokenSetScorer>();
         }
+
         query = _removeSpecial.Replace(query.ToUpperInvariant(), " ").Trim();
         var results = Process.ExtractTop(
             new AnimeTitle(0, TitleType.Primary, "", "", query),

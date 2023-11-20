@@ -69,14 +69,12 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
                     _myListEntryRequest.SetParameters(aid, epno);
                     var entryResponse = await _myListEntryRequest.ProcessAsync().ConfigureAwait(false);
                     if (entryResponse?.MyListEntryResult is { } entryResult)
-                        // ReSharper disable once MethodHasAsyncOverload
                         if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == entryResult.EpisodeId) is { } eWs)
                         {
                             _logger.LogDebug("Updating episode {EpisodeId} with generic file id {GenericId} and mylist id {MyListId}",
                                 entryResult.EpisodeId, entryResult.FileId, entryResult.MyListId);
                             eWs.AniDbFileId = entryResult.FileId;
                             eWs.MyListId = entryResult.MyListId;
-                            // ReSharper disable once MethodHasAsyncOverload
                             _context.SaveChanges();
                         }
                 }

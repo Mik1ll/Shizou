@@ -70,12 +70,10 @@ public partial class FileCard
 
     private async Task UnlinkAsync(LocalFile localFile)
     {
-        // ReSharper disable once MethodHasAsyncOverload
-        // ReSharper disable once UseAwaitUsing
         using var context = ContextFactory.CreateDbContext();
         context.LocalFiles.Attach(localFile);
         localFile.ManualLinkEpisodeId = null;
-        // ReSharper disable once MethodHasAsyncOverload
+
         context.SaveChanges();
         await OnChanged.InvokeAsync();
     }
