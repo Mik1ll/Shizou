@@ -8,8 +8,8 @@ using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
-[Command(typeof(AddMissingMyListEntriesCommand), CommandPriority.Low, QueueType.AniDbUdp)]
-public sealed record AddMissingMyListEntriesArgs() : CommandArgs($"{nameof(AddMissingMyListEntriesCommand)}");
+public sealed record AddMissingMyListEntriesArgs() : CommandArgs($"{nameof(AddMissingMyListEntriesCommand)}",
+    typeof(AddMissingMyListEntriesCommand), CommandPriority.Low, QueueType.AniDbUdp);
 
 public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArgs>
 {

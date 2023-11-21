@@ -3,8 +3,8 @@ using Shizou.Data.Enums;
 
 namespace Shizou.Server.Commands;
 
-[Command(typeof(NoopCommand), CommandPriority.Normal, QueueType.General)]
-public sealed record NoopArgs(int Testint) : CommandArgs($"{nameof(NoopCommand)}_{Testint}");
+public sealed record NoopArgs(int Testint) : CommandArgs($"{nameof(NoopCommand)}_{Testint}",
+    typeof(NoopCommand), CommandPriority.Normal, QueueType.General);
 
 public sealed class NoopCommand : Command<NoopArgs>
 {

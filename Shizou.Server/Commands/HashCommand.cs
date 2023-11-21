@@ -14,8 +14,8 @@ using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands;
 
-[Command(typeof(HashCommand), CommandPriority.Normal, QueueType.Hash)]
-public record HashArgs(string Path) : CommandArgs($"{nameof(HashCommand)}_{Path}");
+public record HashArgs(string Path) : CommandArgs($"{nameof(HashCommand)}_{Path}",
+    typeof(HashCommand), CommandPriority.Normal, QueueType.Hash);
 
 public class HashCommand : Command<HashArgs>
 {

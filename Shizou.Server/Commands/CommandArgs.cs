@@ -4,17 +4,19 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using Shizou.Data.Enums;
 
 namespace Shizou.Server.Commands;
 
-public abstract record CommandArgs(string CommandId)
+public abstract record CommandArgs(
+    [property: JsonIgnore] string CommandId,
+    [property: JsonIgnore] Type CommandType,
+    [property: JsonIgnore] CommandPriority CommandPriority,
+    [property: JsonIgnore] QueueType QueueType)
 {
     private static readonly Type[] ArgTypes = (from type in Assembly.GetExecutingAssembly().GetTypes()
         where typeof(CommandArgs).IsAssignableFrom(type) && type != typeof(CommandArgs)
         select type).ToArray();
-
-    [JsonIgnore]
-    public string CommandId { get; } = CommandId;
 
     public static JsonTypeInfo<CommandArgs> GetJsonTypeInfo(JsonSerializerOptions? options = null)
     {

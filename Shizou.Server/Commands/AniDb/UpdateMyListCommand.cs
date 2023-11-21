@@ -10,7 +10,6 @@ using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
 namespace Shizou.Server.Commands.AniDb;
 
-[Command(typeof(UpdateMyListCommand), CommandPriority.Normal, QueueType.AniDbUdp)]
 public record UpdateMyListArgs(
         bool Edit,
         MyListState? MyListState = null,
@@ -21,7 +20,8 @@ public record UpdateMyListArgs(
         int? Aid = null, string? EpNo = null
     )
     : CommandArgs($"{nameof(UpdateMyListCommand)}_lid={Lid}_fid={Fid}_aid={Aid}_epno={EpNo}"
-                  + $"_edit={Edit}_watched={Watched}_state={MyListState}_uid={Path.GetRandomFileName()[..8]}");
+                  + $"_edit={Edit}_watched={Watched}_state={MyListState}_uid={Path.GetRandomFileName()[..8]}",
+        typeof(UpdateMyListCommand), CommandPriority.Normal, QueueType.AniDbUdp);
 
 public class UpdateMyListCommand : Command<UpdateMyListArgs>
 {

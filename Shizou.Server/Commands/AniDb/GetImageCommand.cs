@@ -6,8 +6,8 @@ using Shizou.Server.AniDbApi.Requests.Image;
 
 namespace Shizou.Server.Commands.AniDb;
 
-[Command(typeof(GetImageCommand), CommandPriority.Normal, QueueType.Image)]
-public record GetImageCommandArgs(string Url, string SavePath) : CommandArgs($"{nameof(GetImageCommand)}_url={Url}_savePath={SavePath}");
+public record GetImageCommandArgs(string Url, string SavePath) : CommandArgs($"{nameof(GetImageCommand)}_url={Url}_savePath={SavePath}",
+    typeof(GetImageCommand), CommandPriority.Normal, QueueType.Image);
 
 public class GetImageCommand : Command<GetImageCommandArgs>
 {

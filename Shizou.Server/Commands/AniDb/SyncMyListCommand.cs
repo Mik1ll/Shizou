@@ -18,8 +18,8 @@ using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
-[Command(typeof(SyncMyListCommand), CommandPriority.Low, QueueType.AniDbHttp)]
-public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}");
+public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}",
+    typeof(SyncMyListCommand), CommandPriority.Low, QueueType.AniDbHttp);
 
 public class SyncMyListCommand : Command<SyncMyListArgs>
 {

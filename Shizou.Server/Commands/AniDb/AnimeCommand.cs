@@ -17,8 +17,8 @@ using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
-[Command(typeof(AnimeCommand), CommandPriority.Normal, QueueType.AniDbHttp)]
-public record AnimeArgs(int AnimeId, int? FetchRelationDepth = null) : CommandArgs($"{nameof(AnimeCommand)}_{AnimeId}_{FetchRelationDepth}");
+public record AnimeArgs(int AnimeId, int? FetchRelationDepth = null) : CommandArgs($"{nameof(AnimeCommand)}_{AnimeId}_{FetchRelationDepth}",
+    typeof(AnimeCommand), CommandPriority.Normal, QueueType.AniDbHttp);
 
 public class AnimeCommand : Command<AnimeArgs>
 {

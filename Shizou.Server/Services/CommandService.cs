@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -98,20 +97,17 @@ public class CommandService
     public ICommand<CommandArgs> CommandFromRequest(CommandRequest commandRequest, IServiceScope serviceScope)
     {
         var args = JsonSerializer.Deserialize(commandRequest.CommandArgs, CommandArgs.GetJsonTypeInfo())!;
-        var cmdType = args.GetType().GetCustomAttribute<CommandAttribute>()!.CommandType;
-        var cmd = (ICommand<CommandArgs>)serviceScope.ServiceProvider.GetRequiredService(cmdType);
+        var cmd = (ICommand<CommandArgs>)serviceScope.ServiceProvider.GetRequiredService(args.CommandType);
         cmd.SetParameters(args);
         return cmd;
     }
 
     private CommandRequest RequestFromArgs(CommandArgs commandArgs)
     {
-        var argType = commandArgs.GetType();
-        var commandAttr = argType.GetCustomAttribute<CommandAttribute>()!;
         return new CommandRequest
         {
-            Priority = commandAttr.Priority,
-            QueueType = commandAttr.QueueType,
+            Priority = commandArgs.CommandPriority,
+            QueueType = commandArgs.QueueType,
             CommandId = commandArgs.CommandId,
             CommandArgs = JsonSerializer.Serialize(commandArgs, CommandArgs.GetJsonTypeInfo())
         };
