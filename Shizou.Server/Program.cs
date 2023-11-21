@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,63 +10,46 @@ Log.Logger = new LoggerConfiguration()
     .ConfigureSerilog()
     .CreateBootstrapLogger();
 
-try
+Directory.CreateDirectory(FilePaths.ApplicationDataDir);
+
+var builder = WebApplication.CreateBuilder();
+
+builder.AddShizouOptions()
+    .AddShizouLogging();
+
+builder.Services
+    .AddShizouServices()
+    .AddShizouProcessors()
+    .AddAniDbServices()
+    .AddShizouApiServices();
+
+builder.Services.AddCors(options =>
 {
-    Directory.CreateDirectory(FilePaths.ApplicationDataDir);
+    options.AddPolicy("HttpScheme",
+        policy => { policy.WithOrigins("http://localhost"); });
+});
 
-    var builder = WebApplication.CreateBuilder();
+var app = builder.Build();
 
-    builder.AddShizouOptions()
-        .AddShizouLogging();
+if (!app.Environment.IsDevelopment())
+    app.UseHsts();
 
-    builder.Services
-        .AddShizouServices()
-        .AddShizouProcessors()
-        .AddAniDbServices()
-        .AddShizouApiServices();
+app.UseSwagger();
+app.UseSwaggerUI();
 
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("HttpScheme",
-            policy => { policy.WithOrigins("http://localhost"); });
-    });
+app.UseSerilogRequestLogging();
 
-    var app = builder.Build();
+app.UseHttpsRedirection();
 
-    if (!app.Environment.IsDevelopment())
-        app.UseHsts();
+app.UseRouting();
 
-    app.UseSwagger();
-    app.UseSwaggerUI();
+app.UseCors("HttpScheme");
 
-    app.UseSerilogRequestLogging();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers().RequireAuthorization();
 
-    app.UseHttpsRedirection();
+app.MigrateDatabase();
+app.PopulateOptions();
 
-    app.UseRouting();
-
-    app.UseCors("HttpScheme");
-
-    app.UseAuthentication();
-    app.UseAuthorization();
-    app.MapControllers().RequireAuthorization();
-
-
-    app.MigrateDatabase();
-    app.PopulateOptions();
-
-    app.Run();
-}
-catch (HostAbortedException)
-{
-    throw;
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Unhandled exception");
-}
-finally
-{
-    Log.Information("Shut down complete");
-    Log.CloseAndFlush();
-}
+app.Run();

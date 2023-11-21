@@ -1,14 +1,16 @@
 using Blazored.Modal;
 using Microsoft.AspNetCore.StaticFiles;
 using Serilog;
+using Shizou.Data;
 using Shizou.Server.Extensions;
-using Shizou.Server.Services;
 
 Log.Logger = new LoggerConfiguration()
     .ConfigureSerilog()
     .CreateBootstrapLogger();
 
-var builder = WebApplication.CreateBuilder(args);
+Directory.CreateDirectory(FilePaths.ApplicationDataDir);
+
+var builder = WebApplication.CreateBuilder();
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
@@ -35,8 +37,6 @@ builder.Services
     .AddShizouProcessors()
     .AddAniDbServices()
     .AddShizouApiServices();
-
-builder.Services.AddHostedService<StartupService>();
 
 var app = builder.Build();
 
