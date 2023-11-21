@@ -31,9 +31,8 @@ public class CommandService
     public void Dispatch<TArgs>(TArgs commandArgs)
         where TArgs : CommandArgs
     {
-        var cmdRequest = commandArgs.CommandRequest;
-        var processor = _processors.Single(cp => cp.QueueType == cmdRequest.QueueType);
-        processor.QueueCommand(cmdRequest);
+        var processor = _processors.Single(cp => cp.QueueType == commandArgs.QueueType);
+        processor.QueueCommand(commandArgs.CommandRequest);
     }
 
     public void DispatchRange<TArgs>(IEnumerable<TArgs> commandArgsEnumerable)
@@ -74,14 +73,11 @@ public class CommandService
     public void CreateScheduledCommands(QueueType queueType)
     {
         using var context = _contextFactory.CreateDbContext();
-        var scheduledCommands = context.ScheduledCommands.DueCommands(context, queueType).ToList();
+        var scheduledCommands = context.ScheduledCommands.DueCommands(queueType).ToList();
         if (scheduledCommands.Count == 0)
             return;
-        var commandArgs = scheduledCommands.Select(scheduledCommand =>
-        {
-            var args = JsonSerializer.Deserialize(scheduledCommand.CommandArgs, CommandArgs.GetJsonTypeInfo())!;
-            return args;
-        }).ToList();
+        var commandArgs = scheduledCommands.Select(sc =>
+            JsonSerializer.Deserialize(sc.CommandArgs, CommandArgs.GetJsonTypeInfo())!).ToList();
         DispatchRange(commandArgs);
         foreach (var cmd in scheduledCommands)
             if (cmd.RunsLeft <= 1 || cmd.FrequencyMinutes is null)
