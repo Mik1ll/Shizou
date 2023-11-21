@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -191,7 +192,9 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 continue;
             PollStep = 0;
             using var scope = _scopeFactory.CreateScope();
-            CurrentCommand = commandService.CommandFromRequest(CurrentCommandRequest, scope);
+            var args = JsonSerializer.Deserialize(CurrentCommandRequest.CommandArgs, CommandArgs.GetJsonTypeInfo())!;
+            CurrentCommand = (ICommand<CommandArgs>)scope.ServiceProvider.GetRequiredService(args.CommandType);
+            CurrentCommand.SetParameters(args);
             try
             {
                 Logger.LogDebug("Processing command: {CommandId}", CurrentCommand.CommandId);

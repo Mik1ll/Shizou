@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
@@ -32,7 +31,7 @@ public class CommandService
     public void Dispatch<TArgs>(TArgs commandArgs)
         where TArgs : CommandArgs
     {
-        var cmdRequest = RequestFromArgs(commandArgs);
+        var cmdRequest = commandArgs.CommandRequest;
         var processor = _processors.Single(cp => cp.QueueType == cmdRequest.QueueType);
         processor.QueueCommand(cmdRequest);
     }
@@ -48,7 +47,7 @@ public class CommandService
         where TArgs : CommandArgs
     {
         using var context = _contextFactory.CreateDbContext();
-        var cmdRequest = RequestFromArgs(commandArgs);
+        var cmdRequest = commandArgs.CommandRequest;
         var scheduledCommand = new ScheduledCommand
         {
             NextRunTime = nextRun.UtcDateTime,
@@ -78,7 +77,11 @@ public class CommandService
         var scheduledCommands = context.ScheduledCommands.DueCommands(context, queueType).ToList();
         if (scheduledCommands.Count == 0)
             return;
-        var commandArgs = scheduledCommands.Select(ArgsFromScheduledCommand).ToList();
+        var commandArgs = scheduledCommands.Select(scheduledCommand =>
+        {
+            var args = JsonSerializer.Deserialize(scheduledCommand.CommandArgs, CommandArgs.GetJsonTypeInfo())!;
+            return args;
+        }).ToList();
         DispatchRange(commandArgs);
         foreach (var cmd in scheduledCommands)
             if (cmd.RunsLeft <= 1 || cmd.FrequencyMinutes is null)
@@ -92,30 +95,5 @@ public class CommandService
             }
 
         context.SaveChanges();
-    }
-
-    public ICommand<CommandArgs> CommandFromRequest(CommandRequest commandRequest, IServiceScope serviceScope)
-    {
-        var args = JsonSerializer.Deserialize(commandRequest.CommandArgs, CommandArgs.GetJsonTypeInfo())!;
-        var cmd = (ICommand<CommandArgs>)serviceScope.ServiceProvider.GetRequiredService(args.CommandType);
-        cmd.SetParameters(args);
-        return cmd;
-    }
-
-    private CommandRequest RequestFromArgs(CommandArgs commandArgs)
-    {
-        return new CommandRequest
-        {
-            Priority = commandArgs.CommandPriority,
-            QueueType = commandArgs.QueueType,
-            CommandId = commandArgs.CommandId,
-            CommandArgs = JsonSerializer.Serialize(commandArgs, CommandArgs.GetJsonTypeInfo())
-        };
-    }
-
-    private CommandArgs ArgsFromScheduledCommand(ScheduledCommand scheduledCommand)
-    {
-        var args = JsonSerializer.Deserialize(scheduledCommand.CommandArgs, CommandArgs.GetJsonTypeInfo())!;
-        return args;
     }
 }
