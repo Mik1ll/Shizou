@@ -1,4 +1,4 @@
-﻿@using Shizou.Data.Utilities
+﻿@using System.Net
 <h3>Actions</h3>
 <div class="d-flex flex-wrap gap-1">
     <button type="button" class="btn btn-primary" @onclick="@DispatchNoop">Add noops</button>
@@ -7,7 +7,7 @@
     <button type="button" class="btn btn-primary" @onclick="@DispatchMyListSync">Sync MyList</button>
     <button type="button" class="btn btn-primary" @onclick="@ScheduleNoop">Schedule Noop</button>
     <button type="button" class="btn btn-primary" @onclick="@GetMissingPosters">Get Missing Posters</button>
-    <button type="button" class="btn btn-primary" @onclick="@OpenMalAuthAsync" disabled="@(!NetworkUtility.IsLoopBackAddress(ServerIp))">Auth MAL</button>
+    <button type="button" class="btn btn-primary" @onclick="@OpenMalAuthAsync" disabled="@(!IPAddress.IsLoopback(IPAddress.Parse(ServerIp)))">Auth MAL</button>
     <button type="button" class="btn btn-primary" @onclick="@GetMalListAsync">Get MAL List</button>
     <button type="button" class="btn btn-primary" @onclick="@RestoreFromBackupFileAsync">Restore Backup</button>
 </div>

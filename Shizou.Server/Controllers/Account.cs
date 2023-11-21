@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Data;
-using Shizou.Data.Utilities;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
@@ -48,7 +48,8 @@ public class Account : ControllerBase
     public async Task<Results<Ok<string>, BadRequest<string>, ProblemHttpResult>> SetPassword([FromBody] string? password)
     {
         if (password is null) return TypedResults.BadRequest("Password not supplied");
-        if (!NetworkUtility.IsLoopBackAddress(HttpContext.Request.Host.Host)) return TypedResults.BadRequest("Must be local to change password");
+        if (HttpContext.Connection.RemoteIpAddress is null || !IPAddress.IsLoopback(HttpContext.Connection.RemoteIpAddress))
+            return TypedResults.BadRequest("Must be local to change password");
         var identity = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == "Admin").ConfigureAwait(false);
         IdentityResult result;
         if (identity is null)

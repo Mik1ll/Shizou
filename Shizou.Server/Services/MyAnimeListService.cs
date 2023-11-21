@@ -15,7 +15,6 @@ using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
 using Shizou.Data.Enums.Mal;
 using Shizou.Data.Models;
-using Shizou.Data.Utilities;
 using Shizou.Server.Options;
 using Base64UrlTextEncoder = Microsoft.AspNetCore.Authentication.Base64UrlTextEncoder;
 
@@ -23,12 +22,12 @@ namespace Shizou.Server.Services;
 
 public class MyAnimeListService
 {
-    private string? _codeChallengeAndVerifier;
-    private string? _state;
     private readonly IShizouContextFactory _contextFactory;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<MyAnimeListService> _logger;
     private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
+    private string? _codeChallengeAndVerifier;
+    private string? _state;
 
     public MyAnimeListService(
         ILogger<MyAnimeListService> logger,
@@ -42,6 +41,49 @@ public class MyAnimeListService
         _contextFactory = contextFactory;
     }
 
+    private static void UpsertAnime(IShizouContext context, MalAnime anime)
+    {
+        var eAnime = context.MalAnimes.Find(anime.Id);
+        if (eAnime is null)
+        {
+            context.MalAnimes.Add(anime);
+        }
+        else
+        {
+            context.Entry(eAnime).CurrentValues.SetValues(anime);
+            if (anime.Status is null || eAnime.Status is null)
+                eAnime.Status = anime.Status;
+            else
+                context.Entry(eAnime.Status).CurrentValues.SetValues(anime.Status);
+        }
+    }
+
+    private static MalStatus StatusFromJson(JsonElement listStatus)
+    {
+        var state = listStatus.GetProperty("status").GetString()!;
+        var stateEnum = Enum.Parse<AnimeState>(state.Replace("_", string.Empty), true);
+        var watched = listStatus.GetProperty("num_episodes_watched").GetInt32();
+        var updated = listStatus.GetProperty("updated_at").GetDateTimeOffset();
+        var status = new MalStatus { State = stateEnum, Updated = updated.UtcDateTime, WatchedEpisodes = watched };
+        return status;
+    }
+
+    private static MalAnime AnimeFromJson(JsonElement anime)
+    {
+        var id = anime.GetProperty("id").GetInt32();
+        var title = anime.GetProperty("title").GetString()!;
+        var type = anime.GetProperty("media_type").GetString()!;
+        int? episodeCount = anime.GetProperty("num_episodes").GetInt32() is var num && num > 0 ? num : null;
+
+        var dbAnime = new MalAnime { Id = id, Title = title, AnimeType = type, EpisodeCount = episodeCount };
+        return dbAnime;
+    }
+
+    private static string GetCodeVerifier()
+    {
+        return Base64UrlTextEncoder.Encode(RandomNumberGenerator.GetBytes(32));
+    }
+
     public string? GetAuthenticationUrl(string serverAccessIp)
     {
         var options = _optionsMonitor.CurrentValue.MyAnimeList;
@@ -51,7 +93,7 @@ public class MyAnimeListService
             return null;
         }
 
-        if (!NetworkUtility.IsLoopBackAddress(serverAccessIp))
+        if (!IPAddress.IsLoopback(IPAddress.Parse(serverAccessIp)))
         {
             _logger.LogError("Can only authenticate on localhost due to MAL auth redirect registration");
             return null;
@@ -120,69 +162,6 @@ public class MyAnimeListService
 
         _state = null;
         _codeChallengeAndVerifier = null;
-        return true;
-    }
-
-    private async Task<bool> SaveTokenAsync(HttpResponseMessage result, ShizouOptions options)
-    {
-        var token = await result.Content.ReadFromJsonAsync<TokenResponse>().ConfigureAwait(false);
-        if (token is null)
-        {
-            _logger.LogError("Couldn't get token from response body");
-            return false;
-        }
-
-        var newToken = new MyAnimeListToken(token.access_token,
-            DateTimeOffset.UtcNow + TimeSpan.FromSeconds(token.expires_in),
-            token.refresh_token,
-            DateTimeOffset.UtcNow + TimeSpan.FromDays(31));
-        options.MyAnimeList.MyAnimeListToken = newToken;
-        options.SaveToFile();
-        return true;
-    }
-
-    private async Task<bool> RefreshTokenAsync(ShizouOptions options)
-    {
-        if (options.MyAnimeList.MyAnimeListToken is null)
-        {
-            _logger.LogError("No token to refresh");
-            return false;
-        }
-
-        if (options.MyAnimeList.MyAnimeListToken.RefreshExpiration < DateTimeOffset.UtcNow - TimeSpan.FromMinutes(5))
-        {
-            _logger.LogError("Refresh token is expired, deleting token");
-            options.MyAnimeList.MyAnimeListToken = null;
-            options.SaveToFile();
-            return false;
-        }
-
-        if (options.MyAnimeList.MyAnimeListToken.AccessExpiration > DateTimeOffset.UtcNow + TimeSpan.FromMinutes(5))
-        {
-            _logger.LogDebug("No need to refresh token, not expired");
-            return true;
-        }
-
-        _logger.LogInformation("Refreshing MAL auth token");
-
-        var httpClient = _httpClientFactory.CreateClient();
-        var request = new HttpRequestMessage(HttpMethod.Post, "https://myanimelist.net/v1/oauth2/token")
-        {
-            Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
-            {
-                new("client_id", options.MyAnimeList.ClientId),
-                new("grant_type", "refresh_token"),
-                new("refresh_token", options.MyAnimeList.MyAnimeListToken.RefreshToken)
-            })
-        };
-
-        var result = await httpClient.SendAsync(request).ConfigureAwait(false);
-        if (!HandleStatusCode(result, options))
-            return false;
-
-        if (!await SaveTokenAsync(result, options).ConfigureAwait(false))
-            return false;
-
         return true;
     }
 
@@ -366,42 +345,67 @@ public class MyAnimeListService
         return true;
     }
 
-    private static void UpsertAnime(IShizouContext context, MalAnime anime)
+    private async Task<bool> SaveTokenAsync(HttpResponseMessage result, ShizouOptions options)
     {
-        var eAnime = context.MalAnimes.Find(anime.Id);
-        if (eAnime is null)
+        var token = await result.Content.ReadFromJsonAsync<TokenResponse>().ConfigureAwait(false);
+        if (token is null)
         {
-            context.MalAnimes.Add(anime);
+            _logger.LogError("Couldn't get token from response body");
+            return false;
         }
-        else
-        {
-            context.Entry(eAnime).CurrentValues.SetValues(anime);
-            if (anime.Status is null || eAnime.Status is null)
-                eAnime.Status = anime.Status;
-            else
-                context.Entry(eAnime.Status).CurrentValues.SetValues(anime.Status);
-        }
+
+        var newToken = new MyAnimeListToken(token.access_token,
+            DateTimeOffset.UtcNow + TimeSpan.FromSeconds(token.expires_in),
+            token.refresh_token,
+            DateTimeOffset.UtcNow + TimeSpan.FromDays(31));
+        options.MyAnimeList.MyAnimeListToken = newToken;
+        options.SaveToFile();
+        return true;
     }
 
-    private static MalStatus StatusFromJson(JsonElement listStatus)
+    private async Task<bool> RefreshTokenAsync(ShizouOptions options)
     {
-        var state = listStatus.GetProperty("status").GetString()!;
-        var stateEnum = Enum.Parse<AnimeState>(state.Replace("_", string.Empty), true);
-        var watched = listStatus.GetProperty("num_episodes_watched").GetInt32();
-        var updated = listStatus.GetProperty("updated_at").GetDateTimeOffset();
-        var status = new MalStatus { State = stateEnum, Updated = updated.UtcDateTime, WatchedEpisodes = watched };
-        return status;
-    }
+        if (options.MyAnimeList.MyAnimeListToken is null)
+        {
+            _logger.LogError("No token to refresh");
+            return false;
+        }
 
-    private static MalAnime AnimeFromJson(JsonElement anime)
-    {
-        var id = anime.GetProperty("id").GetInt32();
-        var title = anime.GetProperty("title").GetString()!;
-        var type = anime.GetProperty("media_type").GetString()!;
-        int? episodeCount = anime.GetProperty("num_episodes").GetInt32() is var num && num > 0 ? num : null;
+        if (options.MyAnimeList.MyAnimeListToken.RefreshExpiration < DateTimeOffset.UtcNow - TimeSpan.FromMinutes(5))
+        {
+            _logger.LogError("Refresh token is expired, deleting token");
+            options.MyAnimeList.MyAnimeListToken = null;
+            options.SaveToFile();
+            return false;
+        }
 
-        var dbAnime = new MalAnime { Id = id, Title = title, AnimeType = type, EpisodeCount = episodeCount };
-        return dbAnime;
+        if (options.MyAnimeList.MyAnimeListToken.AccessExpiration > DateTimeOffset.UtcNow + TimeSpan.FromMinutes(5))
+        {
+            _logger.LogDebug("No need to refresh token, not expired");
+            return true;
+        }
+
+        _logger.LogInformation("Refreshing MAL auth token");
+
+        var httpClient = _httpClientFactory.CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://myanimelist.net/v1/oauth2/token")
+        {
+            Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+            {
+                new("client_id", options.MyAnimeList.ClientId),
+                new("grant_type", "refresh_token"),
+                new("refresh_token", options.MyAnimeList.MyAnimeListToken.RefreshToken)
+            })
+        };
+
+        var result = await httpClient.SendAsync(request).ConfigureAwait(false);
+        if (!HandleStatusCode(result, options))
+            return false;
+
+        if (!await SaveTokenAsync(result, options).ConfigureAwait(false))
+            return false;
+
+        return true;
     }
 
     private bool HandleStatusCode(HttpResponseMessage result, ShizouOptions options)
@@ -419,11 +423,6 @@ public class MyAnimeListService
         }
 
         return true;
-    }
-
-    private static string GetCodeVerifier()
-    {
-        return Base64UrlTextEncoder.Encode(RandomNumberGenerator.GetBytes(32));
     }
 
 
