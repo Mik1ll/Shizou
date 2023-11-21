@@ -146,14 +146,10 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         return context.CommandRequests.ByQueueOrdered(QueueType).AsNoTracking().ToList();
     }
 
-    protected virtual void ShutdownInner()
-    {
-    }
+    protected virtual Task OnShutdownAsync() => Task.CompletedTask;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        stoppingToken.Register(Shutdown);
-
         while (!stoppingToken.IsCancellationRequested)
         {
             using var context = _contextFactory.CreateDbContext();
@@ -240,6 +236,9 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 }
             }
         }
+
+        Logger.LogDebug("Processor shutting down");
+        await OnShutdownAsync().ConfigureAwait(false);
     }
 
     private void WakeUp()
@@ -258,12 +257,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     private void UpdateCommandsInQueue(IShizouContext context)
     {
         CommandsInQueue = context.CommandRequests.ByQueue(QueueType).Count();
-    }
-
-    private void Shutdown()
-    {
-        Logger.LogDebug("Processor shutting down");
-        ShutdownInner();
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

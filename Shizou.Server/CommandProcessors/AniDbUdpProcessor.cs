@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
@@ -38,11 +39,11 @@ public class AniDbUdpProcessor : CommandProcessor
         protected set => base.PauseReason = value;
     }
 
-    protected override void ShutdownInner()
+    protected override async Task OnShutdownAsync()
     {
         try
         {
-            _aniDbUdpState.LogoutAsync();
+            await _aniDbUdpState.LogoutAsync().ConfigureAwait(false);
         }
         catch (AniDbUdpRequestException)
         {
