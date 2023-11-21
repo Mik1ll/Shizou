@@ -36,5 +36,5 @@ public class AniDbEpisode
     public List<AniDbFile> AniDbFiles { get; set; } = default!;
 
     [JsonIgnore]
-    public required EpisodeWatchedState EpisodeWatchedState { get; set; }
+    public EpisodeWatchedState EpisodeWatchedState { get; set; } = default!;
 }

@@ -42,7 +42,7 @@ public class AniDbFile
     public List<AniDbEpisode> AniDbEpisodes { get; set; } = default!;
 
     [JsonIgnore]
-    public required FileWatchedState FileWatchedState { get; set; }
+    public FileWatchedState FileWatchedState { get; set; } = default!;
 
     [JsonIgnore]
     public List<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; set; } = default!;
