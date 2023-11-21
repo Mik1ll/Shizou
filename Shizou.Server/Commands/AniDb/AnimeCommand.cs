@@ -17,9 +17,9 @@ using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
+[Command(typeof(AnimeCommand), CommandPriority.Normal, QueueType.AniDbHttp)]
 public record AnimeArgs(int AnimeId, int? FetchRelationDepth = null) : CommandArgs($"{nameof(AnimeCommand)}_{AnimeId}_{FetchRelationDepth}");
 
-[Command(CommandType.GetAnime, CommandPriority.Normal, QueueType.AniDbHttp)]
 public class AnimeCommand : Command<AnimeArgs>
 {
     private readonly ILogger<AnimeCommand> _logger;
@@ -29,8 +29,8 @@ public class AnimeCommand : Command<AnimeArgs>
     private readonly MyAnimeListService _myAnimeListService;
     private readonly IAnimeRequest _animeRequest;
     private readonly CommandService _commandService;
-    private string _animeCacheFilename = null!;
     private readonly ShizouOptions _options;
+    private string _animeCacheFilename = null!;
 
     public AnimeCommand(
         ILogger<AnimeCommand> logger,
@@ -50,6 +50,64 @@ public class AnimeCommand : Command<AnimeArgs>
         _animeRequest = animeRequest;
         _commandService = commandService;
         _options = optionsSnapshot.Value;
+    }
+
+    private static AniDbAnime AnimeResultToAniDbAnime(AnimeResult animeResult)
+    {
+        var mainTitle = animeResult.Titles.First(t => t.Type == "main");
+        var originalLangPrefix = mainTitle.Lang switch
+        {
+            "x-jat" => "ja",
+            "x-zht" => "zh-Han",
+            "x-kot" => "ko",
+            "x-tht" => "th",
+            _ => "none"
+        };
+        var newAniDbAnime = new AniDbAnime
+        {
+            Id = animeResult.Id,
+            Description = animeResult.Description,
+            Restricted = animeResult.Restricted,
+            AirDate = animeResult.Startdate,
+            EndDate = animeResult.Enddate,
+            AnimeType = animeResult.Type,
+            EpisodeCount = animeResult.Episodecount,
+            ImageFilename = animeResult.Picture,
+            TitleTranscription = mainTitle.Text,
+            TitleOriginal = animeResult.Titles
+                .FirstOrDefault(t => t.Type == "official" && t.Lang.StartsWith(originalLangPrefix, StringComparison.OrdinalIgnoreCase))
+                ?.Text,
+            TitleEngish = animeResult.Titles.FirstOrDefault(t => t is { Type: "official", Lang: "en" })?.Text,
+            AniDbEpisodes = animeResult.Episodes.Select(e => new AniDbEpisode
+            {
+                AniDbAnimeId = animeResult.Id,
+                Id = e.Id,
+                DurationMinutes = e.Length,
+                Number = EpisodeTypeExtensions.ParseEpisode(e.Epno.Text)
+                    .number,
+                EpisodeType = e.Epno.Type,
+                AirDate = string.IsNullOrEmpty(e.Airdate)
+                    ? null
+                    : DateTime.Parse(e.Airdate,
+                        styles: DateTimeStyles.AssumeUniversal),
+                Summary = e.Summary,
+                Updated = DateTime.UtcNow,
+                TitleEnglish = e.Title.First(t => t.Lang == "en")
+                    .Text,
+                TitleTranscription = e.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == mainTitle.Lang)
+                    ?.Text,
+                TitleOriginal = e.Title.FirstOrDefault(t => t.Lang.StartsWith(originalLangPrefix, StringComparison.OrdinalIgnoreCase))
+                    ?.Text,
+                EpisodeWatchedState = new EpisodeWatchedState
+                {
+                    AniDbEpisodeId = e.Id,
+                    Watched = false,
+                    WatchedUpdated = null
+                }
+            }).ToList(),
+            Updated = DateTime.UtcNow
+        };
+        return newAniDbAnime;
     }
 
     public override void SetParameters(CommandArgs args)
@@ -133,64 +191,6 @@ public class AnimeCommand : Command<AnimeArgs>
                 .Select(r => r.ToAnimeId).ToList();
             _commandService.DispatchRange(missingAnime.Select(aid => new AnimeArgs(aid, fetchDepth - 1)));
         }
-    }
-
-    private static AniDbAnime AnimeResultToAniDbAnime(AnimeResult animeResult)
-    {
-        var mainTitle = animeResult.Titles.First(t => t.Type == "main");
-        var originalLangPrefix = mainTitle.Lang switch
-        {
-            "x-jat" => "ja",
-            "x-zht" => "zh-Han",
-            "x-kot" => "ko",
-            "x-tht" => "th",
-            _ => "none"
-        };
-        var newAniDbAnime = new AniDbAnime
-        {
-            Id = animeResult.Id,
-            Description = animeResult.Description,
-            Restricted = animeResult.Restricted,
-            AirDate = animeResult.Startdate,
-            EndDate = animeResult.Enddate,
-            AnimeType = animeResult.Type,
-            EpisodeCount = animeResult.Episodecount,
-            ImageFilename = animeResult.Picture,
-            TitleTranscription = mainTitle.Text,
-            TitleOriginal = animeResult.Titles
-                .FirstOrDefault(t => t.Type == "official" && t.Lang.StartsWith(originalLangPrefix, StringComparison.OrdinalIgnoreCase))
-                ?.Text,
-            TitleEngish = animeResult.Titles.FirstOrDefault(t => t is { Type: "official", Lang: "en" })?.Text,
-            AniDbEpisodes = animeResult.Episodes.Select(e => new AniDbEpisode
-            {
-                AniDbAnimeId = animeResult.Id,
-                Id = e.Id,
-                DurationMinutes = e.Length,
-                Number = EpisodeTypeExtensions.ParseEpisode(e.Epno.Text)
-                    .number,
-                EpisodeType = e.Epno.Type,
-                AirDate = string.IsNullOrEmpty(e.Airdate)
-                    ? null
-                    : DateTime.Parse(e.Airdate,
-                        styles: DateTimeStyles.AssumeUniversal),
-                Summary = e.Summary,
-                Updated = DateTime.UtcNow,
-                TitleEnglish = e.Title.First(t => t.Lang == "en")
-                    .Text,
-                TitleTranscription = e.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == mainTitle.Lang)
-                    ?.Text,
-                TitleOriginal = e.Title.FirstOrDefault(t => t.Lang.StartsWith(originalLangPrefix, StringComparison.OrdinalIgnoreCase))
-                    ?.Text,
-                EpisodeWatchedState = new EpisodeWatchedState
-                {
-                    AniDbEpisodeId = e.Id,
-                    Watched = false,
-                    WatchedUpdated = null
-                }
-            }).ToList(),
-            Updated = DateTime.UtcNow
-        };
-        return newAniDbAnime;
     }
 
     private async Task<AnimeResult?> GetAnimeAsync()

@@ -18,9 +18,9 @@ using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
+[Command(typeof(SyncMyListCommand), CommandPriority.Low, QueueType.AniDbHttp)]
 public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}");
 
-[Command(CommandType.SyncMyList, CommandPriority.Low, QueueType.AniDbHttp)]
 public class SyncMyListCommand : Command<SyncMyListArgs>
 {
     private readonly CommandService _commandService;
@@ -43,6 +43,55 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         _commandService = commandService;
         _myListRequest = myListRequest;
         _options = options.Value;
+    }
+
+    private static List<MyListItem> MyListResultToMyListItems(MyListResult myListResult)
+    {
+        return myListResult.MyListItems.GroupBy(i => i.Id).Select(g =>
+        {
+            var list = g.ToList();
+            var first = list.First();
+            return new MyListItem(first.State, first.FileState, first.Id, list.Select(i => i.Aid).ToHashSet(),
+                list.Select(i => i.Eid).ToHashSet(), first.Fid, DateOnly.ParseExact(first.Updated, "yyyy-MM-dd"),
+                first.Viewdate is null ? null : DateTimeOffset.Parse(first.Viewdate));
+        }).ToList();
+    }
+
+    private static void CombineUpdates(List<MyListItem> myListItems, List<UpdateMyListArgs> toUpdate)
+    {
+        foreach (var aGroup in from i in myListItems
+                 group i by i.Aids.First()
+                 into aGroup
+                 where aGroup.All(i => i.Aids.Count == 1)
+                 select aGroup)
+        {
+            var items = aGroup.ToList();
+            var updateItems = (from i in items
+                join u in toUpdate
+                    on i.Id equals u.Lid into lj
+                select new { i, u = lj.SingleOrDefault() }).ToList();
+            var updates = updateItems.Where(ui => ui.u is not null).Select(ui => ui.u).ToList();
+            if (updates.Count <= 1)
+                continue;
+            var newStates = updateItems.Select(ui => new
+            {
+                State = ui.u?.MyListState!.Value ?? ui.i.State, Watched = ui.u?.Watched ?? ui.i.Viewdate is not null,
+                WatchedDate = ui.u?.Watched is null ? ui.i.Viewdate : ui.u.WatchedDate
+            }).ToList();
+            var firstUpdate = updates.First();
+            if (newStates.All(s => s.State == firstUpdate.MyListState) && updates.All(u => u.Watched is null))
+            {
+                foreach (var u in updates)
+                    toUpdate.Remove(u);
+                toUpdate.Add(new UpdateMyListArgs(true, firstUpdate.MyListState, Aid: aGroup.Key, EpNo: "0"));
+            }
+            else if (newStates.All(s => s.State == firstUpdate.MyListState && s.Watched == firstUpdate.Watched && s.WatchedDate == firstUpdate.WatchedDate))
+            {
+                foreach (var u in updates)
+                    toUpdate.Remove(u);
+                toUpdate.Add(new UpdateMyListArgs(true, firstUpdate.MyListState, firstUpdate.Watched, firstUpdate.WatchedDate, Aid: aGroup.Key, EpNo: "0"));
+            }
+        }
     }
 
     protected override async Task ProcessInnerAsync()
@@ -100,18 +149,6 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         _context.SaveChanges();
 
         _commandService.DispatchRange(animeToAdd.Select(aid => new AnimeArgs(aid)));
-    }
-
-    private static List<MyListItem> MyListResultToMyListItems(MyListResult myListResult)
-    {
-        return myListResult.MyListItems.GroupBy(i => i.Id).Select(g =>
-        {
-            var list = g.ToList();
-            var first = list.First();
-            return new MyListItem(first.State, first.FileState, first.Id, list.Select(i => i.Aid).ToHashSet(),
-                list.Select(i => i.Eid).ToHashSet(), first.Fid, DateOnly.ParseExact(first.Updated, "yyyy-MM-dd"),
-                first.Viewdate is null ? null : DateTimeOffset.Parse(first.Viewdate));
-        }).ToList();
     }
 
     [SuppressMessage("ReSharper.DPA", "DPA0007: Large number of DB records", MessageId = "count: 2000")]
@@ -176,43 +213,6 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
 
         _commandService.DispatchRange(toUpdate);
         _commandService.DispatchRange(toProcess);
-    }
-
-    private static void CombineUpdates(List<MyListItem> myListItems, List<UpdateMyListArgs> toUpdate)
-    {
-        foreach (var aGroup in from i in myListItems
-                 group i by i.Aids.First()
-                 into aGroup
-                 where aGroup.All(i => i.Aids.Count == 1)
-                 select aGroup)
-        {
-            var items = aGroup.ToList();
-            var updateItems = (from i in items
-                join u in toUpdate
-                    on i.Id equals u.Lid into lj
-                select new { i, u = lj.SingleOrDefault() }).ToList();
-            var updates = updateItems.Where(ui => ui.u is not null).Select(ui => ui.u).ToList();
-            if (updates.Count <= 1)
-                continue;
-            var newStates = updateItems.Select(ui => new
-            {
-                State = ui.u?.MyListState!.Value ?? ui.i.State, Watched = ui.u?.Watched ?? ui.i.Viewdate is not null,
-                WatchedDate = ui.u?.Watched is null ? ui.i.Viewdate : ui.u.WatchedDate
-            }).ToList();
-            var firstUpdate = updates.First();
-            if (newStates.All(s => s.State == firstUpdate.MyListState) && updates.All(u => u.Watched is null))
-            {
-                foreach (var u in updates)
-                    toUpdate.Remove(u);
-                toUpdate.Add(new UpdateMyListArgs(true, firstUpdate.MyListState, Aid: aGroup.Key, EpNo: "0"));
-            }
-            else if (newStates.All(s => s.State == firstUpdate.MyListState && s.Watched == firstUpdate.Watched && s.WatchedDate == firstUpdate.WatchedDate))
-            {
-                foreach (var u in updates)
-                    toUpdate.Remove(u);
-                toUpdate.Add(new UpdateMyListArgs(true, firstUpdate.MyListState, firstUpdate.Watched, firstUpdate.WatchedDate, Aid: aGroup.Key, EpNo: "0"));
-            }
-        }
     }
 
     private async Task<MyListResult?> GetMyListAsync()

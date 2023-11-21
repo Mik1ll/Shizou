@@ -16,13 +16,6 @@ namespace Shizou.Server.Services;
 
 public class CommandService
 {
-    private static readonly IList<(CommandAttribute Attr, Type Type, Type ArgsType)> Commands =
-        (from type in Assembly.GetExecutingAssembly().GetTypes()
-            let cmdAttr = type.GetCustomAttribute<CommandAttribute>()
-            where cmdAttr is not null
-            let argsType = type.BaseType!.GetGenericArguments()[0]
-            select (cmdAttr, type, argsType)).ToList();
-
     private readonly IShizouContextFactory _contextFactory;
     private readonly ILogger<CommandService> _logger;
     private readonly List<CommandProcessor> _processors;
@@ -62,7 +55,6 @@ public class CommandService
             NextRunTime = nextRun.UtcDateTime,
             RunsLeft = runTimes,
             FrequencyMinutes = frequency?.TotalMinutes,
-            Type = cmdRequest.Type,
             Priority = cmdRequest.Priority,
             QueueType = cmdRequest.QueueType,
             CommandId = cmdRequest.CommandId,
@@ -105,9 +97,9 @@ public class CommandService
 
     public ICommand<CommandArgs> CommandFromRequest(CommandRequest commandRequest, IServiceScope serviceScope)
     {
-        var (_, type, argsType) = Commands.Single(x => commandRequest.Type == x.Attr.Type);
-        var args = (CommandArgs)JsonSerializer.Deserialize(commandRequest.CommandArgs, argsType)!;
-        var cmd = (ICommand<CommandArgs>)serviceScope.ServiceProvider.GetRequiredService(type);
+        var args = JsonSerializer.Deserialize(commandRequest.CommandArgs, CommandArgs.GetJsonTypeInfo())!;
+        var cmdType = args.GetType().GetCustomAttribute<CommandAttribute>()!.CommandType;
+        var cmd = (ICommand<CommandArgs>)serviceScope.ServiceProvider.GetRequiredService(cmdType);
         cmd.SetParameters(args);
         return cmd;
     }
@@ -115,21 +107,19 @@ public class CommandService
     private CommandRequest RequestFromArgs(CommandArgs commandArgs)
     {
         var argType = commandArgs.GetType();
-        var commandAttr = Commands.Single(x => x.ArgsType == argType).Attr;
+        var commandAttr = argType.GetCustomAttribute<CommandAttribute>()!;
         return new CommandRequest
         {
-            Type = commandAttr.Type,
             Priority = commandAttr.Priority,
             QueueType = commandAttr.QueueType,
             CommandId = commandArgs.CommandId,
-            CommandArgs = JsonSerializer.Serialize(commandArgs, argType)
+            CommandArgs = JsonSerializer.Serialize(commandArgs, CommandArgs.GetJsonTypeInfo())
         };
     }
 
     private CommandArgs ArgsFromScheduledCommand(ScheduledCommand scheduledCommand)
     {
-        var (_, _, argsType) = Commands.Single(x => scheduledCommand.Type == x.Attr.Type);
-        var args = (CommandArgs)JsonSerializer.Deserialize(scheduledCommand.CommandArgs, argsType)!;
+        var args = JsonSerializer.Deserialize(scheduledCommand.CommandArgs, CommandArgs.GetJsonTypeInfo())!;
         return args;
     }
 }

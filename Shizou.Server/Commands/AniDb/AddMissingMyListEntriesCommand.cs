@@ -8,9 +8,9 @@ using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
+[Command(typeof(AddMissingMyListEntriesCommand), CommandPriority.Low, QueueType.AniDbUdp)]
 public sealed record AddMissingMyListEntriesArgs() : CommandArgs($"{nameof(AddMissingMyListEntriesCommand)}");
 
-[Command(CommandType.AddMissingMyListEntries, CommandPriority.Low, QueueType.AniDbUdp)]
 public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArgs>
 {
     private readonly CommandService _commandService;
@@ -39,7 +39,7 @@ public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArg
             select new { Fid = ws.AniDbFileId!.Value, ws.Watched, ws.WatchedUpdated }).ToList();
 
         var episodesWithMissingGenericFile = (from ep in _context.AniDbEpisodes
-            where ep.ManualLinkLocalFiles.Any() && ep.EpisodeWatchedState.AniDbFileId == null 
+            where ep.ManualLinkLocalFiles.Any() && ep.EpisodeWatchedState.AniDbFileId == null
             select new { ep.AniDbAnimeId, ep.EpisodeType, ep.Number, ep.EpisodeWatchedState.Watched, ep.EpisodeWatchedState.WatchedUpdated }).ToList();
 
         _commandService.DispatchRange(filesMissingMyListId.Union(genericFilesMissingMyListId).Select(f =>

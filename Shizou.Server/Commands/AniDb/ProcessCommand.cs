@@ -16,9 +16,9 @@ using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
+[Command(typeof(ProcessCommand), CommandPriority.Normal, QueueType.AniDbUdp)]
 public sealed record ProcessArgs(int Id, IdTypeLocalFile IdType) : CommandArgs($"{nameof(ProcessCommand)}_id={Id}_type={IdType}");
 
-[Command(CommandType.GetFile, CommandPriority.Normal, QueueType.AniDbUdp)]
 public class ProcessCommand : Command<ProcessArgs>
 {
     private readonly CommandService _commandService;

@@ -7,7 +7,6 @@ namespace Shizou.Data.Models;
 public class CommandRequest
 {
     public int Id { get; set; }
-    public required CommandType Type { get; set; }
     public required CommandPriority Priority { get; set; }
     public required QueueType QueueType { get; set; }
     public required string CommandId { get; set; }

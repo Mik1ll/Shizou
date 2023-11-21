@@ -6,14 +6,14 @@ namespace Shizou.Server.Commands;
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class CommandAttribute : Attribute
 {
-    public CommandAttribute(CommandType type, CommandPriority priority, QueueType queueType)
+    public CommandAttribute(Type commandType, CommandPriority priority, QueueType queueType)
     {
-        Type = type;
+        CommandType = commandType;
         Priority = priority;
         QueueType = queueType;
     }
 
-    public CommandType Type { get; }
+    public Type CommandType { get; }
     public CommandPriority Priority { get; }
     public QueueType QueueType { get; }
 }

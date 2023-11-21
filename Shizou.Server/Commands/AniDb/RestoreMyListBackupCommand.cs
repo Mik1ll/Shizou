@@ -19,9 +19,9 @@ using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
 
+[Command(typeof(RestoreMyListBackupCommand), CommandPriority.Low, QueueType.AniDbHttp)]
 public record RestoreMyListBackupArgs(DateOnly? Date = null, string? Path = null) : CommandArgs($"{nameof(RestoreMyListBackupCommand)}");
 
-[Command(CommandType.RestoreMyListBackup, CommandPriority.Low, QueueType.AniDbHttp)]
 public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
 {
     private readonly CommandService _commandService;

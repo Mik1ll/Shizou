@@ -11,8 +11,6 @@ public class ScheduledCommand
     public required DateTime NextRunTime { get; set; }
     public int? RunsLeft { get; set; }
     public double? FrequencyMinutes { get; set; }
-
-    public required CommandType Type { get; set; }
     public required CommandPriority Priority { get; set; }
     public required QueueType QueueType { get; set; }
     public required string CommandId { get; set; }
