@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Linq;
-using Shizou.Data.Enums;
 using Shizou.Data.Models;
 
 namespace Shizou.Server.Extensions.Query;
 
 public static class ScheduledCommandsExtensions
 {
-    public static IQueryable<ScheduledCommand> DueCommands(this IQueryable<ScheduledCommand> query, QueueType queueType)
+    public static IQueryable<ScheduledCommand> DueCommands(this IQueryable<ScheduledCommand> query)
     {
         return from cq in query
-            where cq.QueueType == queueType && cq.NextRunTime < DateTime.UtcNow
+            where cq.NextRunTime < DateTime.UtcNow
             select cq;
     }
 }

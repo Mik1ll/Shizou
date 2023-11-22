@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
-using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.CommandProcessors;
 using Shizou.Server.Commands;
@@ -12,7 +14,7 @@ using Shizou.Server.Extensions.Query;
 
 namespace Shizou.Server.Services;
 
-public class CommandService
+public class CommandService : BackgroundService
 {
     private readonly IShizouContextFactory _contextFactory;
     private readonly ILogger<CommandService> _logger;
@@ -46,7 +48,6 @@ public class CommandService
     public void ScheduleCommand<TArgs>(TArgs commandArgs, int? runTimes, DateTimeOffset nextRun, TimeSpan? frequency)
         where TArgs : CommandArgs
     {
-        using var context = _contextFactory.CreateDbContext();
         var cmdRequest = commandArgs.CommandRequest;
         var scheduledCommand = new ScheduledCommand
         {
@@ -58,25 +59,35 @@ public class CommandService
             CommandId = cmdRequest.CommandId,
             CommandArgs = cmdRequest.CommandArgs
         };
-        if (!context.ScheduledCommands.Any(cr => cr.CommandId == scheduledCommand.CommandId))
-        {
-            context.ScheduledCommands.Add(scheduledCommand);
-            context.SaveChanges();
-            _logger.LogInformation("Command {CommandId} scheduled for {RunTimes} runs, starting at {NextRun}, every {Frequency} minutes",
-                scheduledCommand.CommandId, runTimes, nextRun.LocalDateTime, frequency?.TotalMinutes);
-        }
-        else
+        using var context = _contextFactory.CreateDbContext();
+        using var trans = context.Database.BeginTransaction();
+        if (context.ScheduledCommands.Any(cr => cr.CommandId == scheduledCommand.CommandId))
         {
             _logger.LogWarning("Command {CommandId} already scheduled, ignoring", scheduledCommand.CommandId);
+            return;
         }
+
+        context.ScheduledCommands.Add(scheduledCommand);
+        context.SaveChanges();
+        trans.Commit();
+        _logger.LogInformation("Command {CommandId} scheduled for {RunTimes} runs, starting at {NextRun}, every {Frequency} minutes",
+            scheduledCommand.CommandId, runTimes, nextRun.LocalDateTime, frequency?.TotalMinutes);
     }
 
-    public void CreateScheduledCommands(QueueType queueType)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
+        while (await timer.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false))
+            CreateScheduledCommands();
+    }
+
+    private void CreateScheduledCommands()
     {
         using var context = _contextFactory.CreateDbContext();
-        var scheduledCommands = context.ScheduledCommands.DueCommands(queueType).ToList();
+        var scheduledCommands = context.ScheduledCommands.DueCommands().ToList();
         if (scheduledCommands.Count == 0)
             return;
+        _logger.LogInformation("Dispatching {Count} scheduled commands", scheduledCommands.Count);
         var commandArgs = scheduledCommands.Select(sc =>
             JsonSerializer.Deserialize(sc.CommandArgs, CommandArgs.GetJsonTypeInfo())!).ToList();
         DispatchRange(commandArgs);

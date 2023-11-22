@@ -1,10 +1,8 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi;
-using Shizou.Server.Services;
 
 namespace Shizou.Server.CommandProcessors;
 
@@ -13,8 +11,8 @@ public class AniDbHttpProcessor : CommandProcessor
     private readonly AniDbHttpState _httpState;
 
     public AniDbHttpProcessor(ILogger<AniDbHttpProcessor> logger, AniDbHttpState httpState,
-        IShizouContextFactory contextFactory, IServiceScopeFactory scopeFactory, Func<CommandService> commandServiceFactory) : base(logger,
-        QueueType.AniDbHttp, contextFactory, scopeFactory, commandServiceFactory)
+        IShizouContextFactory contextFactory, IServiceScopeFactory scopeFactory) : base(logger,
+        QueueType.AniDbHttp, contextFactory, scopeFactory)
     {
         _httpState = httpState;
     }

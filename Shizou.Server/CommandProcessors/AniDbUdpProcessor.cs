@@ -1,12 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi;
 using Shizou.Server.Exceptions;
-using Shizou.Server.Services;
 
 namespace Shizou.Server.CommandProcessors;
 
@@ -15,8 +13,8 @@ public class AniDbUdpProcessor : CommandProcessor
     private readonly AniDbUdpState _aniDbUdpState;
 
     public AniDbUdpProcessor(ILogger<AniDbUdpProcessor> logger, AniDbUdpState aniDbUdpState,
-        IShizouContextFactory contextFactory, IServiceScopeFactory scopeFactory, Func<CommandService> commandServiceFactory)
-        : base(logger, QueueType.AniDbUdp, contextFactory, scopeFactory, commandServiceFactory)
+        IShizouContextFactory contextFactory, IServiceScopeFactory scopeFactory)
+        : base(logger, QueueType.AniDbUdp, contextFactory, scopeFactory)
     {
         _aniDbUdpState = aniDbUdpState;
     }

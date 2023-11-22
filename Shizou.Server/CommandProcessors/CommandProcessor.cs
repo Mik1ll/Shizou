@@ -17,13 +17,11 @@ using Shizou.Data.Models;
 using Shizou.Server.Commands;
 using Shizou.Server.Extensions;
 using Shizou.Server.Extensions.Query;
-using Shizou.Server.Services;
 
 namespace Shizou.Server.CommandProcessors;
 
 public abstract class CommandProcessor : BackgroundService, INotifyPropertyChanged
 {
-    private readonly Func<CommandService> _commandServiceFactory;
     private readonly IShizouContextFactory _contextFactory;
     private readonly IServiceScopeFactory _scopeFactory;
     private int _commandsInQueue;
@@ -35,13 +33,11 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     protected CommandProcessor(ILogger<CommandProcessor> logger,
         QueueType queueType,
         IShizouContextFactory contextFactory,
-        IServiceScopeFactory scopeFactory,
-        Func<CommandService> commandServiceFactory)
+        IServiceScopeFactory scopeFactory)
     {
         Logger = logger;
         _contextFactory = contextFactory;
         _scopeFactory = scopeFactory;
-        _commandServiceFactory = commandServiceFactory;
         QueueType = queueType;
     }
 
@@ -177,10 +173,8 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         while (!stoppingToken.IsCancellationRequested)
         {
             using var context = _contextFactory.CreateDbContext();
-            var commandService = _commandServiceFactory();
             using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
             {
-                commandService.CreateScheduledCommands(QueueType);
                 UpdateCommandsInQueue(context);
             }
 
