@@ -30,15 +30,19 @@
 }
 <component type="typeof(App)" render-mode="Server" param-IdentityCookie="@identityCookie" param-ServerIp="@serverIp"/>
 
-<div id="blazor-error-ui">
-    <environment include="Staging,Production">
-        An error has occurred. This application may no longer respond until reloaded.
-    </environment>
-    <environment include="Development">
-        An unhandled exception has occurred. See browser dev tools for details.
-    </environment>
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
+<div id="blazor-error-ui" class="offcanvas offcanvas-bottom bg-danger" style="display:none;transform:none;visibility:visible;height:unset;z-index:5000">
+    <div class="d-flex flex-row p-3">
+        <div class="flex-grow-1">
+            <environment include="Staging,Production">
+                An error has occurred. This application may no longer respond until reloaded.
+            </environment>
+            <environment include="Development">
+                An unhandled exception has occurred. See browser dev tools for details.
+            </environment>
+            <a href="javascript:window.location.href='/'">Reload</a>
+        </div>
+        <button type="button" class="btn btn-close"></button>
+    </div>
 </div>
 
 <script src="lib/bootstrap/js/bootstrap.bundle.min.js"></script>
