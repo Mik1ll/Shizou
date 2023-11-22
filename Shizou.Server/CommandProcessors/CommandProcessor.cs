@@ -118,18 +118,41 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     public void QueueCommand(CommandRequest cmdRequest)
     {
         using var context = _contextFactory.CreateDbContext();
-        if (!context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
+        using var trans = context.Database.BeginTransaction();
+        if (context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
         {
+            Logger.LogInformation("Command {CommandId} already queued", cmdRequest.CommandId);
+            return;
+        }
+
+        context.CommandRequests.Add(cmdRequest);
+        context.SaveChanges();
+        CommandsInQueue++;
+        trans.Commit();
+        Logger.LogInformation("Command {CommandId} queued", cmdRequest.CommandId);
+        WakeUp();
+    }
+
+    public void QueueCommands(IEnumerable<CommandRequest> cmdRequests)
+    {
+        using var context = _contextFactory.CreateDbContext();
+        using var trans = context.Database.BeginTransaction();
+        foreach (var cmdRequest in cmdRequests)
+        {
+            if (context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
+            {
+                Logger.LogInformation("Command {CommandId} already queued", cmdRequest.CommandId);
+                continue;
+            }
+
             context.CommandRequests.Add(cmdRequest);
             context.SaveChanges();
             CommandsInQueue++;
-            WakeUp();
             Logger.LogInformation("Command {CommandId} queued", cmdRequest.CommandId);
         }
-        else
-        {
-            Logger.LogInformation("Command {CommandId} already queued", cmdRequest.CommandId);
-        }
+
+        trans.Commit();
+        WakeUp();
     }
 
     public void ClearQueue()

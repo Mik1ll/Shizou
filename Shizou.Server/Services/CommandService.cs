@@ -35,11 +35,12 @@ public class CommandService
         processor.QueueCommand(commandArgs.CommandRequest);
     }
 
-    public void DispatchRange<TArgs>(IEnumerable<TArgs> commandArgsEnumerable)
+    public void DispatchRange<TArgs>(IEnumerable<TArgs> commandArgs)
         where TArgs : CommandArgs
     {
-        foreach (var cmdArgs in commandArgsEnumerable)
-            Dispatch(cmdArgs);
+        var grouped = commandArgs.Select(a => a.CommandRequest).GroupBy(a => a.QueueType);
+        foreach (var group in grouped)
+            _processors.Single(p => p.QueueType == group.Key).QueueCommands(group);
     }
 
     public void ScheduleCommand<TArgs>(TArgs commandArgs, int? runTimes, DateTimeOffset nextRun, TimeSpan? frequency)
