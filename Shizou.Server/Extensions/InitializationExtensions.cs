@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json.Serialization;
@@ -220,9 +219,10 @@ public static class InitializationExtensions
     private static IServiceCollection AddProcessor<TProcessor>(this IServiceCollection services, QueueType queueType)
         where TProcessor : CommandProcessor
     {
-        services.AddSingleton<CommandProcessor, TProcessor>()
-            .AddSingleton(p => (TProcessor)p.GetServices<CommandProcessor>().First(s => s.QueueType == queueType))
-            .AddSingleton<IHostedService>(p => p.GetServices<CommandProcessor>().First(s => s.QueueType == queueType));
+        services
+            .AddSingleton<TProcessor>()
+            .AddHostedService<TProcessor>(p => p.GetRequiredService<TProcessor>())
+            .AddSingleton<CommandProcessor, TProcessor>(p => p.GetRequiredService<TProcessor>());
         return services;
     }
 
