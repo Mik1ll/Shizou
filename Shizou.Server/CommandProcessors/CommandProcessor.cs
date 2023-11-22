@@ -202,11 +202,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 LastThreeCommands.Enqueue(CurrentCommand.CommandId);
                 while (LastThreeCommands.Count > 3)
                     LastThreeCommands.Dequeue();
-                var task = CurrentCommand.ProcessAsync();
-                await task.WaitAsync(stoppingToken).ConfigureAwait(false);
-            }
-            catch (TaskCanceledException)
-            {
+                await CurrentCommand.ProcessAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
