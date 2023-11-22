@@ -18,7 +18,6 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using Shizou.Data;
 using Shizou.Data.Database;
-using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi;
 using Shizou.Server.AniDbApi.RateLimiters;
 using Shizou.Server.AniDbApi.Requests.Http;
@@ -158,11 +157,11 @@ public static class InitializationExtensions
 
     public static IServiceCollection AddShizouProcessors(this IServiceCollection services)
     {
-        services.AddProcessor<AniDbUdpProcessor>(QueueType.AniDbUdp)
-            .AddProcessor<HashProcessor>(QueueType.Hash)
-            .AddProcessor<AniDbHttpProcessor>(QueueType.AniDbHttp)
-            .AddProcessor<GeneralProcessor>(QueueType.General)
-            .AddProcessor<ImageProcessor>(QueueType.Image)
+        services.AddProcessor<AniDbUdpProcessor>()
+            .AddProcessor<HashProcessor>()
+            .AddProcessor<AniDbHttpProcessor>()
+            .AddProcessor<GeneralProcessor>()
+            .AddProcessor<ImageProcessor>()
             .Configure<HostOptions>(opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(30));
         return services;
     }
@@ -224,7 +223,7 @@ public static class InitializationExtensions
     }
 
     // ReSharper disable once UnusedMethodReturnValue.Local
-    private static IServiceCollection AddProcessor<TProcessor>(this IServiceCollection services, QueueType queueType)
+    private static IServiceCollection AddProcessor<TProcessor>(this IServiceCollection services)
         where TProcessor : CommandProcessor
     {
         services
