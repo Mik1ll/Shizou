@@ -15,7 +15,8 @@ Directory.CreateDirectory(FilePaths.ApplicationDataDir);
 var builder = WebApplication.CreateBuilder();
 
 builder.AddShizouOptions()
-    .AddShizouLogging();
+    .AddShizouLogging()
+    .AddWorkerServices();
 
 builder.Services
     .AddShizouServices()

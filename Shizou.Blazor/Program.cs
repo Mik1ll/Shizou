@@ -30,7 +30,8 @@ builder.Services.Configure<StaticFileOptions>(options =>
 });
 
 builder.AddShizouOptions()
-    .AddShizouLogging();
+    .AddShizouLogging()
+    .AddWorkerServices();
 
 builder.Services
     .AddShizouServices()

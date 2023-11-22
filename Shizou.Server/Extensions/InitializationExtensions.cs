@@ -63,6 +63,13 @@ public static class InitializationExtensions
         return builder;
     }
 
+    public static WebApplicationBuilder AddWorkerServices(this WebApplicationBuilder builder)
+    {
+        builder.Host.UseWindowsService(cfg => cfg.ServiceName = "Shizou Server")
+            .UseSystemd();
+        return builder;
+    }
+
     public static WebApplication MigrateDatabase(this WebApplication app)
     {
         using var context = app.Services.GetRequiredService<IShizouContextFactory>().CreateDbContext();
