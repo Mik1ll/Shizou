@@ -212,19 +212,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
             if (CurrentCommand.Completed)
             {
-                if (CurrentCommandRequest is not null)
-                {
-                    Logger.LogDebug("Deleting command request: {CommandId}", CurrentCommand.CommandId);
-                    context.CommandRequests.Remove(CurrentCommandRequest);
-                    using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
-                    {
-                        context.SaveChanges();
-                    }
-                }
-                else
-                {
-                    Logger.LogDebug("Not deleting command request, already deleted");
-                }
+                DeleteCurrentCommandRequest();
             }
             else
             {
@@ -239,6 +227,20 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
         Logger.LogDebug("Processor shutting down");
         await OnShutdownAsync().ConfigureAwait(false);
+    }
+
+    private void DeleteCurrentCommandRequest()
+    {
+        using var context = _contextFactory.CreateDbContext();
+        if (CurrentCommandRequest is not null)
+        {
+            CommandsInQueue -= context.CommandRequests.Where(cr => cr.Id == CurrentCommandRequest.Id).ExecuteDelete();
+            Logger.LogDebug("Deleted command request: {CommandId}", CurrentCommandRequest.CommandId);
+        }
+        else
+        {
+            Logger.LogDebug("Not deleting command request, already deleted");
+        }
     }
 
     private void WakeUp()
