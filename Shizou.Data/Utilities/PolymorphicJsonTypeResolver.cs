@@ -7,9 +7,8 @@ public class PolymorphicJsonTypeResolver<T> : DefaultJsonTypeInfoResolver
 {
     public override JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options)
     {
-        var typeInfo = base.GetTypeInfo(type, options);
-        if (typeInfo.Type == typeof(T))
+        if (type == typeof(T))
             return PolymorphicJsonTypeInfo<T>.CreateJsonTypeInfo(options);
-        return typeInfo;
+        return base.GetTypeInfo(type, options);
     }
 }

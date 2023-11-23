@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
 using Shizou.Data.Utilities;
@@ -46,13 +47,20 @@ public class DatabaseTests : SeededDatabaseTests
             new AirDateCriterion(true, year: 2005, month: 12, airDateCriterionType: AirDateCriterionType.OnOrAfter)
         };
         var orFilters = new[] { andFilters1, andFilters2 };
+
+        AnimeCriterion oranycrit = new OrAnyCriterion(new AndAllCriterion(andFilters1), new AndAllCriterion(andFilters2));
+        var serializedcrit =
+            JsonSerializer.Serialize(oranycrit, new JsonSerializerOptions { TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>() });
         var serialized =
             JsonSerializer.Serialize(orFilters, new JsonSerializerOptions { TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>() });
-        var expression2 = orFilters.Select(x => x.Select(y => ParameterReplacer.Replace(y.Criterion, animeParam))
+        var expression = orFilters.Select(x => x.Select(y => ParameterReplacer.Replace(y.Criterion, animeParam))
                 .Aggregate(Expression.AndAlso))
             .Aggregate(Expression.OrElse);
-        var lambda2 = Expression.Lambda<Func<AniDbAnime, bool>>(expression2, true, animeParam);
-        var res = context.AniDbAnimes.Where(lambda2);
+        var lambda = Expression.Lambda<Func<AniDbAnime, bool>>(expression, animeParam);
+        var res = context.AniDbAnimes.Where(lambda);
+        var rescrit = context.AniDbAnimes.Where(oranycrit.Criterion);
+
+        Assert.AreEqual(((EntityQueryable<AniDbAnime>)res).DebugView.Query, ((EntityQueryable<AniDbAnime>)rescrit).DebugView.Query);
         _ = res.ToList();
     }
 }
