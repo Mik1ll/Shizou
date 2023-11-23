@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
+using Shizou.Data.Utilities;
 using Shizou.Server.CommandProcessors;
 using Shizou.Server.Commands;
 using Shizou.Server.Extensions.Query;
@@ -89,7 +90,7 @@ public class CommandService : BackgroundService
             return;
         _logger.LogInformation("Dispatching {Count} scheduled commands", scheduledCommands.Count);
         var commandArgs = scheduledCommands.Select(sc =>
-            JsonSerializer.Deserialize(sc.CommandArgs, CommandArgs.GetJsonTypeInfo())!).ToList();
+            JsonSerializer.Deserialize(sc.CommandArgs, PolymorphicJsonTypeInfo<CommandArgs>.CreateJsonTypeInfo())!).ToList();
         DispatchRange(commandArgs);
         foreach (var cmd in scheduledCommands)
             if (cmd.RunsLeft <= 1 || cmd.FrequencyMinutes is null)

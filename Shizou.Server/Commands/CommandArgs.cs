@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
+using Shizou.Data.Utilities;
 
 namespace Shizou.Server.Commands;
 
@@ -15,30 +13,12 @@ public abstract record CommandArgs(
     [property: JsonIgnore] CommandPriority CommandPriority,
     [property: JsonIgnore] QueueType QueueType)
 {
-    private static readonly Type[] ArgTypes = (from type in Assembly.GetExecutingAssembly().GetTypes()
-        where typeof(CommandArgs).IsAssignableFrom(type) && type != typeof(CommandArgs)
-        select type).ToArray();
-
     [JsonIgnore]
     public CommandRequest CommandRequest => new()
     {
         Priority = CommandPriority,
         QueueType = QueueType,
         CommandId = CommandId,
-        CommandArgs = JsonSerializer.Serialize(this, GetJsonTypeInfo())
+        CommandArgs = JsonSerializer.Serialize(this, PolymorphicJsonTypeInfo<CommandArgs>.CreateJsonTypeInfo())
     };
-
-    public static JsonTypeInfo<CommandArgs> GetJsonTypeInfo(JsonSerializerOptions? options = null)
-    {
-        options ??= JsonSerializerOptions.Default;
-        var typeInfo = JsonTypeInfo.CreateJsonTypeInfo<CommandArgs>(options);
-        typeInfo.PolymorphismOptions = new JsonPolymorphismOptions
-        {
-            IgnoreUnrecognizedTypeDiscriminators = false,
-            UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FailSerialization
-        };
-        foreach (var argType in ArgTypes)
-            typeInfo.PolymorphismOptions.DerivedTypes.Add(new JsonDerivedType(argType, argType.Name));
-        return typeInfo;
-    }
 }

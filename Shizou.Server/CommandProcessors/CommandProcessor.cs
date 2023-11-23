@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
+using Shizou.Data.Utilities;
 using Shizou.Server.Commands;
 using Shizou.Server.Extensions;
 using Shizou.Server.Extensions.Query;
@@ -209,7 +210,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 continue;
             PollStep = 0;
             using var scope = _scopeFactory.CreateScope();
-            var args = JsonSerializer.Deserialize(CurrentCommandRequest.CommandArgs, CommandArgs.GetJsonTypeInfo())!;
+            var args = JsonSerializer.Deserialize(CurrentCommandRequest.CommandArgs, PolymorphicJsonTypeInfo<CommandArgs>.CreateJsonTypeInfo())!;
             var cmd = (ICommand<CommandArgs>)scope.ServiceProvider.GetRequiredService(args.CommandType);
             cmd.SetParameters(args);
             CurrentCommand = cmd;
