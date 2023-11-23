@@ -125,6 +125,8 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
     IShizouDbSet<Timer> IShizouContext.Timers => new ShizouDbSet<Timer>(Timers);
     public DbSet<AniDbAnimeRelation> AniDbAnimeRelations { get; set; } = null!;
     IShizouDbSet<AniDbAnimeRelation> IShizouContext.AniDbAnimeRelations => new ShizouDbSet<AniDbAnimeRelation>(AniDbAnimeRelations);
+    public DbSet<AnimeFilter> AnimeFilters { get; set; } = null!;
+    IShizouDbSet<AnimeFilter> IShizouContext.AnimeFilters => new ShizouDbSet<AnimeFilter>(AnimeFilters);
 
     #endregion
 }
