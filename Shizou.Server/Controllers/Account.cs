@@ -14,6 +14,7 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Consumes("application/json")]
 public class Account : ControllerBase
 {
     private readonly SignInManager<IdentityUser> _signInManager;
@@ -26,9 +27,9 @@ public class Account : ControllerBase
     }
 
     [HttpPost("Login")]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, "If the password is wrong")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
-    [Consumes("application/json")]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    [SwaggerResponse(StatusCodes.Status200OK, "API Token", typeof(string))]
+    [Produces("text/plain")]
     [AllowAnonymous]
     public async Task<Results<Ok<string>, BadRequest<string>>> Login([FromBody] string? password)
     {
@@ -43,7 +44,7 @@ public class Account : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [SwaggerResponse(StatusCodes.Status500InternalServerError, type: typeof(ProblemDetails))]
-    [Consumes("application/json")]
+    [Produces("application/json")]
     [AllowAnonymous]
     public async Task<Results<Ok<string>, BadRequest<string>, ProblemHttpResult>> SetPassword([FromBody] string? password)
     {

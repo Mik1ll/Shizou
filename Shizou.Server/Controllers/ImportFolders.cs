@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Extensions.Query;
@@ -13,7 +12,7 @@ namespace Shizou.Server.Controllers;
 [Route("api/[controller]")]
 public class ImportFolders : EntityController<ImportFolder>
 {
-    public ImportFolders(ILogger<ImportFolders> logger, IShizouContext context) : base(logger, context, folder => folder.Id)
+    public ImportFolders(IShizouContext context) : base(context, folder => folder.Id)
     {
     }
 

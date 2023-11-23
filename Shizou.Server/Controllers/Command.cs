@@ -12,6 +12,7 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Consumes("application/json")]
 public class Command : ControllerBase
 {
     private readonly CommandService _commandService;
@@ -28,7 +29,6 @@ public class Command : ControllerBase
 
     [HttpPut("UpdateMyList")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [Consumes("application/json")]
     public void UpdateMyList(UpdateMyListArgs commandArgs)
     {
         _commandService.Dispatch(commandArgs);
@@ -43,7 +43,6 @@ public class Command : ControllerBase
 
     [HttpPut("GenericUdpRequest")]
     [Produces("text/plain")]
-    [Consumes("application/json")]
     public async Task<string?> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
         _genericRequest.SetParameters(command, args);

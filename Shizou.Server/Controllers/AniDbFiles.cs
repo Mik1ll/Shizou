@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
@@ -15,7 +14,7 @@ public class AniDbFiles : EntityGetController<AniDbFile>
 {
     private readonly WatchStateService _watchStateService;
 
-    public AniDbFiles(ILogger<AniDbFiles> logger, IShizouContext context, WatchStateService watchStateService) : base(logger, context,
+    public AniDbFiles(IShizouContext context, WatchStateService watchStateService) : base(context,
         file => file.Id)
     {
         _watchStateService = watchStateService;

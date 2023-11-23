@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 
@@ -9,7 +8,7 @@ namespace Shizou.Server.Controllers;
 [Route("api/[controller]")]
 public class AniDbEpisodes : EntityGetController<AniDbEpisode>
 {
-    public AniDbEpisodes(ILogger<AniDbEpisodes> logger, IShizouContext context) : base(logger, context, episode => episode.Id)
+    public AniDbEpisodes(IShizouContext context) : base(context, episode => episode.Id)
     {
     }
 }

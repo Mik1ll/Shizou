@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -15,42 +14,28 @@ public abstract class EntityGetController<TEntity> : ControllerBase where TEntit
 {
     protected readonly IShizouContext Context;
     protected readonly Expression<Func<TEntity, int>> Selector;
-    protected readonly ILogger<EntityGetController<TEntity>> Logger;
     protected readonly IShizouDbSet<TEntity> DbSet;
 
-    protected EntityGetController(ILogger<EntityGetController<TEntity>> logger, IShizouContext context, Expression<Func<TEntity, int>> selector)
+    protected EntityGetController(IShizouContext context, Expression<Func<TEntity, int>> selector)
     {
-        Logger = logger;
         Context = context;
         Selector = selector;
         DbSet = Context.Set<TEntity>();
     }
 
-    /// <summary>
-    ///     Get all entities
-    /// </summary>
-    /// <returns></returns>
-    /// <response code="200">Success</response>
     [HttpGet]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [Produces("application/json")]
-    public virtual ActionResult<List<TEntity>> Get()
+    public ActionResult<List<TEntity>> Get()
     {
         return Ok(DbSet.AsNoTracking().ToList());
     }
 
-    /// <summary>
-    ///     Get entity
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    /// <response code="404">Entity is not found</response>
-    /// <response code="200">Entity found</response>
     [HttpGet("{id}")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [Produces("application/json")]
-    public virtual ActionResult<TEntity> Get(int id)
+    public ActionResult<TEntity> Get(int id)
     {
         var exp = KeyEqualsExpression(id);
         var result = DbSet.AsNoTracking().SingleOrDefault(exp);

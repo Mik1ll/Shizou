@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
@@ -17,7 +16,7 @@ public class LocalFiles : EntityGetController<LocalFile>
 {
     private readonly CommandService _commandService;
 
-    public LocalFiles(ILogger<LocalFiles> logger, IShizouContext context, CommandService commandService) : base(logger, context,
+    public LocalFiles(IShizouContext context, CommandService commandService) : base(context,
         file => file.Id)
     {
         _commandService = commandService;
