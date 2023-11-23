@@ -11,7 +11,7 @@ public enum AirDateCriterionType
     Missing = 3
 }
 
-public class AirDateCriterion : AnimeCriterion
+public record AirDateCriterion : AnimeCriterion
 {
     [JsonConstructor]
     public AirDateCriterion(bool negated, AirDateCriterionType airDateCriterionType, int? year = null, int? month = null, int? day = null)

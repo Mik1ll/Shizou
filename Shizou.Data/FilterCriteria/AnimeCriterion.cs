@@ -4,7 +4,7 @@ using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public abstract class AnimeCriterion
+public abstract record AnimeCriterion
 {
     private readonly Expression<Func<AniDbAnime, bool>> _criterion;
 

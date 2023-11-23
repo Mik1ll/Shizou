@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
+using Shizou.Data.Utilities;
 using Timer = Shizou.Data.Models.Timer;
 
 namespace Shizou.Data.Database;
@@ -50,6 +53,9 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
             .HasMany(ep => ep.AniDbFiles)
             .WithMany(f => f.AniDbEpisodes)
             .UsingEntity<AniDbEpisodeFileXref>();
+        modelBuilder.Entity<AnimeFilter>()
+            .Property(f => f.Criteria)
+            .HasConversion<AnimeCriterionConverter>();
 
         base.OnModelCreating(modelBuilder);
     }
@@ -81,6 +87,21 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
         public NullableDateTimeConverter() : base(
             v => v.HasValue ? v.Value.ToUniversalTime() : v,
             v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v)
+        {
+        }
+    }
+
+    private class AnimeCriterionConverter : ValueConverter<AnimeCriterion, string>
+    {
+        public AnimeCriterionConverter() : base(
+            v => JsonSerializer.Serialize(v, new JsonSerializerOptions
+            {
+                TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>()
+            }),
+            v => JsonSerializer.Deserialize<AnimeCriterion>(v, new JsonSerializerOptions
+            {
+                TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>()
+            })!)
         {
         }
     }

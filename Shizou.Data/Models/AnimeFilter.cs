@@ -1,8 +1,10 @@
-﻿namespace Shizou.Data.Models;
+﻿using Shizou.Data.FilterCriteria;
+
+namespace Shizou.Data.Models;
 
 public class AnimeFilter
 {
     public int Id { get; set; }
 
-    public required string Criteria { get; set; }
+    public required AnimeCriterion Criteria { get; set; }
 }

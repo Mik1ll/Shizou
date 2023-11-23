@@ -4,7 +4,7 @@ using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public class OrAnyCriterion : AnimeCriterion
+public record OrAnyCriterion : AnimeCriterion
 {
     [JsonConstructor]
     public OrAnyCriterion(params AnimeCriterion[] criteria) : base(Create(criteria), false) => Criteria = criteria;

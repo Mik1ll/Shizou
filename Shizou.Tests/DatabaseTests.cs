@@ -61,6 +61,9 @@ public class DatabaseTests : SeededDatabaseTests
         var rescrit = context.AniDbAnimes.Where(oranycrit.Criterion);
 
         Assert.AreEqual(((EntityQueryable<AniDbAnime>)res).DebugView.Query, ((EntityQueryable<AniDbAnime>)rescrit).DebugView.Query);
+
+        context.AnimeFilters.Add(new AnimeFilter { Criteria = oranycrit });
+        context.SaveChanges();
         _ = res.ToList();
     }
 }
