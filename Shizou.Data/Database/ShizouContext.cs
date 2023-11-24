@@ -4,6 +4,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shizou.Data.CommandInputArgs;
+using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
 using Shizou.Data.Utilities;
 using Timer = Shizou.Data.Models.Timer;
@@ -59,6 +60,9 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
         modelBuilder.Entity<ScheduledCommand>()
             .Property(cr => cr.CommandArgs)
             .HasConversion<CommandArgsConverter>();
+        modelBuilder.Entity<AnimeFilter>()
+            .Property(f => f.Criteria)
+            .HasConversion<AnimeCriterionConverter>();
 
         base.OnModelCreating(modelBuilder);
     }
@@ -103,6 +107,21 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
         }
     }
 
+    private class AnimeCriterionConverter : ValueConverter<AnimeCriterion, string>
+    {
+        public AnimeCriterionConverter() : base(
+            v => JsonSerializer.Serialize(v, new JsonSerializerOptions
+            {
+                TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>()
+            }),
+            v => JsonSerializer.Deserialize<AnimeCriterion>(v, new JsonSerializerOptions
+            {
+                TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>()
+            })!)
+        {
+        }
+    }
+
     #region DbSets
 
     IShizouDbSet<TEntity> IShizouContext.Set<TEntity>() => new ShizouDbSet<TEntity>(base.Set<TEntity>());
@@ -143,6 +162,8 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
     IShizouDbSet<Timer> IShizouContext.Timers => new ShizouDbSet<Timer>(Timers);
     public DbSet<AniDbAnimeRelation> AniDbAnimeRelations { get; set; } = null!;
     IShizouDbSet<AniDbAnimeRelation> IShizouContext.AniDbAnimeRelations => new ShizouDbSet<AniDbAnimeRelation>(AniDbAnimeRelations);
+    public DbSet<AnimeFilter> AnimeFilters { get; set; } = null!;
+    IShizouDbSet<AnimeFilter> IShizouContext.AnimeFilters => new ShizouDbSet<AnimeFilter>(AnimeFilters);
 
     #endregion
 }

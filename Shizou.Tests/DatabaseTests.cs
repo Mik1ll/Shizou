@@ -1,6 +1,9 @@
 using System.Linq.Expressions;
-using Shizou.Data.Filters;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
+using Shizou.Data.Utilities;
 
 namespace Shizou.Tests;
 
@@ -32,23 +35,35 @@ public class DatabaseTests : SeededDatabaseTests
         using var context = GetContext();
 
         var animeParam = Expression.Parameter(typeof(AniDbAnime), "anime");
-        var andFilters1 = new[]
+        AnimeCriterion[] andFilters1 =
         {
-            new AirDateFilter(false, AirDateCriteria.Before, 2000),
-            new AirDateFilter(false, year: 2005, month: 5, airDateCriteria: AirDateCriteria.OnOrAfter)
+            new AirDateCriterion(false, AirDateCriterionType.Before, 2000),
+            new AirDateCriterion(false, year: 2005, month: 5, airDateCriterionType: AirDateCriterionType.OnOrAfter)
         };
 
-        var andFilters2 = new[]
+        AnimeCriterion[] andFilters2 =
         {
-            new AirDateFilter(true, year: 1995, airDateCriteria: AirDateCriteria.Before),
-            new AirDateFilter(true, year: 2005, month: 12, airDateCriteria: AirDateCriteria.OnOrAfter)
+            new AirDateCriterion(true, year: 1995, airDateCriterionType: AirDateCriterionType.Before),
+            new AirDateCriterion(true, year: 2005, month: 12, airDateCriterionType: AirDateCriterionType.OnOrAfter)
         };
         var orFilters = new[] { andFilters1, andFilters2 };
-        var expression2 = orFilters.Select(x => x.Select(y => ParameterReplacer.Replace(y.Filter, animeParam))
+
+        AnimeCriterion oranycrit = new OrAnyCriterion(new AndAllCriterion(andFilters1), new AndAllCriterion(andFilters2));
+        var serializedcrit =
+            JsonSerializer.Serialize(oranycrit, new JsonSerializerOptions { TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>() });
+        var serialized =
+            JsonSerializer.Serialize(orFilters, new JsonSerializerOptions { TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>() });
+        var expression = orFilters.Select(x => x.Select(y => ParameterReplacer.Replace(y.Criterion, animeParam))
                 .Aggregate(Expression.AndAlso))
             .Aggregate(Expression.OrElse);
-        var lambda2 = Expression.Lambda<Func<AniDbAnime, bool>>(expression2, true, animeParam);
-        var res = context.AniDbAnimes.Where(lambda2);
+        var lambda = Expression.Lambda<Func<AniDbAnime, bool>>(expression, animeParam);
+        var res = context.AniDbAnimes.Where(lambda);
+        var rescrit = context.AniDbAnimes.Where(oranycrit.Criterion);
+
+        Assert.AreEqual(((EntityQueryable<AniDbAnime>)res).DebugView.Query, ((EntityQueryable<AniDbAnime>)rescrit).DebugView.Query);
+
+        context.AnimeFilters.Add(new AnimeFilter { Criteria = oranycrit });
+        context.SaveChanges();
         _ = res.ToList();
     }
 }

@@ -1,14 +1,14 @@
 ﻿using System.Linq.Expressions;
 using Shizou.Data.Models;
 
-namespace Shizou.Data.Filters;
+namespace Shizou.Data.FilterCriteria;
 
 public static class ParameterReplacer
 {
-    public static Expression Replace(Expression<Func<AniDbAnime, bool>> expression, ParameterExpression newParam)
+    public static Expression Replace(Expression<Func<AniDbAnime, bool>> criterion, ParameterExpression newParam)
     {
-        var oldParam = expression.Parameters.First();
-        return new ParameterReplacerVisitor(oldParam, newParam).Visit(expression.Body);
+        var oldParam = criterion.Parameters.First();
+        return new ParameterReplacerVisitor(oldParam, newParam).Visit(criterion.Body);
     }
 
     private class ParameterReplacerVisitor : ExpressionVisitor
