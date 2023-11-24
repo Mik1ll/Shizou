@@ -1,10 +1,7 @@
 ﻿using System.Threading.Tasks;
-using Shizou.Data.Enums;
+using Shizou.Data.CommandArgs;
 
 namespace Shizou.Server.Commands;
-
-public sealed record NoopArgs(int Testint) : CommandArgs($"{nameof(NoopCommand)}_{Testint}",
-    typeof(NoopCommand), CommandPriority.Normal, QueueType.General);
 
 public sealed class NoopCommand : Command<NoopArgs>
 {

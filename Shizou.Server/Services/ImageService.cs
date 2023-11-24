@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data;
+using Shizou.Data.CommandArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
-using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.Services;

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Shizou.Data.CommandArgs;
 
 namespace Shizou.Server.Commands;
 

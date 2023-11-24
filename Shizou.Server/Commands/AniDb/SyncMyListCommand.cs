@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data;
+using Shizou.Data.CommandArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
@@ -17,9 +18,6 @@ using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
-
-public record SyncMyListArgs() : CommandArgs($"{nameof(SyncMyListCommand)}",
-    typeof(SyncMyListCommand), CommandPriority.Low, QueueType.AniDbHttp);
 
 public class SyncMyListCommand : Command<SyncMyListArgs>
 {

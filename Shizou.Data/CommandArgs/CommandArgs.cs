@@ -1,15 +1,13 @@
-﻿using System;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Data.Utilities;
 
-namespace Shizou.Server.Commands;
+namespace Shizou.Data.CommandArgs;
 
 public abstract record CommandArgs(
     [property: JsonIgnore] string CommandId,
-    [property: JsonIgnore] Type CommandType,
     [property: JsonIgnore] CommandPriority CommandPriority,
     [property: JsonIgnore] QueueType QueueType)
 {

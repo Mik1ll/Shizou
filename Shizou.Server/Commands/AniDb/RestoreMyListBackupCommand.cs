@@ -8,8 +8,8 @@ using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data;
+using Shizou.Data.CommandArgs;
 using Shizou.Data.Database;
-using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
@@ -18,9 +18,6 @@ using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
-
-public record RestoreMyListBackupArgs(DateOnly? Date = null, string? Path = null) : CommandArgs($"{nameof(RestoreMyListBackupCommand)}",
-    typeof(RestoreMyListBackupCommand), CommandPriority.Low, QueueType.AniDbHttp);
 
 public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
 {

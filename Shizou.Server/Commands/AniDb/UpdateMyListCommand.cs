@@ -1,27 +1,13 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Shizou.Data.CommandArgs;
 using Shizou.Data.Database;
-using Shizou.Data.Enums;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 
 namespace Shizou.Server.Commands.AniDb;
-
-public record UpdateMyListArgs(
-        bool Edit,
-        MyListState? MyListState = null,
-        bool? Watched = null,
-        DateTimeOffset? WatchedDate = null,
-        int? Lid = null,
-        int? Fid = null,
-        int? Aid = null, string? EpNo = null
-    )
-    : CommandArgs($"{nameof(UpdateMyListCommand)}_lid={Lid}_fid={Fid}_aid={Aid}_epno={EpNo}"
-                  + $"_edit={Edit}_watched={Watched}_state={MyListState}_uid={Path.GetRandomFileName()[..8]}",
-        typeof(UpdateMyListCommand), CommandPriority.Normal, QueueType.AniDbUdp);
 
 public class UpdateMyListCommand : Command<UpdateMyListArgs>
 {

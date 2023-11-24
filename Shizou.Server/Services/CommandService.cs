@@ -6,11 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Shizou.Data.CommandArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Data.Utilities;
 using Shizou.Server.CommandProcessors;
-using Shizou.Server.Commands;
 using Shizou.Server.Extensions.Query;
 
 namespace Shizou.Server.Services;

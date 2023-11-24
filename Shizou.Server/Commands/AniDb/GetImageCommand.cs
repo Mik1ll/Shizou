@@ -1,13 +1,10 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Shizou.Data.Enums;
+using Shizou.Data.CommandArgs;
 using Shizou.Server.AniDbApi.Requests.Image;
 
 namespace Shizou.Server.Commands.AniDb;
-
-public record GetImageCommandArgs(string Url, string SavePath) : CommandArgs($"{nameof(GetImageCommand)}_url={Url}_savePath={SavePath}",
-    typeof(GetImageCommand), CommandPriority.Normal, QueueType.Image);
 
 public class GetImageCommand : Command<GetImageCommandArgs>
 {

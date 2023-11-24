@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Extensions;
+using Shizou.Data.CommandArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
-using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Components;

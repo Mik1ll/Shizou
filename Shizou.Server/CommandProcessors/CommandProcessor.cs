@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
@@ -11,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Shizou.Data.CommandArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
@@ -23,6 +25,13 @@ namespace Shizou.Server.CommandProcessors;
 
 public abstract class CommandProcessor : BackgroundService, INotifyPropertyChanged
 {
+    private static readonly Dictionary<Type, Type> ArgsToCommandType =
+        (from type in Assembly.GetAssembly(typeof(Command<CommandArgs>))!.GetTypes()
+            where type.BaseType is not null && type.BaseType.IsGenericType &&
+                  type.BaseType.GetGenericTypeDefinition().IsAssignableTo(typeof(ICommand<CommandArgs>))
+            let argsType = type.BaseType!.GetGenericArguments()[0]
+            select (argsType, type)).ToDictionary(x => x.argsType, x => x.type);
+
     private readonly IShizouContextFactory _contextFactory;
     private readonly IServiceScopeFactory _scopeFactory;
     private int _commandsInQueue;
@@ -211,7 +220,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             PollStep = 0;
             using var scope = _scopeFactory.CreateScope();
             var args = JsonSerializer.Deserialize(CurrentCommandRequest.CommandArgs, PolymorphicJsonTypeInfo<CommandArgs>.CreateJsonTypeInfo())!;
-            var cmd = (ICommand<CommandArgs>)scope.ServiceProvider.GetRequiredService(args.CommandType);
+            var cmd = (ICommand<CommandArgs>)scope.ServiceProvider.GetRequiredService(ArgsToCommandType[args.GetType()]);
             cmd.SetParameters(args);
             CurrentCommand = cmd;
             try

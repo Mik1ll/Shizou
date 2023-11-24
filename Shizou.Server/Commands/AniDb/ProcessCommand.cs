@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shizou.Data.CommandArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
@@ -15,9 +16,6 @@ using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
-
-public sealed record ProcessArgs(int Id, IdTypeLocalFile IdType) : CommandArgs($"{nameof(ProcessCommand)}_id={Id}_type={IdType}",
-    typeof(ProcessCommand), CommandPriority.Normal, QueueType.AniDbUdp);
 
 public class ProcessCommand : Command<ProcessArgs>
 {

@@ -1,15 +1,13 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Shizou.Data.CommandArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
-
-public sealed record AddMissingMyListEntriesArgs() : CommandArgs($"{nameof(AddMissingMyListEntriesCommand)}",
-    typeof(AddMissingMyListEntriesCommand), CommandPriority.Low, QueueType.AniDbUdp);
 
 public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArgs>
 {

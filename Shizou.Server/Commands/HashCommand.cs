@@ -4,18 +4,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Shizou.Data.CommandArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
-using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Extensions.Query;
 using Shizou.Server.RHash;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands;
-
-public record HashArgs(string Path) : CommandArgs($"{nameof(HashCommand)}_{Path}",
-    typeof(HashCommand), CommandPriority.Normal, QueueType.Hash);
 
 public class HashCommand : Command<HashArgs>
 {

@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Features.Anime.Components;
 using Shizou.Blazor.Features.Components;
+using Shizou.Data.CommandArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
-using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
 
