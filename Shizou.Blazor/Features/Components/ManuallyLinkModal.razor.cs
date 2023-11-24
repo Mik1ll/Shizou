@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Extensions;
-using Shizou.Data.CommandArgs;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
@@ -11,10 +11,10 @@ namespace Shizou.Blazor.Features.Components;
 
 public partial class ManuallyLinkModal
 {
+    private readonly Dictionary<AniDbEpisode, LocalFile> _mapping = new();
     private int? _selected;
     private AniDbAnime? _selectedAnime;
     private bool _restrictInCollection = true;
-    private readonly Dictionary<AniDbEpisode, LocalFile> _mapping = new();
     private Modal _modal = default!;
 
     [Inject]

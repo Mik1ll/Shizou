@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data;
-using Shizou.Data.CommandArgs;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;

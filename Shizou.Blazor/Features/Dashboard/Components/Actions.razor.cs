@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using Shizou.Blazor.Features.Components;
 using Shizou.Data;
-using Shizou.Data.CommandArgs;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 

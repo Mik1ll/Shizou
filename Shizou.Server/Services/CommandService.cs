@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Shizou.Data.CommandArgs;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
-using Shizou.Data.Utilities;
 using Shizou.Server.CommandProcessors;
 using Shizou.Server.Extensions.Query;
 
@@ -89,8 +87,7 @@ public class CommandService : BackgroundService
         if (scheduledCommands.Count == 0)
             return;
         _logger.LogInformation("Dispatching {Count} scheduled commands", scheduledCommands.Count);
-        var commandArgs = scheduledCommands.Select(sc =>
-            JsonSerializer.Deserialize(sc.CommandArgs, PolymorphicJsonTypeInfo<CommandArgs>.CreateJsonTypeInfo())!).ToList();
+        var commandArgs = scheduledCommands.Select(sc => sc.CommandArgs).ToList();
         DispatchRange(commandArgs);
         foreach (var cmd in scheduledCommands)
             if (cmd.RunsLeft <= 1 || cmd.FrequencyMinutes is null)

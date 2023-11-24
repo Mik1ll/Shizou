@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Enums;
 
 namespace Shizou.Data.Models;
@@ -14,5 +15,5 @@ public class ScheduledCommand
     public required CommandPriority Priority { get; set; }
     public required QueueType QueueType { get; set; }
     public required string CommandId { get; set; }
-    public required string CommandArgs { get; set; }
+    public required CommandArgs CommandArgs { get; set; }
 }

@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Models;
+using Shizou.Data.Utilities;
 using Timer = Shizou.Data.Models.Timer;
 
 namespace Shizou.Data.Database;
@@ -50,6 +53,12 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
             .HasMany(ep => ep.AniDbFiles)
             .WithMany(f => f.AniDbEpisodes)
             .UsingEntity<AniDbEpisodeFileXref>();
+        modelBuilder.Entity<CommandRequest>()
+            .Property(cr => cr.CommandArgs)
+            .HasConversion<CommandArgsConverter>();
+        modelBuilder.Entity<ScheduledCommand>()
+            .Property(cr => cr.CommandArgs)
+            .HasConversion<CommandArgsConverter>();
 
         base.OnModelCreating(modelBuilder);
     }
@@ -64,6 +73,15 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
             .HaveConversion<NullableDateTimeConverter>();
 
         base.ConfigureConventions(configurationBuilder);
+    }
+
+    private class CommandArgsConverter : ValueConverter<CommandArgs, string>
+    {
+        public CommandArgsConverter() : base(
+            ca => JsonSerializer.Serialize(ca, PolymorphicJsonTypeInfo<CommandArgs>.CreateJsonTypeInfo(null)),
+            ca => JsonSerializer.Deserialize(ca, PolymorphicJsonTypeInfo<CommandArgs>.CreateJsonTypeInfo(null))!)
+        {
+        }
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shizou.Data.CommandArgs;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;

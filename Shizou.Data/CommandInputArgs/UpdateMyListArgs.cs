@@ -1,6 +1,6 @@
 ﻿using Shizou.Data.Enums;
 
-namespace Shizou.Data.CommandArgs;
+namespace Shizou.Data.CommandInputArgs;
 
 public record UpdateMyListArgs(
         bool Edit,

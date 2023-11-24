@@ -5,18 +5,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Shizou.Data.CommandArgs;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
-using Shizou.Data.Utilities;
 using Shizou.Server.Commands;
 using Shizou.Server.Extensions;
 using Shizou.Server.Extensions.Query;
@@ -219,7 +217,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 continue;
             PollStep = 0;
             using var scope = _scopeFactory.CreateScope();
-            var args = JsonSerializer.Deserialize(CurrentCommandRequest.CommandArgs, PolymorphicJsonTypeInfo<CommandArgs>.CreateJsonTypeInfo())!;
+            var args = CurrentCommandRequest.CommandArgs;
             CurrentCommand = ((ICommand<CommandArgs>)scope.ServiceProvider.GetRequiredService(ArgsToCommandType[args.GetType()])).SetParameters(args);
             try
             {

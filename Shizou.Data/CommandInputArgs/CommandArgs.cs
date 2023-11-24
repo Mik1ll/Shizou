@@ -1,10 +1,8 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
-using Shizou.Data.Utilities;
 
-namespace Shizou.Data.CommandArgs;
+namespace Shizou.Data.CommandInputArgs;
 
 public abstract record CommandArgs(
     [property: JsonIgnore] string CommandId,
@@ -17,6 +15,6 @@ public abstract record CommandArgs(
         Priority = CommandPriority,
         QueueType = QueueType,
         CommandId = CommandId,
-        CommandArgs = JsonSerializer.Serialize(this, PolymorphicJsonTypeInfo<CommandArgs>.CreateJsonTypeInfo())
+        CommandArgs = this
     };
 }

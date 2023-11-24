@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data;
-using Shizou.Data.CommandArgs;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Options;
@@ -39,6 +39,12 @@ public class ImageService
     public static string GetAnimePosterPath(string imageFilename)
     {
         return Path.Combine(FilePaths.AnimePostersDir, imageFilename);
+    }
+
+    // ReSharper disable once InconsistentNaming
+    public static string GetFileThumbnailPath(string ed2k)
+    {
+        return Path.Combine(FilePaths.ExtraFileDataSubDir(ed2k), "thumb.webp");
     }
 
     public void GetMissingAnimePosters()
@@ -81,12 +87,6 @@ public class ImageService
         var path = GetAnimePosterPath(filename);
         var uri = GetAnimePosterUri(imageServer, filename);
         _commandService.Dispatch(new GetImageCommandArgs(uri, path));
-    }
-
-    // ReSharper disable once InconsistentNaming
-    public static string GetFileThumbnailPath(string ed2k)
-    {
-        return Path.Combine(FilePaths.ExtraFileDataSubDir(ed2k), "thumb.webp");
     }
 
     public async Task<string?> GetEpisodeThumbnailAsync(int episodeId)

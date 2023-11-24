@@ -4,7 +4,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Shizou.Data.CommandArgs;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.CommandProcessors;
@@ -22,11 +22,6 @@ public class Queues : ControllerBase
     public Queues(IEnumerable<CommandProcessor> processors)
     {
         _processors = processors.ToList();
-    }
-
-    private CommandProcessor GetProcessor(QueueType queueType)
-    {
-        return _processors.First(p => p.QueueType == queueType);
     }
 
     [HttpPut("{queueType}/[action]")]
@@ -50,9 +45,6 @@ public class Queues : ControllerBase
         else
             return TypedResults.Conflict($"Pause state locked: {processor.PauseReason}");
     }
-
-    [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]
-    public record PauseResult(bool Paused, string? PauseReason);
 
     [HttpGet("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
@@ -92,4 +84,12 @@ public class Queues : ControllerBase
         GetProcessor(queueType).ClearQueue();
         return TypedResults.Ok();
     }
+
+    private CommandProcessor GetProcessor(QueueType queueType)
+    {
+        return _processors.First(p => p.QueueType == queueType);
+    }
+
+    [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]
+    public record PauseResult(bool Paused, string? PauseReason);
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Shizou.Data.CommandArgs;
+using Shizou.Data.CommandInputArgs;
 
 namespace Shizou.Server.Commands;
 
