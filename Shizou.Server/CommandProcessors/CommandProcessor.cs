@@ -220,9 +220,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             PollStep = 0;
             using var scope = _scopeFactory.CreateScope();
             var args = JsonSerializer.Deserialize(CurrentCommandRequest.CommandArgs, PolymorphicJsonTypeInfo<CommandArgs>.CreateJsonTypeInfo())!;
-            var cmd = (ICommand<CommandArgs>)scope.ServiceProvider.GetRequiredService(ArgsToCommandType[args.GetType()]);
-            cmd.SetParameters(args);
-            CurrentCommand = cmd;
+            CurrentCommand = ((ICommand<CommandArgs>)scope.ServiceProvider.GetRequiredService(ArgsToCommandType[args.GetType()])).SetParameters(args);
             try
             {
                 Logger.LogDebug("Processing command: {CommandId}", CurrentCommand.CommandId);

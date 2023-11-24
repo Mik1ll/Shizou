@@ -11,11 +11,12 @@ public abstract class Command<T> : ICommand<T> where T : CommandArgs
     public string CommandId { get; private set; } = null!;
     public bool Completed { get; protected set; }
 
-    public virtual void SetParameters(CommandArgs args)
+    public virtual ICommand<T> SetParameters(CommandArgs args)
     {
         CommandArgs = (T)args;
         CommandId = args.CommandId;
         _parametersSet = true;
+        return this;
     }
 
     public async Task ProcessAsync()

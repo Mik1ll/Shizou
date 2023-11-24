@@ -108,10 +108,11 @@ public class AnimeCommand : Command<AnimeArgs>
         return newAniDbAnime;
     }
 
-    public override void SetParameters(CommandArgs args)
+    public override AnimeCommand SetParameters(CommandArgs args)
     {
         _animeCacheFilename = $"AnimeDoc_{((AnimeArgs)args).AnimeId}.xml";
         base.SetParameters(args);
+        return this;
     }
 
     protected override async Task ProcessInnerAsync()
