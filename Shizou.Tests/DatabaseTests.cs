@@ -62,7 +62,7 @@ public class DatabaseTests : SeededDatabaseTests
 
         Assert.AreEqual(((EntityQueryable<AniDbAnime>)res).DebugView.Query, ((EntityQueryable<AniDbAnime>)rescrit).DebugView.Query);
 
-        context.AnimeFilters.Add(new AnimeFilter { Criteria = oranycrit });
+        context.AnimeFilters.Add(new AnimeFilter { Name = "Test Filter", Criteria = oranycrit });
         context.SaveChanges();
         _ = res.ToList();
     }
