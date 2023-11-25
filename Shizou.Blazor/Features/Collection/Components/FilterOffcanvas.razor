@@ -1,0 +1,36 @@
+﻿<Offcanvas Direction="@(OffcanvasDirection.End)">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Offcanvas</h5>
+    </div>
+    <div class="offcanvas-body">
+        @if (_editingFilter is null)
+        {
+            <select @onchange="@OnSelectAsync">
+                <option value="" default>Pick a filter</option>
+                @foreach (var filter in _filters)
+                {
+                    <option value="@(filter.Id)">@(filter.Name)</option>
+                }
+            </select>
+            @if (SelectedFilterId is not null)
+            {
+                <button type="button" class="btn btn-primary ms-3" @onclick="@EditFilter">Edit Filter</button>
+            }
+            <button type="button" class="btn btn-success ms-3" @onclick="@CreateFilter">New Filter</button>
+        }
+        else
+        {
+            <EditForm Model="@_editingFilter" OnValidSubmit="@SaveFilter">
+                <DataAnnotationsValidator/>
+                <div class="mb-3">
+                    <div class="form-floating mb-1">
+                        <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_editingFilter.Name)"></InputText>
+                        <label for="nameInput">Name</label>
+                    </div>
+                    <ValidationMessage For="@(() => _editingFilter.Name)"></ValidationMessage>
+                </div>
+            </EditForm>
+            <button type="button" class="btn btn-outline-danger" @onclick="@(() => _editingFilter = null)">Cancel</button>
+        }
+    </div>
+</Offcanvas>

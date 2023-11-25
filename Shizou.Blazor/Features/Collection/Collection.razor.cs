@@ -9,6 +9,7 @@ namespace Shizou.Blazor.Features.Collection;
 public partial class Collection
 {
     private List<AniDbAnime> _anime = default!;
+    private int? _selectedFilterId;
 
     [Inject]
     private IShizouContextFactory ContextFactory { get; set; } = default!;
@@ -21,6 +22,15 @@ public partial class Collection
     private void RefreshAnime()
     {
         using var context = ContextFactory.CreateDbContext();
-        _anime = context.AniDbAnimes.HasLocalFiles().ToList();
+        var filter = context.AnimeFilters.FirstOrDefault(f => f.Id == _selectedFilterId);
+        _anime = context.AniDbAnimes.HasLocalFiles()
+            .Where(filter?.Criteria.Criterion ?? (a => true))
+            .ToList();
+    }
+
+    private void OnSelectedFilterChanged(int? id)
+    {
+        _selectedFilterId = id;
+        RefreshAnime();
     }
 }

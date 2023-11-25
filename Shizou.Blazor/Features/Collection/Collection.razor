@@ -1,19 +1,12 @@
 ﻿@page "/Collection"
 
-<Offcanvas Direction="@(OffcanvasDirection.End)">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title">Offcanvas</h5>
-    </div>
-    <div class="offcanvas-body">
-        Content for the offcanvas goes here. You can place just about any Bootstrap component or custom elements here.
-    </div>
-</Offcanvas>
+<FilterOffcanvas SelectedFilterId="@_selectedFilterId" SelectedFilterIdChanged="@OnSelectedFilterChanged"></FilterOffcanvas>
 <PageTitle>Collection</PageTitle>
 <article class="container-fluid">
     <div class="d-flex flex-wrap justify-content-center">
         @foreach (var anime in _anime)
         {
-            <AnimeCard AniDbAnime="@anime"></AnimeCard>
+            <AnimeCard @key="@(anime.Id)" AniDbAnime="@anime"></AnimeCard>
         }
     </div>
 </article>
