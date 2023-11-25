@@ -9,7 +9,6 @@ public partial class Modal
     private FocusTrap? _focusTrap;
     private string _classes = string.Empty;
     private string _displayClass = string.Empty;
-    private string _lastDisplayClass = string.Empty;
     private bool _opened = false;
 
     [CascadingParameter]
@@ -32,7 +31,6 @@ public partial class Modal
 
     public async Task CloseAsync(ModalResult modalResult)
     {
-        _lastDisplayClass = _displayClass;
         _displayClass = string.Empty;
         StateHasChanged();
         await Task.Delay(300);
@@ -53,13 +51,10 @@ public partial class Modal
         await CloseAsync(ModalResult.Cancel(payload));
     }
 
-    protected override bool ShouldRender() => _lastDisplayClass != _displayClass;
-
     protected override void OnParametersSet()
     {
         AdditionalAttributes.Remove("class", out var addClasses);
         _classes = addClasses as string ?? string.Empty;
-        _lastDisplayClass = _displayClass;
     }
 
     protected override void OnAfterRender(bool firstRender)
