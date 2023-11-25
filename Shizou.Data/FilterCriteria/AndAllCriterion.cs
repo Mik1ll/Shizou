@@ -15,8 +15,9 @@ public record AndAllCriterion : AnimeCriterion
     private static Expression<Func<AniDbAnime, bool>> Create(AnimeCriterion[] criteria)
     {
         var animeParam = Expression.Parameter(typeof(AniDbAnime), "anime");
-        var expression = criteria.Select(y => ParameterReplacer.Replace(y.Criterion, animeParam))
-            .Aggregate(Expression.AndAlso);
+        var expression = criteria.Length == 0
+            ? Expression.Constant(true)
+            : criteria.Select(y => ParameterReplacer.Replace(y.Criterion, animeParam)).Aggregate(Expression.AndAlso);
         var lambda = Expression.Lambda<Func<AniDbAnime, bool>>(expression, animeParam);
         return lambda;
     }
