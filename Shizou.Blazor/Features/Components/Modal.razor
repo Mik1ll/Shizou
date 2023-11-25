@@ -5,9 +5,9 @@
                 @ChildContent
             </div>
         </div>
-        @if (!string.IsNullOrEmpty(_displayClass))
-        {
-            <div class="modal-backdrop fade @_displayClass" @onclick="@(async () => await CancelAsync())"></div>
-        }
     </div>
 </FocusTrap>
+@if (!string.IsNullOrEmpty(_displayClass))
+{
+    <div class="modal-backdrop fade @_displayClass" @onclick="@(async () => await CancelAsync())"></div>
+}
