@@ -53,7 +53,11 @@ public class ImportService
             return;
         }
 
-        var allFiles = dir.GetFiles("*", SearchOption.AllDirectories);
+        var allFiles = dir.GetFiles("*", new EnumerationOptions
+        {
+            RecurseSubdirectories = true,
+            AttributesToSkip = FileAttributes.Hidden | FileAttributes.System
+        });
         var dbFiles = context.LocalFiles.Include(lf => lf.ImportFolder)
             .Where(lf => lf.ImportFolder != null)
             .ToDictionary(lf => Path.Combine(lf.ImportFolder!.Path, lf.PathTail));
