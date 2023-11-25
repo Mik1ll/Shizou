@@ -26,7 +26,7 @@ public partial class Tooltip
     {
         if (!_isLoaded)
         {
-            await JsRuntime.InvokeVoidAsync("loadTooltip", _elementReference);
+            //await JsRuntime.InvokeVoidAsync("loadTooltip", _elementReference);
             _isLoaded = true;
         }
     }
