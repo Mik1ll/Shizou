@@ -42,7 +42,7 @@ public partial class Offcanvas
         if (_open)
         {
             _displayClass = "showing";
-            await Task.Delay(300);
+            await Task.Delay(150);
             _displayClass = "show";
         }
         else
