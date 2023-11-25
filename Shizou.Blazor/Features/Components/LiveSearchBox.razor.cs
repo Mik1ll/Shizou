@@ -53,7 +53,7 @@ public partial class LiveSearchBox
         var res = await GetResults(_query);
         if (res is null)
         {
-            ToastService.AddToast("Search failed", "Search was unable to retrieve results", ToastStyle.Error);
+            ToastService.ShowError("Search failed", "Search was unable to retrieve results");
         }
         else
         {

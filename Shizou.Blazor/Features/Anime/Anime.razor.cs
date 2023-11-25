@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Features.Anime.Components;
-using Shizou.Blazor.Features.Components;
 using Shizou.Blazor.Services;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
@@ -56,15 +55,15 @@ public partial class Anime
     private void MarkAllWatched()
     {
         if (WatchStateService.MarkAnime(AnimeId, true))
-            ToastService.AddToast("Success", "Anime files marked watched", ToastStyle.Success);
+            ToastService.ShowSuccess("Success", "Anime files marked watched");
         else
-            ToastService.AddToast("Error", "Something went wrong while marking anime files watched", ToastStyle.Error);
+            ToastService.ShowError("Error", "Something went wrong while marking anime files watched");
         _episodeTable?.Reload();
     }
 
     private void RefreshAnime()
     {
         CommandService.Dispatch(new AnimeArgs(AnimeId));
-        ToastService.AddToast("Info", "Anime queued for refresh, check again after completed", ToastStyle.Info);
+        ToastService.ShowInfo("Info", "Anime queued for refresh, check again after completed");
     }
 }

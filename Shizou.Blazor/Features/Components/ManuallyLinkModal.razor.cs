@@ -63,8 +63,7 @@ public partial class ManuallyLinkModal
             _selectedAnime = anime;
             if (SelectedFiles.Count > _selectedAnime.AniDbEpisodes.Count)
             {
-                ToastService.AddToast("More files than episodes to link", "You are trying to link more files than there are existing episodes in the anime",
-                    ToastStyle.Error);
+                ToastService.ShowError("More files than episodes to link", "You are trying to link more files than there are existing episodes in the anime");
                 _selectedAnime = null;
                 return;
             }
@@ -74,8 +73,7 @@ public partial class ManuallyLinkModal
         else
         {
             CommandService.Dispatch(new AnimeArgs(_selected.Value));
-            ToastService.AddToast($"Queueing add anime {_selected}", "You must wait for the command to complete before it is available",
-                ToastStyle.Success);
+            ToastService.ShowSuccess($"Queueing add anime {_selected}", "You must wait for the command to complete before it is available");
         }
     }
 

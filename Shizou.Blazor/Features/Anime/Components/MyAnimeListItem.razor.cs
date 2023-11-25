@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Shizou.Blazor.Features.Components;
 using Shizou.Blazor.Services;
 using Shizou.Data.Enums.Mal;
 using Shizou.Data.Models;
@@ -24,21 +23,21 @@ public partial class MyAnimeListItem
     {
         if (MalAnime.Status is null)
         {
-            ToastService.AddToast("Error", "Tried to update non-existant MyAnimeList status", ToastStyle.Error);
+            ToastService.ShowError("Error", "Tried to update non-existant MyAnimeList status");
             return;
         }
 
         if (await MyAnimeListService.UpdateAnimeStatusAsync(MalAnime.Id, MalAnime.Status))
-            ToastService.AddToast("Success", "MyAnimeList status updated successfully", ToastStyle.Success);
+            ToastService.ShowSuccess("Success", "MyAnimeList status updated successfully");
         else
-            ToastService.AddToast("Error", "MyAnimeList status failed to update", ToastStyle.Error);
+            ToastService.ShowError("Error", "MyAnimeList status failed to update");
     }
 
     private async Task AddStatusAsync()
     {
         if (MalAnime.Status is not null)
         {
-            ToastService.AddToast("Error", "Tried to add MyAnimeList status when one already exists", ToastStyle.Error);
+            ToastService.ShowError("Error", "Tried to add MyAnimeList status when one already exists");
             return;
         }
 
@@ -52,11 +51,11 @@ public partial class MyAnimeListItem
         if (await MyAnimeListService.UpdateAnimeStatusAsync(MalAnime.Id, status))
         {
             MalAnime.Status = status;
-            ToastService.AddToast("Success", "MyAnimeList status added", ToastStyle.Success);
+            ToastService.ShowSuccess("Success", "MyAnimeList status added");
         }
         else
         {
-            ToastService.AddToast("Error", "MyAnimeList status failed to add", ToastStyle.Error);
+            ToastService.ShowError("Error", "MyAnimeList status failed to add");
         }
     }
 }

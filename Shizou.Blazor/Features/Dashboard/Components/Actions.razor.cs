@@ -94,6 +94,6 @@ public partial class Actions
 
     private void DisplayToast()
     {
-        ToastService.AddToast("blah", "blah", ToastStyle.Success);
+        ToastService.ShowSuccess("blah", "blah");
     }
 }
