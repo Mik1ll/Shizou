@@ -19,7 +19,7 @@ public partial class Toast
     private string _displayClass = "showing";
 
     [CascadingParameter]
-    private ToastDisplay ToastDisplay { get; set; } = default!;
+    private ToastContainer ToastDisplay { get; set; } = default!;
 
     [Parameter]
     [EditorRequired]

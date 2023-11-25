@@ -1,5 +1,6 @@
 ﻿using System.Timers;
 using Microsoft.AspNetCore.Components;
+using Shizou.Blazor.Services;
 using Timer = System.Timers.Timer;
 
 namespace Shizou.Blazor.Features.Components;
@@ -10,8 +11,8 @@ public partial class LiveSearchBox
     private string? _query;
     private Timer _searchTimer = default!;
 
-    [CascadingParameter]
-    private ToastDisplay ToastDisplay { get; set; } = default!;
+    [Inject]
+    private ToastService ToastService { get; set; } = default!;
 
     [Parameter]
     [EditorRequired]
@@ -52,7 +53,7 @@ public partial class LiveSearchBox
         var res = await GetResults(_query);
         if (res is null)
         {
-            ToastDisplay.AddToast("Search failed", "Search was unable to retrieve results", ToastStyle.Error);
+            ToastService.AddToast("Search failed", "Search was unable to retrieve results", ToastStyle.Error);
         }
         else
         {

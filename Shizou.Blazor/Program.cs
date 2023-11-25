@@ -1,6 +1,7 @@
 using Blazored.Modal;
 using Microsoft.AspNetCore.StaticFiles;
 using Serilog;
+using Shizou.Blazor.Services;
 using Shizou.Data;
 using Shizou.Server.Extensions;
 
@@ -15,6 +16,7 @@ var builder = WebApplication.CreateBuilder();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddBlazoredModal();
+builder.Services.AddScoped<ToastService>();
 
 builder.Services.Configure<StaticFileOptions>(options =>
 {

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using Shizou.Blazor.Features.Components;
+using Shizou.Blazor.Services;
 using Shizou.Data;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Server.Options;
@@ -25,6 +26,9 @@ public partial class Actions
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
 
+    [Inject]
+    private ToastService ToastService { get; set; } = default!;
+
     [CascadingParameter(Name = nameof(App.ServerIp))]
     private string ServerIp { get; set; } = default!;
 
@@ -32,7 +36,7 @@ public partial class Actions
     private IModalService ModalService { get; set; } = default!;
 
     [CascadingParameter]
-    private ToastDisplay ToastDisplay { get; set; } = default!;
+    private ToastContainer ToastDisplay { get; set; } = default!;
 
 
     private void DispatchNoop()
@@ -90,6 +94,6 @@ public partial class Actions
 
     private void DisplayToast()
     {
-        ToastDisplay.AddToast("blah", "blah", ToastStyle.Success);
+        ToastService.AddToast("blah", "blah", ToastStyle.Success);
     }
 }

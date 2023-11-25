@@ -1,11 +1,10 @@
 ﻿@inherits LayoutComponentBase
 
 <PageTitle>Shizou</PageTitle>
-<ToastDisplay>
-    <CascadingBlazoredModal UseCustomLayout="true" AnimationType="@(ModalAnimationType.None)">
-        <NavMenu/>
-        <main class="content px-4">
-            @Body
-        </main>
-    </CascadingBlazoredModal>
-</ToastDisplay>
+<CascadingBlazoredModal UseCustomLayout="true" AnimationType="@(ModalAnimationType.None)">
+    <NavMenu/>
+    <main class="content px-4">
+        @Body
+    </main>
+</CascadingBlazoredModal>
+<ToastContainer/>

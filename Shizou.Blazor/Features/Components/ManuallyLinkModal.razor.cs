@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Extensions;
+using Shizou.Blazor.Services;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
@@ -26,11 +27,11 @@ public partial class ManuallyLinkModal
     [Inject]
     private IShizouContextFactory ContextFactory { get; set; } = default!;
 
-    [CascadingParameter]
-    private IModalService ModalService { get; set; } = default!;
+    [Inject]
+    private ToastService ToastService { get; set; } = default!;
 
     [CascadingParameter]
-    private ToastDisplay ToastDisplay { get; set; } = default!;
+    private IModalService ModalService { get; set; } = default!;
 
     [Parameter]
     public List<LocalFile> SelectedFiles { get; set; } = default!;
@@ -62,7 +63,7 @@ public partial class ManuallyLinkModal
             _selectedAnime = anime;
             if (SelectedFiles.Count > _selectedAnime.AniDbEpisodes.Count)
             {
-                ToastDisplay.AddToast("More files than episodes to link", "You are trying to link more files than there are existing episodes in the anime",
+                ToastService.AddToast("More files than episodes to link", "You are trying to link more files than there are existing episodes in the anime",
                     ToastStyle.Error);
                 _selectedAnime = null;
                 return;
@@ -73,7 +74,7 @@ public partial class ManuallyLinkModal
         else
         {
             CommandService.Dispatch(new AnimeArgs(_selected.Value));
-            ToastDisplay.AddToast($"Queueing add anime {_selected}", "You must wait for the command to complete before it is available",
+            ToastService.AddToast($"Queueing add anime {_selected}", "You must wait for the command to complete before it is available",
                 ToastStyle.Success);
         }
     }
