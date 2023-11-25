@@ -18,24 +18,18 @@
                 <td>
                     @if (importFolder.ScanOnImport)
                     {
-                        <Tooltip Content="Will scan on import">
-                            <i class="bi bi-save2"></i>
-                        </Tooltip>
+                        <i class="bi bi-save2"></i>
                     }
                 </td>
                 <td>
-                    <Tooltip Content="Edit">
-                        <button type="button" class="btn p-0" @onclick="@(() => EditAsync(importFolder))">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
-                    </Tooltip>
+                    <button type="button" class="btn p-0" @onclick="@(() => EditAsync(importFolder))">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
                 </td>
                 <td>
-                    <Tooltip Content="Remove">
-                        <button type="button" class="btn p-0" @onclick="@(() => RemoveAsync(importFolder))">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </Tooltip>
+                    <button type="button" class="btn p-0" @onclick="@(() => RemoveAsync(importFolder))">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </td>
             </tr>
         }
