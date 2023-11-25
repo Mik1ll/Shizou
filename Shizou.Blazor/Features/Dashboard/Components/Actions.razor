@@ -10,4 +10,5 @@
     <button type="button" class="btn btn-primary" @onclick="@OpenMalAuthAsync" disabled="@(!IPAddress.IsLoopback(IPAddress.Parse(ServerIp)))">Auth MAL</button>
     <button type="button" class="btn btn-primary" @onclick="@GetMalListAsync">Get MAL List</button>
     <button type="button" class="btn btn-primary" @onclick="@RestoreFromBackupFileAsync">Restore Backup</button>
+    <button type="button" class="btn btn-primary" @onclick="@DisplayToast">Display Toast</button>
 </div>

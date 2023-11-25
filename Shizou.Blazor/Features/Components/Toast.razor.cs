@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 
 namespace Shizou.Blazor.Features.Components;
 
@@ -15,13 +14,12 @@ public record ToastItem(string Title, string Body, DateTimeOffset TriggerTime, T
 
 public partial class Toast
 {
-    private ElementReference _elementReference;
-
-    private bool _isLoaded = false;
+    private bool _opened = false;
     private string _classes = string.Empty;
+    private string _displayClass = "showing";
 
-    [Inject]
-    private IJSRuntime JsRuntime { get; set; } = default!;
+    [CascadingParameter]
+    private ToastDisplay ToastDisplay { get; set; } = default!;
 
     [Parameter]
     [EditorRequired]
@@ -39,14 +37,19 @@ public partial class Toast
         };
     }
 
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!_isLoaded)
+        if (!_opened)
         {
-            await JsRuntime.InvokeVoidAsync("loadToast", _elementReference);
-            _isLoaded = true;
+            await Task.Delay(150);
+            _displayClass = string.Empty;
+            _opened = true;
+            StateHasChanged();
         }
+    }
 
+    private void Dismiss()
+    {
+        ToastDisplay.RemoveToast(ToastItem);
     }
 }

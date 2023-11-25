@@ -31,6 +31,9 @@ public partial class Actions
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
 
+    [CascadingParameter]
+    private ToastDisplay ToastDisplay { get; set; } = default!;
+
 
     private void DispatchNoop()
     {
@@ -83,5 +86,10 @@ public partial class Actions
         }).Result;
         if (res is { Confirmed: true, Data: string path })
             ServiceProvider.GetRequiredService<CommandService>().Dispatch(new RestoreMyListBackupArgs(Path: path));
+    }
+
+    private void DisplayToast()
+    {
+        ToastDisplay.AddToast("blah", "blah", ToastStyle.Success);
     }
 }

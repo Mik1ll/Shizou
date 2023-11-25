@@ -14,4 +14,10 @@ public partial class ToastDisplay
         _toasts.Add(new ToastItem(title, body, DateTimeOffset.Now, toastStyle));
         StateHasChanged();
     }
+
+    public void RemoveToast(ToastItem toast)
+    {
+        _toasts.Remove(toast);
+        StateHasChanged();
+    }
 }
