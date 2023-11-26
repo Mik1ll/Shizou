@@ -1,0 +1,25 @@
+﻿@using Shizou.Data.FilterCriteria
+@if (_isSumOfProducts)
+{
+    var or = (OrAnyCriterion)Filter.Criteria;
+    foreach (var and in or.Criteria.Cast<AndAllCriterion>())
+    {
+        <div @key="@and" class="ms-3 border-success-subtle">
+            @foreach (var term in and.Criteria)
+            {
+                <select @key="@term" class="form-select mb-1">
+                    @foreach (var crit in _validCriterions)
+                    {
+                        <option value="@(crit.GetHashCode())">@(crit.Name)</option>
+                    }
+                </select>
+            }
+            <button class="btn btn-primary mb-3" type="button" @onclick="@(() => and.Criteria.Add(new AirDateCriterion(false, AirDateCriterionType.Before, 2010)))">
+                <i class="bi bi-plus"></i> Add AND
+            </button>
+        </div>
+    }
+    <button class="btn btn-primary mb-3" type="button" @onclick="@(() => or.Criteria.Add(new AndAllCriterion()))">
+        <i class="bi bi-plus"></i> Add OR
+    </button>
+}
