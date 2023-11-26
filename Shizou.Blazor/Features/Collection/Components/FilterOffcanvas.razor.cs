@@ -36,8 +36,7 @@ public partial class FilterOffcanvas
 
     private async Task OnSelectAsync(ChangeEventArgs e)
     {
-        SelectedFilterId = int.TryParse((string)e.Value!, out var id) ? id : null;
-        await SelectedFilterIdChanged.InvokeAsync(SelectedFilterId);
+        await UpdateSelectedFilterIdAsync(int.TryParse((string)e.Value!, out var id) ? id : null);
     }
 
     private void RefreshFilters()
@@ -51,11 +50,11 @@ public partial class FilterOffcanvas
         _editingFilter = new AnimeFilter
         {
             Name = "New Filter",
-            Criteria = new AndAllCriterion()
+            Criteria = new OrAnyCriterion(false, new List<AnimeCriterion>())
         };
     }
 
-    private void SaveFilter()
+    private async Task SaveFilterAsync()
     {
         if (_editingFilter is null)
         {
@@ -70,6 +69,8 @@ public partial class FilterOffcanvas
         else
             context.AnimeFilters.Add(_editingFilter);
         context.SaveChanges();
+        await UpdateSelectedFilterIdAsync(_editingFilter.Id);
+        _editingFilter = null;
         RefreshFilters();
     }
 

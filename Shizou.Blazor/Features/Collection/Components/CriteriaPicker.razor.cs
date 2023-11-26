@@ -16,7 +16,6 @@ public partial class CriteriaPicker
 
     protected override void OnInitialized()
     {
-        Filter.Criteria = new OrAnyCriterion(new AndAllCriterion());
         _isSumOfProducts = Filter.Criteria is OrAnyCriterion or &&
                            or.Criteria.All(c => c is AndAllCriterion and &&
                                                 and.Criteria.All(t =>

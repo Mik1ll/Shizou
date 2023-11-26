@@ -48,7 +48,11 @@ public class DatabaseTests : SeededDatabaseTests
         };
         var orFilters = new[] { andFilters1, andFilters2 };
 
-        AnimeCriterion oranycrit = new OrAnyCriterion(new AndAllCriterion(andFilters1), new AndAllCriterion(andFilters2));
+        AnimeCriterion oranycrit = new OrAnyCriterion(false,
+            new List<AnimeCriterion>
+            {
+                new AndAllCriterion(false, andFilters1.ToList()), new AndAllCriterion(false, andFilters2.ToList())
+            });
         var serializedcrit =
             JsonSerializer.Serialize(oranycrit, new JsonSerializerOptions { TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>() });
         var serialized =

@@ -8,7 +8,7 @@ public abstract record AnimeCriterion
 {
     private readonly Expression<Func<AniDbAnime, bool>> _criterion;
 
-    protected AnimeCriterion(Expression<Func<AniDbAnime, bool>> criterion, bool negated)
+    protected AnimeCriterion(bool negated, Expression<Func<AniDbAnime, bool>> criterion)
     {
         _criterion = criterion;
         Negated = negated;

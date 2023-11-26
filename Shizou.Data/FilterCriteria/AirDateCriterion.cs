@@ -15,7 +15,7 @@ public record AirDateCriterion : AnimeCriterion
 {
     [JsonConstructor]
     public AirDateCriterion(bool negated, AirDateCriterionType airDateCriterionType, int? year = null, int? month = null, int? day = null)
-        : base(Create(airDateCriterionType, year, month, day), negated)
+        : base(negated, Create(airDateCriterionType, year, month, day))
     {
         AirDateCriterionType = airDateCriterionType;
         Year = year;

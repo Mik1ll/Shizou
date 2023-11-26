@@ -19,7 +19,7 @@
             </button>
         </div>
     }
-    <button class="btn btn-primary mb-3" type="button" @onclick="@(() => or.Criteria.Add(new AndAllCriterion()))">
+    <button class="btn btn-primary mb-3" type="button" @onclick="@(() => or.Criteria.Add(new AndAllCriterion(false, new List<AnimeCriterion>())))">
         <i class="bi bi-plus"></i> Add OR
     </button>
 }
