@@ -7,10 +7,10 @@ namespace Shizou.Data.FilterCriteria;
 public record OrAnyCriterion : AnimeCriterion
 {
     [JsonConstructor]
-    public OrAnyCriterion(params AnimeCriterion[] criteria) : base(Create(criteria), false) => Criteria = criteria;
+    public OrAnyCriterion(params AnimeCriterion[] criteria) : base(Create(criteria), false) => Criteria = criteria.ToList();
 
     [JsonInclude]
-    public AnimeCriterion[] Criteria { get; }
+    public List<AnimeCriterion> Criteria { get; }
 
     private static Expression<Func<AniDbAnime, bool>> Create(AnimeCriterion[] criteria)
     {
