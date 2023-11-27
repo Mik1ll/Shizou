@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using System.Text.Json.Serialization;
 using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
@@ -11,30 +10,9 @@ public enum AirDateCriterionType
     Missing = 3
 }
 
-public record AirDateCriterion : AnimeCriterion
+public record AirDateCriterion(bool Negated, AirDateCriterionType AirDateCriterionType, int? Year = null, int? Month = null, int? Day = null) : AnimeCriterion(
+    Negated, Create(AirDateCriterionType, Year, Month, Day))
 {
-    [JsonConstructor]
-    public AirDateCriterion(bool negated, AirDateCriterionType airDateCriterionType, int? year = null, int? month = null, int? day = null)
-        : base(negated, Create(airDateCriterionType, year, month, day))
-    {
-        AirDateCriterionType = airDateCriterionType;
-        Year = year;
-        Month = month;
-        Day = day;
-    }
-
-    [JsonInclude]
-    public int? Year { get; }
-
-    [JsonInclude]
-    public int? Month { get; }
-
-    [JsonInclude]
-    public int? Day { get; }
-
-    [JsonInclude]
-    public AirDateCriterionType AirDateCriterionType { get; }
-
     private static Expression<Func<AniDbAnime, bool>> Create(AirDateCriterionType airDateCriterionType, int? year, int? month, int? day)
     {
         if (new[] { year, month, day }.Any(x => x is not null) && airDateCriterionType == AirDateCriterionType.Missing)

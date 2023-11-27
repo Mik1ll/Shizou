@@ -35,13 +35,13 @@ public class DatabaseTests : SeededDatabaseTests
         var and1 = new AndAllCriterion(new List<AnimeCriterion>
         {
             new AirDateCriterion(false, AirDateCriterionType.Before, 2000),
-            new AirDateCriterion(false, year: 2005, month: 5, airDateCriterionType: AirDateCriterionType.OnOrAfter)
+            new AirDateCriterion(false, Year: 2005, Month: 5, AirDateCriterionType: AirDateCriterionType.OnOrAfter)
         });
 
         var and2 = new AndAllCriterion(new List<AnimeCriterion>
         {
-            new AirDateCriterion(true, year: 1995, airDateCriterionType: AirDateCriterionType.Before),
-            new AirDateCriterion(true, year: 2005, month: 12, airDateCriterionType: AirDateCriterionType.OnOrAfter)
+            new AirDateCriterion(true, Year: 1995, AirDateCriterionType: AirDateCriterionType.Before),
+            new AirDateCriterion(true, Year: 2005, Month: 12, AirDateCriterionType: AirDateCriterionType.OnOrAfter)
         });
         AnimeCriterion orAny = new OrAnyCriterion(new List<AnimeCriterion>
         {
