@@ -24,17 +24,33 @@
                         </select>
                         @if (and is not null && term is not null)
                         {
-                            <EditForm Model="@term">
+                            <EditForm class="ms-3" Model="@term">
                                 <DataAnnotationsValidator/>
                                 @switch (term)
                                 {
                                     case AirDateCriterion airdate:
-                                        <select class="form-select ms-3 w-auto" @onchange="@(args => Replace(and, idx, airdate with { AirDateCriterionType = Enum.Parse<AirDateCriterionType>((string)args.Value!) }))">
+                                        <InputSelect class="form-select w-auto d-inline" TValue="@AirDateCriterionType"
+                                                     Value="@(airdate.AirDateCriterionType)"
+                                                     ValueExpression="@(() => airdate.AirDateCriterionType)"
+                                                     ValueChanged="@(type => and.Criteria[idx] = airdate with {AirDateCriterionType = type})">
                                             @foreach (var type in Enum.GetValues<AirDateCriterionType>())
                                             {
                                                 <option value="@type" selected="@(airdate.AirDateCriterionType == type)">@type</option>
                                             }
-                                        </select>
+                                        </InputSelect>
+                                        <br/>
+                                        <InputNumber class="form-control d-inline" style="width: 5em" placeholder="Year" TValue="@(int?)"
+                                                     Value="@(airdate.Year)"
+                                                     ValueExpression="@(() => airdate.Year)"
+                                                     ValueChanged="@(year => and.Criteria[idx] = airdate with {Year = year})"/>
+                                        <InputNumber class="form-control d-inline" style="width: 5.3em" placeholder="Month" TValue="@(int?)"
+                                                     Value="@(airdate.Month)"
+                                                     ValueExpression="@(() => airdate.Month)"
+                                                     ValueChanged="@(month => and.Criteria[idx] = airdate with {Month = month})"/>
+                                        <InputNumber class="form-control d-inline" style="width: 4.3em" placeholder="Day" TValue="@(int?)"
+                                                     Value="@(airdate.Day)"
+                                                     ValueExpression="@(() => airdate.Day)"
+                                                     ValueChanged="@(day => and.Criteria[idx] = airdate with {Year = day})"/>
                                         break;
                                 }
                             </EditForm>
