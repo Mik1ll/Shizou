@@ -23,9 +23,25 @@ public partial class CriteriaPicker
 
     private void AddOrUpdate(OrAnyCriterion or, AndAllCriterion? and, int index, string newTermType)
     {
-        var term = and?.Criteria[index];
-        if (term is null)
+        var term = _validTermTypes[newTermType] switch
         {
+            { } t when t == typeof(AirDateCriterion) => new AirDateCriterion(false, AirDateCriterionType.Before),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        if (and?.Criteria.Count > index)
+        {
+            and.Criteria[index] = term;
         }
+        else
+        {
+            if (and is null)
+                or.Criteria.Add(and = new AndAllCriterion(new List<AnimeCriterion>()));
+            and.Criteria.Add(term);
+        }
+    }
+
+    private void Replace(AndAllCriterion and, int index, AnimeCriterion newCriterion)
+    {
+        and.Criteria[index] = newCriterion;
     }
 }

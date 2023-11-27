@@ -14,13 +14,32 @@
                 </div>
                 @foreach (var (term, idx) in (and?.Criteria ?? new List<AnimeCriterion>()).Append(null).Select((term, idx) => (term, idx)))
                 {
-                    <select @key="@term" class="form-select mb-1" @onchange="@(args => AddOrUpdate(or, and, idx, (string)args.Value!))">
-                        <option hidden>Pick a term</option>
-                        @foreach (var termType in _validTermTypes.Keys)
+                    <div class="border border-secondary p-1 mb-2">
+                        <select @key="@term" class="form-select mb-1" @onchange="@(args => AddOrUpdate(or, and, idx, (string)args.Value!))">
+                            <option hidden>Pick a term</option>
+                            @foreach (var termType in _validTermTypes.Keys)
+                            {
+                                <option value="@termType" selected="@(termType == term?.GetType().Name)">@termType</option>
+                            }
+                        </select>
+                        @if (and is not null && term is not null)
                         {
-                            <option value="@termType" selected="@(termType == term?.GetType().Name)">@termType</option>
+                            <EditForm Model="@term">
+                                <DataAnnotationsValidator/>
+                                @switch (term)
+                                {
+                                    case AirDateCriterion airdate:
+                                        <select class="form-select ms-3 w-auto" @onchange="@(args => Replace(and, idx, airdate with { AirDateCriterionType = Enum.Parse<AirDateCriterionType>((string)args.Value!) }))">
+                                            @foreach (var type in Enum.GetValues<AirDateCriterionType>())
+                                            {
+                                                <option value="@type" selected="@(airdate.AirDateCriterionType == type)">@type</option>
+                                            }
+                                        </select>
+                                        break;
+                                }
+                            </EditForm>
                         }
-                    </select>
+                    </div>
                 }
             </div>
         }
