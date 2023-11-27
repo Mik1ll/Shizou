@@ -50,7 +50,7 @@ public partial class FilterOffcanvas
         _editingFilter = new AnimeFilter
         {
             Name = "New Filter",
-            Criteria = new OrAnyCriterion(false, new List<AnimeCriterion>())
+            Criteria = new OrAnyCriterion(new List<AnimeCriterion>())
         };
     }
 

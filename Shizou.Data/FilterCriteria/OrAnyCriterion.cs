@@ -1,17 +1,10 @@
 ﻿using System.Linq.Expressions;
-using System.Text.Json.Serialization;
 using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public record OrAnyCriterion : AnimeCriterion
+public record OrAnyCriterion(List<AnimeCriterion> Criteria) : AnimeCriterion(false, Create(Criteria))
 {
-    [JsonConstructor]
-    public OrAnyCriterion(bool negated, List<AnimeCriterion> criteria) : base(negated, Create(criteria)) => Criteria = criteria;
-
-    [JsonInclude]
-    public List<AnimeCriterion> Criteria { get; }
-
     private static Expression<Func<AniDbAnime, bool>> Create(List<AnimeCriterion> criteria)
     {
         var animeParam = Expression.Parameter(typeof(AniDbAnime), "anime");

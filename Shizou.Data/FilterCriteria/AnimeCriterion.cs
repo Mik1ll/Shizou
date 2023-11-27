@@ -4,18 +4,9 @@ using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public abstract record AnimeCriterion
+public abstract record AnimeCriterion(bool Negated, Expression<Func<AniDbAnime, bool>> Criterion)
 {
-    private readonly Expression<Func<AniDbAnime, bool>> _criterion;
-
-    protected AnimeCriterion(bool negated, Expression<Func<AniDbAnime, bool>> criterion)
-    {
-        _criterion = criterion;
-        Negated = negated;
-    }
-
-    [JsonInclude]
-    public bool Negated { get; }
+    private readonly Expression<Func<AniDbAnime, bool>> _criterion = Criterion;
 
     [JsonIgnore]
     public Expression<Func<AniDbAnime, bool>> Criterion =>
