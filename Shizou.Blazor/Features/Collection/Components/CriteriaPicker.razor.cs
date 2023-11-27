@@ -8,7 +8,7 @@ public partial class CriteriaPicker
 {
     private bool _isSumOfProducts;
 
-    private List<Type> _validCriterions = new() { typeof(AirDateCriterion) };
+    private Dictionary<string, Type> _validTermTypes = new() { { nameof(AirDateCriterion), typeof(AirDateCriterion) } };
 
     [Parameter]
     [EditorRequired]
@@ -18,7 +18,14 @@ public partial class CriteriaPicker
     {
         _isSumOfProducts = Filter.Criteria is OrAnyCriterion or &&
                            or.Criteria.All(c => c is AndAllCriterion and &&
-                                                and.Criteria.All(t =>
-                                                    t is not OrAnyCriterion && t is not AndAllCriterion));
+                                                and.Criteria.All(t => _validTermTypes.ContainsValue(t.GetType())));
+    }
+
+    private void AddOrUpdate(OrAnyCriterion or, AndAllCriterion? and, int index, string newTermType)
+    {
+        var term = and?.Criteria[index];
+        if (term is null)
+        {
+        }
     }
 }
