@@ -4,13 +4,10 @@ using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public abstract record AnimeCriterion(bool Negated, Expression<Func<AniDbAnime, bool>> Criterion)
+public abstract record AnimeCriterion
 {
-    private readonly Expression<Func<AniDbAnime, bool>> _criterion = Criterion;
-
     [JsonIgnore]
-    public Expression<Func<AniDbAnime, bool>> Criterion =>
-        Negated ? Expression.Lambda<Func<AniDbAnime, bool>>(Expression.Not(_criterion.Body), false, _criterion.Parameters) : _criterion;
+    public Expression<Func<AniDbAnime, bool>> Criterion => Create();
 
-    public bool Negated { get; set; } = Negated;
+    protected abstract Expression<Func<AniDbAnime, bool>> Create();
 }

@@ -3,14 +3,14 @@ using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public record OrAnyCriterion(List<AndAllCriterion> Criteria) : AnimeCriterion(false, Create(Criteria))
+public record OrAnyCriterion(List<AndAllCriterion> Criteria) : AnimeCriterion
 {
-    private static Expression<Func<AniDbAnime, bool>> Create(List<AndAllCriterion> criteria)
+    protected override Expression<Func<AniDbAnime, bool>> Create()
     {
         var animeParam = Expression.Parameter(typeof(AniDbAnime), "anime");
-        var expression = criteria.Count == 0
+        var expression = Criteria.Count == 0
             ? Expression.Constant(false)
-            : criteria.Select(y => ParameterReplacer.Replace(y.Criterion, animeParam)).Aggregate(Expression.OrElse);
+            : Criteria.Select(y => ParameterReplacer.Replace(y.Criterion, animeParam)).Aggregate(Expression.OrElse);
         var lambda = Expression.Lambda<Func<AniDbAnime, bool>>(expression, animeParam);
         return lambda;
     }

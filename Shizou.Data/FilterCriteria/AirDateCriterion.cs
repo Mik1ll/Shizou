@@ -11,8 +11,8 @@ public enum AirDateCriterionType
     Missing = 3
 }
 
-public record AirDateCriterion(bool Negated, AirDateCriterionType AirDateCriterionType, int? Year = null, int? Month = null, int? Day = null) : TermCriterion(
-    Negated, Create(AirDateCriterionType, Year, Month, Day))
+public record AirDateCriterion(bool Negated, AirDateCriterionType AirDateCriterionType, int? Year = null, int? Month = null, int? Day = null)
+    : TermCriterion(Negated)
 {
     public AirDateCriterionType AirDateCriterionType { get; set; } = AirDateCriterionType;
 
@@ -22,18 +22,18 @@ public record AirDateCriterion(bool Negated, AirDateCriterionType AirDateCriteri
     public int? Month { get; set; } = Month;
     public int? Day { get; set; } = Day;
 
-    private static Expression<Func<AniDbAnime, bool>> Create(AirDateCriterionType airDateCriterionType, int? year, int? month, int? day)
+    protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
     {
-        if (new[] { year, month, day }.Any(x => x is not null) && airDateCriterionType == AirDateCriterionType.Missing)
+        if (new[] { Year, Month, Day }.Any(x => x is not null) && AirDateCriterionType == AirDateCriterionType.Missing)
             throw new ArgumentException("Date cannot be specified for missing criteria");
-        if (month is null && day is not null)
+        if (Month is null && Day is not null)
             throw new ArgumentException("Cannot specify day without month");
-        var date = $"{year:d4}";
-        if (month is not null)
-            date += $"-{month:d2}";
-        if (day is not null)
-            date += $"-{day:d2}";
-        return airDateCriterionType switch
+        var date = $"{Year:d4}";
+        if (Month is not null)
+            date += $"-{Month:d2}";
+        if (Day is not null)
+            date += $"-{Day:d2}";
+        return AirDateCriterionType switch
         {
             // ReSharper disable once StringCompareIsCultureSpecific.1
             AirDateCriterionType.OnOrAfter => anime => anime.AirDate != null && string.Compare(anime.AirDate, date) >= 0,
