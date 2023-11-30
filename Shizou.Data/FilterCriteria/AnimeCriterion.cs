@@ -11,4 +11,6 @@ public abstract record AnimeCriterion(bool Negated, Expression<Func<AniDbAnime, 
     [JsonIgnore]
     public Expression<Func<AniDbAnime, bool>> Criterion =>
         Negated ? Expression.Lambda<Func<AniDbAnime, bool>>(Expression.Not(_criterion.Body), false, _criterion.Parameters) : _criterion;
+
+    public bool Negated { get; set; } = Negated;
 }

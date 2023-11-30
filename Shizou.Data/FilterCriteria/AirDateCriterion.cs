@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
 using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
@@ -13,6 +14,14 @@ public enum AirDateCriterionType
 public record AirDateCriterion(bool Negated, AirDateCriterionType AirDateCriterionType, int? Year = null, int? Month = null, int? Day = null) : AnimeCriterion(
     Negated, Create(AirDateCriterionType, Year, Month, Day))
 {
+    public AirDateCriterionType AirDateCriterionType { get; set; } = AirDateCriterionType;
+
+    [Range(1900, 2100)]
+    public int? Year { get; set; } = Year;
+
+    public int? Month { get; set; } = Month;
+    public int? Day { get; set; } = Day;
+
     private static Expression<Func<AniDbAnime, bool>> Create(AirDateCriterionType airDateCriterionType, int? year, int? month, int? day)
     {
         if (new[] { year, month, day }.Any(x => x is not null) && airDateCriterionType == AirDateCriterionType.Missing)
