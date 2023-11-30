@@ -11,7 +11,7 @@ public enum AirDateCriterionType
     Missing = 3
 }
 
-public record AirDateCriterion(bool Negated, AirDateCriterionType AirDateCriterionType, int? Year = null, int? Month = null, int? Day = null) : AnimeCriterion(
+public record AirDateCriterion(bool Negated, AirDateCriterionType AirDateCriterionType, int? Year = null, int? Month = null, int? Day = null) : TermCriterion(
     Negated, Create(AirDateCriterionType, Year, Month, Day))
 {
     public AirDateCriterionType AirDateCriterionType { get; set; } = AirDateCriterionType;

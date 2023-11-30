@@ -3,9 +3,9 @@ using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public record AndAllCriterion(List<AnimeCriterion> Criteria) : AnimeCriterion(false, Create(Criteria))
+public record AndAllCriterion(List<TermCriterion> Criteria) : AnimeCriterion(false, Create(Criteria))
 {
-    private static Expression<Func<AniDbAnime, bool>> Create(List<AnimeCriterion> criteria)
+    private static Expression<Func<AniDbAnime, bool>> Create(List<TermCriterion> criteria)
     {
         var animeParam = Expression.Parameter(typeof(AniDbAnime), "anime");
         var expression = criteria.Count == 0

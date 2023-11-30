@@ -107,16 +107,16 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
         }
     }
 
-    private class AnimeCriterionConverter : ValueConverter<AnimeCriterion, string>
+    private class AnimeCriterionConverter : ValueConverter<OrAnyCriterion, string>
     {
         public AnimeCriterionConverter() : base(
             v => JsonSerializer.Serialize(v, new JsonSerializerOptions
             {
-                TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>()
+                TypeInfoResolver = new PolymorphicJsonTypeResolver<TermCriterion>()
             }),
-            v => JsonSerializer.Deserialize<AnimeCriterion>(v, new JsonSerializerOptions
+            v => JsonSerializer.Deserialize<OrAnyCriterion>(v, new JsonSerializerOptions
             {
-                TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>()
+                TypeInfoResolver = new PolymorphicJsonTypeResolver<TermCriterion>()
             })!)
         {
         }

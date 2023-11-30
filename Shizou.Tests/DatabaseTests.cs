@@ -32,26 +32,26 @@ public class DatabaseTests : SeededDatabaseTests
     {
         using var context = GetContext();
 
-        var and1 = new AndAllCriterion(new List<AnimeCriterion>
+        var and1 = new AndAllCriterion(new List<TermCriterion>
         {
             new AirDateCriterion(false, AirDateCriterionType.Before, 2000),
             new AirDateCriterion(false, Year: 2005, Month: 5, AirDateCriterionType: AirDateCriterionType.OnOrAfter)
         });
 
-        var and2 = new AndAllCriterion(new List<AnimeCriterion>
+        var and2 = new AndAllCriterion(new List<TermCriterion>
         {
             new AirDateCriterion(true, Year: 1995, AirDateCriterionType: AirDateCriterionType.Before),
             new AirDateCriterion(true, Year: 2005, Month: 12, AirDateCriterionType: AirDateCriterionType.OnOrAfter)
         });
-        AnimeCriterion orAny = new OrAnyCriterion(new List<AnimeCriterion>
+        var orAny = new OrAnyCriterion(new List<AndAllCriterion>
         {
             and1, and2
         });
         var res = context.AniDbAnimes.Where(orAny.Criterion);
 
-        var serializationOpts = new JsonSerializerOptions { TypeInfoResolver = new PolymorphicJsonTypeResolver<AnimeCriterion>() };
+        var serializationOpts = new JsonSerializerOptions { TypeInfoResolver = new PolymorphicJsonTypeResolver<TermCriterion>() };
         var serialized = JsonSerializer.Serialize(orAny, serializationOpts);
-        var deserialized = JsonSerializer.Deserialize<AnimeCriterion>(serialized, serializationOpts);
+        var deserialized = JsonSerializer.Deserialize<OrAnyCriterion>(serialized, serializationOpts);
 
         context.AnimeFilters.Add(new AnimeFilter { Name = "Test Filter", Criteria = orAny });
         context.SaveChanges();

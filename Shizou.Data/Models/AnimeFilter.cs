@@ -10,5 +10,5 @@ public class AnimeFilter
     [Required]
     public required string Name { get; set; }
 
-    public required AnimeCriterion Criteria { get; set; }
+    public required OrAnyCriterion Criteria { get; set; }
 }

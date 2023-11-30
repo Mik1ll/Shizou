@@ -14,13 +14,6 @@ public partial class CriteriaPicker
     [EditorRequired]
     public AnimeFilter Filter { get; set; } = default!;
 
-    protected override void OnInitialized()
-    {
-        _isSumOfProducts = Filter.Criteria is OrAnyCriterion or &&
-                           or.Criteria.All(c => c is AndAllCriterion and &&
-                                                and.Criteria.All(t => _validTermTypes.ContainsValue(t.GetType())));
-    }
-
     private void AddOrUpdate(OrAnyCriterion or, AndAllCriterion? and, int index, string newTermType)
     {
         var term = _validTermTypes[newTermType] switch
@@ -35,12 +28,12 @@ public partial class CriteriaPicker
         else
         {
             if (and is null)
-                or.Criteria.Add(and = new AndAllCriterion(new List<AnimeCriterion>()));
+                or.Criteria.Add(and = new AndAllCriterion(new List<TermCriterion>()));
             and.Criteria.Add(term);
         }
     }
 
-    private void Replace(AndAllCriterion and, int index, AnimeCriterion newCriterion)
+    private void Replace(AndAllCriterion and, int index, TermCriterion newCriterion)
     {
         and.Criteria[index] = newCriterion;
     }
