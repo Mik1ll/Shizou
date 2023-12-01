@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Shizou.Data.Utilities.Extensions;
+namespace Shizou.Data.Extensions;
 
 public static class StringExtensions
 {

@@ -11,7 +11,8 @@ public partial class CriteriaPicker
     private Dictionary<string, Type> _validTermTypes = new()
     {
         { nameof(AirDateCriterion), typeof(AirDateCriterion) },
-        { nameof(UnwatchedFilesCriterion), typeof(UnwatchedFilesCriterion) }
+        { nameof(UnwatchedFilesCriterion), typeof(UnwatchedFilesCriterion) },
+        { nameof(EpisodeWithoutFilesCriterion), typeof(EpisodeWithoutFilesCriterion) }
     };
 
     [Parameter]
@@ -32,6 +33,7 @@ public partial class CriteriaPicker
         {
             { } t when t == typeof(AirDateCriterion) => new AirDateCriterion(false, AirDateCriterionType.Before),
             { } t when t == typeof(UnwatchedFilesCriterion) => new UnwatchedFilesCriterion(false),
+            { } t when t == typeof(EpisodeWithoutFilesCriterion) => new EpisodeWithoutFilesCriterion(false),
             _ => throw new ArgumentOutOfRangeException()
         };
         if (and?.Criteria.Count > index)

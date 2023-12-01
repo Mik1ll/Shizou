@@ -14,8 +14,8 @@ using Microsoft.Extensions.Logging;
 using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
+using Shizou.Data.Extensions;
 using Shizou.Data.Models;
-using Shizou.Data.Utilities.Extensions;
 
 namespace Shizou.Server.Services;
 
