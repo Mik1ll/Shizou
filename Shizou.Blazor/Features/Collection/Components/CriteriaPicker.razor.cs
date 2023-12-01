@@ -14,8 +14,16 @@ public partial class CriteriaPicker
     [EditorRequired]
     public AnimeFilter Filter { get; set; } = default!;
 
-    private void AddOrUpdate(OrAnyCriterion or, AndAllCriterion? and, int index, string newTermType)
+    private void AddOrUpdate(OrAnyCriterion or, AndAllCriterion? and, int index, string? newTermType)
     {
+        if (string.IsNullOrWhiteSpace(newTermType))
+        {
+            if (and?.Criteria.Count > index)
+                and.Criteria.RemoveAt(index);
+            or.Criteria.RemoveAll(a => a.Criteria.Count == 0);
+            return;
+        }
+
         var term = _validTermTypes[newTermType] switch
         {
             { } t when t == typeof(AirDateCriterion) => new AirDateCriterion(false, AirDateCriterionType.Before),
