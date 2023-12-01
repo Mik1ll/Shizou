@@ -36,7 +36,7 @@
                         </p>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">Aired: @(_anime.AirDate ?? "??") - @(_anime.EndDate ?? "??")</li>
-                            <li class="list-group-item">Type: @(_anime.AnimeType.ToStringUpperCaseSpaced())</li>
+                            <li class="list-group-item">Type: @(_anime.AnimeType.ToString().UpperCaseSpaced())</li>
                             @if (_anime.Restricted)
                             {
                                 <li class="list-group-item">Hentai</li>

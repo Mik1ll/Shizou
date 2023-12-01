@@ -1,4 +1,5 @@
-﻿@using Shizou.Data.FilterCriteria
+﻿@using Shizou.Data.Utilities.Extensions
+@using Shizou.Data.FilterCriteria
 @{
     var or = Filter.Criteria;
 }
@@ -19,7 +20,7 @@
                         <option value="">@(term is null ? "Pick a Term" : "Remove")</option>
                         @foreach (var termType in _validTermTypes.Keys)
                         {
-                            <option value="@termType" selected="@(termType == term?.GetType().Name)">@termType</option>
+                            <option value="@termType" selected="@(termType == term?.GetType().Name)">@(termType.TrimEnd("Criterion").UpperCaseSpaced())</option>
                         }
                     </select>
                     @if (and is not null && term is not null)
