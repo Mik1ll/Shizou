@@ -14,9 +14,9 @@
             </div>
             @foreach (var (term, idx) in (and?.Criteria ?? new List<TermCriterion>()).Append(null).Select((term, idx) => (term, idx)))
             {
-                <div class="border border-secondary p-1 mb-2">
+                <div class="border border-secondary p-2 mb-2">
                     <select @key="@term" class="form-select mb-1" @onchange="@(args => AddOrUpdate(or, and, idx, (string)args.Value!))">
-                        <option hidden>Pick a term</option>
+                        <option hidden>Pick a Term</option>
                         @foreach (var termType in _validTermTypes.Keys)
                         {
                             <option value="@termType" selected="@(termType == term?.GetType().Name)">@termType</option>
@@ -24,22 +24,28 @@
                     </select>
                     @if (and is not null && term is not null)
                     {
-                        <EditForm class="ms-3" Model="@term">
+                        <EditForm Model="@term">
                             <DataAnnotationsValidator/>
                             <ValidationSummary/>
+
+                            <div class="form-check form-check-inline mb-1">
+                                <label class="form-check-label">
+                                    <InputCheckbox class="form-check-input" @bind-Value="@(term.Negated)"/> Negate
+                                </label>
+                            </div>
                             @switch (term)
                             {
                                 case AirDateCriterion airdate:
-                                    <InputSelect class="form-select w-auto d-inline" @bind-Value="@(airdate.AirDateCriterionType)">
+                                    <InputSelect class="form-select w-auto d-inline-block mb-1" @bind-Value="@(airdate.AirDateCriterionType)">
                                         @foreach (var type in Enum.GetValues<AirDateCriterionType>())
                                         {
                                             <option value="@type" selected="@(airdate.AirDateCriterionType == type)">@type</option>
                                         }
                                     </InputSelect>
                                     <br/>
-                                    <InputNumber class="form-control d-inline" style="width: 5em" placeholder="Year" @bind-Value="@(airdate.Year)"/>
-                                    <InputNumber class="form-control d-inline" style="width: 5.3em" placeholder="Month" @bind-Value="@(airdate.Month)"/>
-                                    <InputNumber class="form-control d-inline" style="width: 4.3em" placeholder="Day" @bind-Value="@(airdate.Day)"/>
+                                    <InputNumber class="form-control d-inline-block" style="width: 5em" placeholder="Year" @bind-Value="@(airdate.Year)"/>
+                                    <InputNumber class="form-control d-inline-block" style="width: 5.3em" placeholder="Month" @bind-Value="@(airdate.Month)"/>
+                                    <InputNumber class="form-control d-inline-block" style="width: 4.3em" placeholder="Day" @bind-Value="@(airdate.Day)"/>
                                     break;
                             }
                         </EditForm>
