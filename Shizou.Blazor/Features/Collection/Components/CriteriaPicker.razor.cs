@@ -8,7 +8,11 @@ public partial class CriteriaPicker
 {
     private bool _isSumOfProducts;
 
-    private Dictionary<string, Type> _validTermTypes = new() { { nameof(AirDateCriterion), typeof(AirDateCriterion) } };
+    private Dictionary<string, Type> _validTermTypes = new()
+    {
+        { nameof(AirDateCriterion), typeof(AirDateCriterion) },
+        { nameof(UnwatchedFilesCriterion), typeof(UnwatchedFilesCriterion) }
+    };
 
     [Parameter]
     [EditorRequired]
@@ -24,9 +28,10 @@ public partial class CriteriaPicker
             return;
         }
 
-        var term = _validTermTypes[newTermType] switch
+        TermCriterion term = _validTermTypes[newTermType] switch
         {
             { } t when t == typeof(AirDateCriterion) => new AirDateCriterion(false, AirDateCriterionType.Before),
+            { } t when t == typeof(UnwatchedFilesCriterion) => new UnwatchedFilesCriterion(false),
             _ => throw new ArgumentOutOfRangeException()
         };
         if (and?.Criteria.Count > index)
