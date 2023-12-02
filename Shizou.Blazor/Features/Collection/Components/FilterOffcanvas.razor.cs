@@ -21,25 +21,25 @@ public partial class FilterOffcanvas
     private NavigationManager NavigationManager { get; set; } = default!;
 
     [Parameter]
-    public int? SelectedFilterId { get; set; }
-
-    [Parameter]
-    public EventCallback<int?> SelectedFilterIdChanged { get; set; }
+    [EditorRequired]
+    public int? FilterId { get; set; }
 
     protected override void OnInitialized()
     {
         RefreshFilters();
     }
 
-    private async Task UpdateSelectedFilterIdAsync(int? id)
-    {
-        SelectedFilterId = id;
-        await SelectedFilterIdChanged.InvokeAsync(id);
-    }
-
     private void OnSelect(ChangeEventArgs e)
     {
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.FilterId), (string?)e.Value));
+        if (int.TryParse((string)e.Value!, out var id))
+            NavigateToFilter(id);
+        else
+            NavigateToFilter(null);
+    }
+
+    private void NavigateToFilter(int? id)
+    {
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.FilterId), id));
     }
 
     private void RefreshFilters()
@@ -57,7 +57,7 @@ public partial class FilterOffcanvas
         };
     }
 
-    private async Task SaveFilterAsync()
+    private void SaveFilter()
     {
         if (_editingFilter is null)
         {
@@ -66,25 +66,25 @@ public partial class FilterOffcanvas
         }
 
         using var context = ContextFactory.CreateDbContext();
-        var eFilter = context.AnimeFilters.FirstOrDefault(f => f.Id == SelectedFilterId);
+        var eFilter = context.AnimeFilters.FirstOrDefault(f => f.Id == FilterId);
         if (eFilter is not null)
             context.Entry(eFilter).CurrentValues.SetValues(_editingFilter);
         else
             context.AnimeFilters.Add(_editingFilter);
         context.SaveChanges();
-        await UpdateSelectedFilterIdAsync(_editingFilter.Id);
-        _editingFilter = null;
         RefreshFilters();
+        NavigateToFilter(_editingFilter?.Id);
+        _editingFilter = null;
     }
 
     private void EditFilter()
     {
-        if (SelectedFilterId is null)
+        if (FilterId is null)
         {
             ToastService.ShowError("Filter Error", "No filter selected when trying to edit filter");
             return;
         }
 
-        _editingFilter = _filters.First(f => f.Id == SelectedFilterId);
+        _editingFilter = _filters.First(f => f.Id == FilterId);
     }
 }

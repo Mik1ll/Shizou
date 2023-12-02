@@ -10,10 +10,10 @@
                     <option value="" default>Pick a filter</option>
                     @foreach (var filter in _filters)
                     {
-                        <option value="@(filter.Id)" selected="@(SelectedFilterId == filter.Id)">@(filter.Name)</option>
+                        <option value="@(filter.Id)" selected="@(FilterId == filter.Id)">@(filter.Name)</option>
                     }
                 </select>
-                @if (SelectedFilterId is not null)
+                @if (FilterId is not null)
                 {
                     <button type="button" class="btn btn-primary" @onclick="@EditFilter">Edit Filter</button>
                 }
@@ -22,7 +22,7 @@
         }
         else
         {
-            <EditForm Model="@_editingFilter" OnValidSubmit="@SaveFilterAsync">
+            <EditForm Model="@_editingFilter" OnValidSubmit="@SaveFilter">
                 <DataAnnotationsValidator/>
                 <div class="mb-3">
                     <div class="form-floating mb-1">

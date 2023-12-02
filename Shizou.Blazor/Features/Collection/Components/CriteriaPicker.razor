@@ -16,7 +16,7 @@
             @foreach (var (term, idx) in (and?.Criteria ?? new List<TermCriterion>()).Append(null).Select((term, idx) => (term, idx)))
             {
                 <div class="border border-secondary p-2 mb-2">
-                    <select @key="@term" class="form-select mb-1" @onchange="@(args => AddOrUpdate(or, and, idx, (string?)args.Value))">
+                    <select @key="@term" class="form-select mb-1" @onchange="@(args => Update(or, and, idx, (string?)args.Value))">
                         <option value="">@(term is null ? "Pick a Term" : "Remove")</option>
                         @foreach (var termType in _validTermTypes.Keys)
                         {

@@ -6,8 +6,6 @@ namespace Shizou.Blazor.Features.Collection.Components;
 
 public partial class CriteriaPicker
 {
-    private bool _isSumOfProducts;
-
     private Dictionary<string, Type> _validTermTypes = new()
     {
         { nameof(AirDateCriterion), typeof(AirDateCriterion) },
@@ -19,7 +17,7 @@ public partial class CriteriaPicker
     [EditorRequired]
     public AnimeFilter Filter { get; set; } = default!;
 
-    private void AddOrUpdate(OrAnyCriterion or, AndAllCriterion? and, int index, string? newTermType)
+    private void Update(OrAnyCriterion or, AndAllCriterion? and, int index, string? newTermType)
     {
         if (string.IsNullOrWhiteSpace(newTermType))
         {
