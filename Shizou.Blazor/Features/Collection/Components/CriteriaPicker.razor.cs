@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Shizou.Data.Enums;
 using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
 
@@ -10,7 +11,8 @@ public partial class CriteriaPicker
     {
         { nameof(AirDateCriterion), typeof(AirDateCriterion) },
         { nameof(UnwatchedFilesCriterion), typeof(UnwatchedFilesCriterion) },
-        { nameof(EpisodeWithoutFilesCriterion), typeof(EpisodeWithoutFilesCriterion) }
+        { nameof(EpisodeWithoutFilesCriterion), typeof(EpisodeWithoutFilesCriterion) },
+        { nameof(AnimeTypeCriterion), typeof(AnimeTypeCriterion) }
     };
 
     [Parameter]
@@ -32,6 +34,7 @@ public partial class CriteriaPicker
             { } t when t == typeof(AirDateCriterion) => new AirDateCriterion(false, AirDateCriterionType.Before),
             { } t when t == typeof(UnwatchedFilesCriterion) => new UnwatchedFilesCriterion(false),
             { } t when t == typeof(EpisodeWithoutFilesCriterion) => new EpisodeWithoutFilesCriterion(false),
+            { } t when t == typeof(AnimeTypeCriterion) => new AnimeTypeCriterion(false, AnimeType.TvSeries),
             _ => throw new ArgumentOutOfRangeException()
         };
         if (and?.Criteria.Count > index)

@@ -1,5 +1,6 @@
 ﻿@using Shizou.Data.Extensions
 @using Shizou.Data.FilterCriteria
+@using Shizou.Data.Enums
 @{
     var or = Filter.Criteria;
 }
@@ -40,13 +41,21 @@
                                     <InputSelect class="form-select w-auto d-inline-block mb-1" @bind-Value="@(airdate.AirDateCriterionType)">
                                         @foreach (var type in Enum.GetValues<AirDateCriterionType>())
                                         {
-                                            <option value="@type" selected="@(airdate.AirDateCriterionType == type)">@type</option>
+                                            <option value="@type" selected="@(airdate.AirDateCriterionType == type)">@(type.ToString().UpperCaseSpaced())</option>
                                         }
                                     </InputSelect>
                                     <br/>
                                     <InputNumber class="form-control d-inline-block" style="width: 5em" placeholder="Year" @bind-Value="@(airdate.Year)"/>
                                     <InputNumber class="form-control d-inline-block" style="width: 5.3em" placeholder="Month" @bind-Value="@(airdate.Month)"/>
                                     <InputNumber class="form-control d-inline-block" style="width: 4.3em" placeholder="Day" @bind-Value="@(airdate.Day)"/>
+                                    break;
+                                case AnimeTypeCriterion animeType:
+                                    <InputSelect class="form-select w-auto d-inline-block" @bind-Value="@(animeType.AnimeType)">
+                                        @foreach (var type in Enum.GetValues<AnimeType>())
+                                        {
+                                            <option value="@type" selected="@(animeType.AnimeType == type)">@(type.ToString().UpperCaseSpaced())</option>
+                                        }
+                                    </InputSelect>
                                     break;
                             }
                         </EditForm>
