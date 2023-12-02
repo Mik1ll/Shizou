@@ -17,6 +17,9 @@ public partial class FilterOffcanvas
     [Inject]
     private ToastService ToastService { get; set; } = default!;
 
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
     [Parameter]
     public int? SelectedFilterId { get; set; }
 
@@ -34,9 +37,9 @@ public partial class FilterOffcanvas
         await SelectedFilterIdChanged.InvokeAsync(id);
     }
 
-    private async Task OnSelectAsync(ChangeEventArgs e)
+    private void OnSelect(ChangeEventArgs e)
     {
-        await UpdateSelectedFilterIdAsync(int.TryParse((string)e.Value!, out var id) ? id : null);
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.FilterId), (string?)e.Value));
     }
 
     private void RefreshFilters()

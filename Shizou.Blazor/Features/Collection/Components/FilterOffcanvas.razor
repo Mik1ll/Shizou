@@ -6,7 +6,7 @@
         @if (_editingFilter is null)
         {
             <div class="input-group">
-                <select class="form-select" @onchange="@OnSelectAsync">
+                <select class="form-select" @onchange="@OnSelect">
                     <option value="" default>Pick a filter</option>
                     @foreach (var filter in _filters)
                     {
