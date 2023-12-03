@@ -38,16 +38,25 @@
                             @switch (term)
                             {
                                 case AirDateCriterion airdate:
-                                    <InputSelect class="form-select w-auto d-inline-block mb-1" @bind-Value="@(airdate.AirDateCriterionType)">
-                                        @foreach (var type in Enum.GetValues<AirDateCriterionType>())
+                                    <InputSelect class="form-select w-auto d-inline-block mb-1" @bind-Value="@(airdate.AirDateTermType)">
+                                        @foreach (var type in Enum.GetValues<AirDateTermType>())
                                         {
-                                            <option value="@type" selected="@(airdate.AirDateCriterionType == type)">@(type.ToString().UpperCaseSpaced())</option>
+                                            <option value="@type" selected="@(airdate.AirDateTermType == type)">@(type.ToString().UpperCaseSpaced())</option>
                                         }
                                     </InputSelect>
-                                    <br/>
-                                    <InputNumber class="form-control d-inline-block" style="width: 5em" placeholder="Year" @bind-Value="@(airdate.Year)"/>
-                                    <InputNumber class="form-control d-inline-block" style="width: 5.3em" placeholder="Month" @bind-Value="@(airdate.Month)"/>
-                                    <InputNumber class="form-control d-inline-block" style="width: 4.3em" placeholder="Day" @bind-Value="@(airdate.Day)"/>
+                                    <InputSelect class="form-select w-auto d-inline-block mb-1" @bind-Value="@(airdate.AirDateTermRange)">
+                                        @foreach (var type in Enum.GetValues<AirDateTermRange>())
+                                        {
+                                            <option value="@type" selected="@(airdate.AirDateTermRange == type)">@(type.ToString().UpperCaseSpaced())</option>
+                                        }
+                                    </InputSelect>
+                                    @if (airdate.AirDateTermRange != AirDateTermRange.Missing)
+                                    {
+                                        <br/>
+                                        <InputNumber class="form-control d-inline-block" style="width: 5em" placeholder="Year" @bind-Value="@(airdate.Year)"/>
+                                        <InputNumber class="form-control d-inline-block" style="width: 5.3em" placeholder="Month" @bind-Value="@(airdate.Month)"/>
+                                        <InputNumber class="form-control d-inline-block" style="width: 4.3em" placeholder="Day" @bind-Value="@(airdate.Day)"/>
+                                    }
                                     break;
                                 case AnimeTypeCriterion animeType:
                                     <InputSelect class="form-select w-auto d-inline-block" @bind-Value="@(animeType.AnimeType)">

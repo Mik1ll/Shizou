@@ -31,7 +31,7 @@ public partial class CriteriaPicker
 
         TermCriterion term = _validTermTypes[newTermType] switch
         {
-            { } t when t == typeof(AirDateCriterion) => new AirDateCriterion(false, AirDateCriterionType.Before),
+            { } t when t == typeof(AirDateCriterion) => new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.Before),
             { } t when t == typeof(UnwatchedFilesCriterion) => new UnwatchedFilesCriterion(false),
             { } t when t == typeof(EpisodeWithoutFilesCriterion) => new EpisodeWithoutFilesCriterion(false),
             { } t when t == typeof(AnimeTypeCriterion) => new AnimeTypeCriterion(false, AnimeType.TvSeries),

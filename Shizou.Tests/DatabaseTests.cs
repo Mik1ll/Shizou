@@ -34,14 +34,14 @@ public class DatabaseTests : SeededDatabaseTests
 
         var and1 = new AndAllCriterion(new List<TermCriterion>
         {
-            new AirDateCriterion(false, AirDateCriterionType.Before, 2000),
-            new AirDateCriterion(false, Year: 2005, Month: 5, AirDateCriterionType: AirDateCriterionType.OnOrAfter)
+            new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.Before, 2000),
+            new AirDateCriterion(false, AirDateTermType.AirDate, Year: 2005, Month: 5, AirDateTermRange: AirDateTermRange.OnOrAfter)
         });
 
         var and2 = new AndAllCriterion(new List<TermCriterion>
         {
-            new AirDateCriterion(true, Year: 1995, AirDateCriterionType: AirDateCriterionType.Before),
-            new AirDateCriterion(true, Year: 2005, Month: 12, AirDateCriterionType: AirDateCriterionType.OnOrAfter)
+            new AirDateCriterion(true, AirDateTermType.AirDate, Year: 1995, AirDateTermRange: AirDateTermRange.Before),
+            new AirDateCriterion(true, AirDateTermType.AirDate, Year: 2005, Month: 12, AirDateTermRange: AirDateTermRange.OnOrAfter)
         });
         var orAny = new OrAnyCriterion(new List<AndAllCriterion>
         {
