@@ -46,10 +46,4 @@ public partial class Collection : IDisposable
             .Where(filter?.Criteria.Criterion ?? (a => true))
             .ToList();
     }
-
-    private void OnSelectedFilterChanged(int? id)
-    {
-        FilterId = id;
-        RefreshAnime();
-    }
 }
