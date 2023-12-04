@@ -9,7 +9,7 @@
         {
             <div class="input-group">
                 <select class="form-select" @onchange="@OnFilterSelect">
-                    <option value="" default>Pick a filter</option>
+                    <option value="">All</option>
                     @foreach (var filter in _filters)
                     {
                         <option value="@(filter.Id)" selected="@(FilterId == filter.Id)">@(filter.Name)</option>
