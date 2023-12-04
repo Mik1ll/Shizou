@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Extensions.Query;
@@ -24,8 +25,8 @@ public class AnimeService
     public List<AniDbAnime> GetFilteredAndSortedAnime(int? filterId, bool descending, AnimeSort sort, bool hasLocalFiles)
     {
         using var context = _contextFactory.CreateDbContext();
-        var filter = context.AnimeFilters.FirstOrDefault(f => f.Id == filterId);
-        var query = (hasLocalFiles ? context.AniDbAnimes.HasLocalFiles() : context.AniDbAnimes)
+        var filter = context.AnimeFilters.AsNoTracking().FirstOrDefault(f => f.Id == filterId);
+        var query = (hasLocalFiles ? context.AniDbAnimes.HasLocalFiles() : context.AniDbAnimes).AsNoTracking()
             .Where(filter?.Criteria.Criterion ?? (a => true));
         var anime = query.ToList();
         List<AniDbAnime> sorted;
@@ -52,7 +53,7 @@ public class AnimeService
                     select (from updateAid in grp
                         orderby updateAid.Updated descending
                         select updateAid).First();
-                var updateAids = updateAidsQuery.ToList();
+                var updateAids = updateAidsQuery.AsNoTracking().ToList();
                 var resquery = from a in anime
                     join ua in updateAids on a.Id equals ua.Aid into uas
                     let ua = uas.FirstOrDefault()
