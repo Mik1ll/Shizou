@@ -9,14 +9,18 @@ namespace Shizou.Blazor.Features.Collection;
 public partial class Collection : IDisposable
 {
     private List<AniDbAnime> _anime = default!;
+    private List<AniDbAnime>? _animeSearchResults;
 
-    private AnimeSort _sortEnum;
+    private AnimeSort _sort;
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
     [Inject]
     private AnimeService AnimeService { get; set; } = default!;
+
+    [Inject]
+    private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
 
     [Parameter]
     [SupplyParameterFromQuery]
@@ -37,7 +41,7 @@ public partial class Collection : IDisposable
 
     protected override void OnParametersSet()
     {
-        _sortEnum = Sort is null ? default : Enum.Parse<AnimeSort>(Sort);
+        _sort = Sort is null ? default : Enum.Parse<AnimeSort>(Sort);
     }
 
     protected override void OnInitialized()
@@ -52,9 +56,19 @@ public partial class Collection : IDisposable
         StateHasChanged();
     }
 
-
     private void RefreshAnime()
     {
-        _anime = AnimeService.GetFilteredAndSortedAnime(FilterId, Descending, _sortEnum, true);
+        _anime = AnimeService.GetFilteredAndSortedAnime(FilterId, Descending, _sort, true);
+    }
+
+    private async Task<List<(int, string)>?> GetSearchResults(string query) => await AnimeTitleSearchService.SearchAsync(query, true);
+
+    private void SetSearchResults(List<(int, string)>? results)
+    {
+        _animeSearchResults = results is null
+            ? null
+            : (from res in results
+                join a in _anime on res.Item1 equals a.Id
+                select a).ToList();
     }
 }

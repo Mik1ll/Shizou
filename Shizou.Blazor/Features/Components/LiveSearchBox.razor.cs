@@ -30,6 +30,12 @@ public partial class LiveSearchBox
     [Parameter]
     public bool? Disabled { get; set; }
 
+    [Parameter]
+    public bool ShowSelect { get; set; } = true;
+
+    [Parameter]
+    public EventCallback<List<(int, string)>?> OnResultsRetrieved { get; set; }
+
     protected override void OnInitialized()
     {
         _searchTimer = new Timer(TimeSpan.FromMilliseconds(500))
@@ -47,6 +53,7 @@ public partial class LiveSearchBox
         {
             _results.Clear();
             await InvokeAsync(StateHasChanged);
+            await InvokeAsync(() => OnResultsRetrieved.InvokeAsync(null));
             return;
         }
 
@@ -59,6 +66,7 @@ public partial class LiveSearchBox
         {
             _results = res;
             await InvokeAsync(StateHasChanged);
+            await InvokeAsync(() => OnResultsRetrieved.InvokeAsync(_results));
         }
     }
 

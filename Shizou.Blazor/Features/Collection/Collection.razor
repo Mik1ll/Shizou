@@ -1,10 +1,13 @@
 ﻿@page "/Collection"
 
-<FilterOffcanvas FilterId="@FilterId" Sort="@_sortEnum" Descending="@Descending"></FilterOffcanvas>
+<FilterOffcanvas FilterId="@FilterId" Sort="@_sort" Descending="@Descending"></FilterOffcanvas>
 <PageTitle>Collection</PageTitle>
 <article class="container-fluid">
+    <div class="row row-cols-md-2 row-cols-xl-3 justify-content-center mb-2">
+        <LiveSearchBox GetResults="GetSearchResults" OnResultsRetrieved="SetSearchResults" ShowSelect="false" PlaceholderText="Search Anime..."></LiveSearchBox>
+    </div>
     <div class="d-flex flex-wrap justify-content-center">
-        @foreach (var anime in _anime)
+        @foreach (var anime in _animeSearchResults ?? _anime)
         {
             <AnimeCard @key="@(anime.Id)" AniDbAnime="@anime"></AnimeCard>
         }
