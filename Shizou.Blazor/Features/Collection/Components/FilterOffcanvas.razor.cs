@@ -3,6 +3,7 @@ using Shizou.Blazor.Services;
 using Shizou.Data.Database;
 using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
+using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Collection.Components;
 
