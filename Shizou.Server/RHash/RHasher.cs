@@ -24,6 +24,30 @@ public class RHasher
         _ptr = nint.Zero;
     }
 
+    [Flags]
+    [SuppressMessage("ReSharper", "UnusedMember.Local")]
+    private enum PrintFlags
+    {
+        Default = 0x0, /* Print in a default format */
+        Raw = 0x1, /* Output as binary message digest */
+        Hex = 0x2, /* Print as a hexadecimal string */
+        Base32 = 0x3, /* Print as a base32-encoded string */
+        Base64 = 0x4, /* Print as a base64-encoded string */
+        Uppercase = 0x8, /* Print as an uppercase string. Can be used for base32 or hexadecimal format only. */
+        Reverse = 0x10, /* Reverse message digest bytes. Can be used for GOST hash functions. */
+        NoMagnet = 0x20, /* Don't print 'magnet:?' prefix in rhash_print_magnet */
+        Filesize = 0x40, /* Print file size in rhash_print_magnet */
+        UrlEncode = 0x80 /* Print as URL-encoded string */
+    }
+
+    public override unsafe string ToString()
+    {
+        var sb = stackalloc byte[130];
+        if (Bindings.rhash_print(sb, _ptr, 0, PrintFlags.Default) == 0)
+            throw new ExternalException($"{nameof(Bindings.rhash_print)} failed");
+        return Marshal.PtrToStringAnsi((nint)sb) ?? string.Empty;
+    }
+
     public RHasher Update(byte[] buf, int len)
     {
         if (len < 0 || len > buf.Length) throw new IndexOutOfRangeException();
@@ -44,14 +68,6 @@ public class RHasher
         Bindings.rhash_reset(_ptr);
     }
 
-    public override unsafe string ToString()
-    {
-        var sb = stackalloc byte[130];
-        if (Bindings.rhash_print(sb, _ptr, 0, PrintFlags.Default) == 0)
-            throw new ExternalException($"{nameof(Bindings.rhash_print)} failed");
-        return Marshal.PtrToStringAnsi((nint)sb) ?? string.Empty;
-    }
-
     public unsafe string ToString(HashIds hashId)
     {
         // https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
@@ -65,13 +81,6 @@ public class RHasher
 
     private static class Bindings
     {
-        private const string LibRHash = "RHash/librhash.dll";
-
-        static Bindings()
-        {
-            rhash_library_init();
-        }
-
         [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
         private static extern void rhash_library_init();
 
@@ -92,21 +101,12 @@ public class RHasher
 
         [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern unsafe nuint rhash_print(byte* output, nint ctx, HashIds hashId, PrintFlags flags);
-    }
 
-    [Flags]
-    [SuppressMessage("ReSharper", "UnusedMember.Local")]
-    private enum PrintFlags
-    {
-        Default = 0x0, /* Print in a default format */
-        Raw = 0x1, /* Output as binary message digest */
-        Hex = 0x2, /* Print as a hexadecimal string */
-        Base32 = 0x3, /* Print as a base32-encoded string */
-        Base64 = 0x4, /* Print as a base64-encoded string */
-        Uppercase = 0x8, /* Print as an uppercase string. Can be used for base32 or hexadecimal format only. */
-        Reverse = 0x10, /* Reverse message digest bytes. Can be used for GOST hash functions. */
-        NoMagnet = 0x20, /* Don't print 'magnet:?' prefix in rhash_print_magnet */
-        Filesize = 0x40, /* Print file size in rhash_print_magnet */
-        UrlEncode = 0x80 /* Print as URL-encoded string */
+        private const string LibRHash = "RHash/librhash";
+
+        static Bindings()
+        {
+            rhash_library_init();
+        }
     }
 }
