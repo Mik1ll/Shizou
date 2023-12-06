@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -46,7 +47,11 @@ public static class InitializationExtensions
         Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.OptionsPath)!);
         if (!File.Exists(FilePaths.OptionsPath))
             new ShizouOptions().SaveToFile();
-        builder.Configuration.AddJsonFile(FilePaths.OptionsPath, false, true);
+        var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? throw new ApplicationException("No Entry assembly???");
+        builder.Configuration
+            .AddJsonFile($"appsettings.{assemblyName}.json", true, true)
+            .AddJsonFile($"appsettings.{assemblyName}.{builder.Environment.EnvironmentName}.json", true, true)
+            .AddJsonFile(FilePaths.OptionsPath, false, true);
         builder.Services.AddOptions<ShizouOptions>()
             .Bind(builder.Configuration.GetSection(ShizouOptions.Shizou))
             .ValidateDataAnnotations()
