@@ -4,6 +4,8 @@
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <UserSecretsId>44d8291c-0d56-4c16-80a0-6eef26b5b39c</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,6 +21,12 @@
     <ItemGroup>
         <ProjectReference Include="..\Shizou.Data\Shizou.Data.csproj" />
         <ProjectReference Include="..\Shizou.Server\Shizou.Server.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
 
