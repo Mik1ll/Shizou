@@ -40,7 +40,7 @@ public partial class Collection
         _anime = AnimeService.GetFilteredAndSortedAnime(FilterId, Descending, _sort, true);
     }
 
-    private async Task<List<(int, string)>?> GetSearchResults(string query) => await AnimeTitleSearchService.SearchAsync(query, true);
+    private Task<List<(int, string)>?> GetSearchResultsAsync(string query) => AnimeTitleSearchService.SearchAsync(query, true);
 
     private void SetSearchResults(List<(int, string)>? results)
     {

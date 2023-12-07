@@ -42,24 +42,17 @@ public class AnimeService
                 sorted = anime.OrderBy(a => a.TitleTranscription).ToList();
                 break;
             case AnimeSort.RecentFiles:
-                var updateAidsQuery = from updateAid in (from lf in context.LocalFiles
-                        where lf.AniDbFile != null
-                        from aniDbAnimeId in lf.AniDbFile.AniDbEpisodes.Select(e => e.AniDbAnimeId)
-                        select new { lf.Updated, Aid = aniDbAnimeId }).Union(from lf in context.LocalFiles
-                        where lf.ManualLinkEpisode != null
-                        select new { lf.Updated, Aid = lf.ManualLinkEpisode.AniDbAnimeId })
-                    group updateAid by updateAid.Aid
-                    into grp
-                    select (from updateAid in grp
-                        orderby updateAid.Updated descending
-                        select updateAid).First();
-                var updateAids = updateAidsQuery.AsNoTracking().ToList();
-                var resquery = from a in anime
-                    join ua in updateAids on a.Id equals ua.Aid into uas
-                    let ua = uas.FirstOrDefault()
-                    orderby ua.Updated descending
+                var recentlyAddedQuery = from a in context.AniDbAnimes.AsNoTracking()
+                    let recentManLink = a.AniDbEpisodes.SelectMany(ep => ep.ManualLinkLocalFiles.Select(lf => lf.Id)).DefaultIfEmpty().Max()
+                    let recentRegular = a.AniDbEpisodes.SelectMany(ep => ep.AniDbFiles.Select(f => f.LocalFile!.Id)).DefaultIfEmpty().Max()
+                    select new { Aid = a.Id, RecentLocalId = Math.Max(recentManLink, recentRegular) };
+                var recentlyAdded = recentlyAddedQuery.ToList();
+                var orderedByRecentQuery = from a in anime
+                    join ra in recentlyAdded on a.Id equals ra.Aid into rag
+                    let ra = rag.FirstOrDefault()
+                    orderby ra.RecentLocalId descending
                     select a;
-                sorted = resquery.ToList();
+                sorted = orderedByRecentQuery.ToList();
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
