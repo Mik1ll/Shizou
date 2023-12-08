@@ -69,7 +69,7 @@ public static class InitializationExtensions
 
     public static WebApplicationBuilder AddWorkerServices(this WebApplicationBuilder builder)
     {
-        builder.Host.UseWindowsService(cfg => cfg.ServiceName = "Shizou Server")
+        builder.Host.UseWindowsService(cfg => cfg.ServiceName = "Shizou")
             .UseSystemd();
         return builder;
     }
