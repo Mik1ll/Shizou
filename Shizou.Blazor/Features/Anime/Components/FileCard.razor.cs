@@ -90,6 +90,6 @@ public partial class FileCard
         var uri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.Get),
             nameof(FileServer), new { LocalFileId = $"{file.Id}{Path.GetExtension(file.PathTail)}" }) ?? throw new ArgumentException();
         NavigationManager.NavigateTo(
-            $"mpv:{uri}?{Constants.IdentityCookieName}={IdentityCookie}");
+            $"shizou:{uri}?{Constants.IdentityCookieName}={IdentityCookie}");
     }
 }

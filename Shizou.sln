@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Blazor", "Shizou.Bla
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Tests", "Shizou.Tests\Shizou.Tests.csproj", "{55E2CB60-505D-4639-9620-39767AF09E15}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.SchemeHandler", "Shizou.SchemeHandler\Shizou.SchemeHandler.csproj", "{BF177526-763C-4D02-BC85-2E44E8EC66B5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{55E2CB60-505D-4639-9620-39767AF09E15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55E2CB60-505D-4639-9620-39767AF09E15}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55E2CB60-505D-4639-9620-39767AF09E15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF177526-763C-4D02-BC85-2E44E8EC66B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF177526-763C-4D02-BC85-2E44E8EC66B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF177526-763C-4D02-BC85-2E44E8EC66B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF177526-763C-4D02-BC85-2E44E8EC66B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
