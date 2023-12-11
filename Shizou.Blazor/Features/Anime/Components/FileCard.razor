@@ -6,12 +6,12 @@
                 <div>
                     @if (!LocalFile.IsMissing())
                     {
-                        <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenVideoAsync(LocalFile.Id))">
+                        <button class="btn btn-primary me-2" type="button" @onclick="@(() => OpenVideoAsync(LocalFile.Id))">
                             <i class="bi bi-play"></i> Play
                         </button>
-                        <button class="btn btn-primary me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => OpenInMpv(LocalFile))">
+                        <a class="btn btn-primary me-2" target="_blank" href="@(PlayExternalUri())">
                             <i class="bi bi-play"></i> Play in Mpv
-                        </button>
+                        </a>
                     }
                     else
                     {

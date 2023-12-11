@@ -1,6 +1,7 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
+using Shizou.Blazor.Extensions;
 using Shizou.Blazor.Features.Components;
 using Shizou.Data;
 using Shizou.Data.Database;
@@ -28,7 +29,7 @@ public partial class FileCard
     private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
 
     [CascadingParameter(Name = nameof(App.IdentityCookie))]
-    private string? IdentityCookie { get; set; }
+    private string IdentityCookie { get; set; } = default!;
 
     [CascadingParameter]
     public IModalService ModalService { get; set; } = default!;
@@ -48,6 +49,11 @@ public partial class FileCard
     [Parameter]
     public EventCallback OnChanged { get; set; }
 
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        parameters.EnsureParametersSet(nameof(IdentityCookie));
+        return base.SetParametersAsync(parameters);
+    }
 
     private async Task MarkAsync(bool watched)
     {
@@ -83,13 +89,10 @@ public partial class FileCard
         await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), localFileId)).Result;
     }
 
-    private void OpenInMpv(LocalFile file)
+    private string PlayExternalUri()
     {
-        if (IdentityCookie is null)
-            return;
         var uri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.Get),
-            nameof(FileServer), new { LocalFileId = $"{file.Id}{Path.GetExtension(file.PathTail)}" }) ?? throw new ArgumentException();
-        NavigationManager.NavigateTo(
-            $"shizou:{uri}?{Constants.IdentityCookieName}={IdentityCookie}");
+            nameof(FileServer), new { LocalFileId = $"{LocalFile.Id}{Path.GetExtension(LocalFile.PathTail)}" }) ?? throw new ArgumentException();
+        return $"shizou:{uri}?{Constants.IdentityCookieName}={IdentityCookie}";
     }
 }
