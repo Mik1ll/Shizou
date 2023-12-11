@@ -9,7 +9,7 @@
                         <button class="btn btn-primary me-2" type="button" @onclick="@(() => OpenVideoAsync(LocalFile.Id))">
                             <i class="bi bi-play"></i> Play
                         </button>
-                        <a class="btn btn-primary me-2" target="_blank" href="@(PlayExternalUri())">
+                        <a class="btn btn-primary me-2" href="@(PlayExternalUri())">
                             <i class="bi bi-play"></i> Play in Mpv
                         </a>
                     }
