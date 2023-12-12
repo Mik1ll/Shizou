@@ -9,6 +9,7 @@ using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.CommandProcessors;
+using Shizou.Server.Extensions;
 using Shizou.Server.Extensions.Query;
 
 namespace Shizou.Server.Services;
@@ -83,7 +84,12 @@ public class CommandService : BackgroundService
     private void CreateScheduledCommands()
     {
         using var context = _contextFactory.CreateDbContext();
-        var scheduledCommands = context.ScheduledCommands.DueCommands().ToList();
+        List<ScheduledCommand> scheduledCommands;
+        using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
+        {
+            scheduledCommands = context.ScheduledCommands.DueCommands().ToList();
+        }
+
         if (scheduledCommands.Count == 0)
             return;
         _logger.LogInformation("Dispatching {Count} scheduled commands", scheduledCommands.Count);
