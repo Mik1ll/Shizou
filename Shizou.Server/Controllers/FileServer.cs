@@ -31,11 +31,11 @@ public class FileServer : ControllerBase
         _subtitleService = subtitleService;
     }
 
-
     /// <summary>
     ///     Get file by local Id, can optionally end in arbitrary extension
     /// </summary>
     /// <param name="localFileId"></param>
+    /// <param name="IdentityCookie"></param>
     /// <returns></returns>
     [HttpGet("{localFileId}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
@@ -43,8 +43,14 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: "application/octet-stream")]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
-    public Results<FileStreamHttpResult, Conflict<string>, NotFound> Get(string localFileId)
+    // ReSharper disable once UnusedParameter.Global
+    // ReSharper disable once InconsistentNaming
+    // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
+    public Results<FileStreamHttpResult, Conflict<string>, NotFound> Get(string localFileId, [FromQuery] string? IdentityCookie = null)
     {
+#pragma warning disable CS0162 // Unreachable code detected
+        if (nameof(IdentityCookie) != Constants.IdentityCookieName) throw new ApplicationException("Identity cookie must match name of constant");
+#pragma warning restore CS0162 // Unreachable code detected
         var id = int.Parse(localFileId.Split('.')[0]);
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == id);
         if (localFile is null)

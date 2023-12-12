@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Shizou.Data;
@@ -233,6 +234,20 @@ public static class InitializationExtensions
             })
             .AddTransient<IContentTypeProvider, FileExtensionContentTypeProvider>();
         return services;
+    }
+
+    public static IApplicationBuilder UseIdentityCookieParameter(this IApplicationBuilder app)
+    {
+        return app.Use((context, next) =>
+        {
+            if (!context.Request.Cookies.ContainsKey(Constants.IdentityCookieName) &&
+                context.Request.Query.TryGetValue(Constants.IdentityCookieName, out var identityParam))
+                context.Request.Headers.Cookie = new StringValues(
+                    (string.IsNullOrWhiteSpace(context.Request.Headers.Cookie) ? string.Empty : $"{context.Request.Headers.Cookie}; ") +
+                    $"{Constants.IdentityCookieName}={identityParam}");
+
+            return next.Invoke();
+        });
     }
 
     // ReSharper disable once UnusedMethodReturnValue.Local

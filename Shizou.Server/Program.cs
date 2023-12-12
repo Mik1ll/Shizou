@@ -46,8 +46,11 @@ app.UseRouting();
 
 app.UseCors("HttpScheme");
 
+app.UseIdentityCookieParameter();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.MigrateDatabase();
