@@ -19,24 +19,22 @@ public class Login : PageModel
     [BindProperty]
     public required InputModel Input { get; set; }
 
-    public string ReturnUrl { get; set; } = "";
-
     public ActionResult OnGet(string returnUrl = "")
     {
-        ReturnUrl = Url.Content("~/") + returnUrl.TrimStart('/');
+        returnUrl = Url.Content("~/") + returnUrl.TrimStart('/');
         if (User.Identity?.IsAuthenticated ?? false)
-            return LocalRedirect(ReturnUrl);
+            return LocalRedirect(returnUrl);
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync()
+    public async Task<IActionResult> OnPostAsync(string returnUrl = "")
     {
-        ReturnUrl = Url.Content("~/") + ReturnUrl.TrimStart('/');
+        returnUrl = Url.Content("~/") + returnUrl.TrimStart('/');
         if (ModelState.IsValid)
         {
             var result = await _signInManager.PasswordSignInAsync("Admin", Input.Password!, true, false);
             if (result.Succeeded)
-                return LocalRedirect(ReturnUrl);
+                return LocalRedirect(returnUrl);
             ModelState.AddModelError("Input.Password", "Wrong password");
         }
 
