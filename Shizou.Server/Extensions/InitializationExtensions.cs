@@ -124,7 +124,7 @@ public static class InitializationExtensions
                     if (context.Request.Path.StartsWithSegments("/api"))
                     {
                         context.Response.Clear();
-                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         return Task.CompletedTask;
                     }
 

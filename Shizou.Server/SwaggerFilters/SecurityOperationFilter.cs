@@ -19,7 +19,7 @@ public class SecurityOperationFilter : IOperationFilter
 
         if (!allowAnonymous)
         {
-            operation.Responses.Add("403", new OpenApiResponse { Description = "Forbidden" });
+            operation.Responses.Add("401", new OpenApiResponse { Description = "Unauthorized" });
 
             var oAuthScheme = new OpenApiSecurityScheme
             {
