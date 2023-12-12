@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -131,6 +132,12 @@ public static class InitializationExtensions
                     return Task.CompletedTask;
                 };
                 opts.Cookie.Name = Constants.IdentityCookieName;
+            })
+            .AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
             })
             .AddScoped<IShizouContext, ShizouContext>(p => p.GetRequiredService<ShizouContext>())
             .AddSingleton<IShizouContextFactory, ShizouContextFactory>(p =>

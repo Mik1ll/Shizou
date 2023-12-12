@@ -48,7 +48,7 @@ app.UseCors("HttpScheme");
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers().RequireAuthorization();
+app.MapControllers();
 
 app.MigrateDatabase();
 app.PopulateOptions();

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -7,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Shizou.Blazor.Pages.Account;
 
+[AllowAnonymous]
 public class SetPassword : PageModel
 {
     private readonly SignInManager<IdentityUser> _signInManager;

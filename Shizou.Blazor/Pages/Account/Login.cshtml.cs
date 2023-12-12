@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Shizou.Blazor.Pages.Account;
 
+[AllowAnonymous]
 public class Login : PageModel
 {
     private readonly SignInManager<IdentityUser> _signInManager;
