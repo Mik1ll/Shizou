@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
@@ -9,7 +10,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route($"{Constants.ApiPrefix}/[controller]")]
 public class AniDbFiles : EntityGetController<AniDbFile>
 {
     private readonly WatchStateService _watchStateService;

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -16,7 +17,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route($"{Constants.ApiPrefix}/[controller]")]
 public class FileServer : ControllerBase
 {
     private readonly IShizouContext _context;

@@ -13,7 +13,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route($"{Constants.ApiPrefix}/[controller]")]
 [Consumes("application/json")]
 public class Account : ControllerBase
 {

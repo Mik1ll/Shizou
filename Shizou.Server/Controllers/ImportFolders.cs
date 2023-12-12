@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Extensions.Query;
@@ -9,7 +10,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route($"{Constants.ApiPrefix}/[controller]")]
 public class ImportFolders : EntityController<ImportFolder>
 {
     public ImportFolders(IShizouContext context) : base(context, folder => folder.Id)

@@ -2,5 +2,6 @@
 
 public static class Constants
 {
-    public static readonly string IdentityCookieName = "IdentityCookie";
+    public const string IdentityCookieName = "IdentityCookie";
+    public const string ApiPrefix = "/api";
 }

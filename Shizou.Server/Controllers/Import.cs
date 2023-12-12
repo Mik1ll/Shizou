@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Shizou.Data;
 using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route($"{Constants.ApiPrefix}/[controller]")]
 public class Import : ControllerBase
 {
     private readonly ImportService _importService;

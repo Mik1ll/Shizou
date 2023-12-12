@@ -121,7 +121,7 @@ public static class InitializationExtensions
                 opts.LogoutPath = "/Account/Logout";
                 opts.Events.OnRedirectToLogin = context =>
                 {
-                    if (context.Request.Path.StartsWithSegments("/api"))
+                    if (context.Request.Path.StartsWithSegments(Constants.ApiPrefix))
                     {
                         context.Response.Clear();
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -219,12 +219,12 @@ public static class InitializationExtensions
                     Type = SecuritySchemeType.ApiKey,
                     Name = Constants.IdentityCookieName,
                     In = ParameterLocation.Cookie,
-                    Description = "Asp Identity token",
+                    Description = "Asp Identity Token",
                     Flows = new OpenApiOAuthFlows
                     {
                         Implicit = new OpenApiOAuthFlow
                         {
-                            AuthorizationUrl = new Uri("/api/Account/Login", UriKind.Relative),
+                            AuthorizationUrl = new Uri($"{Constants.ApiPrefix}/Account/Login", UriKind.Relative),
                             Scopes = new Dictionary<string, string>()
                         }
                     }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
+using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -12,7 +13,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace Shizou.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route($"{Constants.ApiPrefix}/[controller]")]
 public class Images : ControllerBase
 {
     private readonly ImageService _imageService;
