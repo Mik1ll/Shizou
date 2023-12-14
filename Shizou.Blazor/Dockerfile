@@ -1,10 +1,10 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:7.0-alpine AS base
 WORKDIR /app    
 EXPOSE 80
 EXPOSE 443
 LABEL org.opencontainers.image.source=https://github.com/Mik1ll/Shizou
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS build
 WORKDIR /src
 COPY ["Shizou.Blazor/Shizou.Blazor.csproj", "Shizou.Blazor/"]
 COPY ["Shizou.Data/Shizou.Data.csproj", "Shizou.Data/"]
@@ -15,9 +15,13 @@ WORKDIR "/src/Shizou.Blazor"
 RUN dotnet build "Shizou.Blazor.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Shizou.Blazor.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Shizou.Blazor.csproj" -c Release -o /app/publish \
+    --runtime alpine-x64 \
+    --self-contained true \
+    /p:PublishTrimmed=true \
+    /p:PublishSingleFile=true
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
+ENTRYPOINT ["./Shizou.Blazor"]
