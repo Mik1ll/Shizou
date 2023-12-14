@@ -5,6 +5,8 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
+  # Don't want unknown/unknown os/arch output
+  BUILDX_NO_DEFAULT_ATTESTATIONS: 1
 permissions:
   contents: read
   packages: write
