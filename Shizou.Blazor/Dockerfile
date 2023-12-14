@@ -17,8 +17,7 @@ RUN dotnet build "Shizou.Blazor.csproj" -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish "Shizou.Blazor.csproj" -c Release -o /app/publish \
     --runtime alpine-x64 \
-    --self-contained true \
-    /p:PublishTrimmed=true \
+    --self-contained false \
     /p:PublishSingleFile=true
 
 FROM base AS final
