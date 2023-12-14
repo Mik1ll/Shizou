@@ -15,12 +15,9 @@ WORKDIR "/src/Shizou.Blazor"
 RUN dotnet build "Shizou.Blazor.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Shizou.Blazor.csproj" -c Release -o /app/publish \
-    --runtime alpine-x64 \
-    --self-contained false \
-    /p:PublishSingleFile=true
+RUN dotnet publish "Shizou.Blazor.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["./Shizou.Blazor"]
+ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
