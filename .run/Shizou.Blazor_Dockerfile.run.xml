@@ -3,6 +3,7 @@
     <deployment type="dockerfile">
       <settings>
         <option name="imageTag" value="shizou-blazor" />
+        <option name="buildKitEnabled" value="true" />
         <option name="containerName" value="" />
         <option name="contextFolderPath" value="." />
         <option name="envVars">
@@ -43,7 +44,7 @@
         </option>
       </settings>
     </deployment>
-    <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="true" isSslEnabled="false" />
+    <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="false" isSslEnabled="false" />
     <method v="2" />
   </configuration>
 </component>
