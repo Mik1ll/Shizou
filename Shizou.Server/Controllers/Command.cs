@@ -13,23 +13,26 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-[Consumes("application/json")]
 public class Command : ControllerBase
 {
     private readonly CommandService _commandService;
     private readonly IGenericRequest _genericRequest;
+    private readonly IPingRequest _pingRequest;
 
     public Command(
         CommandService commandService,
-        IGenericRequest genericRequest
+        IGenericRequest genericRequest,
+        IPingRequest pingRequest
     )
     {
         _commandService = commandService;
         _genericRequest = genericRequest;
+        _pingRequest = pingRequest;
     }
 
     [HttpPut("UpdateMyList")]
     [SwaggerResponse(StatusCodes.Status200OK)]
+    [Consumes("application/json")]
     public void UpdateMyList(UpdateMyListArgs commandArgs)
     {
         _commandService.Dispatch(commandArgs);
@@ -44,6 +47,7 @@ public class Command : ControllerBase
 
     [HttpPut("GenericUdpRequest")]
     [Produces("text/plain")]
+    [Consumes("application/json")]
     public async Task<string?> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
         _genericRequest.SetParameters(command, args);
@@ -58,5 +62,12 @@ public class Command : ControllerBase
     public void RestoreMyListBackup(string date)
     {
         _commandService.Dispatch(new RestoreMyListBackupArgs(DateOnly.Parse(date)));
+    }
+
+    [HttpPut("PingAniDb")]
+    public async Task PingAniDb()
+    {
+        _pingRequest.SetParameters();
+        await _pingRequest.ProcessAsync().ConfigureAwait(false);
     }
 }
