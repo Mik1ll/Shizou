@@ -1,6 +1,5 @@
 using System.IO;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Shizou.Data;
@@ -24,12 +23,6 @@ builder.Services
     .AddAniDbServices()
     .AddShizouApiServices();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("HttpScheme",
-        policy => { policy.WithOrigins("http://localhost"); });
-});
-
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -43,8 +36,6 @@ app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 
 app.UseRouting();
-
-app.UseCors("HttpScheme");
 
 app.UseIdentityCookieParameter();
 

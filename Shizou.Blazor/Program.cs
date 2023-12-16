@@ -68,6 +68,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.Map($"{Constants.ApiPrefix}/{{**slug}}", (HttpContext ctx) => { ctx.Response.StatusCode = StatusCodes.Status404NotFound; });
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
