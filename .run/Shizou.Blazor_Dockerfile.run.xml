@@ -4,7 +4,7 @@
       <settings>
         <option name="imageTag" value="shizou-blazor" />
         <option name="buildKitEnabled" value="true" />
-        <option name="containerName" value="" />
+        <option name="containerName" value="shizou-blazor-local" />
         <option name="contextFolderPath" value="." />
         <option name="envVars">
           <list>
