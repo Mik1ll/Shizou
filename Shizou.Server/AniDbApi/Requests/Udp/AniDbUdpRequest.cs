@@ -108,9 +108,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         }
 
         Logger.LogDebug("Sending AniDb UDP text: {RequestText}", _requestText);
-        if (!AniDbUdpState.UdpClient.Client.Connected)
-            AniDbUdpState.Connect();
-        await AniDbUdpState.UdpClient.SendAsync(dgramBytes, dgramBytes.Length).ConfigureAwait(false);
+        await AniDbUdpState.UdpClient.SendAsync(dgramBytes, AniDbUdpState.ServerHost, AniDbUdpState.ServerPort).ConfigureAwait(false);
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>

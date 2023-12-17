@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -26,8 +27,6 @@ public sealed class AniDbUdpState : IDisposable
     private readonly IShizouContextFactory _contextFactory;
     private readonly Timer _logoutTimer;
     private readonly Timer _mappingTimer;
-    private readonly string _serverHost;
-    private readonly ushort _serverPort;
     private readonly SemaphoreSlim _natLock = new(1, 1);
     private bool _banned;
     private INatDevice? _router;
@@ -45,9 +44,9 @@ public sealed class AniDbUdpState : IDisposable
         _logoutRequestFactory = logoutRequestFactory;
         _contextFactory = contextFactory;
         var options = optionsMonitor.CurrentValue;
-        _serverHost = options.AniDb.ServerHost;
-        _serverPort = options.AniDb.UdpServerPort;
-        UdpClient = new UdpClient(options.AniDb.ClientPort, AddressFamily.InterNetwork);
+        ServerHost = options.AniDb.ServerHost;
+        ServerPort = options.AniDb.UdpServerPort;
+        UdpClient = new UdpClient(new IPEndPoint(IPAddress.Any, options.AniDb.ClientPort));
         UdpClient.Client.ReceiveBufferSize = 1 << 15;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             UdpClient.AllowNatTraversal(true);
@@ -82,6 +81,9 @@ public sealed class AniDbUdpState : IDisposable
         _mappingTimer.Elapsed += async (_, _) => await CreateNatMappingAsync().ConfigureAwait(false);
 #pragma warning restore VSTHRD101
     }
+
+    public string ServerHost { get; }
+    public ushort ServerPort { get; }
 
     public TimeSpan BanPeriod { get; } = new(12, 0, 0);
     public TimeSpan LogoutPeriod { get; } = new(0, 10, 0);
@@ -127,11 +129,6 @@ public sealed class AniDbUdpState : IDisposable
         _logoutTimer.Stop();
         _logoutTimer.Interval = LogoutPeriod.TotalMilliseconds;
         _logoutTimer.Start();
-    }
-
-    public void Connect()
-    {
-        UdpClient.Connect(_serverHost, _serverPort);
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>
