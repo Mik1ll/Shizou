@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -108,7 +109,15 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         }
 
         Logger.LogDebug("Sending AniDb UDP text: {RequestText}", _requestText);
-        await AniDbUdpState.UdpClient.SendAsync(dgramBytes, AniDbUdpState.ServerHost, AniDbUdpState.ServerPort).ConfigureAwait(false);
+        var addresses = await Dns.GetHostAddressesAsync(AniDbUdpState.ServerHost).ConfigureAwait(false);
+        if (addresses.Length == 0)
+        {
+            Logger.LogError("Could not resolve anidb host");
+            throw new AniDbUdpRequestException("Could not resolve AniDb Host");
+        }
+
+        var remoteEndPoint = new IPEndPoint(addresses[0], AniDbUdpState.ServerPort);
+        await AniDbUdpState.UdpClient.SendAsync(dgramBytes, remoteEndPoint).ConfigureAwait(false);
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>
