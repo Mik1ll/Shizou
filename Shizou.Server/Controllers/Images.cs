@@ -43,7 +43,7 @@ public class Images : ControllerBase
         var posterName = _context.AniDbAnimes.Where(a => a.Id == animeId).Select(a => a.ImageFilename).FirstOrDefault();
         if (posterName is null)
             return TypedResults.NotFound();
-        var path = ImageService.GetAnimePosterPath(posterName);
+        var path = FilePaths.AnimePosterPath(posterName);
         _contentTypeProvider.TryGetContentType(posterName, out var mimeType);
         return TypedResults.PhysicalFile(path, mimeType);
     }
@@ -58,7 +58,7 @@ public class Images : ControllerBase
         var ed2k = await _imageService.GetEpisodeThumbnailAsync(episodeId).ConfigureAwait(false);
         if (ed2k is null)
             return TypedResults.NotFound();
-        var fileInfo = new FileInfo(ImageService.GetFileThumbnailPath(ed2k));
+        var fileInfo = new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(ed2k));
 
         _contentTypeProvider.TryGetContentType(fileInfo.Name, out var mimeType);
         return TypedResults.PhysicalFile(fileInfo.FullName, mimeType);

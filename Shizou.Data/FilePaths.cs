@@ -17,12 +17,7 @@ public static class FilePaths
     public static readonly string AnimePostersDir = Path.Combine(ImagesDir, "AnimePosters");
     public static readonly string AnimeTitlesPath = Path.Combine(ApplicationDataDir, "AnimeTitles.dat");
     public static readonly string ExtraFileDataDir = Path.Combine(ApplicationDataDir, "ExtraFileData");
-
-    // ReSharper disable once InconsistentNaming
-    public static string ExtraFileDataSubDir(string ed2k)
-    {
-        return Path.Combine(ExtraFileDataDir, ed2k);
-    }
+    public static string AnimePosterPath(string imageFilename) => Path.Combine(AnimePostersDir, imageFilename);
 
     private static string GetApplicationDataDir()
     {
@@ -41,5 +36,15 @@ public static class FilePaths
         if (string.IsNullOrWhiteSpace(appdata))
             throw new ArgumentException("App data folder was not found");
         return Path.Combine(appdata, "Shizou");
+    }
+
+    public static class ExtraFileData
+    {
+        public static string FileDir(string ed2K) => Path.Combine(ExtraFileDataDir, ed2K);
+        public static string ThumbnailPath(string ed2K) => Path.Combine(FileDir(ed2K), "thumb.webp");
+        public static string SubsDir(string ed2K) => Path.Combine(FileDir(ed2K), "Subtitles");
+        public static string SubPath(string ed2K, int index) => Path.Combine(SubsDir(ed2K), $"{index}.ass");
+        public static string FontsDir(string ed2K) => Path.Combine(FileDir(ed2K), "Fonts");
+        public static string FontPath(string ed2K, string filename) => Path.Combine(FontsDir(ed2K), filename);
     }
 }

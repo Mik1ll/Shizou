@@ -82,7 +82,7 @@ public class FileServer : ControllerBase
     {
         // ReSharper disable once InconsistentNaming
         var (ed2k, index) = args;
-        var fileInfo = new FileInfo(SubtitleService.GetSubPath(ed2k, index));
+        var fileInfo = new FileInfo(FilePaths.ExtraFileData.SubPath(ed2k, index));
         if (!fileInfo.Exists)
         {
             await _subtitleService.ExtractSubtitlesAsync(ed2k).ConfigureAwait(false);
@@ -106,7 +106,7 @@ public class FileServer : ControllerBase
     {
         // ReSharper disable once InconsistentNaming
         var (ed2k, fontName) = args;
-        var fileInfo = new FileInfo(SubtitleService.GetFontPath(ed2k, fontName));
+        var fileInfo = new FileInfo(FilePaths.ExtraFileData.FontPath(ed2k, fontName));
         if (!fileInfo.Exists)
         {
             await _subtitleService.ExtractFontsAsync(ed2k).ConfigureAwait(false);

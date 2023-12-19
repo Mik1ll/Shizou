@@ -36,17 +36,6 @@ public class ImageService
         _ffmpegService = ffmpegService;
     }
 
-    public static string GetAnimePosterPath(string imageFilename)
-    {
-        return Path.Combine(FilePaths.AnimePostersDir, imageFilename);
-    }
-
-    // ReSharper disable once InconsistentNaming
-    public static string GetFileThumbnailPath(string ed2k)
-    {
-        return Path.Combine(FilePaths.ExtraFileDataSubDir(ed2k), "thumb.webp");
-    }
-
     public void GetMissingAnimePosters()
     {
         var imageServer = _optionsMonitor.CurrentValue.AniDb.ImageServerHost;
@@ -61,7 +50,7 @@ public class ImageService
 
         foreach (var (uri, name) in filenames.Select(p => (GetAnimePosterUri(imageServer, p), p)))
         {
-            var path = GetAnimePosterPath(name);
+            var path = FilePaths.AnimePosterPath(name);
             if (!File.Exists(path))
                 _commandService.Dispatch(new GetImageCommandArgs(uri, path));
         }
@@ -84,7 +73,7 @@ public class ImageService
             return;
         }
 
-        var path = GetAnimePosterPath(filename);
+        var path = FilePaths.AnimePosterPath(filename);
         var uri = GetAnimePosterUri(imageServer, filename);
         _commandService.Dispatch(new GetImageCommandArgs(uri, path));
     }
@@ -95,12 +84,12 @@ public class ImageService
         var localFiles = context.LocalFiles.AsNoTracking().Include(lf => lf.ImportFolder).Where(lf =>
             lf.AniDbFile!.AniDbEpisodeFileXrefs.Any(ep => ep.AniDbEpisodeId == episodeId) || lf.ManualLinkEpisodeId == episodeId).ToList();
         foreach (var localFile in localFiles)
-            if (File.Exists(GetFileThumbnailPath(localFile.Ed2k)))
+            if (File.Exists(FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k)))
                 return localFile.Ed2k;
         foreach (var localFile in localFiles)
         {
             await GetFileThumbnailAsync(localFile).ConfigureAwait(false);
-            if (File.Exists(GetFileThumbnailPath(localFile.Ed2k)))
+            if (File.Exists(FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k)))
                 return localFile.Ed2k;
         }
 
@@ -111,7 +100,7 @@ public class ImageService
     {
         // ReSharper disable once InconsistentNaming
         var ed2k = localFile.Ed2k;
-        var thumbnailFileInfo = new FileInfo(GetFileThumbnailPath(ed2k));
+        var thumbnailFileInfo = new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(ed2k));
         if (thumbnailFileInfo.Exists)
         {
             if (!forceRefresh)

@@ -24,40 +24,10 @@ public class SubtitleService
     public static string[] ValidSubFormats { get; } = { "ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext" };
     public static string[] ValidFontFormats { get; } = { "ttf", "otf" };
 
-    // ReSharper disable once InconsistentNaming
-    public static string GetSubsDir(string ed2k)
-    {
-        return Path.Combine(FilePaths.ExtraFileDataSubDir(ed2k), "Subtitles");
-    }
-
-    public static string GetSubName(int index)
-    {
-        return $"{index}.ass";
-    }
-
-    // ReSharper disable once InconsistentNaming
-    public static string GetSubPath(string ed2k, int index)
-    {
-        return Path.Combine(GetSubsDir(ed2k), $"{index}.ass");
-    }
-
-    // ReSharper disable once InconsistentNaming
-    public static string GetFontsDir(string ed2k)
-    {
-        return Path.Combine(FilePaths.ExtraFileDataSubDir(ed2k), "Fonts");
-    }
-
-    // ReSharper disable once InconsistentNaming
-    public static string GetFontPath(string ed2k, string filename)
-    {
-        return Path.Combine(GetFontsDir(ed2k), filename);
-    }
-
-    // ReSharper disable once InconsistentNaming
-    public async Task ExtractSubtitlesAsync(string ed2k)
+    public async Task ExtractSubtitlesAsync(string ed2K)
     {
         using var context = _contextFactory.CreateDbContext();
-        var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2k);
+        var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2K);
         if (localFile is null)
             return;
         if (localFile.ImportFolder is null)
@@ -74,17 +44,18 @@ public class SubtitleService
             return;
         }
 
-        var subsDir = GetSubsDir(localFile.Ed2k);
+        var subsDir = FilePaths.ExtraFileData.SubsDir(ed2K);
         Directory.CreateDirectory(subsDir);
 
-        var subStreams = await _ffmpegService.GetSubtitleStreamsAsync(fileInfo, ValidSubFormats, GetSubName).ConfigureAwait(false);
+        var subStreams = await _ffmpegService.GetSubtitleStreamsAsync(fileInfo, ValidSubFormats,
+            idx => Path.GetFileName(FilePaths.ExtraFileData.SubPath(ed2K, idx))).ConfigureAwait(false);
         if (subStreams.Count <= 0)
         {
             _logger.LogDebug("No valid streams for {LocalFileId}, skipping subtitle extraction", localFile.Id);
             return;
         }
 
-        await _ffmpegService.ExtractSubtitlesAsync(fileInfo, subStreams, GetSubsDir(localFile.Ed2k)).ConfigureAwait(false);
+        await _ffmpegService.ExtractSubtitlesAsync(fileInfo, subStreams, subsDir).ConfigureAwait(false);
     }
 
     // ReSharper disable once InconsistentNaming
@@ -108,7 +79,7 @@ public class SubtitleService
             return;
         }
 
-        var fontsDir = GetFontsDir(localFile.Ed2k);
+        var fontsDir = FilePaths.ExtraFileData.FontsDir(ed2k);
         Directory.CreateDirectory(fontsDir);
 
         var fontStreams = await _ffmpegService.GetFontStreamsAsync(fileInfo, ValidFontFormats).ConfigureAwait(false);
@@ -118,6 +89,6 @@ public class SubtitleService
             return;
         }
 
-        await _ffmpegService.ExtractFontsAsync(fileInfo, fontStreams, GetFontsDir(localFile.Ed2k)).ConfigureAwait(false);
+        await _ffmpegService.ExtractFontsAsync(fileInfo, fontStreams, FilePaths.ExtraFileData.FontsDir(ed2k)).ConfigureAwait(false);
     }
 }
