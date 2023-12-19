@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using FuzzySharp;
 using FuzzySharp.SimilarityRatio;
@@ -15,12 +16,13 @@ using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Extensions;
-using Shizou.Data.Models;
+using Timer = Shizou.Data.Models.Timer;
 
 namespace Shizou.Server.Services;
 
 public class AnimeTitleSearchService
 {
+    private static readonly SemaphoreSlim GetTitleLock = new(1);
     private readonly Regex _removeSpecial = new(@"[][【】「」『』、…〜（）`()\\,<>/;:：'""-]+", RegexOptions.Compiled);
     private readonly ILogger<AnimeTitleSearchService> _logger;
     private readonly IHttpClientFactory _clientFactory;
@@ -47,7 +49,16 @@ public class AnimeTitleSearchService
 
     public async Task<List<(int, string)>?> SearchAsync(string query, bool restrictInCollection = false)
     {
-        await GetTitlesAsync().ConfigureAwait(false);
+        await GetTitleLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            await GetTitlesAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            GetTitleLock.Release();
+        }
+
         if (_animeTitlesMemCache is null)
             return null;
         return SearchTitles(_animeTitlesMemCache, query, restrictInCollection).Select(t => (t.Aid, t.Title)).ToList();
