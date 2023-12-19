@@ -11,7 +11,7 @@
     </tr>
     </thead>
     <tbody class="table-group-divider">
-    @foreach (var ep in _episodes.OrderBy(e => e.EpisodeType).ThenBy(e => e.Number))
+    @foreach (var ep in _episodes)
     {
         <tr role="button" @onclick="@(() => ToggleEpExpand(ep))">
             <td class="text-end">
@@ -22,7 +22,7 @@
                     @if (_fileCounts[ep.Id] > 0)
                     {
                         <div class="d-inline-block align-self-center">
-                            <img src="@(GetEpisodeThumbnailPath(ep.Id))" class="me-2 d-inline-block" style="height: 5em"/>
+                            <img loading="lazy" src="@(GetEpisodeThumbnailPath(ep.Id))" class="me-2 d-inline-block" style="height: 5em"/>
                         </div>
                     }
                     <div class="d-inline-block">

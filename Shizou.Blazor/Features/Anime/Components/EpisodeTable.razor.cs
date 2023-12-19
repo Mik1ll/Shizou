@@ -9,7 +9,7 @@ namespace Shizou.Blazor.Features.Anime.Components;
 public partial class EpisodeTable
 {
     private readonly Dictionary<int, bool> _episodeExpanded = new();
-    private HashSet<AniDbEpisode> _episodes = default!;
+    private List<AniDbEpisode> _episodes = default!;
     private Dictionary<int, int> _fileCounts = default!;
     private HashSet<int> _watchedEps = default!;
 
@@ -42,7 +42,7 @@ public partial class EpisodeTable
         using var context = ContextFactory.CreateDbContext();
         _episodes = (from ep in context.AniDbEpisodes
             where ep.AniDbAnimeId == AnimeId
-            select ep).ToHashSet();
+            select ep).OrderBy(e => e.EpisodeType).ThenBy(e => e.Number).ToList();
         Reload();
     }
 
