@@ -58,11 +58,10 @@ public class SubtitleService
         await _ffmpegService.ExtractSubtitlesAsync(fileInfo, subStreams, subsDir).ConfigureAwait(false);
     }
 
-    // ReSharper disable once InconsistentNaming
-    public async Task ExtractFontsAsync(string ed2k)
+    public async Task ExtractFontsAsync(string ed2K)
     {
         using var context = _contextFactory.CreateDbContext();
-        var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2k);
+        var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2K);
         if (localFile is null)
             return;
         if (localFile.ImportFolder is null)
@@ -79,7 +78,7 @@ public class SubtitleService
             return;
         }
 
-        var fontsDir = FilePaths.ExtraFileData.FontsDir(ed2k);
+        var fontsDir = FilePaths.ExtraFileData.FontsDir(ed2K);
         Directory.CreateDirectory(fontsDir);
 
         var fontStreams = await _ffmpegService.GetFontStreamsAsync(fileInfo, ValidFontFormats).ConfigureAwait(false);
@@ -89,6 +88,6 @@ public class SubtitleService
             return;
         }
 
-        await _ffmpegService.ExtractFontsAsync(fileInfo, fontStreams, FilePaths.ExtraFileData.FontsDir(ed2k)).ConfigureAwait(false);
+        await _ffmpegService.ExtractFontsAsync(fileInfo, fontStreams, FilePaths.ExtraFileData.FontsDir(ed2K)).ConfigureAwait(false);
     }
 }

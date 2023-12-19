@@ -80,12 +80,11 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "text/x-ssa")]
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetSubtitle([FromRoute] GetSubtitleArgs args)
     {
-        // ReSharper disable once InconsistentNaming
-        var (ed2k, index) = args;
-        var fileInfo = new FileInfo(FilePaths.ExtraFileData.SubPath(ed2k, index));
+        var (ed2K, index) = args;
+        var fileInfo = new FileInfo(FilePaths.ExtraFileData.SubPath(ed2K, index));
         if (!fileInfo.Exists)
         {
-            await _subtitleService.ExtractSubtitlesAsync(ed2k).ConfigureAwait(false);
+            await _subtitleService.ExtractSubtitlesAsync(ed2K).ConfigureAwait(false);
             fileInfo.Refresh();
             if (!fileInfo.Exists)
                 return TypedResults.NotFound();
@@ -104,12 +103,11 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: new[] { "font/ttf", "font/otf" })]
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont([FromRoute] GetFontArgs args)
     {
-        // ReSharper disable once InconsistentNaming
-        var (ed2k, fontName) = args;
-        var fileInfo = new FileInfo(FilePaths.ExtraFileData.FontPath(ed2k, fontName));
+        var (ed2K, fontName) = args;
+        var fileInfo = new FileInfo(FilePaths.ExtraFileData.FontPath(ed2K, fontName));
         if (!fileInfo.Exists)
         {
-            await _subtitleService.ExtractFontsAsync(ed2k).ConfigureAwait(false);
+            await _subtitleService.ExtractFontsAsync(ed2K).ConfigureAwait(false);
             fileInfo.Refresh();
             if (!fileInfo.Exists)
                 return TypedResults.NotFound();

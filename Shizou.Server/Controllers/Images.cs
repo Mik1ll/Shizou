@@ -51,14 +51,12 @@ public class Images : ControllerBase
     [HttpGet("[action]/{episodeId:int}")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    // ReSharper disable once InconsistentNaming
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetEpisodeThumbnail(int episodeId)
     {
-        // ReSharper disable once InconsistentNaming
-        var ed2k = await _imageService.GetEpisodeThumbnailAsync(episodeId).ConfigureAwait(false);
-        if (ed2k is null)
+        var ed2K = await _imageService.GetEpisodeThumbnailAsync(episodeId).ConfigureAwait(false);
+        if (ed2K is null)
             return TypedResults.NotFound();
-        var fileInfo = new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(ed2k));
+        var fileInfo = new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(ed2K));
 
         _contentTypeProvider.TryGetContentType(fileInfo.Name, out var mimeType);
         return TypedResults.PhysicalFile(fileInfo.FullName, mimeType);

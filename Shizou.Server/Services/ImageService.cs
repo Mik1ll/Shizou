@@ -98,9 +98,8 @@ public class ImageService
 
     public async Task GetFileThumbnailAsync(LocalFile localFile, bool forceRefresh = false)
     {
-        // ReSharper disable once InconsistentNaming
-        var ed2k = localFile.Ed2k;
-        var thumbnailFileInfo = new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(ed2k));
+        var ed2K = localFile.Ed2k;
+        var thumbnailFileInfo = new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(ed2K));
         if (thumbnailFileInfo.Exists)
         {
             if (!forceRefresh)
@@ -142,14 +141,13 @@ public class ImageService
         await _ffmpegService.ExtractThumbnailAsync(fileInfo, duration.Value, thumbnailFileInfo.FullName).ConfigureAwait(false);
     }
 
-    // ReSharper disable once InconsistentNaming
-    public async Task GetFileThumbnailAsync(string ed2k, bool forceRefresh = false)
+    public async Task GetFileThumbnailAsync(string ed2K, bool forceRefresh = false)
     {
         using var context = _contextFactory.CreateDbContext();
-        var localFile = context.LocalFiles.AsNoTracking().Include(lf => lf.ImportFolder).FirstOrDefault(lf => lf.Ed2k == ed2k);
+        var localFile = context.LocalFiles.AsNoTracking().Include(lf => lf.ImportFolder).FirstOrDefault(lf => lf.Ed2k == ed2K);
         if (localFile is null)
         {
-            _logger.LogWarning("Local file with ed2k {Ed2k} does not exist", ed2k);
+            _logger.LogWarning("Local file with ed2k {Ed2k} does not exist", ed2K);
             return;
         }
 
