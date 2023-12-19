@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -53,12 +52,9 @@ public class Images : ControllerBase
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetEpisodeThumbnail(int episodeId)
     {
-        var ed2K = await _imageService.GetEpisodeThumbnailAsync(episodeId).ConfigureAwait(false);
-        if (ed2K is null)
+        if (await _imageService.GetEpisodeThumbnailAsync(episodeId).ConfigureAwait(false) is not { Exists: true } thumbnail)
             return TypedResults.NotFound();
-        var fileInfo = new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(ed2K));
-
-        _contentTypeProvider.TryGetContentType(fileInfo.Name, out var mimeType);
-        return TypedResults.PhysicalFile(fileInfo.FullName, mimeType);
+        _contentTypeProvider.TryGetContentType(thumbnail.Name, out var mimeType);
+        return TypedResults.PhysicalFile(thumbnail.FullName, mimeType);
     }
 }

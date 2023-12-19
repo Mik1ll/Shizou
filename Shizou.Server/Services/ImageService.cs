@@ -78,80 +78,55 @@ public class ImageService
         _commandService.Dispatch(new GetImageCommandArgs(uri, path));
     }
 
-    public async Task<string?> GetEpisodeThumbnailAsync(int episodeId)
+    public async Task<FileInfo?> GetEpisodeThumbnailAsync(int episodeId)
     {
         using var context = _contextFactory.CreateDbContext();
         var localFiles = context.LocalFiles.AsNoTracking().Include(lf => lf.ImportFolder).Where(lf =>
             lf.AniDbFile!.AniDbEpisodeFileXrefs.Any(ep => ep.AniDbEpisodeId == episodeId) || lf.ManualLinkEpisodeId == episodeId).ToList();
         foreach (var localFile in localFiles)
-            if (File.Exists(FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k)))
-                return localFile.Ed2k;
+            if (new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k)) is { Exists: true } thumbnail)
+                return thumbnail;
+
         foreach (var localFile in localFiles)
-        {
-            await GetFileThumbnailAsync(localFile).ConfigureAwait(false);
-            if (File.Exists(FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k)))
-                return localFile.Ed2k;
-        }
+            if (await CreateThumbnailAsync(localFile).ConfigureAwait(false) is { Exists: true } thumbnail)
+                return thumbnail;
 
         return null;
     }
 
-    public async Task GetFileThumbnailAsync(LocalFile localFile, bool forceRefresh = false)
+    private async Task<FileInfo?> CreateThumbnailAsync(LocalFile localFile)
     {
         var ed2K = localFile.Ed2k;
         var thumbnailFileInfo = new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(ed2K));
-        if (thumbnailFileInfo.Exists)
-        {
-            if (!forceRefresh)
-            {
-                _logger.LogDebug("Found existing thumbnail for local file {LocalFileId}", localFile.Id);
-                return;
-            }
-
-            _logger.LogInformation("Forcing thumbnail refresh on local file {LocalFileId}", localFile.Id);
-        }
-
         if (localFile.ImportFolder is null)
         {
             _logger.LogWarning("Local file {LocalFileId} has no import folder", localFile.Id);
-            return;
+            return null;
         }
 
         var fileInfo = new FileInfo(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
         if (!fileInfo.Exists)
         {
             _logger.LogWarning("File does not exist for local file {LocalFileId} at \"{FilePath}\"", localFile.Id, fileInfo.FullName);
-            return;
+            return null;
         }
 
         if (!await _ffmpegService.HasVideoAsync(fileInfo).ConfigureAwait(false))
         {
-            _logger.LogInformation("File for local file {LocalFileId} at \"{FilePath}\" has no video stream, not creating thumbnail", localFile.Id,
+            _logger.LogInformation("File for local file {LocalFileId} at \"{FilePath}\" has no video stream", localFile.Id,
                 fileInfo.FullName);
-            return;
+            return null;
         }
 
         var duration = await _ffmpegService.GetDurationAsync(fileInfo).ConfigureAwait(false);
         if (duration is null)
         {
             _logger.LogWarning("Failed to get duration of video for local file {LocalFileId} at \"{FilePath}\"", localFile.Id, fileInfo.FullName);
-            return;
+            return null;
         }
 
         await _ffmpegService.ExtractThumbnailAsync(fileInfo, duration.Value, thumbnailFileInfo.FullName).ConfigureAwait(false);
-    }
-
-    public async Task GetFileThumbnailAsync(string ed2K, bool forceRefresh = false)
-    {
-        using var context = _contextFactory.CreateDbContext();
-        var localFile = context.LocalFiles.AsNoTracking().Include(lf => lf.ImportFolder).FirstOrDefault(lf => lf.Ed2k == ed2K);
-        if (localFile is null)
-        {
-            _logger.LogWarning("Local file with ed2k {Ed2k} does not exist", ed2K);
-            return;
-        }
-
-        await GetFileThumbnailAsync(localFile, forceRefresh).ConfigureAwait(false);
+        return fileInfo;
     }
 
     private string GetAnimePosterUri(string imageServer, string filename)
