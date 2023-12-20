@@ -55,7 +55,7 @@ public partial class FileCard
         return base.SetParametersAsync(parameters);
     }
 
-    private async Task MarkAsync(bool watched)
+    private Task MarkAsync(bool watched)
     {
         switch (WatchedState)
         {
@@ -71,7 +71,7 @@ public partial class FileCard
                 throw new ArgumentOutOfRangeException(nameof(WatchedState));
         }
 
-        await OnChanged.InvokeAsync();
+        return OnChanged.InvokeAsync();
     }
 
     private async Task UnlinkAsync(LocalFile localFile)

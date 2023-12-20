@@ -1,0 +1,33 @@
+﻿@using Shizou.Data.Enums
+@if (_episode is not null && _localFile is not null && _watchedState is not null)
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h4 class="card-title">
+                Up Next
+            </h4>
+            <div class="d-flex flex-row mb-2">
+                <div class="d-inline-block align-self-center">
+                    <img loading="lazy" src="@(GetEpisodeThumbnailPath())" class="me-2 d-inline-block" style="height: 5em"/>
+                </div>
+                <p class="card-text">
+                    <strong>@(EpisodeTypeExtensions.ToEpString(_episode.EpisodeType, _episode.Number))</strong> : <span class="text-body">@(_episode.TitleTranscription ?? _episode.TitleEnglish)</span><br/>
+                    <span class="text-body-secondary">
+                        <small>@(_episode.Summary)</small>
+                    </span>
+                </p>
+            </div>
+            <div>
+                <button class="btn btn-primary me-2" type="button" @onclick="@(() => OpenVideoAsync(_localFile.Id))">
+                    <i class="bi bi-play"></i> Play
+                </button>
+                <a class="btn btn-primary me-2" href="@(PlayExternalUri())">
+                    <i class="bi bi-play"></i> Play External
+                </a>
+                <button class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => Mark(!_watchedState.Watched))">
+                    <i class="bi @(_watchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+}
