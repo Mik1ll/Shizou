@@ -1,4 +1,5 @@
-﻿using Blazored.Modal;
+﻿using System.Dynamic;
+using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
@@ -102,8 +103,11 @@ public partial class UpNext
 
     private string PlayExternalUri()
     {
-        var uri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.Get),
-            nameof(FileServer), new { LocalFileId = $"{_localFile!.Id}{Path.GetExtension(_localFile.PathTail)}" }) ?? throw new ArgumentException();
-        return $"shizou:{uri}?{Constants.IdentityCookieName}={IdentityCookie}";
+        IDictionary<string, object?> values = new ExpandoObject();
+        values["LocalFileId"] = $"{_localFile!.Id}{Path.GetExtension(_localFile.PathTail)}";
+        values[Constants.IdentityCookieName] = IdentityCookie;
+        var fileUri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.Get),
+            nameof(FileServer), values) ?? throw new ArgumentException();
+        return $"shizou:{fileUri}";
     }
 }

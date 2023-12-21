@@ -1,4 +1,5 @@
-﻿using Blazored.Modal;
+﻿using System.Dynamic;
+using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Shizou.Blazor.Extensions;
@@ -91,8 +92,13 @@ public partial class FileCard
 
     private string PlayExternalUri()
     {
-        var uri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.Get),
-            nameof(FileServer), new { LocalFileId = $"{LocalFile.Id}{Path.GetExtension(LocalFile.PathTail)}" }) ?? throw new ArgumentException();
-        return $"shizou:{uri}?{Constants.IdentityCookieName}={IdentityCookie}";
+        IDictionary<string, object?> values = new ExpandoObject();
+        values["LocalFileId"] = $"{LocalFile.Id}{Path.GetExtension(LocalFile.PathTail)}";
+        values[Constants.IdentityCookieName] = IdentityCookie;
+        var fileUri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.Get),
+            nameof(FileServer), values) ?? throw new ArgumentException();
+        return $"shizou:{fileUri}";
     }
+
+    private string PlayExternalPlaylist() => throw new NotImplementedException();
 }
