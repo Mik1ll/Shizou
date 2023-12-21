@@ -94,7 +94,7 @@ public class FileServer : ControllerBase
 #pragma warning restore CS0162 // Unreachable code detected
         var split = localFileId.Split('.', 2);
         var id = int.Parse(split[0]);
-        if (split.Length == 2 && (split[1] != "m3u8" || split[1] != "m3u"))
+        if (split.Length == 2 && split[1] != "m3u8" && split[1] != "m3u")
             return TypedResults.NotFound();
         var aid = _context.AniDbEpisodes
             .Where(ep => ep.ManualLinkLocalFiles.Any(lf => lf.Id == id) || ep.AniDbFiles.Any(f => f.LocalFile!.Id == id))
