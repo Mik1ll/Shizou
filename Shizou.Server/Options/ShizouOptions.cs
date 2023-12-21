@@ -55,6 +55,7 @@ public class AniDbOptions
 
 public class MyListOptions
 {
+    public bool DisableSync { get; set; } = false;
     public MyListState AbsentFileState { get; set; } = MyListState.Deleted;
     public MyListState PresentFileState { get; set; } = MyListState.Internal;
 }

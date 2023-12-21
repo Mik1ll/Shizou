@@ -94,6 +94,13 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
 
     protected override async Task ProcessInnerAsync()
     {
+        if (_options.AniDb.MyList.DisableSync)
+        {
+            _logger.LogWarning("Sync command disabled in settings, skipping");
+            Completed = true;
+            return;
+        }
+
         var myListResult = await GetMyListAsync().ConfigureAwait(false);
 
         if (myListResult is null)
