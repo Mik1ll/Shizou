@@ -152,14 +152,14 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
     [SuppressMessage("ReSharper.DPA", "DPA0007: Large number of DB records", MessageId = "count: 2000")]
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
-        var dbFiles = _context.FileWatchedStates.Select(ws => new { FileId = ws.AniDbFileId, WatchedState = (IWatchedState)ws }).ToList()
+        var watchedStatesByFileId = _context.FileWatchedStates.Select(ws => new { FileId = ws.AniDbFileId, WatchedState = (IWatchedState)ws }).ToList()
             .Union((from ws in _context.EpisodeWatchedStates
                 where ws.AniDbFileId != null
-                select new { FileId = ws.AniDbFileId!.Value, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId);
-        var dbFilesWithLocal = _context.AniDbFiles.Where(f => f.LocalFile != null).Select(f => f.Id)
+                select new { FileId = ws.AniDbFileId!.Value, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId, f => f.WatchedState);
+        var fileIdsWithLocal = _context.AniDbFiles.Where(f => f.LocalFile != null).Select(f => f.Id)
             .Union(_context.EpisodeWatchedStates.Where(ws => ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any())
                 .Select(ws => ws.AniDbFileId!.Value)).ToHashSet();
-        var dbEpIdsWithoutGenericFile = (from ws in _context.EpisodeWatchedStates
+        var epIdsMissingGenericFileId = (from ws in _context.EpisodeWatchedStates
             where ws.AniDbFileId == null
             select ws.AniDbEpisodeId).ToHashSet();
 
@@ -177,10 +177,9 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         //             don't update watch state, file state to absent
 
         foreach (var item in myListItems)
-            if (dbFiles.TryGetValue(item.Fid, out var dbFile))
+            if (watchedStatesByFileId.TryGetValue(item.Fid, out var watchedState))
             {
-                var watchedState = dbFile.WatchedState;
-                var expectedState = dbFilesWithLocal.Contains(dbFile.FileId) ? _options.AniDb.MyList.PresentFileState : _options.AniDb.MyList.AbsentFileState;
+                var expectedState = fileIdsWithLocal.Contains(item.Fid) ? _options.AniDb.MyList.PresentFileState : _options.AniDb.MyList.AbsentFileState;
                 var itemWatched = item.Viewdate is not null;
                 var updateWatched = watchedState.WatchedUpdated is not null &&
                                     DateOnly.FromDateTime(watchedState.WatchedUpdated.Value) >= item.Updated
@@ -199,8 +198,8 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
             }
             else
             {
-                if (item.Eids.Count == 1 && dbEpIdsWithoutGenericFile.Contains(item.Eids.First()))
-                    toProcess.Add(new ProcessArgs(item.Fid, IdTypeLocalFile.FileId));
+                if (item.Eids.Count == 1 && epIdsMissingGenericFileId.Contains(item.Eids.First()))
+                    toProcess.Add(new ProcessArgs(item.Fid, IdTypeLocalOrFile.FileId));
                 else if (item.State != _options.AniDb.MyList.AbsentFileState || item.FileState != MyListFileState.Normal)
                     toUpdate.Add(new UpdateMyListArgs(true, _options.AniDb.MyList.AbsentFileState, Lid: item.Id));
             }
@@ -249,6 +248,13 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         return _myListRequest.MyListResult;
     }
 
-    private record MyListItem(MyListState State, MyListFileState FileState, int Id, HashSet<int> Aids, HashSet<int> Eids, int Fid, DateOnly Updated,
+    private record MyListItem(
+        MyListState State,
+        MyListFileState FileState,
+        int Id,
+        HashSet<int> Aids,
+        HashSet<int> Eids,
+        int Fid,
+        DateOnly Updated,
         DateTimeOffset? Viewdate);
 }

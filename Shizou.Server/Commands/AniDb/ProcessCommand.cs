@@ -287,7 +287,7 @@ public class ProcessCommand : Command<ProcessArgs>
         FileResult? result;
         switch (CommandArgs.IdType)
         {
-            case IdTypeLocalFile.LocalId:
+            case IdTypeLocalOrFile.LocalId:
             {
                 var localFile = _context.LocalFiles.Find(CommandArgs.Id);
                 if (localFile is null)
@@ -305,7 +305,7 @@ public class ProcessCommand : Command<ProcessArgs>
                 _fileRequest.SetParameters(localFile.FileSize, localFile.Ed2k, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
                 break;
             }
-            case IdTypeLocalFile.FileId:
+            case IdTypeLocalOrFile.FileId:
                 fileCacheFilename = $"File_Id={CommandArgs.Id}.json";
                 result = await _fileResultCache.GetAsync(fileCacheFilename).ConfigureAwait(false);
                 if (result is not null)

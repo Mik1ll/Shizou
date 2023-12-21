@@ -27,7 +27,7 @@ public class LocalFiles : EntityGetController<LocalFile>
     [SwaggerResponse(StatusCodes.Status200OK)]
     public Ok ProcessFile(int id)
     {
-        _commandService.Dispatch(new ProcessArgs(id, IdTypeLocalFile.LocalId));
+        _commandService.Dispatch(new ProcessArgs(id, IdTypeLocalOrFile.LocalId));
         return TypedResults.Ok();
     }
 }

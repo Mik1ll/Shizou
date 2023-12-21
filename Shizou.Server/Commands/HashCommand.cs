@@ -101,7 +101,7 @@ public class HashCommand : Command<HashArgs>
         _context.SaveChanges();
 
         if (eAniDbFileId is null)
-            _commandService.Dispatch(new ProcessArgs(localFile.Id, IdTypeLocalFile.LocalId));
+            _commandService.Dispatch(new ProcessArgs(localFile.Id, IdTypeLocalOrFile.LocalId));
         Completed = true;
     }
 }

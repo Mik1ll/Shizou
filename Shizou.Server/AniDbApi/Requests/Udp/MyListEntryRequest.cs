@@ -17,7 +17,7 @@ public class MyListEntryRequest : AniDbUdpRequest<MyListEntryResponse>, IMyListE
         aniDbUdpState, rateLimiter)
     {
     }
-    
+
     public void SetParameters(int aid, string epno)
     {
         Args["aid"] = aid.ToString();
@@ -25,12 +25,12 @@ public class MyListEntryRequest : AniDbUdpRequest<MyListEntryResponse>, IMyListE
         ParametersSet = true;
     }
 
-    public void SetParameters(int id, IdTypeFileMyList idType)
+    public void SetParameters(int id, IdTypeFileOrMyList idType)
     {
         Args[idType switch
         {
-            IdTypeFileMyList.FileId => "fid",
-            IdTypeFileMyList.MyListId => "lid",
+            IdTypeFileOrMyList.FileId => "fid",
+            IdTypeFileOrMyList.MyListId => "lid",
             _ => throw new ArgumentOutOfRangeException(nameof(idType), idType, null)
         }] = id.ToString();
         ParametersSet = true;

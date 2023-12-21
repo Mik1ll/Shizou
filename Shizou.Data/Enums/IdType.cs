@@ -9,13 +9,13 @@ public enum IdType
     AnimeId = 5
 }
 
-public enum IdTypeLocalFile
+public enum IdTypeLocalOrFile
 {
     LocalId = IdType.LocalId,
     FileId = IdType.FileId
 }
 
-public enum IdTypeFileMyList
+public enum IdTypeFileOrMyList
 {
     FileId = IdType.FileId,
     MyListId = IdType.MyListId

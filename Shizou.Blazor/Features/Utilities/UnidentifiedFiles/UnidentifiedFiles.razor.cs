@@ -48,7 +48,7 @@ public partial class UnidentifiedFiles
 
     private void ScanFiles(List<LocalFile> localFiles)
     {
-        CommandService.DispatchRange(localFiles.Select(lf => new ProcessArgs(lf.Id, IdTypeLocalFile.LocalId)));
+        CommandService.DispatchRange(localFiles.Select(lf => new ProcessArgs(lf.Id, IdTypeLocalOrFile.LocalId)));
     }
 
     private void OnSelectChanged(List<LocalFile> values)
