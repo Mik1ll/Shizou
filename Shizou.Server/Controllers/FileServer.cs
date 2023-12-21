@@ -1,16 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data;
 using Shizou.Data.Database;
+using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -23,12 +28,17 @@ public class FileServer : ControllerBase
     private readonly IShizouContext _context;
     private readonly SubtitleService _subtitleService;
     private readonly ILogger<FileServer> _logger;
+    private readonly LinkGenerator _linkGenerator;
+    private readonly IContentTypeProvider _contentTypeProvider;
 
-    public FileServer(ILogger<FileServer> logger, IShizouContext context, SubtitleService subtitleService)
+    public FileServer(ILogger<FileServer> logger, IShizouContext context, SubtitleService subtitleService, LinkGenerator linkGenerator,
+        IContentTypeProvider contentTypeProvider)
     {
         _logger = logger;
         _context = context;
         _subtitleService = subtitleService;
+        _linkGenerator = linkGenerator;
+        _contentTypeProvider = contentTypeProvider;
     }
 
     /// <summary>
@@ -51,9 +61,10 @@ public class FileServer : ControllerBase
 #pragma warning disable CS0162 // Unreachable code detected
         if (nameof(IdentityCookie) != Constants.IdentityCookieName) throw new ApplicationException("Identity cookie must match name of constant");
 #pragma warning restore CS0162 // Unreachable code detected
-        var id = int.Parse(localFileId.Split('.')[0]);
+        var split = localFileId.Split('.', 2);
+        var id = int.Parse(split[0]);
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == id);
-        if (localFile is null)
+        if (localFile is null || (split.Length == 2 && split[1] != Path.GetExtension(localFile.PathTail)[1..]))
             return TypedResults.NotFound();
         if (localFile.ImportFolder is null)
         {
@@ -64,10 +75,61 @@ public class FileServer : ControllerBase
         var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
         if (!fileInfo.Exists)
             return TypedResults.Conflict("Local file path does not exist");
-        if (!new FileExtensionContentTypeProvider().TryGetContentType(fileInfo.Name, out var mimeType))
+        if (!_contentTypeProvider.TryGetContentType(fileInfo.Name, out var mimeType))
             mimeType = "application/octet-stream";
         var fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 19, FileOptions.Asynchronous);
         return TypedResults.File(fileStream, mimeType, fileInfo.Name, enableRangeProcessing: true);
+    }
+
+    [HttpGet("[action]/{localFileId}")]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    // ReSharper disable once UnusedParameter.Global
+    // ReSharper disable once InconsistentNaming
+    // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
+    public Results<FileContentHttpResult, NotFound> GetWithPlaylist(string localFileId, [FromQuery] string? IdentityCookie)
+    {
+#pragma warning disable CS0162 // Unreachable code detected
+        if (nameof(IdentityCookie) != Constants.IdentityCookieName) throw new ApplicationException("Identity cookie must match name of constant");
+#pragma warning restore CS0162 // Unreachable code detected
+        var split = localFileId.Split('.', 2);
+        var id = int.Parse(split[0]);
+        if (split.Length == 2 && (split[1] != "m3u8" || split[1] != "m3u"))
+            return TypedResults.NotFound();
+        var aid = _context.AniDbEpisodes
+            .Where(ep => ep.ManualLinkLocalFiles.Any(lf => lf.Id == id) || ep.AniDbFiles.Any(f => f.LocalFile!.Id == id))
+            .Select(ep => (int?)ep.AniDbAnimeId)
+            .FirstOrDefault();
+        if (aid is null)
+            return TypedResults.NotFound();
+        var eps = (from e in _context.AniDbEpisodes.HasLocalFiles()
+            where e.AniDbAnimeId == aid
+            orderby e.EpisodeType, e.Number
+            select new
+            {
+                EpType = e.EpisodeType,
+                EpNo = e.Number,
+                ManLocals = e.ManualLinkLocalFiles.Select(lf => new { lf.Id, lf.PathTail, AniDbGroupId = (int?)null }),
+                Locals = e.AniDbFiles.Select(f => new { f.LocalFile.Id, f.LocalFile.PathTail, f.AniDbGroupId })
+            }).ToList();
+        var ep = eps.First(ep => ep.Locals.Any(l => l.Id == id) || ep.ManLocals.Any(ml => ml.Id == id));
+        var localFile = ep.Locals.Concat(ep.ManLocals).First(l => l.Id == id);
+        var m3U8 = "#EXTM3U\n";
+        foreach (var loopEp in eps.SkipWhile(x => x != ep))
+        {
+            var lf = loopEp.Locals.Concat(loopEp.ManLocals).FirstOrDefault(l => l.AniDbGroupId == localFile.AniDbGroupId);
+            if (lf is null)
+                break;
+            IDictionary<string, object?> values = new ExpandoObject();
+            values["LocalFileId"] = $"{lf.Id}{Path.GetExtension(lf.PathTail)}";
+            values[Constants.IdentityCookieName] = IdentityCookie;
+            var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
+                nameof(FileServer), values) ?? throw new ArgumentException();
+            m3U8 += $"{fileUri}\n";
+        }
+
+        _contentTypeProvider.TryGetContentType($"{id}.m3u", out var mimeType);
+        return TypedResults.File(Encoding.UTF8.GetBytes(m3U8), mimeType, $"{id}.m3u8");
     }
 
     /// <summary>

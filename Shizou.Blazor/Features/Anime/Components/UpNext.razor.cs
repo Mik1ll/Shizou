@@ -110,4 +110,14 @@ public partial class UpNext
             nameof(FileServer), values) ?? throw new ArgumentException();
         return $"shizou:{fileUri}";
     }
+
+    private string PlayExternalPlaylist()
+    {
+        IDictionary<string, object?> values = new ExpandoObject();
+        values["localFileId"] = $"{_localFile!.Id}.m3u8";
+        values[Constants.IdentityCookieName] = IdentityCookie;
+        var fileUri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.GetWithPlaylist),
+            nameof(FileServer), values) ?? throw new ArgumentException();
+        return $"shizou:{fileUri}";
+    }
 }

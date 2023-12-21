@@ -93,12 +93,20 @@ public partial class FileCard
     private string PlayExternalUri()
     {
         IDictionary<string, object?> values = new ExpandoObject();
-        values["LocalFileId"] = $"{LocalFile.Id}{Path.GetExtension(LocalFile.PathTail)}";
+        values["localFileId"] = $"{LocalFile.Id}{Path.GetExtension(LocalFile.PathTail)}";
         values[Constants.IdentityCookieName] = IdentityCookie;
         var fileUri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.Get),
             nameof(FileServer), values) ?? throw new ArgumentException();
         return $"shizou:{fileUri}";
     }
 
-    private string PlayExternalPlaylist() => throw new NotImplementedException();
+    private string PlayExternalPlaylist()
+    {
+        IDictionary<string, object?> values = new ExpandoObject();
+        values["localFileId"] = $"{LocalFile.Id}.m3u8";
+        values[Constants.IdentityCookieName] = IdentityCookie;
+        var fileUri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.GetWithPlaylist),
+            nameof(FileServer), values) ?? throw new ArgumentException();
+        return $"shizou:{fileUri}";
+    }
 }
