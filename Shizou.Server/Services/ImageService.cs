@@ -97,7 +97,6 @@ public class ImageService
     private async Task<FileInfo?> CreateThumbnailAsync(LocalFile localFile)
     {
         var ed2K = localFile.Ed2k;
-        var thumbnailFileInfo = new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(ed2K));
         if (localFile.ImportFolder is null)
         {
             _logger.LogWarning("Local file {LocalFileId} has no import folder", localFile.Id);
@@ -125,8 +124,9 @@ public class ImageService
             return null;
         }
 
-        await _ffmpegService.ExtractThumbnailAsync(fileInfo, duration.Value, thumbnailFileInfo.FullName).ConfigureAwait(false);
-        return fileInfo;
+        var thumbnailPath = FilePaths.ExtraFileData.ThumbnailPath(ed2K);
+        await _ffmpegService.ExtractThumbnailAsync(fileInfo, duration.Value, thumbnailPath).ConfigureAwait(false);
+        return new FileInfo(thumbnailPath);
     }
 
     private string GetAnimePosterUri(string imageServer, string filename)
