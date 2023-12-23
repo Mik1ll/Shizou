@@ -87,7 +87,7 @@ public static class InitializationExtensions
     {
         var options = app.Services.GetRequiredService<IOptions<ShizouOptions>>();
         options.Value.SaveToFile();
-        if (File.ReadAllText(FilePaths.SchemaPath) != ShizouOptions.Schema)
+        if (!File.Exists(FilePaths.SchemaPath) || File.ReadAllText(FilePaths.SchemaPath) != ShizouOptions.Schema)
             File.WriteAllText(FilePaths.SchemaPath, ShizouOptions.Schema);
         return app;
     }
