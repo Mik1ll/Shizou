@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -189,7 +188,4 @@ public class MyListOptions
 public class MyAnimeListOptions
 {
     public string ClientId { get; set; } = string.Empty;
-    public MyAnimeListToken? MyAnimeListToken { get; set; }
 }
-
-public record MyAnimeListToken(string AccessToken, DateTimeOffset AccessExpiration, string RefreshToken, DateTimeOffset RefreshExpiration);

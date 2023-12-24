@@ -38,8 +38,10 @@ public abstract class FileCacheBase<TIn, TOut>
 
         _logger.LogDebug("{Path} found in cache", path);
         var file = new FileStream(path, FileMode.Open, FileAccess.Read);
-        await using var _ = file.ConfigureAwait(false);
-        return await DeserializeAsync(file).ConfigureAwait(false);
+        await using (file.ConfigureAwait(false))
+        {
+            return await DeserializeAsync(file).ConfigureAwait(false);
+        }
     }
 
     public async Task SaveAsync(string filename, TIn value)
@@ -48,8 +50,11 @@ public abstract class FileCacheBase<TIn, TOut>
             Directory.CreateDirectory(_basePath);
         var path = Path.Combine(_basePath, filename);
         var file = new FileStream(path, FileMode.Create, FileAccess.Write);
-        await using var _ = file.ConfigureAwait(false);
-        await SerializeAsync(value, file).ConfigureAwait(false);
+        await using (file.ConfigureAwait(false))
+        {
+            await SerializeAsync(value, file).ConfigureAwait(false);
+        }
+
         _logger.LogDebug("{Path} saved to cache", path);
     }
 

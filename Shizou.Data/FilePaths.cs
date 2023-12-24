@@ -18,6 +18,7 @@ public static class FilePaths
     public static readonly string AnimePostersDir = Path.Combine(ImagesDir, "AnimePosters");
     public static readonly string AnimeTitlesPath = Path.Combine(ApplicationDataDir, "AnimeTitles.dat");
     public static readonly string ExtraFileDataDir = Path.Combine(ApplicationDataDir, "ExtraFileData");
+    public static readonly string MyAnimeListTokenPath = Path.Combine(ApplicationDataDir, "MyAnimeListToken.json");
     public static string AnimePosterPath(string imageFilename) => Path.Combine(AnimePostersDir, imageFilename);
 
     private static string GetApplicationDataDir()

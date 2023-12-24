@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Enums.Mal;
 using Shizou.Data.Models;
@@ -79,9 +81,34 @@ public class MyAnimeListService
         return dbAnime;
     }
 
-    private static string GetCodeVerifier()
+    private static string GetCodeVerifier() => Base64UrlTextEncoder.Encode(RandomNumberGenerator.GetBytes(32));
+
+    private static async Task<MyAnimeListToken?> ReadTokenFromFileAsync()
     {
-        return Base64UrlTextEncoder.Encode(RandomNumberGenerator.GetBytes(32));
+        try
+        {
+            var tokenStream = new FileStream(FilePaths.MyAnimeListTokenPath, FileMode.Open, FileAccess.Read);
+            MyAnimeListToken? malToken;
+            await using (tokenStream.ConfigureAwait(false))
+            {
+                malToken = await JsonSerializer.DeserializeAsync<MyAnimeListToken>(tokenStream).ConfigureAwait(false);
+            }
+
+            return malToken;
+        }
+        catch (FileNotFoundException)
+        {
+            return null;
+        }
+    }
+
+    private static async Task WriteTokenToFileAsync(MyAnimeListToken newToken)
+    {
+        var tokenStream = new FileStream(FilePaths.MyAnimeListTokenPath, FileMode.Create, FileAccess.Write);
+        await using (tokenStream.ConfigureAwait(false))
+        {
+            await JsonSerializer.SerializeAsync(tokenStream, newToken).ConfigureAwait(false);
+        }
     }
 
     public string? GetAuthenticationUrl(string serverAccessIp)
@@ -154,10 +181,10 @@ public class MyAnimeListService
             })
         };
         var result = await httpClient.SendAsync(request).ConfigureAwait(false);
-        if (!HandleStatusCode(result, options))
+        if (!HandleStatusCode(result))
             return false;
 
-        if (!await SaveTokenAsync(result, options).ConfigureAwait(false))
+        if (!await SaveTokenAsync(result).ConfigureAwait(false))
             return false;
 
         _state = null;
@@ -167,18 +194,18 @@ public class MyAnimeListService
 
     public async Task GetAnimeAsync(int animeId)
     {
-        var options = _optionsMonitor.CurrentValue;
-        if (options.MyAnimeList.MyAnimeListToken is null)
+        var malToken = await ReadTokenFromFileAsync().ConfigureAwait(false);
+        if (malToken is null)
         {
             _logger.LogInformation("MyAnimeList not authenticated, aborting get anime");
             return;
         }
 
-        if (!await RefreshTokenAsync(options).ConfigureAwait(false))
+        if (!await RefreshTokenAsync(malToken).ConfigureAwait(false))
             return;
 
         var httpClient = _httpClientFactory.CreateClient();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.MyAnimeList.MyAnimeListToken.AccessToken);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", malToken.AccessToken);
 
         var url = QueryHelpers.AddQueryString($"https://api.myanimelist.net/v2/anime/{animeId}", new Dictionary<string, string?>
         {
@@ -187,7 +214,7 @@ public class MyAnimeListService
         });
 
         var result = await httpClient.GetAsync(url).ConfigureAwait(false);
-        if (!HandleStatusCode(result, options))
+        if (!HandleStatusCode(result))
             return;
         try
         {
@@ -211,14 +238,14 @@ public class MyAnimeListService
 
     public async Task GetUserAnimeListAsync()
     {
-        var options = _optionsMonitor.CurrentValue;
-        if (options.MyAnimeList.MyAnimeListToken is null)
+        var malToken = await ReadTokenFromFileAsync().ConfigureAwait(false);
+        if (malToken is null)
         {
             _logger.LogWarning("MyAnimeList not authenticated, aborting get user list");
             return;
         }
 
-        if (!await RefreshTokenAsync(options).ConfigureAwait(false))
+        if (!await RefreshTokenAsync(malToken).ConfigureAwait(false))
             return;
 
         var animeWithStatus = new HashSet<int>();
@@ -227,7 +254,7 @@ public class MyAnimeListService
         var malAnimes = context.MalAnimes.ToDictionary(a => a.Id);
 
         var httpClient = _httpClientFactory.CreateClient();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.MyAnimeList.MyAnimeListToken.AccessToken);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", malToken.AccessToken);
         var url = QueryHelpers.AddQueryString("https://api.myanimelist.net/v2/users/@me/animelist", new Dictionary<string, string?>
         {
             { "nsfw", "true" },
@@ -237,7 +264,7 @@ public class MyAnimeListService
         while (url is not null)
         {
             var result = await httpClient.GetAsync(url).ConfigureAwait(false);
-            if (!HandleStatusCode(result, options))
+            if (!HandleStatusCode(result))
                 return;
 
             try
@@ -277,14 +304,14 @@ public class MyAnimeListService
 
     public async Task<bool> UpdateAnimeStatusAsync(int animeId, MalStatus status)
     {
-        var options = _optionsMonitor.CurrentValue;
-        if (options.MyAnimeList.MyAnimeListToken is null)
+        var malToken = await ReadTokenFromFileAsync().ConfigureAwait(false);
+        if (malToken is null)
         {
             _logger.LogWarning("MyAnimeList not authenticated, aborting update anime state");
             return false;
         }
 
-        if (!await RefreshTokenAsync(options).ConfigureAwait(false))
+        if (!await RefreshTokenAsync(malToken).ConfigureAwait(false))
             return false;
 
         using var context = _contextFactory.CreateDbContext();
@@ -296,7 +323,7 @@ public class MyAnimeListService
         }
 
         var httpClient = _httpClientFactory.CreateClient();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.MyAnimeList.MyAnimeListToken.AccessToken);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", malToken.AccessToken);
 
         var stateStr = status.State switch
         {
@@ -323,7 +350,7 @@ public class MyAnimeListService
         };
 
         var result = await httpClient.SendAsync(request).ConfigureAwait(false);
-        if (!HandleStatusCode(result, options))
+        if (!HandleStatusCode(result))
             return false;
 
         try
@@ -345,7 +372,7 @@ public class MyAnimeListService
         return true;
     }
 
-    private async Task<bool> SaveTokenAsync(HttpResponseMessage result, ShizouOptions options)
+    private async Task<bool> SaveTokenAsync(HttpResponseMessage result)
     {
         var token = await result.Content.ReadFromJsonAsync<TokenResponse>().ConfigureAwait(false);
         if (token is null)
@@ -358,28 +385,20 @@ public class MyAnimeListService
             DateTimeOffset.UtcNow + TimeSpan.FromSeconds(token.expires_in),
             token.refresh_token,
             DateTimeOffset.UtcNow + TimeSpan.FromDays(31));
-        options.MyAnimeList.MyAnimeListToken = newToken;
-        options.SaveToFile();
+        await WriteTokenToFileAsync(newToken).ConfigureAwait(false);
         return true;
     }
 
-    private async Task<bool> RefreshTokenAsync(ShizouOptions options)
+    private async Task<bool> RefreshTokenAsync(MyAnimeListToken malToken)
     {
-        if (options.MyAnimeList.MyAnimeListToken is null)
-        {
-            _logger.LogError("No token to refresh");
-            return false;
-        }
-
-        if (options.MyAnimeList.MyAnimeListToken.RefreshExpiration < DateTimeOffset.UtcNow - TimeSpan.FromMinutes(5))
+        if (malToken.RefreshExpiration < DateTimeOffset.UtcNow - TimeSpan.FromMinutes(5))
         {
             _logger.LogError("Refresh token is expired, deleting token");
-            options.MyAnimeList.MyAnimeListToken = null;
-            options.SaveToFile();
+            File.Delete(FilePaths.MyAnimeListTokenPath);
             return false;
         }
 
-        if (options.MyAnimeList.MyAnimeListToken.AccessExpiration > DateTimeOffset.UtcNow + TimeSpan.FromMinutes(5))
+        if (malToken.AccessExpiration > DateTimeOffset.UtcNow + TimeSpan.FromMinutes(5))
         {
             _logger.LogDebug("No need to refresh token, not expired");
             return true;
@@ -387,36 +406,37 @@ public class MyAnimeListService
 
         _logger.LogInformation("Refreshing MAL auth token");
 
+        var clientId = _optionsMonitor.CurrentValue.MyAnimeList.ClientId;
         var httpClient = _httpClientFactory.CreateClient();
         var request = new HttpRequestMessage(HttpMethod.Post, "https://myanimelist.net/v1/oauth2/token")
         {
             Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
             {
-                new("client_id", options.MyAnimeList.ClientId),
+                new("client_id", clientId),
                 new("grant_type", "refresh_token"),
-                new("refresh_token", options.MyAnimeList.MyAnimeListToken.RefreshToken)
+                new("refresh_token", malToken.RefreshToken)
             })
         };
 
         var result = await httpClient.SendAsync(request).ConfigureAwait(false);
-        if (!HandleStatusCode(result, options))
+        if (!HandleStatusCode(result))
             return false;
 
-        if (!await SaveTokenAsync(result, options).ConfigureAwait(false))
+        if (!await SaveTokenAsync(result).ConfigureAwait(false))
             return false;
 
         return true;
     }
 
-    private bool HandleStatusCode(HttpResponseMessage result, ShizouOptions options)
+    private bool HandleStatusCode(HttpResponseMessage result)
     {
         if (!result.IsSuccessStatusCode)
         {
-            _logger.LogError("Something went wrong when getting user list, returned status {StatusCode}", result.StatusCode);
+            _logger.LogError("MyAnimeList returned bad status {StatusCode}", result.StatusCode);
             if (result.StatusCode == HttpStatusCode.Unauthorized)
             {
-                options.MyAnimeList.MyAnimeListToken = null;
-                options.SaveToFile();
+                _logger.LogError("MyAnimeList unauthorized, deleting token");
+                File.Delete(FilePaths.MyAnimeListTokenPath);
             }
 
             return false;
@@ -425,6 +445,8 @@ public class MyAnimeListService
         return true;
     }
 
+
+    public record MyAnimeListToken(string AccessToken, DateTimeOffset AccessExpiration, string RefreshToken, DateTimeOffset RefreshExpiration);
 
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Local")]
