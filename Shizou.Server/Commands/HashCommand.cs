@@ -46,7 +46,18 @@ public class HashCommand : Command<HashArgs>
         }
 
         var pathTail = file.FullName.Substring(importFolder.Path.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        var signature = await _hashService.GetFileSignatureAsync(file).ConfigureAwait(false);
+        string signature;
+        try
+        {
+            signature = await _hashService.GetFileSignatureAsync(file).ConfigureAwait(false);
+        }
+        catch (IOException)
+        {
+            _logger.LogInformation("File was not accessible, skipping");
+            Completed = true;
+            return;
+        }
+
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder)
             .FirstOrDefault(l => l.Signature == signature
                                  || (l.ImportFolderId == importFolder.Id && l.PathTail == pathTail));
@@ -102,6 +113,7 @@ public class HashCommand : Command<HashArgs>
 
         if (eAniDbFileId is null)
             _commandService.Dispatch(new ProcessArgs(localFile.Id, IdTypeLocalOrFile.LocalId));
+
         Completed = true;
     }
 }
