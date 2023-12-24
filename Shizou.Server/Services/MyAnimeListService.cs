@@ -277,6 +277,8 @@ public class MyAnimeListService
                 {
                     var animeJson = item.GetProperty("node");
                     var anime = AnimeFromJson(animeJson);
+                    if (!malAnimes.ContainsKey(anime.Id))
+                        continue;
 
                     var statusJson = item.GetProperty("list_status");
                     anime.Status = StatusFromJson(statusJson);
