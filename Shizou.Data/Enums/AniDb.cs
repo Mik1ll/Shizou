@@ -20,7 +20,10 @@ public enum AnimeType
     Web = 5,
 
     [XmlEnum("Other")]
-    Other = 6
+    Other = 6,
+
+    [XmlEnum("Music Video")]
+    MusicVideo = 7
 }
 
 public enum EpisodeType
