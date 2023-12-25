@@ -5,13 +5,13 @@
     @if (MalAnime.Status is not null)
     {
         <EditForm Model="MalAnime.Status" OnSubmit="@UpdateStatusAsync">
-            <InputSelect @bind-Value="@(MalAnime.Status.State)">
+            <InputSelect @bind-Value:get="@(MalAnime.Status.State)" @bind-Value:set="SetStatusState">
                 @foreach (var state in Enum.GetValues<AnimeState>())
                 {
                     <option>@state</option>
                 }
             </InputSelect>
-            <InputNumber @bind-Value="@(MalAnime.Status.WatchedEpisodes)" style="width: 3em;"></InputNumber> / @(MalAnime.EpisodeCount)
+            <InputNumber @bind-Value="@(MalAnime.Status.WatchedEpisodes)" style="width: 3em;"></InputNumber> / @(MalAnime.EpisodeCount?.ToString() ?? "??")
             <button type="submit" class="btn btn-primary">Update</button>
         </EditForm>
     }

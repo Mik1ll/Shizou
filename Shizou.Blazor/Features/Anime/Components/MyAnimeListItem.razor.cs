@@ -58,4 +58,11 @@ public partial class MyAnimeListItem
             ToastService.ShowError("Error", "MyAnimeList status failed to add");
         }
     }
+
+    private void SetStatusState(AnimeState state)
+    {
+        MalAnime.Status!.State = state;
+        if (state == AnimeState.Completed)
+            MalAnime.Status.WatchedEpisodes = MalAnime.EpisodeCount ?? MalAnime.Status.WatchedEpisodes;
+    }
 }
