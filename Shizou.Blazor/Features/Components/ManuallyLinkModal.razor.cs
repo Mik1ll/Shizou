@@ -30,6 +30,9 @@ public partial class ManuallyLinkModal
     [Inject]
     private ToastService ToastService { get; set; } = default!;
 
+    [Inject]
+    private ManualLinkService ManualLinkService { get; set; } = default!;
+
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
 
@@ -95,13 +98,10 @@ public partial class ManuallyLinkModal
 
     private async Task LinkFilesAsync()
     {
-        using var context = ContextFactory.CreateDbContext();
-        context.LocalFiles.AttachRange(SelectedFiles);
         foreach (var ep in _selectedAnime!.AniDbEpisodes)
             if (_mapping.TryGetValue(ep, out var localFile))
-                localFile.ManualLinkEpisodeId = ep.Id;
+                ManualLinkService.LinkFile(localFile, ep.Id);
 
-        context.SaveChanges();
         await _modal.CloseAsync();
     }
 }
