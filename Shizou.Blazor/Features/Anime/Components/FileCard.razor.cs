@@ -14,11 +14,10 @@ namespace Shizou.Blazor.Features.Anime.Components;
 
 public partial class FileCard
 {
-    [Inject]
-    private WatchStateService WatchStateService { get; set; } = default!;
+    private IWatchedState _watchedState = default!;
 
     [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
+    private WatchStateService WatchStateService { get; set; } = default!;
 
     [Inject]
     private IShizouContextFactory ContextFactory { get; set; } = default!;
@@ -37,14 +36,6 @@ public partial class FileCard
 
     [Parameter]
     [EditorRequired]
-    public AniDbFile? AniDbFile { get; set; }
-
-    [Parameter]
-    [EditorRequired]
-    public IWatchedState WatchedState { get; set; } = default!;
-
-    [Parameter]
-    [EditorRequired]
     public LocalFile LocalFile { get; set; } = default!;
 
     [Parameter]
@@ -56,20 +47,31 @@ public partial class FileCard
         return base.SetParametersAsync(parameters);
     }
 
+    protected override void OnParametersSet()
+    {
+        if (LocalFile.ImportFolder is null || !File.Exists(Path.Combine(LocalFile.ImportFolder.Path, LocalFile.PathTail)))
+            throw new ArgumentException(nameof(LocalFile.ImportFolder));
+        if (LocalFile.AniDbFile is null && LocalFile.ManualLinkEpisode is null)
+            throw new ArgumentException("Must have either AniDb file or Manual Link");
+        if (LocalFile.AniDbFile?.FileWatchedState is null && LocalFile.ManualLinkEpisode?.EpisodeWatchedState is null)
+            throw new ArgumentException(nameof(IWatchedState));
+        _watchedState = (IWatchedState?)LocalFile.AniDbFile?.FileWatchedState ?? LocalFile.ManualLinkEpisode!.EpisodeWatchedState;
+    }
+
     private Task MarkAsync(bool watched)
     {
-        switch (WatchedState)
+        switch (_watchedState)
         {
             case FileWatchedState fws:
                 if (WatchStateService.MarkFile(fws.AniDbFileId, watched))
-                    WatchedState.Watched = watched;
+                    _watchedState.Watched = watched;
                 break;
             case EpisodeWatchedState ews:
                 if (WatchStateService.MarkEpisode(ews.AniDbEpisodeId, watched))
-                    WatchedState.Watched = watched;
+                    _watchedState.Watched = watched;
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(WatchedState));
+                throw new ArgumentOutOfRangeException(nameof(_watchedState));
         }
 
         return OnChanged.InvokeAsync();

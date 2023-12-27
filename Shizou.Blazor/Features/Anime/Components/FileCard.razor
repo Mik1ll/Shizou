@@ -3,32 +3,25 @@
         <li class="list-group-item">
             <div class="d-flex justify-content-between">
                 <div>
-                    @if (LocalFile.ImportFolder is not null && File.Exists(Path.Combine(LocalFile.ImportFolder.Path, LocalFile.PathTail)))
-                    {
-                        <button class="btn btn-primary me-2" type="button" @onclick="@(() => OpenVideoAsync(LocalFile.Id))">
-                            <i class="bi bi-play"></i> Play
-                        </button>
-                        <a class="btn btn-primary me-2" href="@(PlayExternalPlaylist(true))">
-                            <i class="bi bi-play"></i> Play External
-                        </a>
-                        <a class="btn btn-primary me-2" href="@(PlayExternalPlaylist(false))">
-                            <i class="bi bi-play"></i> Play External Playlist
-                        </a>
-                    }
-                    else
-                    {
-                        <i class="bi bi-file-earmark-x text-warning btn"></i>
-                    }
+                    <button class="btn btn-primary me-2" type="button" @onclick="@(() => OpenVideoAsync(LocalFile.Id))">
+                        <i class="bi bi-play"></i> Play
+                    </button>
+                    <a class="btn btn-primary me-2" href="@(PlayExternalPlaylist(true))">
+                        <i class="bi bi-play"></i> Play External
+                    </a>
+                    <a class="btn btn-primary me-2" href="@(PlayExternalPlaylist(false))">
+                        <i class="bi bi-play"></i> Play External Playlist
+                    </a>
                 </div>
                 <div>
-                    @if (AniDbFile is null)
+                    @if (LocalFile.AniDbFile is null)
                     {
                         <button class="btn btn-outline-danger" @onclick="@(() => UnlinkAsync(LocalFile))">
                             <i class="bi bi-slash-circle"></i> Unlink File
                         </button>
                     }
-                    <button class="btn @(WatchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" type="button" @onclick:stopPropagation="true" @onclick="@(async () => await MarkAsync(!WatchedState.Watched))">
-                        <i class="bi @(WatchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
+                    <button type="button" class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" @onclick="@(async () => await MarkAsync(!_watchedState.Watched))">
+                        <i class="bi @(_watchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
                     </button>
                 </div>
             </div>
@@ -36,13 +29,13 @@
         <li class="list-group-item">
             <span>
                 <strong>
-                    @if (AniDbFile is null)
+                    @if (LocalFile.AniDbFile is null)
                     {
                         @("Manual Link")
                     }
-                    else if (AniDbFile.AniDbGroup is not null)
+                    else if (LocalFile.AniDbFile.AniDbGroup is not null)
                     {
-                        <a href="https://anidb.net/group/@(AniDbFile.AniDbGroupId)" target="_blank">[@(AniDbFile.AniDbGroup.ShortName)]</a>
+                        <a href="https://anidb.net/group/@(LocalFile.AniDbFile.AniDbGroupId)" target="_blank">[@(LocalFile.AniDbFile.AniDbGroup.ShortName)]</a>
                         <span>&nbsp;</span>
                     }
                     else
@@ -50,11 +43,11 @@
                         <span>No Group&nbsp;</span>
                     }
                 </strong>
-                @if (AniDbFile?.Video is not null)
+                @if (LocalFile.AniDbFile?.Video is not null)
                 {
-                    <span>@(AniDbFile.Video.Height)x@(AniDbFile.Video.Width) @(AniDbFile.Video.ColorDepth)bit&nbsp;</span>
+                    <span>@(LocalFile.AniDbFile.Video.Height)x@(LocalFile.AniDbFile.Video.Width) @(LocalFile.AniDbFile.Video.ColorDepth)bit&nbsp;</span>
                 }
-                <strong>@(AniDbFile?.Source)</strong>
+                <strong>@(LocalFile.AniDbFile?.Source)</strong>
                 @(LocalFile.Crc)
             </span>
         </li>
