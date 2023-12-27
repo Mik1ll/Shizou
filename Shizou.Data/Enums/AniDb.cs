@@ -32,10 +32,10 @@ public enum EpisodeType
     Episode = 1,
 
     [XmlEnum("2")]
-    Credits = 2,
+    Special = 2,
 
     [XmlEnum("3")]
-    Special = 3,
+    Credits = 3,
 
     [XmlEnum("4")]
     Trailer = 4,
