@@ -118,8 +118,12 @@ public class FileServer : ControllerBase
                 }).ToList();
             var ep = eps.First(ep => ep.Locals.Any(l => l.Id == id) || ep.ManLocals.Any(ml => ml.Id == id));
             var localFile = ep.Locals.Concat(ep.ManLocals).First(l => l.Id == id);
+            var lastEpNo = ep.EpNo - 1;
+            var lastEpType = ep.EpType;
             foreach (var loopEp in eps.SkipWhile(x => x != ep))
             {
+                if (lastEpNo <= loopEp.EpNo && lastEpType == loopEp.EpType)
+                    break;
                 var lf = loopEp.Locals.Concat(loopEp.ManLocals).FirstOrDefault(l => l.AniDbGroupId == localFile.AniDbGroupId);
                 if (lf is null)
                     break;
