@@ -66,7 +66,7 @@ public partial class EpisodeTable
             .Include(f => f.AniDbGroup)
             .Include(f => f.FileWatchedState)
             .Load();
-        context.Entry(episode).Collection(ep => ep.ManualLinkLocalFiles).Load();
+        context.Entry(episode).Collection(ep => ep.ManualLinkLocalFiles).Query().Include(lf => lf.ImportFolder).Load();
         context.Entry(episode).Reference(ep => ep.EpisodeWatchedState).Load();
     }
 
