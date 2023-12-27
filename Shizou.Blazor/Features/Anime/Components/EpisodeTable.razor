@@ -1,5 +1,4 @@
-﻿@using Shizou.Data.Enums
-<table class="table table-hover">
+﻿<table class="table table-hover">
     <thead>
     <tr>
         <th>Ep</th>
@@ -15,7 +14,7 @@
     {
         <tr role="button" @onclick="@(() => ToggleEpExpand(ep))">
             <td class="text-end">
-                @(EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number))
+                @(ep.EpString)
             </td>
             <td class="absorbing-column">
                 <div class="d-inline-flex">

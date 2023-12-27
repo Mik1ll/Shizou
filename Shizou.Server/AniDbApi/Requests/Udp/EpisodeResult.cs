@@ -13,7 +13,7 @@ public sealed record EpisodeResult
         DurationMinutes = dataArr[1] != "0" ? int.Parse(dataArr[2]) : null;
         Rating = int.Parse(dataArr[3]);
         Votes = int.Parse(dataArr[4]);
-        (EpisodeNumber, Type) = EpisodeTypeExtensions.ParseEpisode(dataArr[5]);
+        (EpisodeNumber, Type) = EpisodeTypeExtensions.ParseEpString(dataArr[5]);
         TitleEnglish = dataArr[6];
         TitleRomaji = dataArr[7];
         TitleKanji = dataArr[8];

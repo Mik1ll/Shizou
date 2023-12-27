@@ -21,6 +21,8 @@ public class AniDbEpisode
 
     public required DateTime Updated { get; set; }
 
+    public string EpString => EpisodeType.GetEpString(Number);
+
     public required int AniDbAnimeId { get; set; }
 
     [JsonIgnore]

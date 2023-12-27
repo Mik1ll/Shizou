@@ -49,9 +49,8 @@ public enum EpisodeType
 
 public static class EpisodeTypeExtensions
 {
-    public static string GetPrefix(this EpisodeType episodeType)
-    {
-        return episodeType switch
+    public static string GetPrefix(this EpisodeType episodeType) =>
+        episodeType switch
         {
             EpisodeType.Credits => "C",
             EpisodeType.Special => "S",
@@ -59,14 +58,10 @@ public static class EpisodeTypeExtensions
             EpisodeType.Parody => "P",
             _ => ""
         };
-    }
 
-    public static string ToEpString(EpisodeType type, int number)
-    {
-        return $"{type.GetPrefix()}{number}";
-    }
+    public static string GetEpString(this EpisodeType type, int number) => $"{type.GetPrefix()}{number}";
 
-    public static (int number, EpisodeType type) ParseEpisode(string str)
+    public static (int number, EpisodeType type) ParseEpString(string str)
     {
         var num = int.Parse(char.IsNumber(str[0]) ? str : str[1..]);
         var type = str[0] switch

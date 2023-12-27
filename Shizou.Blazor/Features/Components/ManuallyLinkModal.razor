@@ -1,5 +1,4 @@
-﻿@using Shizou.Data.Enums
-<Modal @ref="@_modal" class="modal-lg">
+﻿<Modal @ref="@_modal" class="modal-lg">
     <div class="modal-header">
         <h4 class="modal-title">Manually Link File</h4>
     </div>
@@ -60,7 +59,7 @@
                                     @(Path.GetFileName(localFile.PathTail))
                                 }
                             </td>
-                            <td>@(EpisodeTypeExtensions.ToEpString(ep.EpisodeType, ep.Number))</td>
+                            <td>@(ep.EpString)</td>
                         </tr>
                     }
                     </tbody>

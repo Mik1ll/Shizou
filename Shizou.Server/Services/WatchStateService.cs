@@ -87,7 +87,7 @@ public class WatchStateService
                 : new UpdateMyListArgs(false, state, watched, updatedTime, Fid: fileId));
         else
             _commandService.Dispatch(new UpdateMyListArgs(false, state, watched, updatedTime, Aid: episode.AniDbAnimeId,
-                EpNo: EpisodeTypeExtensions.ToEpString(episode.EpisodeType, episode.Number)));
+                EpNo: episode.EpisodeType.GetEpString(episode.Number)));
 
         return true;
     }
