@@ -7,7 +7,6 @@ using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
-using Shizou.Server.Extensions;
 using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
 
@@ -43,7 +42,7 @@ public partial class UnidentifiedFiles
         using var context = ContextFactory.CreateDbContext();
         _localFiles = context.LocalFiles.Include(lf => lf.ImportFolder).Unidentified()
             .Where(lf => lf.ImportFolder != null && (!lf.Ignored || _includeIgnored)).AsEnumerable()
-            .Where(lf => !lf.IsMissing()).ToList();
+            .Where(lf => File.Exists(Path.Combine(lf.ImportFolder!.Path, lf.PathTail))).ToList();
     }
 
     private void ScanFiles(List<LocalFile> localFiles)

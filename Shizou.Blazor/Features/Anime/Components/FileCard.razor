@@ -1,10 +1,9 @@
-﻿@using Shizou.Server.Extensions
-<div class="card">
+﻿<div class="card">
     <ul class="list-group list-group-flush">
         <li class="list-group-item">
             <div class="d-flex justify-content-between">
                 <div>
-                    @if (!LocalFile.IsMissing())
+                    @if (LocalFile.ImportFolder is not null && File.Exists(Path.Combine(LocalFile.ImportFolder.Path, LocalFile.PathTail)))
                     {
                         <button class="btn btn-primary me-2" type="button" @onclick="@(() => OpenVideoAsync(LocalFile.Id))">
                             <i class="bi bi-play"></i> Play

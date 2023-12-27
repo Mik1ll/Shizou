@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
-using Shizou.Server.Extensions;
 
 namespace Shizou.Server.Services;
 
@@ -71,9 +70,8 @@ public class ImportService
     {
         _logger.LogInformation("Removing missing local files");
         using var context = _contextFactory.CreateDbContext();
-        var toRemove = (from file in context.LocalFiles.Include(lf => lf.ImportFolder).ToList()
-            where file.IsMissing()
-            select file).ToList();
+        var localFiles = context.LocalFiles.Include(lf => lf.ImportFolder).ToList();
+        var toRemove = localFiles.Where(file => file.ImportFolder is null || !File.Exists(Path.Combine(file.ImportFolder.Path, file.PathTail))).ToList();
         foreach (var file in toRemove)
         {
             if (file.ImportFolder is null)
