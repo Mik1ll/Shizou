@@ -101,20 +101,11 @@ public partial class UpNext
         await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), localFileId)).Result;
     }
 
-    private string PlayExternalUri()
-    {
-        IDictionary<string, object?> values = new ExpandoObject();
-        values["LocalFileId"] = $"{_localFile!.Id}{Path.GetExtension(_localFile.PathTail)}";
-        values[Constants.IdentityCookieName] = IdentityCookie;
-        var fileUri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.Get),
-            nameof(FileServer), values) ?? throw new ArgumentException();
-        return $"shizou:{fileUri}";
-    }
-
-    private string PlayExternalPlaylist()
+    private string PlayExternalPlaylist(bool single)
     {
         IDictionary<string, object?> values = new ExpandoObject();
         values["localFileId"] = $"{_localFile!.Id}.m3u8";
+        values["single"] = single;
         values[Constants.IdentityCookieName] = IdentityCookie;
         var fileUri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.GetWithPlaylist),
             nameof(FileServer), values) ?? throw new ArgumentException();

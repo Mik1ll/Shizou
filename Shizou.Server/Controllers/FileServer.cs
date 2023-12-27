@@ -45,7 +45,7 @@ public class FileServer : ControllerBase
     ///     Get file by local Id, can optionally end in arbitrary extension
     /// </summary>
     /// <param name="localFileId"></param>
-    /// <param name="IdentityCookie"></param>
+    /// <param name="identityCookie"></param>
     /// <returns></returns>
     [HttpGet("{localFileId}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
@@ -53,14 +53,10 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: "application/octet-stream")]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
-    // ReSharper disable once UnusedParameter.Global
-    // ReSharper disable once InconsistentNaming
-    // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
-    public Results<FileStreamHttpResult, Conflict<string>, NotFound> Get(string localFileId, [FromQuery] string? IdentityCookie = null)
+    public Results<FileStreamHttpResult, Conflict<string>, NotFound> Get(string localFileId, [FromQuery] string? identityCookie = null)
     {
-#pragma warning disable CS0162 // Unreachable code detected
-        if (nameof(IdentityCookie) != Constants.IdentityCookieName) throw new ApplicationException("Identity cookie must match name of constant");
-#pragma warning restore CS0162 // Unreachable code detected
+        if (!string.Equals(nameof(identityCookie), Constants.IdentityCookieName, StringComparison.OrdinalIgnoreCase))
+            throw new ApplicationException("Identity cookie must match name of constant");
         var split = localFileId.Split('.', 2);
         var id = int.Parse(split[0]);
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == id);
@@ -84,48 +80,53 @@ public class FileServer : ControllerBase
     [HttpGet("[action]/{localFileId}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    // ReSharper disable once UnusedParameter.Global
-    // ReSharper disable once InconsistentNaming
-    // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
-    public Results<FileContentHttpResult, NotFound> GetWithPlaylist(string localFileId, [FromQuery] string? IdentityCookie)
+    public Results<FileContentHttpResult, NotFound> GetWithPlaylist(string localFileId, [FromQuery] bool? single, [FromQuery] string? identityCookie)
     {
-#pragma warning disable CS0162 // Unreachable code detected
-        if (nameof(IdentityCookie) != Constants.IdentityCookieName) throw new ApplicationException("Identity cookie must match name of constant");
-#pragma warning restore CS0162 // Unreachable code detected
+        if (!string.Equals(nameof(identityCookie), Constants.IdentityCookieName, StringComparison.OrdinalIgnoreCase))
+            throw new ApplicationException("Identity cookie must match name of constant");
         var split = localFileId.Split('.', 2);
         var id = int.Parse(split[0]);
         if (split.Length == 2 && split[1] != "m3u8" && split[1] != "m3u")
             return TypedResults.NotFound();
-        var aid = _context.AniDbEpisodes
-            .Where(ep => ep.ManualLinkLocalFiles.Any(lf => lf.Id == id) || ep.AniDbFiles.Any(f => f.LocalFile!.Id == id))
-            .Select(ep => (int?)ep.AniDbAnimeId)
-            .FirstOrDefault();
-        if (aid is null)
-            return TypedResults.NotFound();
-        var eps = (from e in _context.AniDbEpisodes.HasLocalFiles()
-            where e.AniDbAnimeId == aid
-            orderby e.EpisodeType, e.Number
-            select new
-            {
-                EpType = e.EpisodeType,
-                EpNo = e.Number,
-                ManLocals = e.ManualLinkLocalFiles.Select(lf => new { lf.Id, lf.PathTail, AniDbGroupId = (int?)null }),
-                Locals = e.AniDbFiles.Select(f => new { f.LocalFile.Id, f.LocalFile.PathTail, f.AniDbGroupId })
-            }).ToList();
-        var ep = eps.First(ep => ep.Locals.Any(l => l.Id == id) || ep.ManLocals.Any(ml => ml.Id == id));
-        var localFile = ep.Locals.Concat(ep.ManLocals).First(l => l.Id == id);
         var m3U8 = "#EXTM3U\n";
-        foreach (var loopEp in eps.SkipWhile(x => x != ep))
+        if (single is true)
         {
-            var lf = loopEp.Locals.Concat(loopEp.ManLocals).FirstOrDefault(l => l.AniDbGroupId == localFile.AniDbGroupId);
+            var lf = _context.LocalFiles.Select(lf => new { lf.Id, lf.PathTail }).FirstOrDefault(lf => lf.Id == id);
             if (lf is null)
-                break;
-            IDictionary<string, object?> values = new ExpandoObject();
-            values["LocalFileId"] = $"{lf.Id}{Path.GetExtension(lf.PathTail)}";
-            values[Constants.IdentityCookieName] = IdentityCookie;
-            var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
-                nameof(FileServer), values) ?? throw new ArgumentException();
+                return TypedResults.NotFound();
+            m3U8 += $"#EXTINF:-1,{Path.GetFileName(lf.PathTail)}\n";
+            var fileUri = GetFileUri(identityCookie, lf.Id, lf.PathTail);
             m3U8 += $"{fileUri}\n";
+        }
+        else
+        {
+            var aid = _context.AniDbEpisodes
+                .Where(ep => ep.ManualLinkLocalFiles.Any(lf => lf.Id == id) || ep.AniDbFiles.Any(f => f.LocalFile!.Id == id))
+                .Select(ep => (int?)ep.AniDbAnimeId)
+                .FirstOrDefault();
+            if (aid is null)
+                return TypedResults.NotFound();
+            var eps = (from e in _context.AniDbEpisodes.HasLocalFiles()
+                where e.AniDbAnimeId == aid
+                orderby e.EpisodeType, e.Number
+                select new
+                {
+                    EpType = e.EpisodeType,
+                    EpNo = e.Number,
+                    ManLocals = e.ManualLinkLocalFiles.Select(lf => new { lf.Id, lf.PathTail, AniDbGroupId = (int?)null }),
+                    Locals = e.AniDbFiles.Select(f => new { f.LocalFile.Id, f.LocalFile.PathTail, f.AniDbGroupId })
+                }).ToList();
+            var ep = eps.First(ep => ep.Locals.Any(l => l.Id == id) || ep.ManLocals.Any(ml => ml.Id == id));
+            var localFile = ep.Locals.Concat(ep.ManLocals).First(l => l.Id == id);
+            foreach (var loopEp in eps.SkipWhile(x => x != ep))
+            {
+                var lf = loopEp.Locals.Concat(loopEp.ManLocals).FirstOrDefault(l => l.AniDbGroupId == localFile.AniDbGroupId);
+                if (lf is null)
+                    break;
+                m3U8 += $"#EXTINF:-1,{Path.GetFileName(lf.PathTail)}\n";
+                var fileUri = GetFileUri(identityCookie, lf.Id, lf.PathTail);
+                m3U8 += $"{fileUri}\n";
+            }
         }
 
         _contentTypeProvider.TryGetContentType($"{id}.m3u", out var mimeType);
@@ -195,6 +196,16 @@ public class FileServer : ControllerBase
 src=""{HttpContext.Request.GetEncodedUrl().Remove(HttpContext.Request.GetEncodedUrl().IndexOf("/play", StringComparison.Ordinal))}""></video>
 </body></html>
 ", "text/html");
+    }
+
+    private string GetFileUri(string? identityCookie, int localId, string pathTail)
+    {
+        IDictionary<string, object?> values = new ExpandoObject();
+        values["LocalFileId"] = $"{localId}{Path.GetExtension(pathTail)}";
+        values[Constants.IdentityCookieName] = identityCookie;
+        var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
+            nameof(FileServer), values) ?? throw new ArgumentException();
+        return fileUri;
     }
 
 

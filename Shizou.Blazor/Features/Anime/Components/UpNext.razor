@@ -21,10 +21,10 @@
                 <button class="btn btn-primary me-2" type="button" @onclick="@(() => OpenVideoAsync(_localFile.Id))">
                     <i class="bi bi-play"></i> Play
                 </button>
-                <a class="btn btn-primary me-2" href="@(PlayExternalUri())">
+                <a class="btn btn-primary me-2" href="@(PlayExternalPlaylist(true))">
                     <i class="bi bi-play"></i> Play External
                 </a>
-                <a class="btn btn-primary me-2" href="@(PlayExternalPlaylist())">
+                <a class="btn btn-primary me-2" href="@(PlayExternalPlaylist(false))">
                     <i class="bi bi-play"></i> Play External Playlist
                 </a>
                 <button class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" type="button" @onclick:stopPropagation="true" @onclick="@(() => Mark(!_watchedState.Watched))">
