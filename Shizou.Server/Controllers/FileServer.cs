@@ -122,7 +122,7 @@ public class FileServer : ControllerBase
             var lastEpType = ep.EpType;
             foreach (var loopEp in eps.SkipWhile(x => x != ep))
             {
-                if (lastEpNo <= loopEp.EpNo && lastEpType == loopEp.EpType)
+                if (lastEpType != loopEp.EpType || lastEpNo != loopEp.EpNo - 1)
                     break;
                 var lf = loopEp.Locals.Concat(loopEp.ManLocals).FirstOrDefault(l => l.AniDbGroupId == localFile.AniDbGroupId);
                 if (lf is null)
@@ -130,6 +130,8 @@ public class FileServer : ControllerBase
                 m3U8 += $"#EXTINF:-1,{Path.GetFileName(lf.PathTail)}\n";
                 var fileUri = GetFileUri(identityCookie, lf.Id, lf.PathTail);
                 m3U8 += $"{fileUri}\n";
+                lastEpType = loopEp.EpType;
+                lastEpNo = loopEp.EpNo;
             }
         }
 
