@@ -185,9 +185,8 @@ public class FileServer : ControllerBase
         {
             if (!System.IO.File.Exists(fontPath))
             {
-                fontPath = FilePaths.ExtraFileData.AttachmentPath(ed2K, fontName);
                 await _subtitleService.ExtractAttachmentsAsync(ed2K).ConfigureAwait(false);
-
+                fontPath = await SubtitleService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
                 if (!System.IO.File.Exists(fontPath))
                     return TypedResults.NotFound();
             }

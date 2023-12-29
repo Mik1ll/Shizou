@@ -34,11 +34,11 @@ public class SubtitleService
     public static async Task<string> GetAttachmentPathAsync(string ed2K, string fileName)
     {
         await PopulateAttachmentHashMapAsync().ConfigureAwait(false);
-        if (_attachmentHashMapReverse!.TryGetValue(new AttachmentPath(ed2K, fileName), out var hash))
+        var attachmentPath = new AttachmentPath(ed2K, fileName);
+        if (_attachmentHashMapReverse!.TryGetValue(attachmentPath, out var hash))
         {
-            var attachmentPath = _attachmentHashMap![hash].FirstOrDefault();
-            if (attachmentPath is not null)
-                return FilePaths.ExtraFileData.AttachmentPath(attachmentPath.Ed2K, attachmentPath.Filename);
+            var newPath = GetOrAddAttachmentHashMap(hash, attachmentPath);
+            return FilePaths.ExtraFileData.AttachmentPath(newPath.Ed2K, newPath.Filename);
         }
 
         return FilePaths.ExtraFileData.AttachmentPath(ed2K, fileName);
@@ -82,6 +82,34 @@ public class SubtitleService
                 _attachmentHashMapReverse = new Dictionary<AttachmentPath, string>();
             }
         }
+    }
+
+    private static AttachmentPath GetOrAddAttachmentHashMap(string hash, AttachmentPath attachmentPath)
+    {
+        var resolvedPath = attachmentPath;
+        if (_attachmentHashMap!.TryGetValue(hash, out var attachmentPaths))
+        {
+            if (!attachmentPaths.Contains(attachmentPath))
+                attachmentPaths.Add(attachmentPath);
+            _attachmentHashMapReverse![attachmentPath] = hash;
+            foreach (var path in attachmentPaths)
+                if (File.Exists(FilePaths.ExtraFileData.AttachmentPath(path.Ed2K, path.Filename)))
+                {
+                    if (path != attachmentPath)
+                        File.Delete(FilePaths.ExtraFileData.AttachmentPath(attachmentPath.Ed2K, attachmentPath.Filename));
+                    resolvedPath = path;
+                    attachmentPaths.Remove(path);
+                    attachmentPaths.Insert(0, path);
+                    break;
+                }
+        }
+        else
+        {
+            _attachmentHashMap[hash] = new List<AttachmentPath> { attachmentPath };
+            _attachmentHashMapReverse![attachmentPath] = hash;
+        }
+
+        return resolvedPath;
     }
 
     public async Task ExtractSubtitlesAsync(string ed2K)
@@ -146,24 +174,7 @@ public class SubtitleService
         foreach (var attachment in new DirectoryInfo(attachmentsDir).EnumerateFiles())
         {
             var hash = (await _hashService.GetFileHashesAsync(attachment, HashIds.Crc32).ConfigureAwait(false))[HashIds.Crc32];
-            if (_attachmentHashMap!.TryGetValue(hash, out var attachmentPaths))
-            {
-                var realAttachmentPath = attachmentPaths.FirstOrDefault();
-                if (realAttachmentPath is not null &&
-                    File.Exists(FilePaths.ExtraFileData.AttachmentPath(realAttachmentPath.Ed2K, realAttachmentPath.Filename)))
-                    attachment.Delete();
-
-                var attachmentPath = new AttachmentPath(ed2K, attachment.Name);
-                if (!attachmentPaths.Contains(attachmentPath))
-                    attachmentPaths.Add(attachmentPath);
-                _attachmentHashMapReverse![attachmentPath] = hash;
-            }
-            else
-            {
-                var attachmentPath = new AttachmentPath(ed2K, attachment.Name);
-                _attachmentHashMap[hash] = new List<AttachmentPath> { attachmentPath };
-                _attachmentHashMapReverse![attachmentPath] = hash;
-            }
+            GetOrAddAttachmentHashMap(hash, new AttachmentPath(ed2K, attachment.Name));
         }
 
         await SaveAttachmentHashMapAsync().ConfigureAwait(false);
