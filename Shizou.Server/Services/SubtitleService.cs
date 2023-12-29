@@ -1,28 +1,89 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data;
 using Shizou.Data.Database;
+using Shizou.Server.RHash;
 
 namespace Shizou.Server.Services;
 
 public class SubtitleService
 {
+    private static Dictionary<string, List<AttachmentPath>>? _attachmentLinkTargets;
+    private static Dictionary<AttachmentPath, string>? _attachmentLinkTargetsReverse;
     private readonly ILogger<SubtitleService> _logger;
     private readonly IShizouContextFactory _contextFactory;
     private readonly FfmpegService _ffmpegService;
+    private readonly HashService _hashService;
 
-    public SubtitleService(ILogger<SubtitleService> logger, IShizouContextFactory contextFactory, FfmpegService ffmpegService)
+    public SubtitleService(ILogger<SubtitleService> logger, IShizouContextFactory contextFactory, FfmpegService ffmpegService, HashService hashService)
     {
         _logger = logger;
         _contextFactory = contextFactory;
         _ffmpegService = ffmpegService;
+        _hashService = hashService;
     }
 
     public static string[] ValidSubFormats { get; } = { "ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext" };
     public static string[] ValidFontFormats { get; } = { "ttf", "otf" };
+
+    public static async Task<string> GetAttachmentPathAsync(string ed2K, string fileName)
+    {
+        await PopulateAttachmentLinkTargetsAsync().ConfigureAwait(false);
+        if (_attachmentLinkTargetsReverse!.TryGetValue(new AttachmentPath(ed2K, fileName), out var hash))
+        {
+            var attachmentPath = _attachmentLinkTargets![hash].FirstOrDefault();
+            if (attachmentPath is not null)
+                return FilePaths.ExtraFileData.AttachmentPath(attachmentPath.Ed2K, attachmentPath.Filename);
+        }
+
+        return FilePaths.ExtraFileData.AttachmentPath(ed2K, fileName);
+    }
+
+    private static async Task SaveAttachmentLinkTargetsAsync()
+    {
+        var stream = new FileInfo(FilePaths.ExtraFileData.AttachmentLinkTargets).OpenWrite();
+        await using (stream.ConfigureAwait(false))
+        {
+            await JsonSerializer.SerializeAsync(stream, _attachmentLinkTargets).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task PopulateAttachmentLinkTargetsAsync()
+    {
+        if (_attachmentLinkTargets is null || _attachmentLinkTargetsReverse is null)
+        {
+            if (new FileInfo(FilePaths.ExtraFileData.AttachmentLinkTargets) is { Exists: true } attachmentLinkTargetsFileInfo)
+            {
+                var stream = attachmentLinkTargetsFileInfo.OpenRead();
+                await using (stream.ConfigureAwait(false))
+                {
+                    try
+                    {
+                        _attachmentLinkTargets =
+                            await JsonSerializer.DeserializeAsync<Dictionary<string, List<AttachmentPath>>>(stream).ConfigureAwait(false);
+                        _attachmentLinkTargetsReverse = _attachmentLinkTargets!
+                            .SelectMany(kvp => kvp.Value.Select(v => new { kvp.Key, Value = v }))
+                            .ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+                    }
+                    catch (JsonException)
+                    {
+                        _attachmentLinkTargets = new Dictionary<string, List<AttachmentPath>>();
+                        _attachmentLinkTargetsReverse = new Dictionary<AttachmentPath, string>();
+                    }
+                }
+            }
+            else
+            {
+                _attachmentLinkTargets = new Dictionary<string, List<AttachmentPath>>();
+                _attachmentLinkTargetsReverse = new Dictionary<AttachmentPath, string>();
+            }
+        }
+    }
 
     public async Task ExtractSubtitlesAsync(string ed2K)
     {
@@ -82,5 +143,32 @@ public class SubtitleService
         Directory.CreateDirectory(attachmentsDir);
 
         await _ffmpegService.ExtractAttachmentsAsync(fileInfo, attachmentsDir).ConfigureAwait(false);
+        await PopulateAttachmentLinkTargetsAsync().ConfigureAwait(false);
+        foreach (var attachment in new DirectoryInfo(attachmentsDir).EnumerateFiles())
+        {
+            var hash = (await _hashService.GetFileHashesAsync(attachment, HashIds.Crc32).ConfigureAwait(false))[HashIds.Crc32];
+            if (_attachmentLinkTargets!.TryGetValue(hash, out var attachmentPaths))
+            {
+                var realAttachmentPath = attachmentPaths.FirstOrDefault();
+                if (realAttachmentPath is not null &&
+                    File.Exists(FilePaths.ExtraFileData.AttachmentPath(realAttachmentPath.Ed2K, realAttachmentPath.Filename)))
+                    attachment.Delete();
+
+                var attachmentPath = new AttachmentPath(ed2K, attachment.Name);
+                if (!attachmentPaths.Contains(attachmentPath))
+                    attachmentPaths.Add(attachmentPath);
+                _attachmentLinkTargetsReverse![attachmentPath] = hash;
+            }
+            else
+            {
+                var attachmentPath = new AttachmentPath(ed2K, attachment.Name);
+                _attachmentLinkTargets[hash] = new List<AttachmentPath> { attachmentPath };
+                _attachmentLinkTargetsReverse![attachmentPath] = hash;
+            }
+        }
+
+        await SaveAttachmentLinkTargetsAsync().ConfigureAwait(false);
     }
+
+    private record AttachmentPath(string Ed2K, string Filename);
 }

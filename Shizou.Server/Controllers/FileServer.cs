@@ -178,18 +178,17 @@ public class FileServer : ControllerBase
     {
         if (!SubtitleService.ValidFontFormats.Any(f => fontName.EndsWith(f, StringComparison.OrdinalIgnoreCase)))
             return TypedResults.NotFound();
-        var fontPath = FilePaths.ExtraFileData.AttachmentPath(ed2K, fontName);
         var fontLock = FontLocks.GetOrAdd(ed2K, new SemaphoreSlim(1));
         await fontLock.WaitAsync().ConfigureAwait(false);
+        var fontPath = await SubtitleService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
         try
         {
-            var fileInfo = new FileInfo(fontPath);
-            if (!fileInfo.Exists)
+            if (!System.IO.File.Exists(fontPath))
             {
+                fontPath = FilePaths.ExtraFileData.AttachmentPath(ed2K, fontName);
                 await _subtitleService.ExtractAttachmentsAsync(ed2K).ConfigureAwait(false);
 
-                fileInfo.Refresh();
-                if (!fileInfo.Exists)
+                if (!System.IO.File.Exists(fontPath))
                     return TypedResults.NotFound();
             }
         }
