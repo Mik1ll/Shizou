@@ -13,8 +13,8 @@ namespace Shizou.Server.Services;
 
 public class SubtitleService
 {
-    private static Dictionary<string, List<AttachmentPath>>? _attachmentLinkTargets;
-    private static Dictionary<AttachmentPath, string>? _attachmentLinkTargetsReverse;
+    private static Dictionary<string, List<AttachmentPath>>? _attachmentHashMap;
+    private static Dictionary<AttachmentPath, string>? _attachmentHashMapReverse;
     private readonly ILogger<SubtitleService> _logger;
     private readonly IShizouContextFactory _contextFactory;
     private readonly FfmpegService _ffmpegService;
@@ -33,10 +33,10 @@ public class SubtitleService
 
     public static async Task<string> GetAttachmentPathAsync(string ed2K, string fileName)
     {
-        await PopulateAttachmentLinkTargetsAsync().ConfigureAwait(false);
-        if (_attachmentLinkTargetsReverse!.TryGetValue(new AttachmentPath(ed2K, fileName), out var hash))
+        await PopulateAttachmentHashMapAsync().ConfigureAwait(false);
+        if (_attachmentHashMapReverse!.TryGetValue(new AttachmentPath(ed2K, fileName), out var hash))
         {
-            var attachmentPath = _attachmentLinkTargets![hash].FirstOrDefault();
+            var attachmentPath = _attachmentHashMap![hash].FirstOrDefault();
             if (attachmentPath is not null)
                 return FilePaths.ExtraFileData.AttachmentPath(attachmentPath.Ed2K, attachmentPath.Filename);
         }
@@ -44,43 +44,42 @@ public class SubtitleService
         return FilePaths.ExtraFileData.AttachmentPath(ed2K, fileName);
     }
 
-    private static async Task SaveAttachmentLinkTargetsAsync()
+    private static async Task SaveAttachmentHashMapAsync()
     {
-        var stream = new FileInfo(FilePaths.ExtraFileData.AttachmentLinkTargets).OpenWrite();
+        var stream = new FileInfo(FilePaths.ExtraFileData.AttachmentHashMapPath).OpenWrite();
         await using (stream.ConfigureAwait(false))
         {
-            await JsonSerializer.SerializeAsync(stream, _attachmentLinkTargets).ConfigureAwait(false);
+            await JsonSerializer.SerializeAsync(stream, _attachmentHashMap).ConfigureAwait(false);
         }
     }
 
-    private static async Task PopulateAttachmentLinkTargetsAsync()
+    private static async Task PopulateAttachmentHashMapAsync()
     {
-        if (_attachmentLinkTargets is null || _attachmentLinkTargetsReverse is null)
+        if (_attachmentHashMap is null || _attachmentHashMapReverse is null)
         {
-            if (new FileInfo(FilePaths.ExtraFileData.AttachmentLinkTargets) is { Exists: true } attachmentLinkTargetsFileInfo)
+            if (new FileInfo(FilePaths.ExtraFileData.AttachmentHashMapPath) is { Exists: true } attachmentLinkTargetsFileInfo)
             {
                 var stream = attachmentLinkTargetsFileInfo.OpenRead();
                 await using (stream.ConfigureAwait(false))
                 {
                     try
                     {
-                        _attachmentLinkTargets =
-                            await JsonSerializer.DeserializeAsync<Dictionary<string, List<AttachmentPath>>>(stream).ConfigureAwait(false);
-                        _attachmentLinkTargetsReverse = _attachmentLinkTargets!
+                        _attachmentHashMap = await JsonSerializer.DeserializeAsync<Dictionary<string, List<AttachmentPath>>>(stream).ConfigureAwait(false);
+                        _attachmentHashMapReverse = _attachmentHashMap!
                             .SelectMany(kvp => kvp.Value.Select(v => new { kvp.Key, Value = v }))
                             .ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
                     }
                     catch (JsonException)
                     {
-                        _attachmentLinkTargets = new Dictionary<string, List<AttachmentPath>>();
-                        _attachmentLinkTargetsReverse = new Dictionary<AttachmentPath, string>();
+                        _attachmentHashMap = new Dictionary<string, List<AttachmentPath>>();
+                        _attachmentHashMapReverse = new Dictionary<AttachmentPath, string>();
                     }
                 }
             }
             else
             {
-                _attachmentLinkTargets = new Dictionary<string, List<AttachmentPath>>();
-                _attachmentLinkTargetsReverse = new Dictionary<AttachmentPath, string>();
+                _attachmentHashMap = new Dictionary<string, List<AttachmentPath>>();
+                _attachmentHashMapReverse = new Dictionary<AttachmentPath, string>();
             }
         }
     }
@@ -143,11 +142,11 @@ public class SubtitleService
         Directory.CreateDirectory(attachmentsDir);
 
         await _ffmpegService.ExtractAttachmentsAsync(fileInfo, attachmentsDir).ConfigureAwait(false);
-        await PopulateAttachmentLinkTargetsAsync().ConfigureAwait(false);
+        await PopulateAttachmentHashMapAsync().ConfigureAwait(false);
         foreach (var attachment in new DirectoryInfo(attachmentsDir).EnumerateFiles())
         {
             var hash = (await _hashService.GetFileHashesAsync(attachment, HashIds.Crc32).ConfigureAwait(false))[HashIds.Crc32];
-            if (_attachmentLinkTargets!.TryGetValue(hash, out var attachmentPaths))
+            if (_attachmentHashMap!.TryGetValue(hash, out var attachmentPaths))
             {
                 var realAttachmentPath = attachmentPaths.FirstOrDefault();
                 if (realAttachmentPath is not null &&
@@ -157,17 +156,17 @@ public class SubtitleService
                 var attachmentPath = new AttachmentPath(ed2K, attachment.Name);
                 if (!attachmentPaths.Contains(attachmentPath))
                     attachmentPaths.Add(attachmentPath);
-                _attachmentLinkTargetsReverse![attachmentPath] = hash;
+                _attachmentHashMapReverse![attachmentPath] = hash;
             }
             else
             {
                 var attachmentPath = new AttachmentPath(ed2K, attachment.Name);
-                _attachmentLinkTargets[hash] = new List<AttachmentPath> { attachmentPath };
-                _attachmentLinkTargetsReverse![attachmentPath] = hash;
+                _attachmentHashMap[hash] = new List<AttachmentPath> { attachmentPath };
+                _attachmentHashMapReverse![attachmentPath] = hash;
             }
         }
 
-        await SaveAttachmentLinkTargetsAsync().ConfigureAwait(false);
+        await SaveAttachmentHashMapAsync().ConfigureAwait(false);
     }
 
     private record AttachmentPath(string Ed2K, string Filename);
