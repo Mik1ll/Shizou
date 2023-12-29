@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -24,6 +26,7 @@ namespace Shizou.Server.Controllers;
 [Route($"{Constants.ApiPrefix}/[controller]")]
 public class FileServer : ControllerBase
 {
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> FontLocks = new();
     private readonly IShizouContext _context;
     private readonly SubtitleService _subtitleService;
     private readonly ILogger<FileServer> _logger;
@@ -161,6 +164,7 @@ public class FileServer : ControllerBase
         return TypedResults.PhysicalFile(fileInfo.FullName, "text/x-ssa", fileInfo.Name);
     }
 
+
     /// <summary>
     ///     Get embedded font of local file
     /// </summary>
@@ -172,18 +176,29 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: new[] { "font/ttf", "font/otf" })]
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont(string ed2K, string fontName)
     {
-        var fileInfo = new FileInfo(FilePaths.ExtraFileData.FontPath(ed2K, fontName));
-        if (!fileInfo.Exists)
+        var fontPath = FilePaths.ExtraFileData.FontPath(ed2K, fontName);
+        var fontLock = FontLocks.GetOrAdd(ed2K, new SemaphoreSlim(1));
+        await fontLock.WaitAsync().ConfigureAwait(false);
+        try
         {
-            await _subtitleService.ExtractFontsAsync(ed2K).ConfigureAwait(false);
-            fileInfo.Refresh();
+            var fileInfo = new FileInfo(fontPath);
             if (!fileInfo.Exists)
-                return TypedResults.NotFound();
+            {
+                await _subtitleService.ExtractFontsAsync(ed2K).ConfigureAwait(false);
+
+                fileInfo.Refresh();
+                if (!fileInfo.Exists)
+                    return TypedResults.NotFound();
+            }
+        }
+        finally
+        {
+            fontLock.Release();
         }
 
         if (!new FileExtensionContentTypeProvider().TryGetContentType(fontName, out var mimeType))
             mimeType = "font/otf";
-        return TypedResults.PhysicalFile(fileInfo.FullName, mimeType, fileInfo.Name);
+        return TypedResults.PhysicalFile(fontPath, mimeType, Path.GetFileName(fontPath));
     }
 
     private string GetFileUri(string? identityCookie, int localId, string pathTail)
