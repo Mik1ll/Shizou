@@ -46,7 +46,7 @@ public static class FilePaths
         public static string ThumbnailPath(string ed2K) => Path.Combine(FileDir(ed2K), "thumb.webp");
         public static string SubsDir(string ed2K) => Path.Combine(FileDir(ed2K), "Subtitles");
         public static string SubPath(string ed2K, int index) => Path.Combine(SubsDir(ed2K), $"{index}.ass");
-        public static string FontsDir(string ed2K) => Path.Combine(FileDir(ed2K), "Fonts");
-        public static string FontPath(string ed2K, string filename) => Path.Combine(FontsDir(ed2K), filename);
+        public static string AttachmentsDir(string ed2K) => Path.Combine(FileDir(ed2K), "Attachments");
+        public static string AttachmentPath(string ed2K, string filename) => Path.Combine(AttachmentsDir(ed2K), filename);
     }
 }

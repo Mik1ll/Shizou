@@ -20,38 +20,12 @@ public class FfmpegService
         _logger = logger;
     }
 
-    public async Task<List<(int Idx, string Codec, string FileName)>> GetFontStreamsAsync(FileInfo fileInfo, string[] validFontFormats)
-    {
-        using var process = NewFfprobeProcess();
-        process.StartInfo.Arguments =
-            $"-v fatal -select_streams t -show_entries stream=index,codec_name:stream_tags=filename -of csv=p=0 \"{fileInfo.FullName}\"";
-        process.Start();
-        var streams = (await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false))
-            .Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Select(s =>
-            {
-                var split = s.Split(',');
-                return split switch
-                {
-                    { Length: 3 } => (Idx: int.Parse(split[0]), Codec: split[1], FileName: split[2]),
-                    { Length: 2 } => (Idx: int.Parse(split[0]), Codec: split[1], FileName: string.Empty),
-                    { Length: 1 } => (Idx: int.Parse(split[0]), Codec: string.Empty, FileName: string.Empty),
-                    _ => throw new ArgumentOutOfRangeException(nameof(split.Length))
-                };
-            });
-
-        var validStreams = streams.Where(s =>
-            !string.IsNullOrEmpty(s.FileName) && (validFontFormats.Contains(s.Codec, StringComparer.OrdinalIgnoreCase) ||
-                                                  validFontFormats.Any(f => s.FileName.EndsWith(f, StringComparison.OrdinalIgnoreCase)))).ToList();
-        return validStreams;
-    }
-
-    public async Task ExtractFontsAsync(FileInfo fileInfo, List<(int Idx, string Codec, string FileName)> fontStreams, string outputDir)
+    public async Task ExtractAttachmentsAsync(FileInfo fileInfo, string outputDir)
     {
         Directory.CreateDirectory(outputDir);
         using var process = NewFfmpegProcess();
-        process.StartInfo.Arguments =
-            $"-v fatal -y {string.Join(" ", fontStreams.Select(s => $"-dump_attachment:{s.Idx} \"{Path.Combine(outputDir, s.FileName)}\""))} -i \"{fileInfo.FullName}\"";
+        process.StartInfo.WorkingDirectory = outputDir;
+        process.StartInfo.Arguments = $"-v fatal -y -dump_attachment:t \"\" -i \"{fileInfo.FullName}\"";
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
     }

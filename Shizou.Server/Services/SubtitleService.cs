@@ -58,7 +58,7 @@ public class SubtitleService
         await _ffmpegService.ExtractSubtitlesAsync(fileInfo, subStreams, subsDir).ConfigureAwait(false);
     }
 
-    public async Task ExtractFontsAsync(string ed2K)
+    public async Task ExtractAttachmentsAsync(string ed2K)
     {
         using var context = _contextFactory.CreateDbContext();
         var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2K);
@@ -78,16 +78,9 @@ public class SubtitleService
             return;
         }
 
-        var fontsDir = FilePaths.ExtraFileData.FontsDir(ed2K);
-        Directory.CreateDirectory(fontsDir);
+        var attachmentsDir = FilePaths.ExtraFileData.AttachmentsDir(ed2K);
+        Directory.CreateDirectory(attachmentsDir);
 
-        var fontStreams = await _ffmpegService.GetFontStreamsAsync(fileInfo, ValidFontFormats).ConfigureAwait(false);
-        if (fontStreams.Count <= 0)
-        {
-            _logger.LogDebug("No valid streams for {LocalFileId}, skipping subtitle extraction", localFile.Id);
-            return;
-        }
-
-        await _ffmpegService.ExtractFontsAsync(fileInfo, fontStreams, FilePaths.ExtraFileData.FontsDir(ed2K)).ConfigureAwait(false);
+        await _ffmpegService.ExtractAttachmentsAsync(fileInfo, attachmentsDir).ConfigureAwait(false);
     }
 }

@@ -176,7 +176,9 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: new[] { "font/ttf", "font/otf" })]
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont(string ed2K, string fontName)
     {
-        var fontPath = FilePaths.ExtraFileData.FontPath(ed2K, fontName);
+        if (!SubtitleService.ValidFontFormats.Any(f => fontName.EndsWith(f, StringComparison.OrdinalIgnoreCase)))
+            return TypedResults.NotFound();
+        var fontPath = FilePaths.ExtraFileData.AttachmentPath(ed2K, fontName);
         var fontLock = FontLocks.GetOrAdd(ed2K, new SemaphoreSlim(1));
         await fontLock.WaitAsync().ConfigureAwait(false);
         try
@@ -184,7 +186,7 @@ public class FileServer : ControllerBase
             var fileInfo = new FileInfo(fontPath);
             if (!fileInfo.Exists)
             {
-                await _subtitleService.ExtractFontsAsync(ed2K).ConfigureAwait(false);
+                await _subtitleService.ExtractAttachmentsAsync(ed2K).ConfigureAwait(false);
 
                 fileInfo.Refresh();
                 if (!fileInfo.Exists)
