@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -142,14 +141,14 @@ public class FileServer : ControllerBase
     /// <summary>
     ///     Get embedded ASS subtitle of local file
     /// </summary>
-    /// <param name="args"></param>
+    /// <param name="ed2K"></param>
+    /// <param name="index"></param>
     /// <returns></returns>
-    [HttpGet("Subs/{ed2k}/{index:int}")]
+    [HttpGet("Subs/{ed2K}/{index:int}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "text/x-ssa")]
-    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetSubtitle([FromRoute] GetSubtitleArgs args)
+    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetSubtitle(string ed2K, int index)
     {
-        var (ed2K, index) = args;
         var fileInfo = new FileInfo(FilePaths.ExtraFileData.SubPath(ed2K, index));
         if (!fileInfo.Exists)
         {
@@ -159,20 +158,20 @@ public class FileServer : ControllerBase
                 return TypedResults.NotFound();
         }
 
-        return TypedResults.PhysicalFile(fileInfo.FullName, "text/x-ssa");
+        return TypedResults.PhysicalFile(fileInfo.FullName, "text/x-ssa", fileInfo.Name);
     }
 
     /// <summary>
     ///     Get embedded font of local file
     /// </summary>
-    /// <param name="args"></param>
+    /// <param name="ed2K"></param>
+    /// <param name="fontName"></param>
     /// <returns></returns>
     [HttpGet("Fonts/{ed2k}/{fontName}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: new[] { "font/ttf", "font/otf" })]
-    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont([FromRoute] GetFontArgs args)
+    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont(string ed2K, string fontName)
     {
-        var (ed2K, fontName) = args;
         var fileInfo = new FileInfo(FilePaths.ExtraFileData.FontPath(ed2K, fontName));
         if (!fileInfo.Exists)
         {
@@ -184,24 +183,7 @@ public class FileServer : ControllerBase
 
         if (!new FileExtensionContentTypeProvider().TryGetContentType(fontName, out var mimeType))
             mimeType = "font/otf";
-        return TypedResults.PhysicalFile(fileInfo.FullName, mimeType);
-    }
-
-    [HttpGet("{localFileId:int}/play")]
-    [Produces("text/html")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponse(StatusCodes.Status404NotFound)]
-    public Results<ContentHttpResult, NotFound> BrowserPlay(int localFileId)
-    {
-        _logger.LogInformation("Playing file {LocalFileId} in browser", localFileId);
-        var localDbFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
-        if (localDbFile is null)
-            return TypedResults.NotFound();
-        return TypedResults.Content(@$"<!DOCTYPE html><html><body>
-<video controls
-src=""{HttpContext.Request.GetEncodedUrl().Remove(HttpContext.Request.GetEncodedUrl().IndexOf("/play", StringComparison.Ordinal))}""></video>
-</body></html>
-", "text/html");
+        return TypedResults.PhysicalFile(fileInfo.FullName, mimeType, fileInfo.Name);
     }
 
     private string GetFileUri(string? identityCookie, int localId, string pathTail)
@@ -213,9 +195,4 @@ src=""{HttpContext.Request.GetEncodedUrl().Remove(HttpContext.Request.GetEncoded
             nameof(FileServer), values) ?? throw new ArgumentException();
         return fileUri;
     }
-
-
-    public record GetSubtitleArgs(string Ed2K, int Index);
-
-    public record GetFontArgs(string Ed2K, string FontName);
 }

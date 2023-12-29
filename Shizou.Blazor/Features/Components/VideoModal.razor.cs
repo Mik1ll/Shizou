@@ -109,14 +109,14 @@ public partial class VideoModal
             if (SubtitleService.ValidSubFormats.Contains(codec))
             {
                 var subUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetSubtitle), nameof(FileServer),
-                    new FileServer.GetSubtitleArgs(_localFile.Ed2k, index)) ?? throw new ArgumentException();
+                    new { _localFile.Ed2k, index }) ?? throw new ArgumentException();
                 _assSubs.Add((subUrl, lang, title));
             }
             else if (filename is not null && (SubtitleService.ValidFontFormats.Contains(codec) ||
                                               SubtitleService.ValidFontFormats.Any(f => filename.EndsWith(f, StringComparison.OrdinalIgnoreCase))))
             {
                 var fontUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetFont), nameof(FileServer),
-                    new FileServer.GetFontArgs(_localFile.Ed2k, filename)) ?? throw new ArgumentException();
+                    new { _localFile.Ed2k, FontName = filename }) ?? throw new ArgumentException();
                 _fontUrls.Add(fontUrl);
             }
         }
