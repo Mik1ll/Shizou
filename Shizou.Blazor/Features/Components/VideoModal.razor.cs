@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
-using System.Text.Json;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
@@ -30,6 +27,9 @@ public partial class VideoModal
 
     [Inject]
     private LinkGenerator LinkGenerator { get; set; } = default!;
+
+    [Inject]
+    private FfmpegService FfmpegService { get; set; } = default!;
 
     [Parameter]
     public int LocalFileId { get; set; }
@@ -73,52 +73,25 @@ public partial class VideoModal
         var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(_localFile.ImportFolder.Path, _localFile.PathTail)));
         if (!fileInfo.Exists)
             return;
-
-        using var p = new Process();
-        p.StartInfo.UseShellExecute = false;
-        p.StartInfo.CreateNoWindow = true;
-        p.StartInfo.RedirectStandardOutput = true;
-        p.StartInfo.StandardOutputEncoding = Encoding.UTF8;
-        p.StartInfo.FileName = "ffprobe";
-        p.StartInfo.Arguments =
-            $"-v fatal -show_entries \"stream=index,codec_name : stream_tags=language,title,filename\" -of json=c=1 \"{fileInfo.FullName}\"";
-        p.Start();
         _assSubs.Clear();
-        using var document = JsonDocument.Parse(await p.StandardOutput.ReadToEndAsync());
-        foreach (var streamEl in document.RootElement.GetProperty("streams").EnumerateArray())
-        {
-            var index = streamEl.GetProperty("index").GetInt32();
-            var codec = string.Empty;
-            if (streamEl.TryGetProperty("codec_name", out var codecEl))
-                codec = codecEl.GetString() ?? string.Empty;
+        _fontUrls.Clear();
 
-            string? filename = null;
-            string? lang = null;
-            string? title = null;
-            if (streamEl.TryGetProperty("tags", out var tagsEl))
-            {
-                if (tagsEl.TryGetProperty("filename", out var filenameEl))
-                    filename = filenameEl.GetString();
-                if (tagsEl.TryGetProperty("language", out var langEl))
-                    lang = langEl.GetString();
-                if (tagsEl.TryGetProperty("title", out var titleEl))
-                    title = titleEl.GetString();
-            }
+        var streams = await FfmpegService.GetStreamsAsync(fileInfo);
 
-
-            if (SubtitleService.ValidSubFormats.Contains(codec))
+        foreach (var stream in streams)
+            if (SubtitleService.ValidSubFormats.Contains(stream.codec))
             {
                 var subUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetSubtitle), nameof(FileServer),
-                    new { _localFile.Ed2k, index }) ?? throw new ArgumentException();
-                _assSubs.Add((subUrl, lang, title));
+                    new { _localFile.Ed2k, stream.index }) ?? throw new ArgumentException();
+                _assSubs.Add((subUrl, stream.lang, stream.title));
             }
-            else if (filename is not null && (SubtitleService.ValidFontFormats.Contains(codec) ||
-                                              SubtitleService.ValidFontFormats.Any(f => filename.EndsWith(f, StringComparison.OrdinalIgnoreCase))))
+            else if (stream.filename is not null && (SubtitleService.ValidFontFormats.Contains(stream.codec) ||
+                                                     SubtitleService.ValidFontFormats.Any(f =>
+                                                         stream.filename.EndsWith(f, StringComparison.OrdinalIgnoreCase))))
             {
                 var fontUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetFont), nameof(FileServer),
-                    new { _localFile.Ed2k, FontName = filename }) ?? throw new ArgumentException();
+                    new { _localFile.Ed2k, FontName = stream.filename }) ?? throw new ArgumentException();
                 _fontUrls.Add(fontUrl);
             }
-        }
     }
 }

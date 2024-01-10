@@ -15,10 +15,7 @@ public class FfmpegService
 {
     private readonly ILogger<FfmpegService> _logger;
 
-    public FfmpegService(ILogger<FfmpegService> logger)
-    {
-        _logger = logger;
-    }
+    public FfmpegService(ILogger<FfmpegService> logger) => _logger = logger;
 
     public async Task ExtractAttachmentsAsync(FileInfo fileInfo, string outputDir)
     {
@@ -30,6 +27,8 @@ public class FfmpegService
         await process.WaitForExitAsync().ConfigureAwait(false);
     }
 
+    /// TODO: Probably replace this with
+    /// <see cref="GetStreamsAsync">GetStreamsAsync</see>
     public async Task<List<(int Idx, string Codec, string FileName)>> GetSubtitleStreamsAsync(FileInfo fileInfo, string[] validSubFormats,
         Func<int, string> getFileName)
     {
@@ -95,10 +94,8 @@ public class FfmpegService
         return null;
 
         // Trim fractional value https://learn.microsoft.com/en-us/dotnet/api/system.timespan.parse?view=net-7.0#notes-to-callers
-        string TrimFractional(string durStr)
-        {
-            return durStr.LastIndexOf('.') is var idx && idx >= 0 && durStr.Length - 1 >= idx + 8 ? durStr.Remove(idx + 8) : durStr;
-        }
+        string TrimFractional(string durStr) =>
+            durStr.LastIndexOf('.') is var idx && idx >= 0 && durStr.Length - 1 >= idx + 8 ? durStr.Remove(idx + 8) : durStr;
     }
 
     public async Task ExtractThumbnailAsync(FileInfo fileInfo, double duration, string outputPath)
@@ -124,6 +121,41 @@ public class FfmpegService
         process.Start();
         var hasVideo = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
         return !string.IsNullOrWhiteSpace(hasVideo);
+    }
+
+    public async Task<List<(int index, string codec, string? lang, string? title, string? filename)>> GetStreamsAsync(FileInfo fileInfo)
+    {
+        using var p = NewFfprobeProcess();
+        p.StartInfo.Arguments =
+            $"-v fatal -show_entries \"stream=index,codec_name : stream_tags=language,title,filename\" -of json=c=1 \"{fileInfo.FullName}\"";
+        p.Start();
+        List<(int index, string codec, string? lang, string? title, string? filename)> streams = new();
+        using var document = JsonDocument.Parse(await p.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+        foreach (var streamEl in document.RootElement.GetProperty("streams").EnumerateArray())
+        {
+            var index = streamEl.GetProperty("index").GetInt32();
+            var codec = string.Empty;
+            if (streamEl.TryGetProperty("codec_name", out var codecEl))
+                codec = codecEl.GetString() ?? string.Empty;
+
+            string? filename = null;
+            string? lang = null;
+            string? title = null;
+            if (streamEl.TryGetProperty("tags", out var tagsEl))
+            {
+                if (tagsEl.TryGetProperty("filename", out var filenameEl))
+                    filename = filenameEl.GetString();
+                if (tagsEl.TryGetProperty("language", out var langEl))
+                    lang = langEl.GetString();
+                if (tagsEl.TryGetProperty("title", out var titleEl))
+                    title = titleEl.GetString();
+            }
+
+            var stream = (index, codec, lang, title, filename);
+            streams.Add(stream);
+        }
+
+        return streams;
     }
 
     private Process NewFfprobeProcess()
