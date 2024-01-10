@@ -33,7 +33,7 @@ public partial class UpNext
     private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
 
     [CascadingParameter]
-    private ModalService ModalService { get; set; } = default!;
+    private IModalService ModalService { get; set; } = default!;
 
     [CascadingParameter(Name = nameof(App.IdentityCookie))]
     private string IdentityCookie { get; set; } = default!;
