@@ -1,4 +1,5 @@
-﻿using Blazored.Modal;
+﻿using System.Net;
+using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
@@ -14,6 +15,8 @@ namespace Shizou.Blazor.Features.Dashboard.Components;
 
 public partial class Actions
 {
+    private IPAddress? _remoteIpAddress;
+
     [Inject]
     private IServiceProvider ServiceProvider { get; set; } = default!;
 
@@ -29,8 +32,8 @@ public partial class Actions
     [Inject]
     private ToastService ToastService { get; set; } = default!;
 
-    [CascadingParameter(Name = nameof(App.ServerIp))]
-    private string ServerIp { get; set; } = default!;
+    [Inject]
+    private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
@@ -38,6 +41,11 @@ public partial class Actions
     [CascadingParameter]
     private ToastContainer ToastDisplay { get; set; } = default!;
 
+
+    protected override void OnInitialized()
+    {
+        _remoteIpAddress = HttpContextAccessor.HttpContext!.Connection.RemoteIpAddress;
+    }
 
     private void DispatchNoop()
     {
@@ -71,7 +79,7 @@ public partial class Actions
 
     private async Task OpenMalAuthAsync()
     {
-        var url = ServiceProvider.GetRequiredService<MyAnimeListService>().GetAuthenticationUrl(ServerIp);
+        var url = ServiceProvider.GetRequiredService<MyAnimeListService>().GetAuthenticationUrl(_remoteIpAddress ?? throw new ArgumentNullException());
         if (url is not null)
             await JsRuntime.InvokeVoidAsync("open", url, "_blank");
     }

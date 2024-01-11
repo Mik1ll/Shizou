@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +28,7 @@ public class MyAnimeList : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK)]
     public Results<Ok<string>, BadRequest> Authenticate()
     {
-        var url = _myAnimeListService.GetAuthenticationUrl(HttpContext.Connection.RemoteIpAddress!.ToString());
+        var url = _myAnimeListService.GetAuthenticationUrl(HttpContext.Connection.RemoteIpAddress ?? throw new ArgumentNullException());
         if (url is null)
             return TypedResults.BadRequest();
         return TypedResults.Ok(url);

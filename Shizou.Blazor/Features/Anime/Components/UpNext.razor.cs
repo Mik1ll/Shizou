@@ -3,7 +3,6 @@ using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
-using Shizou.Blazor.Extensions;
 using Shizou.Blazor.Features.Components;
 using Shizou.Data;
 using Shizou.Data.Database;
@@ -35,19 +34,9 @@ public partial class UpNext
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
 
-    [CascadingParameter(Name = nameof(App.IdentityCookie))]
-    private string IdentityCookie { get; set; } = default!;
-
     [Parameter]
     [EditorRequired]
     public int AnimeId { get; set; }
-
-
-    public override Task SetParametersAsync(ParameterView parameters)
-    {
-        parameters.EnsureParametersSet(nameof(IdentityCookie));
-        return base.SetParametersAsync(parameters);
-    }
 
     protected override void OnParametersSet()
     {
@@ -103,10 +92,11 @@ public partial class UpNext
 
     private string PlayExternalPlaylist(bool single)
     {
+        var identityCookie = HttpContextAccessor.HttpContext!.Request.Cookies[Constants.IdentityCookieName];
         IDictionary<string, object?> values = new ExpandoObject();
         values["localFileId"] = $"{_localFile!.Id}.m3u8";
         values["single"] = single;
-        values[Constants.IdentityCookieName] = IdentityCookie;
+        values[Constants.IdentityCookieName] = identityCookie;
         var fileUri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.GetWithPlaylist),
             nameof(FileServer), values) ?? throw new ArgumentException();
         return $"shizou:{fileUri}";

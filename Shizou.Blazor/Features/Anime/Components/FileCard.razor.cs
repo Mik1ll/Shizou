@@ -2,7 +2,6 @@
 using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Shizou.Blazor.Extensions;
 using Shizou.Blazor.Features.Components;
 using Shizou.Data;
 using Shizou.Data.Database;
@@ -28,9 +27,6 @@ public partial class FileCard
     [Inject]
     private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
 
-    [CascadingParameter(Name = nameof(App.IdentityCookie))]
-    private string IdentityCookie { get; set; } = default!;
-
     [CascadingParameter]
     public IModalService ModalService { get; set; } = default!;
 
@@ -40,12 +36,6 @@ public partial class FileCard
 
     [Parameter]
     public EventCallback OnChanged { get; set; }
-
-    public override Task SetParametersAsync(ParameterView parameters)
-    {
-        parameters.EnsureParametersSet(nameof(IdentityCookie));
-        return base.SetParametersAsync(parameters);
-    }
 
     protected override void OnParametersSet()
     {
@@ -94,10 +84,11 @@ public partial class FileCard
 
     private string PlayExternalPlaylist(bool single)
     {
+        var identityCookie = HttpContextAccessor.HttpContext!.Request.Cookies[Constants.IdentityCookieName];
         IDictionary<string, object?> values = new ExpandoObject();
         values["localFileId"] = $"{LocalFile.Id}.m3u8";
         values["single"] = single;
-        values[Constants.IdentityCookieName] = IdentityCookie;
+        values[Constants.IdentityCookieName] = identityCookie;
         var fileUri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.GetWithPlaylist),
             nameof(FileServer), values) ?? throw new ArgumentException();
         return $"shizou:{fileUri}";

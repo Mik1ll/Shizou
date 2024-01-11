@@ -7,7 +7,7 @@
     <button type="button" class="btn btn-primary" @onclick="@DispatchMyListSync">Sync MyList</button>
     <button type="button" class="btn btn-primary" @onclick="@ScheduleNoop">Schedule Noop</button>
     <button type="button" class="btn btn-primary" @onclick="@GetMissingPosters">Get Missing Posters</button>
-    <button type="button" class="btn btn-primary" @onclick="@OpenMalAuthAsync" disabled="@(!IPAddress.IsLoopback(IPAddress.Parse(ServerIp)))">Auth MAL</button>
+    <button type="button" class="btn btn-primary" @onclick="@OpenMalAuthAsync" disabled="@(!IPAddress.IsLoopback(_remoteIpAddress ?? throw new ArgumentNullException()))">Auth MAL</button>
     <button type="button" class="btn btn-primary" @onclick="@GetMalListAsync">Get MAL List</button>
     <button type="button" class="btn btn-primary" @onclick="@RestoreFromBackupFileAsync">Restore Backup</button>
     <button type="button" class="btn btn-primary" @onclick="@DisplayToast">Display Toast</button>

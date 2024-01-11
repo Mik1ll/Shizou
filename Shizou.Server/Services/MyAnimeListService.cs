@@ -111,7 +111,7 @@ public class MyAnimeListService
         }
     }
 
-    public string? GetAuthenticationUrl(string serverAccessIp)
+    public string? GetAuthenticationUrl(IPAddress remoteIp)
     {
         var options = _optionsMonitor.CurrentValue.MyAnimeList;
         if (string.IsNullOrWhiteSpace(options.ClientId))
@@ -120,7 +120,7 @@ public class MyAnimeListService
             return null;
         }
 
-        if (!IPAddress.IsLoopback(IPAddress.Parse(serverAccessIp)))
+        if (!IPAddress.IsLoopback(remoteIp))
         {
             _logger.LogError("Can only authenticate on localhost due to MAL auth redirect registration");
             return null;

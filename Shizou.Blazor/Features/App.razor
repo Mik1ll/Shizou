@@ -1,44 +1,28 @@
-﻿<CascadingValue Name="@nameof(IdentityCookie)" Value="@IdentityCookie" IsFixed="true">
-    <CascadingValue Name="@nameof(ServerIp)" Value="@ServerIp" IsFixed="true">
-        <CascadingAuthenticationState>
-            <Router AppAssembly="@typeof(App).Assembly">
-                <Found Context="routeData">
-                    <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                        <NotAuthorized>
-                            <RedirectToLogin></RedirectToLogin>
-                        </NotAuthorized>
-                        <Authorizing>
-                            <p>Logging in...</p>
-                        </Authorizing>
-                    </AuthorizeRouteView>
-                    <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
-                </Found>
-                <NotFound>
-                    <AuthorizeView>
-                        <Authorized>
-                            <PageTitle>Not found</PageTitle>
-                            <LayoutView Layout="@typeof(MainLayout)">
-                                <p role="alert">Sorry, there's nothing at this address.</p>
-                            </LayoutView>
-                        </Authorized>
-                        <NotAuthorized>
-                            <RedirectToLogin></RedirectToLogin>
-                        </NotAuthorized>
-                    </AuthorizeView>
-                </NotFound>
-            </Router>
-        </CascadingAuthenticationState>
-    </CascadingValue>
-</CascadingValue>
-
-@code{
-
-    [Parameter]
-    [EditorRequired]
-    public string? IdentityCookie { get; set; }
-
-    [Parameter]
-    [EditorRequired]
-    public string ServerIp { get; set; } = default!;
-
-}
+﻿<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    <RedirectToLogin></RedirectToLogin>
+                </NotAuthorized>
+                <Authorizing>
+                    <p>Logging in...</p>
+                </Authorizing>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
+        </Found>
+        <NotFound>
+            <AuthorizeView>
+                <Authorized>
+                    <PageTitle>Not found</PageTitle>
+                    <LayoutView Layout="@typeof(MainLayout)">
+                        <p role="alert">Sorry, there's nothing at this address.</p>
+                    </LayoutView>
+                </Authorized>
+                <NotAuthorized>
+                    <RedirectToLogin></RedirectToLogin>
+                </NotAuthorized>
+            </AuthorizeView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

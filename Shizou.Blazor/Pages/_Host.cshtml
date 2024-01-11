@@ -1,7 +1,6 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Web
 @using Shizou.Blazor.Features
-@using Shizou.Data
 @namespace Shizou.Blazor.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -21,14 +20,10 @@
     @* ReSharper restore Html.PathError *@
     <link rel="icon" type="image/png" href="favicon.png"/>
     <script src="js/theme.js"></script>
-    <component type="typeof(HeadOutlet)" render-mode="Server"/>
+    <component type="@typeof(HeadOutlet)" render-mode="Server"/>
 </head>
 <body>
-@{
-    var identityCookie = HttpContext.Request.GetTypedHeaders().Cookie.FirstOrDefault(c => c.Name == Constants.IdentityCookieName)?.Value.ToString();
-    var serverIp = HttpContext.Connection.RemoteIpAddress!.ToString();
-}
-<component type="typeof(App)" render-mode="Server" param-IdentityCookie="@identityCookie" param-ServerIp="@serverIp"/>
+<component type="@typeof(App)" render-mode="Server"/>
 
 <div id="blazor-error-ui" class="offcanvas offcanvas-bottom bg-danger" style="display:none;transform:none;visibility:visible;height:unset;z-index:5000">
     <div class="d-flex flex-row p-3">
