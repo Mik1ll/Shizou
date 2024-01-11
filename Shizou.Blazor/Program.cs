@@ -17,6 +17,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddBlazoredModal();
 builder.Services.AddScoped<ToastService>();
+builder.Services.AddTransient<ExternalPlaybackService>();
 
 builder.Services.Configure<StaticFileOptions>(options =>
 {

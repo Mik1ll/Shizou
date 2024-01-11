@@ -6,10 +6,10 @@
                     <button class="btn btn-primary me-2" type="button" @onclick="@(() => OpenVideoAsync(LocalFile.Id))">
                         <i class="bi bi-play"></i> Play
                     </button>
-                    <a class="btn btn-primary me-2" href="@(PlayExternalPlaylist(true))">
+                    <a class="btn btn-primary me-2" href="@(GetExternalPlaylistUri(true))">
                         <i class="bi bi-play"></i> Play External
                     </a>
-                    <a class="btn btn-primary me-2" href="@(PlayExternalPlaylist(false))">
+                    <a class="btn btn-primary me-2" href="@(GetExternalPlaylistUri(false))">
                         <i class="bi bi-play"></i> Play External Playlist
                     </a>
                 </div>

@@ -1,10 +1,9 @@
-﻿using System.Dynamic;
-using Blazored.Modal;
+﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Features.Components;
-using Shizou.Data;
+using Shizou.Blazor.Services;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Controllers;
@@ -29,7 +28,7 @@ public partial class UpNext
     private LinkGenerator LinkGenerator { get; set; } = default!;
 
     [Inject]
-    private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
+    private ExternalPlaybackService ExternalPlaybackService { get; set; } = default!;
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
@@ -90,15 +89,6 @@ public partial class UpNext
         await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), localFileId)).Result;
     }
 
-    private string PlayExternalPlaylist(bool single)
-    {
-        var identityCookie = HttpContextAccessor.HttpContext!.Request.Cookies[Constants.IdentityCookieName];
-        IDictionary<string, object?> values = new ExpandoObject();
-        values["localFileId"] = $"{_localFile!.Id}.m3u8";
-        values["single"] = single;
-        values[Constants.IdentityCookieName] = identityCookie;
-        var fileUri = LinkGenerator.GetUriByAction(HttpContextAccessor.HttpContext ?? throw new InvalidOperationException(), nameof(FileServer.GetWithPlaylist),
-            nameof(FileServer), values) ?? throw new ArgumentException();
-        return $"shizou:{fileUri}";
-    }
+    private string GetExternalPlaylistUri(bool single) =>
+        ExternalPlaybackService.GetExternalPlaylistUri(_localFile?.Id ?? throw new ArgumentNullException(), single);
 }
