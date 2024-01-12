@@ -4,6 +4,9 @@ namespace Shizou.Data.Enums;
 
 public enum AnimeType
 {
+    [XmlEnum("Unknown")]
+    Unknown = 0,
+
     [XmlEnum("Movie")]
     Movie = 1,
 
