@@ -1,14 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
-using Shizou.Data.Models;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.Services;
@@ -19,21 +17,18 @@ public class ImageService
     private readonly IShizouContextFactory _contextFactory;
     private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
     private readonly CommandService _commandService;
-    private readonly FfmpegService _ffmpegService;
 
 
     public ImageService(
         ILogger<ImageService> logger,
         IShizouContextFactory contextFactory,
         IOptionsMonitor<ShizouOptions> optionsMonitor,
-        CommandService commandService,
-        FfmpegService ffmpegService)
+        CommandService commandService)
     {
         _logger = logger;
         _contextFactory = contextFactory;
         _optionsMonitor = optionsMonitor;
         _commandService = commandService;
-        _ffmpegService = ffmpegService;
     }
 
     public void GetMissingAnimePosters()
@@ -78,7 +73,7 @@ public class ImageService
         _commandService.Dispatch(new GetImageCommandArgs(uri, path));
     }
 
-    public async Task<FileInfo?> GetEpisodeThumbnailAsync(int episodeId)
+    public FileInfo? GetEpisodeThumbnail(int episodeId)
     {
         using var context = _contextFactory.CreateDbContext();
         var localFiles = context.LocalFiles.AsNoTracking().Include(lf => lf.ImportFolder).Where(lf =>
@@ -86,47 +81,7 @@ public class ImageService
         foreach (var localFile in localFiles)
             if (new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k)) is { Exists: true } thumbnail)
                 return thumbnail;
-
-        foreach (var localFile in localFiles)
-            if (await CreateThumbnailAsync(localFile).ConfigureAwait(false) is { Exists: true } thumbnail)
-                return thumbnail;
-
         return null;
-    }
-
-    private async Task<FileInfo?> CreateThumbnailAsync(LocalFile localFile)
-    {
-        var ed2K = localFile.Ed2k;
-        if (localFile.ImportFolder is null)
-        {
-            _logger.LogWarning("Local file {LocalFileId} has no import folder", localFile.Id);
-            return null;
-        }
-
-        var fileInfo = new FileInfo(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
-        if (!fileInfo.Exists)
-        {
-            _logger.LogWarning("File does not exist for local file {LocalFileId} at \"{FilePath}\"", localFile.Id, fileInfo.FullName);
-            return null;
-        }
-
-        if (!await _ffmpegService.HasVideoAsync(fileInfo).ConfigureAwait(false))
-        {
-            _logger.LogInformation("File for local file {LocalFileId} at \"{FilePath}\" has no video stream", localFile.Id,
-                fileInfo.FullName);
-            return null;
-        }
-
-        var duration = await _ffmpegService.GetDurationAsync(fileInfo).ConfigureAwait(false);
-        if (duration is null)
-        {
-            _logger.LogWarning("Failed to get duration of video for local file {LocalFileId} at \"{FilePath}\"", localFile.Id, fileInfo.FullName);
-            return null;
-        }
-
-        var thumbnailPath = FilePaths.ExtraFileData.ThumbnailPath(ed2K);
-        await _ffmpegService.ExtractThumbnailAsync(fileInfo, duration.Value, thumbnailPath).ConfigureAwait(false);
-        return new FileInfo(thumbnailPath);
     }
 
     private string GetAnimePosterUri(string imageServer, string filename)

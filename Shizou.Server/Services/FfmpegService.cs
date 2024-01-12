@@ -98,8 +98,21 @@ public class FfmpegService
             durStr.LastIndexOf('.') is var idx && idx >= 0 && durStr.Length - 1 >= idx + 8 ? durStr.Remove(idx + 8) : durStr;
     }
 
-    public async Task ExtractThumbnailAsync(FileInfo fileInfo, double duration, string outputPath)
+    public async Task ExtractThumbnailAsync(FileInfo fileInfo, string outputPath)
     {
+        if (!await HasVideoAsync(fileInfo).ConfigureAwait(false))
+        {
+            _logger.LogInformation("File at \"{FilePath}\" has no video stream", fileInfo.FullName);
+            return;
+        }
+
+        var duration = await GetDurationAsync(fileInfo).ConfigureAwait(false);
+        if (duration is null)
+        {
+            _logger.LogWarning("Failed to get duration of video for file at \"{FilePath}\"", fileInfo.FullName);
+            return;
+        }
+
         if (Path.GetDirectoryName(outputPath) is { Length: > 0 } parentPath)
             Directory.CreateDirectory(parentPath);
         using var process = NewFfmpegProcess();

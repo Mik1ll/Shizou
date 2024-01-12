@@ -157,6 +157,7 @@ public static class InitializationExtensions
             .AddTransient<AddMissingMyListEntriesCommand>()
             .AddTransient<GetImageCommand>()
             .AddTransient<RestoreMyListBackupCommand>()
+            .AddTransient<ExtractThumbnailCommand>()
             .AddSingleton<CommandService>()
             .AddHostedService<CommandService>(p => p.GetRequiredService<CommandService>())
             .AddTransient<ImportService>()
