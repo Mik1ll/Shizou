@@ -135,8 +135,9 @@ public class SubtitleService
         var subsDir = FilePaths.ExtraFileData.SubsDir(ed2K);
         Directory.CreateDirectory(subsDir);
 
-        var subStreams = await _ffmpegService.GetSubtitleStreamsAsync(fileInfo, ValidSubFormats,
-            idx => Path.GetFileName(FilePaths.ExtraFileData.SubPath(ed2K, idx))).ConfigureAwait(false);
+        var subStreams = (await _ffmpegService.GetStreamsAsync(fileInfo).ConfigureAwait(false)).Where(s => ValidSubFormats.Contains(s.codec))
+            .Select(s => (s.index, filename: Path.GetFileName(FilePaths.ExtraFileData.SubPath(ed2K, s.index)))).ToList();
+
         if (subStreams.Count <= 0)
         {
             _logger.LogDebug("No valid streams for {LocalFileId}, skipping subtitle extraction", localFile.Id);
