@@ -116,7 +116,7 @@ public class FileServer : ControllerBase
                     EpType = e.EpisodeType,
                     EpNo = e.Number,
                     ManLocals = e.ManualLinkLocalFiles.Select(lf => new { lf.Id, lf.PathTail, AniDbGroupId = (int?)null }),
-                    Locals = e.AniDbFiles.Select(f => new { f.LocalFile.Id, f.LocalFile.PathTail, f.AniDbGroupId })
+                    Locals = e.AniDbFiles.Select(f => new { f.LocalFile!.Id, f.LocalFile.PathTail, f.AniDbGroupId })
                 }).ToList();
             var ep = eps.First(ep => ep.Locals.Any(l => l.Id == id) || ep.ManLocals.Any(ml => ml.Id == id));
             var localFile = ep.Locals.Concat(ep.ManLocals).First(l => l.Id == id);
