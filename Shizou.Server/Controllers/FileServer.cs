@@ -150,16 +150,11 @@ public class FileServer : ControllerBase
     [HttpGet("Subs/{ed2K}/{index:int}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "text/x-ssa")]
-    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetSubtitle(string ed2K, int index)
+    public Results<PhysicalFileHttpResult, NotFound> GetSubtitle(string ed2K, int index)
     {
         var fileInfo = new FileInfo(FilePaths.ExtraFileData.SubPath(ed2K, index));
         if (!fileInfo.Exists)
-        {
-            await _subtitleService.ExtractSubtitlesAsync(ed2K).ConfigureAwait(false);
-            fileInfo.Refresh();
-            if (!fileInfo.Exists)
-                return TypedResults.NotFound();
-        }
+            return TypedResults.NotFound();
 
         return TypedResults.PhysicalFile(fileInfo.FullName, "text/x-ssa", fileInfo.Name);
     }

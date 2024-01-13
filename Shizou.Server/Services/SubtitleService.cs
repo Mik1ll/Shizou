@@ -112,12 +112,16 @@ public class SubtitleService
         return resolvedPath;
     }
 
-    public async Task ExtractSubtitlesAsync(string ed2K)
+    public async Task ExtractSubtitlesAsync(int localFileId)
     {
         using var context = _contextFactory.CreateDbContext();
-        var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2K);
+        var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == localFileId);
         if (localFile is null)
+        {
+            _logger.LogWarning("Local file with id {LocalFileId} does not exist", localFileId);
             return;
+        }
+
         if (localFile.ImportFolder is null)
         {
             _logger.LogWarning("Tried to get local file {LocalFileId} with no import folder", localFile.Id);
@@ -132,11 +136,11 @@ public class SubtitleService
             return;
         }
 
-        var subsDir = FilePaths.ExtraFileData.SubsDir(ed2K);
+        var subsDir = FilePaths.ExtraFileData.SubsDir(localFile.Ed2k);
         Directory.CreateDirectory(subsDir);
 
         var subStreams = (await _ffmpegService.GetStreamsAsync(fileInfo).ConfigureAwait(false)).Where(s => ValidSubFormats.Contains(s.codec))
-            .Select(s => (s.index, filename: Path.GetFileName(FilePaths.ExtraFileData.SubPath(ed2K, s.index)))).ToList();
+            .Select(s => (s.index, filename: Path.GetFileName(FilePaths.ExtraFileData.SubPath(localFile.Ed2k, s.index)))).ToList();
 
         if (subStreams.Count <= 0)
         {

@@ -13,19 +13,19 @@ namespace Shizou.Server.Commands;
 public class ExtractThumbnailCommand : Command<ExtractThumbnailArgs>
 {
     private readonly ILogger<ExtractThumbnailCommand> _logger;
-    private readonly IShizouContext _shizouContext;
+    private readonly IShizouContext _context;
     private readonly FfmpegService _ffmpegService;
 
-    public ExtractThumbnailCommand(ILogger<ExtractThumbnailCommand> logger, IShizouContext shizouContext, FfmpegService ffmpegService)
+    public ExtractThumbnailCommand(ILogger<ExtractThumbnailCommand> logger, IShizouContext context, FfmpegService ffmpegService)
     {
         _logger = logger;
-        _shizouContext = shizouContext;
+        _context = context;
         _ffmpegService = ffmpegService;
     }
 
     protected override async Task ProcessInnerAsync()
     {
-        var localFile = _shizouContext.LocalFiles.Include(lf => lf.ImportFolder).FirstOrDefault(lf => lf.Id == CommandArgs.LocalFileId);
+        var localFile = _context.LocalFiles.Include(lf => lf.ImportFolder).FirstOrDefault(lf => lf.Id == CommandArgs.LocalFileId);
         if (localFile is null)
         {
             _logger.LogWarning("Local file {LocalFileId} not found in database", CommandArgs.LocalFileId);
