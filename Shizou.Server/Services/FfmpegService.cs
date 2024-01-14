@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Shizou.Data;
+using Shizou.Data.Models;
 
 namespace Shizou.Server.Services;
 
@@ -16,6 +18,8 @@ public class FfmpegService
     private readonly ILogger<FfmpegService> _logger;
 
     public FfmpegService(ILogger<FfmpegService> logger) => _logger = logger;
+    public static string[] ValidSubFormats { get; } = { "ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext" };
+    public static string[] ValidFontFormats { get; } = { "ttf", "otf" };
 
     public async Task ExtractAttachmentsAsync(FileInfo fileInfo, string outputDir)
     {
@@ -27,18 +31,35 @@ public class FfmpegService
         await process.WaitForExitAsync().ConfigureAwait(false);
     }
 
-    public async Task ExtractSubtitlesAsync(FileInfo fileInfo, List<(int index, string filename)> subStreams, string outputDir)
+    public async Task ExtractSubtitlesAsync(LocalFile localFile)
     {
-        Directory.CreateDirectory(outputDir);
+        if (GetLocalFileInfo(localFile) is not { } fileInfo)
+            return;
+
+        var subsDir = FilePaths.ExtraFileData.SubsDir(localFile.Ed2k);
+        Directory.CreateDirectory(subsDir);
+
+        var subStreams = (await GetStreamsAsync(fileInfo).ConfigureAwait(false)).Where(s => ValidSubFormats.Contains(s.codec))
+            .Select(s => (s.index, filename: Path.GetFileName(FilePaths.ExtraFileData.SubPath(localFile.Ed2k, s.index)))).ToList();
+
+        if (subStreams.Count <= 0)
+        {
+            _logger.LogDebug("No valid streams for {LocalFileId}, skipping subtitle extraction", localFile.Id);
+            return;
+        }
+
         using var process = NewFfmpegProcess();
         process.StartInfo.Arguments =
-            $"-v fatal -y -i \"{fileInfo.FullName}\" {string.Join(" ", subStreams.Select(s => $"-map 0:{s.index} -c ass \"{Path.Combine(outputDir, s.filename)}\""))}";
+            $"-v fatal -y -i \"{fileInfo.FullName}\" {string.Join(" ", subStreams.Select(s => $"-map 0:{s.index} -c ass \"{Path.Combine(subsDir, s.filename)}\""))}";
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
     }
 
-    public async Task ExtractThumbnailAsync(FileInfo fileInfo, string outputPath)
+    public async Task ExtractThumbnailAsync(LocalFile localFile)
     {
+        if (GetLocalFileInfo(localFile) is not { } fileInfo)
+            return;
+
         if (!await HasVideoAsync(fileInfo).ConfigureAwait(false))
         {
             _logger.LogInformation("File at \"{FilePath}\" has no video stream", fileInfo.FullName);
@@ -52,7 +73,8 @@ public class FfmpegService
             return;
         }
 
-        if (Path.GetDirectoryName(outputPath) is { Length: > 0 } parentPath)
+        var outputPath = FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k);
+        if (Path.GetDirectoryName(outputPath) is { } parentPath)
             Directory.CreateDirectory(parentPath);
         using var process = NewFfmpegProcess();
         var fps = 3;
@@ -99,6 +121,25 @@ public class FfmpegService
         }
 
         return streams;
+    }
+
+    private FileInfo? GetLocalFileInfo(LocalFile localFile)
+    {
+        if (localFile.ImportFolder is null)
+        {
+            _logger.LogWarning("Tried to get local file {LocalFileId} with no import folder", localFile.Id);
+            return null;
+        }
+
+        var fullPath = Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
+        var fileInfo = new FileInfo(fullPath);
+        if (!fileInfo.Exists)
+        {
+            _logger.LogWarning("Local file path \"{FullPath}\" does not exist", fullPath);
+            return null;
+        }
+
+        return fileInfo;
     }
 
     private async Task<double?> GetDurationAsync(FileInfo fileInfo)

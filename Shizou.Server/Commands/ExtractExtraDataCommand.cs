@@ -1,22 +1,20 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Shizou.Data;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands;
 
-public class ExtractThumbnailCommand : Command<ExtractThumbnailArgs>
+public class ExtractExtraDataCommand : Command<ExtractExtraDataArgs>
 {
-    private readonly ILogger<ExtractThumbnailCommand> _logger;
+    private readonly ILogger<ExtractExtraDataCommand> _logger;
     private readonly IShizouContext _context;
     private readonly FfmpegService _ffmpegService;
 
-    public ExtractThumbnailCommand(ILogger<ExtractThumbnailCommand> logger, IShizouContext context, FfmpegService ffmpegService)
+    public ExtractExtraDataCommand(ILogger<ExtractExtraDataCommand> logger, IShizouContext context, FfmpegService ffmpegService)
     {
         _logger = logger;
         _context = context;
@@ -40,16 +38,8 @@ public class ExtractThumbnailCommand : Command<ExtractThumbnailArgs>
             return;
         }
 
-        var path = Path.Combine(localFile.ImportFolder.Path, localFile.PathTail);
-        var fileInfo = new FileInfo(path);
-        if (!fileInfo.Exists)
-        {
-            _logger.LogWarning("Local file {LocalFileId} does not exist at \"{Path}\"", localFile.Id, path);
-            Completed = true;
-            return;
-        }
-
-        await _ffmpegService.ExtractThumbnailAsync(fileInfo, FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k)).ConfigureAwait(false);
+        await _ffmpegService.ExtractThumbnailAsync(localFile).ConfigureAwait(false);
+        await _ffmpegService.ExtractSubtitlesAsync(localFile).ConfigureAwait(false);
         Completed = true;
     }
 }

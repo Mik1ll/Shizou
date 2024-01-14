@@ -113,8 +113,6 @@ public class HashCommand : Command<HashArgs>
 
         if (eAniDbFileId is null)
             _commandService.Dispatch(new ProcessArgs(localFile.Id, IdTypeLocalOrFile.LocalId));
-        _commandService.Dispatch(new ExtractThumbnailArgs(localFile.Id));
-        _commandService.Dispatch(new ExtractSubtitlesArgs(localFile.Id));
         Completed = true;
     }
 }
