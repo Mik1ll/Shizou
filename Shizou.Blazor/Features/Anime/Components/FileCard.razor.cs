@@ -22,6 +22,9 @@ public partial class FileCard
     [Inject]
     private ExternalPlaybackService ExternalPlaybackService { get; set; } = default!;
 
+    [Inject]
+    private CommandService CommandService { get; set; } = default!;
+
     [CascadingParameter]
     public IModalService ModalService { get; set; } = default!;
 
