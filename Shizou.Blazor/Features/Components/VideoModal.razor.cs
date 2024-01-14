@@ -31,6 +31,9 @@ public partial class VideoModal
     [Inject]
     private FfmpegService FfmpegService { get; set; } = default!;
 
+    [Inject]
+    private IContentTypeProvider ContentTypeProvider { get; set; } = default!;
+
     [Parameter]
     public int LocalFileId { get; set; }
 
@@ -46,7 +49,7 @@ public partial class VideoModal
         _localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == LocalFileId);
         _localFileMimeType = null;
         if (_localFile is not null)
-            new FileExtensionContentTypeProvider().TryGetContentType(_localFile.PathTail, out _localFileMimeType);
+            ContentTypeProvider.TryGetContentType(_localFile.PathTail, out _localFileMimeType);
         _localFileMimeType ??= "video/mp4";
         await GetStreamUrlsAsync();
         _loadSubtitles = true;

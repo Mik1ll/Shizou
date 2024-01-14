@@ -90,5 +90,5 @@ public partial class UpNext
     }
 
     private string GetExternalPlaylistUri(bool single) =>
-        ExternalPlaybackService.GetExternalPlaylistUri(_localFile?.Id ?? throw new ArgumentNullException(), single);
+        ExternalPlaybackService.GetExternalPlaylistUri(_localFile?.Ed2k ?? throw new ArgumentNullException(), single);
 }

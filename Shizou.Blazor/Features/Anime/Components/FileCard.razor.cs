@@ -77,5 +77,5 @@ public partial class FileCard
         await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), localFileId)).Result;
     }
 
-    private string GetExternalPlaylistUri(bool single) => ExternalPlaybackService.GetExternalPlaylistUri(LocalFile.Id, single);
+    private string GetExternalPlaylistUri(bool single) => ExternalPlaybackService.GetExternalPlaylistUri(LocalFile.Ed2k, single);
 }

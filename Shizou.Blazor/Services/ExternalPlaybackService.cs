@@ -15,14 +15,14 @@ public class ExternalPlaybackService
         _linkGenerator = linkGenerator;
     }
 
-    public string GetExternalPlaylistUri(int localFileId, bool single)
+    public string GetExternalPlaylistUri(string ed2K, bool single)
     {
         var identityCookie = _httpContextAccessor.HttpContext!.Request.Cookies[Constants.IdentityCookieName];
         IDictionary<string, object?> values = new ExpandoObject();
-        values["localFileId"] = $"{localFileId}.m3u8";
+        values["ed2K"] = ed2K;
         values["single"] = single;
         values[Constants.IdentityCookieName] = identityCookie;
-        var fileUri = _linkGenerator.GetUriByAction(_httpContextAccessor.HttpContext ?? throw new ArgumentNullException(), nameof(FileServer.GetWithPlaylist),
+        var fileUri = _linkGenerator.GetUriByAction(_httpContextAccessor.HttpContext ?? throw new ArgumentNullException(), nameof(FileServer.GetPlaylist),
             nameof(FileServer), values) ?? throw new ArgumentException();
         return $"shizou:{fileUri}";
     }
