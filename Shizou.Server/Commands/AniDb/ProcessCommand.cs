@@ -192,15 +192,16 @@ public class ProcessCommand : Command<ProcessArgs>
             else
                 _context.Entry(file.AniDbGroup).State = EntityState.Added;
 
-        if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == file.Id) is { } eFileWatchedState)
+        if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == file.Id) is { } fileWatchedState)
         {
-            if (eFileWatchedState.WatchedUpdated is null)
-                eFileWatchedState.Watched = file.FileWatchedState.Watched;
-            eFileWatchedState.MyListId = file.FileWatchedState.MyListId;
+            if (fileWatchedState.WatchedUpdated is null)
+                fileWatchedState.Watched = file.FileWatchedState.Watched;
+            fileWatchedState.MyListId = file.FileWatchedState.MyListId;
         }
         else
         {
             _context.Entry(file.FileWatchedState).State = EntityState.Added;
+            fileWatchedState = file.FileWatchedState;
         }
 
         if (_context.LocalFiles.FirstOrDefault(lf => lf.Ed2k == file.Ed2k) is { } eLocalFile)
@@ -211,6 +212,11 @@ public class ProcessCommand : Command<ProcessArgs>
                 _logger.LogInformation("Replacing manual link from local file {LocalId} with episode {EpisodeId} with file relation", eLocalFile.Id,
                     eLocalFile.ManualLinkEpisodeId);
                 eLocalFile.ManualLinkEpisodeId = null;
+                if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == eLocalFile.ManualLinkEpisodeId) is { } eEpisodeWatchedState)
+                {
+                    fileWatchedState.Watched = eEpisodeWatchedState.Watched;
+                    fileWatchedState.WatchedUpdated = eEpisodeWatchedState.WatchedUpdated;
+                }
             }
         }
     }
