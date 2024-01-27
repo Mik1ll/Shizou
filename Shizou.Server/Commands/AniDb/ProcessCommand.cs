@@ -204,6 +204,11 @@ public class ProcessCommand : Command<ProcessArgs>
             fileWatchedState = file.FileWatchedState;
         }
 
+        ReplaceManualLink(file, fileWatchedState);
+    }
+
+    private void ReplaceManualLink(AniDbFile file, FileWatchedState fileWatchedState)
+    {
         if (_context.LocalFiles.FirstOrDefault(lf => lf.Ed2k == file.Ed2k) is { } eLocalFile)
         {
             eLocalFile.AniDbFileId = file.Id;
