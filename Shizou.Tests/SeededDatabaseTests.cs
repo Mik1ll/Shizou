@@ -58,8 +58,28 @@ public class SeededDatabaseTests
                     AniDbGroup = null,
                     LocalFile = null,
                     Video = null,
-                    Audio = new List<AniDbAudio>(),
-                    Subtitles = new List<AniDbSubtitle>(),
+                    Audio =
+                    [
+                        new AniDbAudio
+                        {
+                            Language = "Japanese",
+                            Codec = "FLAC",
+                            Bitrate = 420
+                        },
+                        new AniDbAudio
+                        {
+                            Language = "English",
+                            Codec = "AAC",
+                            Bitrate = 69
+                        }
+                    ],
+                    Subtitles =
+                    [
+                        new AniDbSubtitle
+                        {
+                            Language = "English"
+                        }
+                    ],
                     FileWatchedState = new FileWatchedState
                     {
                         AniDbFileId = 24,

@@ -41,11 +41,9 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AniDbFile>()
-            .OwnsMany(f => f.Audio)
-            .WithOwner(a => a.AniDbFile);
+            .OwnsMany(f => f.Audio, builder => builder.ToJson());
         modelBuilder.Entity<AniDbFile>()
-            .OwnsMany(f => f.Subtitles)
-            .WithOwner(s => s.AniDbFile);
+            .OwnsMany(f => f.Subtitles, builder => builder.ToJson());
         modelBuilder.Entity<AniDbAnime>()
             .HasMany(a => a.MalAnimes)
             .WithMany(a => a.AniDbAnimes)
@@ -138,10 +136,6 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
     IShizouDbSet<AniDbFile> IShizouContext.AniDbFiles => new ShizouDbSet<AniDbFile>(AniDbFiles);
     public DbSet<AniDbGroup> AniDbGroups { get; set; } = null!;
     IShizouDbSet<AniDbGroup> IShizouContext.AniDbGroups => new ShizouDbSet<AniDbGroup>(AniDbGroups);
-    public DbSet<AniDbAudio> AniDbAudio { get; set; } = null!;
-    IShizouDbSet<AniDbAudio> IShizouContext.AniDbAudio => new ShizouDbSet<AniDbAudio>(AniDbAudio);
-    public DbSet<AniDbSubtitle> AniDbSubtitles { get; set; } = null!;
-    IShizouDbSet<AniDbSubtitle> IShizouContext.AniDbSubtitles => new ShizouDbSet<AniDbSubtitle>(AniDbSubtitles);
     public DbSet<LocalFile> LocalFiles { get; set; } = null!;
     IShizouDbSet<LocalFile> IShizouContext.LocalFiles => new ShizouDbSet<LocalFile>(LocalFiles);
     public DbSet<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; set; } = null!;

@@ -56,4 +56,15 @@ public class DatabaseTests : SeededDatabaseTests
         context.AnimeFilters.Add(new AnimeFilter { Name = "Test Filter", Criteria = orAny });
         context.SaveChanges();
     }
+
+    [TestMethod]
+    public void TestJsonColumns()
+    {
+        using var context = GetContext();
+        var file = context.AniDbFiles.First();
+        var audio = file.Audio;
+        var subtitles = file.Subtitles;
+        Assert.IsFalse(audio.Count == 0);
+        Assert.IsFalse(subtitles.Count == 0);
+    }
 }

@@ -30,12 +30,6 @@ public interface IShizouContext : IDisposable
     IShizouDbSet<AniDbGroup> AniDbGroups { get; }
 
     /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbAudio> AniDbAudio { get; }
-
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbSubtitle> AniDbSubtitles { get; }
-
-    /// <inheritdoc cref="DbSet{TEntity}" />
     IShizouDbSet<LocalFile> LocalFiles { get; }
 
     /// <inheritdoc cref="DbSet{TEntity}" />

@@ -141,7 +141,7 @@ public class AnimeTitleSearchService
         var titleSpan = new Span<char>(new char[200]);
         foreach (var line in content.SplitSpan('\n'))
         {
-            if (line.IsEmpty || line.StartsWith(new ReadOnlySpan<char>('#')))
+            if (line.IsEmpty || line.StartsWith("#"))
                 continue;
             var enumerator = line.SplitSpan('|');
             enumerator.MoveNext();

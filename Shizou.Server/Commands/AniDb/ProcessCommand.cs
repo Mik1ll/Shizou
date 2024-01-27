@@ -64,16 +64,12 @@ public class ProcessCommand : Command<ProcessArgs>
                 .Zip(result.DubLanguages!,
                     (tup,
                         lang) => (tup.codec, tup.bitrate, lang))
-                .Select((tuple,
-                        i) =>
-                    new AniDbAudio
-                    {
-                        Bitrate = tuple.bitrate,
-                        Codec = tuple.codec,
-                        Language = tuple.lang,
-                        Id = i + 1,
-                        AniDbFileId = result.FileId
-                    })
+                .Select(tuple => new AniDbAudio
+                {
+                    Bitrate = tuple.bitrate,
+                    Codec = tuple.codec,
+                    Language = tuple.lang
+                })
                 .ToList(),
             Video = result.VideoCodec is null
                 ? null
@@ -85,12 +81,9 @@ public class ProcessCommand : Command<ProcessArgs>
                     Height = int.Parse(result.VideoResolution!.Split('x')[1]),
                     Width = int.Parse(result.VideoResolution!.Split('x')[0])
                 },
-            Subtitles = result.SubLangugages!.Select((s,
-                    i) => new AniDbSubtitle
+            Subtitles = result.SubLangugages!.Select(s => new AniDbSubtitle
                 {
                     Language = s,
-                    Id = i + 1,
-                    AniDbFileId = result.FileId
                 })
                 .ToList(),
             FileName = result.AniDbFileName!,
@@ -233,21 +226,9 @@ public class ProcessCommand : Command<ProcessArgs>
         else
             eFile.Video = file.Video;
 
-        foreach (var a in eFile.Audio.ExceptBy(file.Audio.Select(a => a.Id), a => a.Id))
-            eFile.Audio.Remove(a);
-        foreach (var a in file.Audio)
-            if (eFile.Audio.FirstOrDefault(x => x.Id == a.Id) is { } ea)
-                _context.Entry(ea).CurrentValues.SetValues(a);
-            else
-                eFile.Audio.Add(a);
+        eFile.Audio = file.Audio;
 
-        foreach (var s in eFile.Subtitles.ExceptBy(file.Subtitles.Select(s => s.Id), s => s.Id))
-            eFile.Subtitles.Remove(s);
-        foreach (var s in file.Subtitles)
-            if (eFile.Subtitles.FirstOrDefault(x => x.Id == s.Id) is { } es)
-                _context.Entry(es).CurrentValues.SetValues(s);
-            else
-                eFile.Subtitles.Add(s);
+        eFile.Subtitles = file.Subtitles;
     }
 
     private void UpdateGenericFile(FileResult result)
