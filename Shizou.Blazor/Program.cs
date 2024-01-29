@@ -14,6 +14,7 @@ Directory.CreateDirectory(FilePaths.ApplicationDataDir);
 
 var builder = WebApplication.CreateBuilder();
 
+builder.Services.AddRazorPages();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -77,6 +78,7 @@ app.UseAntiforgery();
 app.MapControllers();
 app.Map($"{Constants.ApiPrefix}/{{**slug}}", (HttpContext ctx) => { ctx.Response.StatusCode = StatusCodes.Status404NotFound; });
 
+app.MapRazorPages();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
