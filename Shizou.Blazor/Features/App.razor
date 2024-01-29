@@ -1,28 +1,117 @@
-﻿<CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(App).Assembly">
-        <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                <NotAuthorized>
-                    <RedirectToLogin></RedirectToLogin>
-                </NotAuthorized>
-                <Authorizing>
-                    <p>Logging in...</p>
-                </Authorizing>
-            </AuthorizeRouteView>
-            <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
-        </Found>
-        <NotFound>
-            <AuthorizeView>
-                <Authorized>
-                    <PageTitle>Not found</PageTitle>
-                    <LayoutView Layout="@typeof(MainLayout)">
-                        <p role="alert">Sorry, there's nothing at this address.</p>
-                    </LayoutView>
-                </Authorized>
-                <NotAuthorized>
-                    <RedirectToLogin></RedirectToLogin>
-                </NotAuthorized>
-            </AuthorizeView>
-        </NotFound>
-    </Router>
-</CascadingAuthenticationState>
+﻿@inject IHostEnvironment Env
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <base href="/"/>
+    <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="lib/open-iconic/font/css/open-iconic-bootstrap.min.css"/>
+    <link rel="stylesheet" href="lib/bootstrap-icons/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" href="lib/video.js/video-js.min.css"/>
+    <link rel="stylesheet" href="css/site.css"/>
+    @* ReSharper disable Html.PathError *@
+    <link rel="stylesheet" href="Shizou.Blazor.styles.css"/>
+    @* ReSharper restore Html.PathError *@
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <script src="js/theme.js"></script>
+    <HeadOutlet @rendermode="@(new InteractiveServerRenderMode(false))"/>
+</head>
+<body>
+<Routes @rendermode="@(new InteractiveServerRenderMode(false))"/>
+
+<div id="blazor-error-ui" class="offcanvas offcanvas-bottom bg-danger" style="display:none;transform:none;visibility:visible;height:unset;z-index:5000">
+    <div class="d-flex flex-row p-3">
+        <div class="flex-grow-1">
+            @if (Env.IsDevelopment())
+            {
+                <text>
+                    An unhandled exception has occurred. See browser dev tools for details.
+                </text>
+            }
+            else
+            {
+                <text>
+                    An error has occurred. This app may no longer respond until reloaded.
+                </text>
+            }
+            <a href="javascript:window.location.href='/'">Reload</a>
+        </div>
+        <button type="button" class="btn btn-close"></button>
+    </div>
+</div>
+
+<script src="lib/libass-wasm/js/subtitles-octopus.min.js"></script>
+<script src="lib/video.js/alt/video.novtt.min.js"></script>
+
+@* ReSharper disable Html.PathError *@
+<script src="_framework/blazor.web.js"></script>
+@* ReSharper restore Html.PathError *@
+
+<script type="text/javascript">
+function loadTooltip(element) {
+    const tooltip = new bootstrap.Tooltip(element);
+    element.addEventListener("click", function() {
+        tooltip.hide();
+    });
+}
+</script>
+<script type="text/javascript">
+function loadPlayer(elementId, subtitleUrls, fontUrls) {
+    videojs(document.getElementById(elementId), {fluid:true}, function onPlayerReady() {
+        if (subtitleUrls.length <= 0) {
+            return;
+        }
+        var video = this.tech_.el_;
+        var options = {
+            video: video, // HTML5 video element
+            subUrl: subtitleUrls[0], // Link to subtitles
+            fonts: fontUrls,
+            workerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker.min.js', // Link to WebAssembly-based file "libassjs-worker.js"
+            legacyWorkerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker-legacy.min.js', // Link to non-WebAssembly worker
+            fallbackFont: '/fonts/default.woff2'
+        };
+        
+        subtitleHandler.dispose()
+        subtitleHandler.instance = new SubtitlesOctopus(options);
+        this.textTracks().addEventListener('change', (event) => {
+            var tracks = this.textTracks().tracks_;
+            var showingIdx = tracks.findIndex((track) => track.mode === 'showing');
+            for (let i = 0; i < tracks.length; i++) {
+                if (i != showingIdx) {
+                    tracks[i].mode = 'disabled';
+                }
+            }
+            if (showingIdx >= 0) {
+                subtitleHandler.setTrack(subtitleUrls[showingIdx]);
+            } else {
+                subtitleHandler.free();
+            }
+        });
+    });
+}
+var subtitleHandler = {
+    instance: null,
+    dispose: function() {
+        if (subtitleHandler.instance) {
+            subtitleHandler.instance.dispose();
+            subtitleHandler.instance = null;
+        }
+    },
+    free: function() {
+        if (subtitleHandler.instance) {
+            subtitleHandler.instance.freeTrack();
+            subtitleHandler.instance.setSubUrl('');
+        }
+    },
+    setTrack: function(subUrl) {
+        if (subtitleHandler.instance && subUrl !== subtitleHandler.instance.subUrl) {
+            subtitleHandler.free();
+            subtitleHandler.instance.setTrackByUrl(subUrl);
+            subtitleHandler.instance.setSubUrl(subUrl);
+        }
+    }
+};
+</script>
+</body>
+</html>

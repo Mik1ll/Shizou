@@ -1,6 +1,7 @@
 using Blazored.Modal;
 using Microsoft.AspNetCore.StaticFiles;
 using Serilog;
+using Shizou.Blazor.Features;
 using Shizou.Blazor.Services;
 using Shizou.Data;
 using Shizou.Server.Extensions;
@@ -13,8 +14,11 @@ Directory.CreateDirectory(FilePaths.ApplicationDataDir);
 
 var builder = WebApplication.CreateBuilder();
 
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+builder.Services.AddCascadingAuthenticationState();
+
 builder.Services.AddBlazoredModal();
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddTransient<ExternalPlaybackService>();
@@ -68,11 +72,13 @@ app.UseIdentityCookieParameter();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseAntiforgery();
+
 app.MapControllers();
 app.Map($"{Constants.ApiPrefix}/{{**slug}}", (HttpContext ctx) => { ctx.Response.StatusCode = StatusCodes.Status404NotFound; });
 
-app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.MigrateDatabase();
 app.PopulateOptions();
