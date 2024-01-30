@@ -171,7 +171,7 @@ public sealed class AniDbUdpState : IDisposable
                 if (_router?.NatProtocol != NatProtocol.Pmp)
                     _router = e.Device;
                 if (_router.NatProtocol == NatProtocol.Pmp)
-                    stopSearchTokenSource.Cancel();
+                    await stopSearchTokenSource.CancelAsync().ConfigureAwait(false);
             }
             finally
             {
