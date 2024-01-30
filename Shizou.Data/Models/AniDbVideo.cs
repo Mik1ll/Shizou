@@ -1,8 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿namespace Shizou.Data.Models;
 
-namespace Shizou.Data.Models;
-
-[Owned]
 public class AniDbVideo
 {
     public required string Codec { get; set; }

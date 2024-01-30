@@ -44,6 +44,8 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
             .OwnsMany(f => f.Audio, builder => builder.ToJson());
         modelBuilder.Entity<AniDbFile>()
             .OwnsMany(f => f.Subtitles, builder => builder.ToJson());
+        modelBuilder.Entity<AniDbFile>()
+            .OwnsOne(f => f.Video, builder => builder.ToJson());
         modelBuilder.Entity<AniDbAnime>()
             .HasMany(a => a.MalAnimes)
             .WithMany(a => a.AniDbAnimes)
