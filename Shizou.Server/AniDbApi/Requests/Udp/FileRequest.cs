@@ -15,50 +15,32 @@ public class FileResponse : UdpResponse
 
 public class FileRequest : AniDbUdpRequest<FileResponse>, IFileRequest
 {
-    public const AMaskFile DefaultAMask = AMaskFile.GroupName | AMaskFile.GroupNameShort | AMaskFile.DateAnimeRecordUpdated;
-
-    public const FMask DefaultFMask = FMask.AnimeId | FMask.EpisodeId | FMask.GroupId | FMask.MyListId | FMask.OtherEpisodes | FMask.IsDeprecated |
-                                      FMask.State |
-                                      FMask.Size | FMask.Ed2K | FMask.Md5 | FMask.Sha1 | FMask.Crc32 | FMask.VideoColorDepth |
-                                      FMask.Source | FMask.AudioCodecs | FMask.AudioBitRates | FMask.VideoCodec | FMask.VideoBitRate | FMask.VideoResolution |
-                                      FMask.DubLanguages | FMask.SubLangugages | FMask.LengthInSeconds | FMask.AniDbFileName |
-                                      FMask.MyListState | FMask.MyListFileState | FMask.MyListViewed | FMask.MyListViewDate | FMask.MyListStorage |
-                                      FMask.MyListSource | FMask.MyListOther;
-
-    private AMaskFile _aMask;
-    private FMask _fMask;
+    private readonly AMaskFile _aMask = FileResult.ResultAMaskFile;
+    private readonly FMask _fMask = FileResult.ResultFMask;
 
     public FileRequest(ILogger<FileRequest> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter) : base("FILE", logger, aniDbUdpState, rateLimiter)
     {
     }
 
-    private void SetParameters(FMask fMask, AMaskFile aMask)
+    public void SetParameters(int fileId)
     {
-        _fMask = fMask;
-        _aMask = aMask;
-        Args["fmask"] = ((ulong)fMask).ToString("X10");
-        Args["amask"] = aMask.ToString("X");
-    }
-
-    public void SetParameters(int fileId, FMask fMask, AMaskFile aMask)
-    {
-        SetParameters(fMask, aMask);
+        SetParameters();
         Args["fid"] = fileId.ToString();
         ParametersSet = true;
     }
 
-    public void SetParameters(long fileSize, string ed2K, FMask fMask, AMaskFile aMask)
+    public void SetParameters(long fileSize, string ed2K)
     {
-        SetParameters(fMask, aMask);
+        SetParameters();
         Args["size"] = fileSize.ToString();
         Args["ed2k"] = ed2K;
         ParametersSet = true;
     }
 
     // TODO: Test if epno can take special episode string
-    public void SetParameters(int animeId, int groupId, string episodeNumber, FMask fMask, AMaskFile aMask)
+    public void SetParameters(int animeId, int groupId, string episodeNumber)
     {
-        SetParameters(fMask, aMask);
+        SetParameters();
         Args["aid"] = animeId.ToString();
         Args["gid"] = groupId.ToString();
         Args["epno"] = episodeNumber;
@@ -73,7 +55,7 @@ public class FileRequest : AniDbUdpRequest<FileResponse>, IFileRequest
         {
             case AniDbResponseCode.File:
                 if (!string.IsNullOrWhiteSpace(responseText))
-                    fileResult = new FileResult(responseText, _fMask, _aMask);
+                    fileResult = new FileResult(responseText);
                 break;
             case AniDbResponseCode.MultipleFilesFound:
                 multipleFilesResult = responseText.Split('|').Select(int.Parse).ToList();
@@ -90,6 +72,12 @@ public class FileRequest : AniDbUdpRequest<FileResponse>, IFileRequest
             FileResult = fileResult,
             MultipleFilesResult = multipleFilesResult
         };
+    }
+
+    private void SetParameters()
+    {
+        Args["fmask"] = ((ulong)_fMask).ToString("X10");
+        Args["amask"] = _aMask.ToString("X");
     }
 }
 

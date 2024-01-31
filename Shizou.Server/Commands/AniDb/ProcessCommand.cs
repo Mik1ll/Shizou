@@ -47,21 +47,21 @@ public class ProcessCommand : Command<ProcessArgs>
         return new AniDbFile
         {
             Id = result.FileId,
-            Ed2k = result.Ed2K!,
+            Ed2k = result.Ed2K ?? throw new NullReferenceException("Ed2k is null, cannot be null for non-generic file"),
             Md5 = result.Md5,
             Crc = result.Crc32,
             Sha1 = result.Sha1,
-            Censored = result.State!.Value.IsCensored(),
-            Chaptered = result.State!.Value.HasFlag(FileState.Chaptered),
-            Deprecated = result.IsDeprecated!.Value,
-            FileSize = result.Size!.Value,
+            Censored = result.State.IsCensored(),
+            Chaptered = result.State.HasFlag(FileState.Chaptered),
+            Deprecated = result.IsDeprecated,
+            FileSize = result.Size,
             DurationSeconds = result.LengthInSeconds,
             Source = result.Source,
-            FileVersion = result.State!.Value.FileVersion(),
+            FileVersion = result.State.FileVersion(),
             Updated = DateTime.UtcNow,
-            Audio = result.AudioCodecs!.Zip(result.AudioBitRates!,
+            Audio = result.AudioCodecs.Zip(result.AudioBitRates,
                     (codec, bitrate) => (codec, bitrate))
-                .Zip(result.DubLanguages!,
+                .Zip(result.DubLanguages,
                     (tup,
                         lang) => (tup.codec, tup.bitrate, lang))
                 .Select(tuple => new AniDbAudio
@@ -76,25 +76,27 @@ public class ProcessCommand : Command<ProcessArgs>
                 : new AniDbVideo
                 {
                     Codec = result.VideoCodec,
-                    BitRate = result.VideoBitRate!.Value,
+                    BitRate = result.VideoBitRate ?? throw new NullReferenceException("Video bitrate null when codec is not"),
                     ColorDepth = result.VideoColorDepth ?? 8,
-                    Height = int.Parse(result.VideoResolution!.Split('x')[1]),
-                    Width = int.Parse(result.VideoResolution!.Split('x')[0])
+                    Height = result.VideoResolution is not null
+                        ? int.Parse(result.VideoResolution.Split('x')[1])
+                        : throw new NullReferenceException("Video Resolution null when codec is not"),
+                    Width = int.Parse(result.VideoResolution.Split('x')[0])
                 },
-            Subtitles = result.SubLangugages!.Select(s => new AniDbSubtitle
+            Subtitles = result.SubLangugages.Select(s => new AniDbSubtitle
                 {
                     Language = s,
                 })
                 .ToList(),
-            FileName = result.AniDbFileName!,
+            FileName = result.AniDbFileName,
             AniDbGroupId = result.GroupId,
             AniDbGroup = result.GroupId is null
                 ? null
                 : new AniDbGroup
                 {
-                    Id = result.GroupId!.Value,
-                    Name = result.GroupName!,
-                    ShortName = result.GroupNameShort!,
+                    Id = result.GroupId.Value,
+                    Name = result.GroupName ?? throw new NullReferenceException("Group name null when group id not"),
+                    ShortName = result.GroupNameShort ?? throw new NullReferenceException("Group short name null when group id not"),
                     Url = null
                 },
             FileWatchedState = new FileWatchedState
@@ -125,15 +127,15 @@ public class ProcessCommand : Command<ProcessArgs>
 
         // Dispatch after updating db to minimize conflict with xref creation
         if (!_context.AniDbAnimes.Any(a => a.Id == result.AnimeId))
-            _commandService.Dispatch(new AnimeArgs(result.AnimeId!.Value));
+            _commandService.Dispatch(new AnimeArgs(result.AnimeId));
 
         Completed = true;
     }
 
     private void UpdateAniDb(FileResult result)
     {
-        if ((FileIsGeneric(result) && _context.AniDbEpisodes.Any(ep => ep.Id == result.EpisodeId!.Value && ep.ManualLinkLocalFiles.Any())) ||
-            _context.LocalFiles.SingleOrDefault(lf => lf.Ed2k == result.Ed2K!) is not null)
+        if ((FileIsGeneric(result) && _context.AniDbEpisodes.Any(ep => ep.Id == result.EpisodeId && ep.ManualLinkLocalFiles.Any())) ||
+            _context.LocalFiles.SingleOrDefault(lf => lf.Ed2k == result.Ed2K) is not null)
             if (result.MyListId is null)
                 _commandService.Dispatch(new UpdateMyListArgs(false, _options.AniDb.MyList.PresentFileState, Fid: result.FileId));
             else if (result.MyListState != _options.AniDb.MyList.PresentFileState || result.MyListFileState != MyListFileState.Normal)
@@ -230,7 +232,7 @@ public class ProcessCommand : Command<ProcessArgs>
     {
         _logger.LogInformation("Updating generic AniDb file information for file id {FileId}", result.FileId);
 
-        if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == result.EpisodeId!.Value) is { } eEpisodeWatchedState)
+        if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == result.EpisodeId) is { } eEpisodeWatchedState)
         {
             if (eEpisodeWatchedState.WatchedUpdated is null)
                 eEpisodeWatchedState.Watched = result.MyListViewed ?? false;
@@ -246,7 +248,7 @@ public class ProcessCommand : Command<ProcessArgs>
 
     private void UpdateEpRelations(FileResult result)
     {
-        var relIds = new List<int> { result.EpisodeId!.Value }.Concat(result.OtherEpisodeIds ?? new List<int>()).ToList();
+        var relIds = new List<int> { result.EpisodeId }.Concat(result.OtherEpisodeIds).ToList();
         var eRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
         var eHangingRels = _context.HangingEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
         _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(relIds, x => x.AniDbEpisodeId));
@@ -289,7 +291,7 @@ public class ProcessCommand : Command<ProcessArgs>
                 if (result is not null)
                     return result;
                 _logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2k);
-                _fileRequest.SetParameters(localFile.FileSize, localFile.Ed2k, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                _fileRequest.SetParameters(localFile.FileSize, localFile.Ed2k);
                 break;
             }
             case IdTypeLocalOrFile.FileId:
@@ -298,7 +300,7 @@ public class ProcessCommand : Command<ProcessArgs>
                 if (result is not null)
                     return result;
                 _logger.LogInformation("Processing file id: {FileId}", CommandArgs.Id);
-                _fileRequest.SetParameters(CommandArgs.Id, FileRequest.DefaultFMask, FileRequest.DefaultAMask);
+                _fileRequest.SetParameters(CommandArgs.Id);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(CommandArgs.IdType), CommandArgs.IdType, null);

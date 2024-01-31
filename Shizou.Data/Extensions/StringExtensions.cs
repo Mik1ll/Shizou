@@ -27,4 +27,6 @@ public static class StringExtensions
         !string.IsNullOrEmpty(value) && str.EndsWith(value) ? str.Remove(str.LastIndexOf(value, StringComparison.Ordinal)) : str;
 
     public static string TrimStart(this string str, string value) => !string.IsNullOrEmpty(value) && str.StartsWith(value) ? str.Remove(0, value.Length) : str;
+
+    public static string? NullIfWhitespace(this string str) => string.IsNullOrWhiteSpace(str) ? null : str;
 }
