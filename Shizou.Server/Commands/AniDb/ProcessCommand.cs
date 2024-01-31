@@ -151,7 +151,7 @@ public class ProcessCommand : Command<ProcessArgs>
     private void UpdateFile(FileResult result)
     {
         _logger.LogInformation("Updating AniDb file information for file id {FileId}", result.FileId);
-        var eFile = _context.AniDbFiles.AsSplitQuery().FirstOrDefault(f => f.Id == result.FileId);
+        var eFile = _context.AniDbFiles.FirstOrDefault(f => f.Id == result.FileId);
         var file = FileResultToAniDbFile(result);
 
         if (eFile is null)
@@ -167,7 +167,14 @@ public class ProcessCommand : Command<ProcessArgs>
         else
         {
             _context.Entry(eFile).CurrentValues.SetValues(file);
-            UpdateOwnedNavigations(file, eFile);
+            if (eFile.Video is not null && file.Video is not null)
+                _context.Entry(eFile.Video).CurrentValues.SetValues(file.Video);
+            else
+                eFile.Video = file.Video;
+
+            eFile.Audio = file.Audio;
+
+            eFile.Subtitles = file.Subtitles;
         }
 
         UpdateNavigations(file);
@@ -217,18 +224,6 @@ public class ProcessCommand : Command<ProcessArgs>
                 }
             }
         }
-    }
-
-    private void UpdateOwnedNavigations(AniDbFile file, AniDbFile eFile)
-    {
-        if (eFile.Video is not null && file.Video is not null)
-            _context.Entry(eFile.Video).CurrentValues.SetValues(file.Video);
-        else
-            eFile.Video = file.Video;
-
-        eFile.Audio = file.Audio;
-
-        eFile.Subtitles = file.Subtitles;
     }
 
     private void UpdateGenericFile(FileResult result)
