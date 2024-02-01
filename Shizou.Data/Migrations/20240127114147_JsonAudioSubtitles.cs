@@ -32,6 +32,12 @@ namespace Shizou.Data.Migrations
                              FROM AniDbSubtitles
                              WHERE AniDbSubtitles.AniDbFileId = AniDbFiles.Id
                              GROUP BY AniDbSubtitles.AniDbFileId);
+            UPDATE AniDbFiles
+            SET Audio = '[]'
+            WHERE Audio IS NULL;
+            UPDATE AniDbFiles
+            SET Subtitles = '[]'
+            WHERE Subtitles IS NULL;
             """);
 
             migrationBuilder.DropTable(
