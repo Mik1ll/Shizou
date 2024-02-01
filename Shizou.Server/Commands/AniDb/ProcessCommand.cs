@@ -169,13 +169,8 @@ public class ProcessCommand : Command<ProcessArgs>
         else
         {
             _context.Entry(eFile).CurrentValues.SetValues(file);
-            if (eFile.Video is not null && file.Video is not null)
-                _context.Entry(eFile.Video).CurrentValues.SetValues(file.Video);
-            else
-                eFile.Video = file.Video;
-
+            eFile.Video = file.Video;
             eFile.Audio = file.Audio;
-
             eFile.Subtitles = file.Subtitles;
         }
 
@@ -194,19 +189,10 @@ public class ProcessCommand : Command<ProcessArgs>
             else
                 _context.Entry(file.AniDbGroup).State = EntityState.Added;
 
-        if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == file.Id) is { } fileWatchedState)
-        {
-            if (fileWatchedState.WatchedUpdated is null)
-                fileWatchedState.Watched = file.FileWatchedState.Watched;
-            fileWatchedState.MyListId = file.FileWatchedState.MyListId;
-        }
+        if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == file.Id) is { } eFileWatchedState)
+            _context.Entry(eFileWatchedState).CurrentValues.SetValues(file.FileWatchedState);
         else
-        {
             _context.Entry(file.FileWatchedState).State = EntityState.Added;
-            fileWatchedState = file.FileWatchedState;
-        }
-
-        ReplaceManualLink(file, fileWatchedState);
     }
 
     private void ReplaceManualLink(AniDbFile file, FileWatchedState fileWatchedState)
