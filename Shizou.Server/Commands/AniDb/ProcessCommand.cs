@@ -176,7 +176,7 @@ public class ProcessCommand : Command<ProcessArgs>
 
         UpdateNavigations(file);
 
-        UpdateEpRelations(result);
+        UpdateEpRelations(result.FileId, new List<int> { result.EpisodeId }.Concat(result.OtherEpisodeIds).ToList());
 
         _context.SaveChanges();
     }
@@ -232,27 +232,26 @@ public class ProcessCommand : Command<ProcessArgs>
         }
     }
 
-    private void UpdateEpRelations(FileResult result)
+    private void UpdateEpRelations(int fileId, List<int> episodeIds)
     {
-        var relIds = new List<int> { result.EpisodeId }.Concat(result.OtherEpisodeIds).ToList();
-        var eRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
-        var eHangingRels = _context.HangingEpisodeFileXrefs.Where(x => x.AniDbFileId == result.FileId).ToList();
-        _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(relIds, x => x.AniDbEpisodeId));
-        _context.HangingEpisodeFileXrefs.RemoveRange(eHangingRels.ExceptBy(relIds, x => x.AniDbEpisodeId));
-        foreach (var rel in relIds
+        var eRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == fileId).ToList();
+        var eHangingRels = _context.HangingEpisodeFileXrefs.Where(x => x.AniDbFileId == fileId).ToList();
+        _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(episodeIds, x => x.AniDbEpisodeId));
+        _context.HangingEpisodeFileXrefs.RemoveRange(eHangingRels.ExceptBy(episodeIds, x => x.AniDbEpisodeId));
+        foreach (var rel in episodeIds
                      .Except(eRels.Select(x => x.AniDbEpisodeId))
                      .Except(eHangingRels.Select(x => x.AniDbEpisodeId)))
             if (_context.AniDbEpisodes.Any(ep => ep.Id == rel))
                 _context.AniDbEpisodeFileXrefs.Add(new AniDbEpisodeFileXref
                 {
                     AniDbEpisodeId = rel,
-                    AniDbFileId = result.FileId
+                    AniDbFileId = fileId
                 });
             else
                 _context.HangingEpisodeFileXrefs.Add(new HangingEpisodeFileXref
                 {
                     AniDbEpisodeId = rel,
-                    AniDbFileId = result.FileId
+                    AniDbFileId = fileId
                 });
     }
 
