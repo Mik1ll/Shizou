@@ -189,27 +189,24 @@ public class ProcessCommand : Command<ProcessArgs>
             else
                 _context.Entry(file.AniDbGroup).State = EntityState.Added;
 
-        if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == file.Id) is { } eFileWatchedState)
+        if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == file.Id) is var eFileWatchedState && eFileWatchedState is not null)
             _context.Entry(eFileWatchedState).CurrentValues.SetValues(file.FileWatchedState);
         else
             _context.Entry(file.FileWatchedState).State = EntityState.Added;
-    }
 
-    private void ReplaceManualLink(AniDbFile file, FileWatchedState fileWatchedState)
-    {
-        if (_context.LocalFiles.FirstOrDefault(lf => lf.Ed2k == file.Ed2k) is { } eLocalFile)
+        if (_context.LocalFiles.Include(lf => lf.ManualLinkEpisode)
+                .ThenInclude(ep => ep!.EpisodeWatchedState)
+                .FirstOrDefault(lf => lf.Ed2k == file.Ed2k) is { } eLocalFile)
         {
             eLocalFile.AniDbFileId = file.Id;
-            if (eLocalFile.ManualLinkEpisodeId is not null)
+            if (eLocalFile.ManualLinkEpisode is not null)
             {
                 _logger.LogInformation("Replacing manual link from local file {LocalId} with episode {EpisodeId} with file relation", eLocalFile.Id,
                     eLocalFile.ManualLinkEpisodeId);
                 eLocalFile.ManualLinkEpisodeId = null;
-                if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == eLocalFile.ManualLinkEpisodeId) is { } eEpisodeWatchedState)
-                {
-                    fileWatchedState.Watched = eEpisodeWatchedState.Watched;
-                    fileWatchedState.WatchedUpdated = eEpisodeWatchedState.WatchedUpdated;
-                }
+                var fws = eFileWatchedState ?? file.FileWatchedState;
+                fws.Watched = eLocalFile.ManualLinkEpisode.EpisodeWatchedState.Watched;
+                fws.WatchedUpdated = DateTime.UtcNow;
             }
         }
     }
