@@ -37,12 +37,12 @@ public partial class FileCard
 
     protected override void OnParametersSet()
     {
-        if (LocalFile.ImportFolder is null || !File.Exists(Path.Combine(LocalFile.ImportFolder.Path, LocalFile.PathTail)))
-            throw new ArgumentException(nameof(LocalFile.ImportFolder));
+        if (LocalFile.ImportFolder is null)
+            throw new ArgumentNullException(nameof(LocalFile.ImportFolder));
         if (LocalFile.AniDbFile is null && LocalFile.ManualLinkEpisode is null)
             throw new ArgumentException("Must have either AniDb file or Manual Link");
         if (LocalFile.AniDbFile?.FileWatchedState is null && LocalFile.ManualLinkEpisode?.EpisodeWatchedState is null)
-            throw new ArgumentException(nameof(IWatchedState));
+            throw new ArgumentNullException(nameof(IWatchedState));
         _watchedState = (IWatchedState?)LocalFile.AniDbFile?.FileWatchedState ?? LocalFile.ManualLinkEpisode!.EpisodeWatchedState;
     }
 
