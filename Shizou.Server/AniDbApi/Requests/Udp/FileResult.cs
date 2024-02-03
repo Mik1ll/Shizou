@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Shizou.Data.Enums;
@@ -7,6 +8,7 @@ using Shizou.Data.Extensions;
 
 namespace Shizou.Server.AniDbApi.Requests.Udp;
 
+[SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
 public sealed record FileResult
 {
     public const AMaskFile ResultAMaskFile = AMaskFile.GroupName | AMaskFile.GroupNameShort;
