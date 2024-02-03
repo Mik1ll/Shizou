@@ -29,4 +29,7 @@ public static class StringExtensions
     public static string TrimStart(this string str, string value) => !string.IsNullOrEmpty(value) && str.StartsWith(value) ? str.Remove(0, value.Length) : str;
 
     public static string? NullIfWhitespace(this string str) => string.IsNullOrWhiteSpace(str) ? null : str;
+
+    public static string TruncateWithSuffix(this string str, int length, string suffix) =>
+        str.Length > length ? str.Substring(0, length).TrimEnd() + suffix : str;
 }
