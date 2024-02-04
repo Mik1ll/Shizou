@@ -118,6 +118,7 @@ public class ShizouOptions
 }
 """;
     // @formatter:on
+    private static readonly object Lock = new();
 
     public ImportOptions Import { get; set; } = new();
 
@@ -128,10 +129,13 @@ public class ShizouOptions
 
     public void SaveToFile()
     {
-        Dictionary<string, object> json = new() { { "$schema", Path.GetFileName(FilePaths.SchemaPath) }, { Shizou, this } };
-        var jsonSettings = JsonSerializer.Serialize(json,
-            new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true, Converters = { new JsonStringEnumConverter() } });
-        File.WriteAllText(FilePaths.OptionsPath, jsonSettings);
+        lock (Lock)
+        {
+            Dictionary<string, object> json = new() { { "$schema", Path.GetFileName(FilePaths.SchemaPath) }, { Shizou, this } };
+            var jsonSettings = JsonSerializer.Serialize(json,
+                new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true, Converters = { new JsonStringEnumConverter() } });
+            File.WriteAllText(FilePaths.OptionsPath, jsonSettings);
+        }
     }
 }
 
