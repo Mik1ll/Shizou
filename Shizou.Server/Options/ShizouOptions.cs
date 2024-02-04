@@ -77,21 +77,21 @@ public class ShizouOptions
                                 "{{nameof(AniDb.MyList.AbsentFileState)}}": {
                                     "description": "State to mark files if they are not present in local collection",
                                     "enum": [
-                                        "Unknown",
-                                        "Internal",
-                                        "External",
-                                        "Deleted",
-                                        "Remote"
+                                        "{{nameof(MyListState.Unknown)}}",
+                                        "{{nameof(MyListState.Internal)}}",
+                                        "{{nameof(MyListState.External)}}",
+                                        "{{nameof(MyListState.Deleted)}}",
+                                        "{{nameof(MyListState.Remote)}}"
                                     ]
                                 },
                                 "{{nameof(AniDb.MyList.PresentFileState)}}": {
                                     "description": "State to mark files if they are present in local collection",
                                     "enum": [
-                                        "Unknown",
-                                        "Internal",
-                                        "External",
-                                        "Deleted",
-                                        "Remote"
+                                        "{{nameof(MyListState.Unknown)}}",
+                                        "{{nameof(MyListState.Internal)}}",
+                                        "{{nameof(MyListState.External)}}",
+                                        "{{nameof(MyListState.Deleted)}}",
+                                        "{{nameof(MyListState.Remote)}}"
                                     ]
                                 }
                             }
