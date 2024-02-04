@@ -4,31 +4,28 @@
     <ul class="list-group list-group-flush">
         <li class="list-group-item">
             <div class="d-flex justify-content-between">
-                <div>
-                    <button class="btn btn-primary me-2" type="button" @onclick="@(() => OpenVideoAsync(LocalFile.Id))">
-                        <i class="bi bi-play"></i> Play
+                <div class="btn-group">
+                    <button class="btn btn-success mb-1" type="button" @onclick="@(() => OpenVideoAsync(LocalFile.Id))">
+                        <i class="bi bi-play-fill"></i>
                     </button>
-                    <a class="btn btn-primary me-2" href="@(GetExternalPlaylistUri(true))">
-                        <i class="bi bi-play"></i> Play External
-                    </a>
-                    <a class="btn btn-primary me-2" href="@(GetExternalPlaylistUri(false))">
-                        <i class="bi bi-play"></i> Play External Playlist
+                    <a class="btn btn-success me-2 mb-1" type="button" href="@(GetExternalPlaylistUri(true))">
+                        <i class="bi bi-cast"></i>
                     </a>
                 </div>
                 <div>
                     @if (LocalFile.AniDbFile is null)
                     {
-                        <button class="btn btn-outline-danger" @onclick="@(() => UnlinkAsync(LocalFile))">
+                        <button class="btn btn-outline-danger me-2 mb-1" type="button" @onclick="@(() => UnlinkAsync(LocalFile))">
                             <i class="bi bi-slash-circle"></i> Unlink File
                         </button>
                     }
-                    <button class="btn btn-primary me-2" type="button" @onclick="@(() => CommandService.Dispatch(new HashArgs(Path.Combine(LocalFile.ImportFolder!.Path, LocalFile.PathTail))))">
+                    <button class="btn btn-primary me-2 mb-1" type="button" @onclick="@(() => CommandService.Dispatch(new HashArgs(Path.Combine(LocalFile.ImportFolder!.Path, LocalFile.PathTail))))">
                         <i class="bi bi-hash"></i> Rehash
                     </button>
-                    <button class="btn btn-primary me-2" type="button" @onclick="@(() => CommandService.Dispatch(new ProcessArgs(LocalFile.Id, IdTypeLocalOrFile.LocalId)))">
+                    <button class="btn btn-primary me-2 mb-1" type="button" @onclick="@(() => CommandService.Dispatch(new ProcessArgs(LocalFile.Id, IdTypeLocalOrFile.LocalId)))">
                         <i class="bi bi-hash"></i> Rescan
                     </button>
-                    <button type="button" class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2" @onclick="@(async () => await MarkAsync(!_watchedState.Watched))">
+                    <button type="button" class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2 mb-1" @onclick="@(async () => await MarkAsync(!_watchedState.Watched))">
                         <i class="bi @(_watchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
                     </button>
                 </div>
