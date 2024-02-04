@@ -54,6 +54,6 @@ public class Images : ControllerBase
         if (_imageService.GetEpisodeThumbnail(episodeId) is not { Exists: true } thumbnail)
             return TypedResults.NotFound();
         _contentTypeProvider.TryGetContentType(thumbnail.Name, out var mimeType);
-        return TypedResults.PhysicalFile(thumbnail.FullName, mimeType, $"thumb_{thumbnail.Name}");
+        return TypedResults.PhysicalFile(thumbnail.FullName, mimeType, thumbnail.Name);
     }
 }
