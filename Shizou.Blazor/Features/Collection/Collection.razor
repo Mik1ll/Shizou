@@ -2,7 +2,7 @@
 
 <FilterOffcanvas FilterId="@FilterId" Sort="@_sort" Descending="@Descending"></FilterOffcanvas>
 <PageTitle>Collection</PageTitle>
-<article class="container-fluid">
+<main class="container-fluid">
     <div class="row row-cols-md-2 row-cols-xl-3 justify-content-center mb-2">
         <LiveSearchBox GetResults="@GetSearchResultsAsync" OnResultsRetrieved="@SetSearchResults" ShowSelect="false" PlaceholderText="Search Anime..."></LiveSearchBox>
     </div>
@@ -12,4 +12,4 @@
             <AnimeCard @key="@(anime.Id)" AniDbAnime="@anime"></AnimeCard>
         }
     </div>
-</article>
+</main>

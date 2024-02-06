@@ -1,10 +1,10 @@
-﻿<header class="top-row navbar navbar-expand-md bg-secondary z-3 sticky-top">
-    <nav class="container-fluid">
-        <a class="navbar-brand" href="">Shizou</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="@ToggleNavMenu">
+﻿<nav class="navbar navbar-expand-md bg-secondary mb-4 sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Shizou</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="@ToggleCollapse">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="navbar-collapse @NavMenuCssClass bg-secondary" @onclick="@ToggleNavMenu">
+        <div class="navbar-collapse collapse @NavMenuCssClass bg-secondary mt-2 mt-md-0" @onclick="@ToggleCollapse">
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 <li class="nav-item">
                     <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
@@ -29,23 +29,12 @@
                         <span class="d-md-none">&nbsp;Toggle Theme</span>
                     </button>
                 </li>
-                <AuthorizeView>
-                    <Authorized>
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="Account/Logout" Match="NavLinkMatch.All">
-                                <i class="bi bi-box-arrow-left" aria-hidden="true"></i> Logout
-                            </NavLink>
-                        </li>
-                    </Authorized>
-                    <NotAuthorized>
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="Account/Login" Match="NavLinkMatch.All">
-                                <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Login
-                            </NavLink>
-                        </li>
-                    </NotAuthorized>
-                </AuthorizeView>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="Account/Logout" Match="NavLinkMatch.All">
+                        <i class="bi bi-box-arrow-left" aria-hidden="true"></i> Logout
+                    </NavLink>
+                </li>
             </ul>
         </div>
-    </nav>
-</header>
+    </div>
+</nav>

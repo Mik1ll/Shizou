@@ -5,10 +5,10 @@ namespace Shizou.Blazor.Features;
 
 public partial class NavMenu
 {
-    private bool _collapseNavMenu = true;
+    private bool _collapsed = true;
     private bool _isDarkMode = false;
 
-    private string? NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
+    private string? NavMenuCssClass => _collapsed ? null : "show";
 
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
@@ -19,9 +19,9 @@ public partial class NavMenu
         await base.OnInitializedAsync();
     }
 
-    private void ToggleNavMenu()
+    private void ToggleCollapse()
     {
-        _collapseNavMenu = !_collapseNavMenu;
+        _collapsed = !_collapsed;
     }
 
     private async Task ToggleDarkModeAsync()
