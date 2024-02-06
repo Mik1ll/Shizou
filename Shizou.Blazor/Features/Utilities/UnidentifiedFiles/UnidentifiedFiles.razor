@@ -2,7 +2,7 @@
 @using Shizou.Data.Models
 <PageTitle>Unidentified Files</PageTitle>
 
-<article class="container-fluid">
+<div class="container-fluid">
     <div class="d-flex mb-2 gap-2 align-items-center">
         <button type="button" class="btn btn-primary" @onclick="@(() => ScanFiles(_localFiles))">
             <i class="bi bi-search"></i> Scan All
@@ -62,6 +62,7 @@
                                 <i class="bi bi-circle"></i> Unignore
                             </button>
                         }
+
                         <button type="button" class="btn btn-primary" @onclick="@(async () => await CreateManualLinkAsync(_selectedFiles))">
                             <i class="bi bi-link"></i> Manually Link
                         </button>
@@ -94,4 +95,4 @@
             </div>
         </div>
     </div>
-</article>
+</div>
