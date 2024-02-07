@@ -1,6 +1,4 @@
-﻿@using Shizou.Data.Extensions
-@using Shizou.Server.Services
-<Offcanvas Direction="@(OffcanvasDirection.End)">
+﻿<Offcanvas Direction="@(OffcanvasDirection.End)">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title">Filtering and Sorting</h5>
     </div>
@@ -38,19 +36,5 @@
             </EditForm>
             <CriteriaPicker Filter="@_editingFilter"></CriteriaPicker>
         }
-        <div class="input-group mt-2">
-            <select class="form-select" @onchange="@OnSortSelect">
-                @foreach (var sort in Enum.GetValues<AnimeSort>())
-                {
-                    <option value="@sort" selected="@(Sort == sort)">@(sort.ToString().UpperCaseSpaced())</option>
-                }
-            </select>
-            <div class="input-group-text">
-                <label>
-                    Descending:
-                    <InputCheckbox Value="@Descending" ValueChanged="OnSortDirectionChanged" ValueExpression="@(() => Descending)"></InputCheckbox>
-                </label>
-            </div>
-        </div>
     </div>
 </Offcanvas>

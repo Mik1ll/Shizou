@@ -17,6 +17,9 @@ public partial class Collection
     [Inject]
     private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
 
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
     [Parameter]
     [SupplyParameterFromQuery]
     public int? FilterId { get; set; }
@@ -49,5 +52,30 @@ public partial class Collection
             : (from res in results
                 join a in _anime on res.Item1 equals a.Id
                 select a).ToList();
+    }
+
+
+    private void OnSortSelect(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<AnimeSort>((string)e.Value!, out var sort))
+            NavigateToSort(sort);
+        else
+            NavigateToSort(null);
+    }
+
+    private void NavigateToSort(AnimeSort? sort)
+    {
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int?)sort));
+    }
+
+
+    private void OnSortDirectionChanged()
+    {
+        NavigateToSortDirection(!Descending);
+    }
+
+    private void NavigateToSortDirection(bool descending)
+    {
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Descending), descending));
     }
 }

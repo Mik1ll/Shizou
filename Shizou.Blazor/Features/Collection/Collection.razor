@@ -1,10 +1,27 @@
 ﻿@page "/Collection"
+@using Shizou.Data.Extensions
+@using Shizou.Server.Services
 
-<FilterOffcanvas FilterId="@FilterId" Sort="@_sort" Descending="@Descending"></FilterOffcanvas>
+<FilterOffcanvas FilterId="@FilterId"></FilterOffcanvas>
 <PageTitle>Collection</PageTitle>
 <main class="container-fluid">
-    <div class="row row-cols-md-2 row-cols-xl-3 justify-content-center mb-2">
-        <LiveSearchBox GetResults="@GetSearchResultsAsync" OnResultsRetrieved="@SetSearchResults" ShowSelect="false" PlaceholderText="Search Anime..."></LiveSearchBox>
+    <div class="row justify-content-end mb-2">
+        <div class="col-auto">
+            <LiveSearchBox GetResults="@GetSearchResultsAsync" OnResultsRetrieved="@SetSearchResults" ShowSelect="false" PlaceholderText="Search Anime..."></LiveSearchBox>
+        </div>
+        <div class="col-auto">
+            <div class="input-group">
+                <select class="form-select" @onchange="@OnSortSelect">
+                    @foreach (var sort in Enum.GetValues<AnimeSort>())
+                    {
+                        <option value="@sort" selected="@(_sort == sort)">@(sort.ToString().UpperCaseSpaced())</option>
+                    }
+                </select>
+                <button type="button" class="btn btn-outline-secondary" @onclick="@OnSortDirectionChanged">
+                    <i class="bi @(Descending ? "bi-arrow-down" : "bi-arrow-up")"></i>
+                </button>
+            </div>
+        </div>
     </div>
     <div class="d-flex flex-wrap justify-content-center">
         @foreach (var anime in _animeSearchResults ?? _anime)

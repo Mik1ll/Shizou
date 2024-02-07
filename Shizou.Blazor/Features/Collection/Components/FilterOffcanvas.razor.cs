@@ -3,7 +3,6 @@ using Shizou.Blazor.Services;
 using Shizou.Data.Database;
 using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
-using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Collection.Components;
 
@@ -25,14 +24,6 @@ public partial class FilterOffcanvas
     [EditorRequired]
     public int? FilterId { get; set; }
 
-    [Parameter]
-    [EditorRequired]
-    public AnimeSort Sort { get; set; }
-
-    [Parameter]
-    [EditorRequired]
-    public bool Descending { get; set; }
-
     protected override void OnInitialized()
     {
         RefreshFilters();
@@ -44,19 +35,6 @@ public partial class FilterOffcanvas
             NavigateToFilter(id);
         else
             NavigateToFilter(null);
-    }
-
-    private void OnSortSelect(ChangeEventArgs e)
-    {
-        if (Enum.TryParse<AnimeSort>((string)e.Value!, out var sort))
-            NavigateToSort(sort);
-        else
-            NavigateToSort(null);
-    }
-
-    private void NavigateToSort(AnimeSort? sort)
-    {
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.Sort), (int?)sort));
     }
 
     private void NavigateToFilter(int? id)
@@ -108,15 +86,5 @@ public partial class FilterOffcanvas
         }
 
         _editingFilter = _filters.First(f => f.Id == FilterId);
-    }
-
-    private void OnSortDirectionChanged(bool descending)
-    {
-        NavigateToSortDirection(descending);
-    }
-
-    private void NavigateToSortDirection(bool descending)
-    {
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.Descending), descending));
     }
 }
