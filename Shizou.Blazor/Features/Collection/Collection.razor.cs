@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Shizou.Blazor.Features.Collection.Components;
+using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
 
@@ -9,7 +11,10 @@ public partial class Collection
 {
     private List<AniDbAnime> _anime = default!;
     private List<AniDbAnime>? _animeSearchResults;
+    private List<AnimeFilter> _filters = default!;
+    private AnimeFilter? _filter;
     private AnimeSort _sort;
+    private FilterOffcanvas _filterOffcanvas = default!;
 
     [Inject]
     private AnimeService AnimeService { get; set; } = default!;
@@ -19,6 +24,9 @@ public partial class Collection
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
+
+    [Inject]
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [Parameter]
     [SupplyParameterFromQuery]
@@ -36,6 +44,7 @@ public partial class Collection
     {
         _sort = Sort is null ? default : Enum.Parse<AnimeSort>(Sort);
         RefreshAnime();
+        RefreshFilters();
     }
 
     private void RefreshAnime()
@@ -57,25 +66,39 @@ public partial class Collection
 
     private void OnSortSelect(ChangeEventArgs e)
     {
-        if (Enum.TryParse<AnimeSort>((string)e.Value!, out var sort))
-            NavigateToSort(sort);
-        else
-            NavigateToSort(null);
-    }
-
-    private void NavigateToSort(AnimeSort? sort)
-    {
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int?)sort));
+        NavigationManager.NavigateTo(Enum.TryParse<AnimeSort>((string)e.Value!, out var sort)
+            ? NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int?)sort)
+            : NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int?)null));
     }
 
 
     private void OnSortDirectionChanged()
     {
-        NavigateToSortDirection(!Descending);
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Descending), !Descending));
     }
 
-    private void NavigateToSortDirection(bool descending)
+
+    private void RefreshFilters()
     {
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Descending), descending));
+        using var context = ContextFactory.CreateDbContext();
+        _filters = context.AnimeFilters.ToList();
+        _filter = _filters.FirstOrDefault(f => f.Id == FilterId);
+    }
+
+    private void OnFilterSelect(ChangeEventArgs e)
+    {
+        NavigationManager.NavigateTo(int.TryParse((string)e.Value!, out var id)
+            ? NavigationManager.GetUriWithQueryParameter(nameof(FilterId), (int?)id)
+            : NavigationManager.GetUriWithQueryParameter(nameof(FilterId), (int?)null));
+    }
+
+    private async Task EditFilterAsync()
+    {
+        await _filterOffcanvas.OpenAsync(_filter?.Id);
+    }
+
+    private async Task CreateFilterAsync()
+    {
+        await _filterOffcanvas.OpenAsync();
     }
 }

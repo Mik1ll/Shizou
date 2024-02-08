@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Shizou.Blazor.Features.Components;
 using Shizou.Blazor.Services;
 using Shizou.Data.Database;
 using Shizou.Data.FilterCriteria;
@@ -8,8 +9,8 @@ namespace Shizou.Blazor.Features.Collection.Components;
 
 public partial class FilterOffcanvas
 {
-    private List<AnimeFilter> _filters = default!;
-    private AnimeFilter? _editingFilter;
+    private Offcanvas _offcanvas = default!;
+    private AnimeFilter? _filter = default!;
 
     [Inject]
     private IShizouContextFactory ContextFactory { get; set; } = default!;
@@ -20,21 +21,23 @@ public partial class FilterOffcanvas
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
-    [Parameter]
-    [EditorRequired]
-    public int? FilterId { get; set; }
-
-    protected override void OnInitialized()
+    public async Task OpenAsync(int? filterId = null)
     {
-        RefreshFilters();
-    }
-
-    private void OnFilterSelect(ChangeEventArgs e)
-    {
-        if (int.TryParse((string)e.Value!, out var id))
-            NavigateToFilter(id);
+        if (filterId is null)
+        {
+            _filter = new AnimeFilter
+            {
+                Name = "New Filter",
+                Criteria = new OrAnyCriterion([])
+            };
+        }
         else
-            NavigateToFilter(null);
+        {
+            using var context = ContextFactory.CreateDbContext();
+            _filter = context.AnimeFilters.FirstOrDefault(f => f.Id == filterId);
+        }
+
+        await _offcanvas.OpenAsync();
     }
 
     private void NavigateToFilter(int? id)
@@ -42,49 +45,27 @@ public partial class FilterOffcanvas
         NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.FilterId), id));
     }
 
-    private void RefreshFilters()
+    private async Task SaveFilterAsync()
     {
-        using var context = ContextFactory.CreateDbContext();
-        _filters = context.AnimeFilters.ToList();
-    }
-
-    private void CreateFilter()
-    {
-        _editingFilter = new AnimeFilter
-        {
-            Name = "New Filter",
-            Criteria = new OrAnyCriterion(new List<AndAllCriterion>())
-        };
-    }
-
-    private void SaveFilter()
-    {
-        if (_editingFilter is null)
+        if (_filter is null)
         {
             ToastService.ShowError("Filter Error", "No filter was being edited when trying to save filter");
             return;
         }
 
         using var context = ContextFactory.CreateDbContext();
-        var eFilter = context.AnimeFilters.FirstOrDefault(f => f.Id == FilterId);
+        var eFilter = context.AnimeFilters.FirstOrDefault(f => f.Id == _filter.Id);
         if (eFilter is not null)
-            context.Entry(eFilter).CurrentValues.SetValues(_editingFilter);
+            context.Entry(eFilter).CurrentValues.SetValues(_filter);
         else
-            context.AnimeFilters.Add(_editingFilter);
+            context.AnimeFilters.Add(_filter);
         context.SaveChanges();
-        RefreshFilters();
-        NavigateToFilter(_editingFilter?.Id);
-        _editingFilter = null;
+        NavigateToFilter(_filter.Id);
+        await CloseAsync();
     }
 
-    private void EditFilter()
+    private async Task CloseAsync()
     {
-        if (FilterId is null)
-        {
-            ToastService.ShowError("Filter Error", "No filter selected when trying to edit filter");
-            return;
-        }
-
-        _editingFilter = _filters.First(f => f.Id == FilterId);
+        await _offcanvas.CloseAsync();
     }
 }

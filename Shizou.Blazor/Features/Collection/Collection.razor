@@ -2,7 +2,7 @@
 @using Shizou.Data.Extensions
 @using Shizou.Server.Services
 
-<FilterOffcanvas FilterId="@FilterId"></FilterOffcanvas>
+<FilterOffcanvas @ref="@(_filterOffcanvas)"></FilterOffcanvas>
 <PageTitle>Collection</PageTitle>
 <main class="container-fluid">
     <div class="row justify-content-end mb-2">
@@ -20,6 +20,22 @@
                 <button type="button" class="btn btn-outline-secondary" @onclick="@OnSortDirectionChanged">
                     <i class="bi @(Descending ? "bi-arrow-down" : "bi-arrow-up")"></i>
                 </button>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="input-group">
+                <select class="form-select" @onchange="@OnFilterSelect">
+                    <option value="">All</option>
+                    @foreach (var filter in _filters)
+                    {
+                        <option value="@(filter.Id)" selected="@(FilterId == filter.Id)">@(filter.Name)</option>
+                    }
+                </select>
+                @if (FilterId is not null)
+                {
+                    <button type="button" class="btn btn-primary" @onclick="@EditFilterAsync">Edit Filter</button>
+                }
+                <button type="button" class="btn btn-success" @onclick="@CreateFilterAsync">New Filter</button>
             </div>
         </div>
     </div>

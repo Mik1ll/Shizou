@@ -1,40 +1,20 @@
-﻿<Offcanvas Direction="@(OffcanvasDirection.End)">
+﻿<Offcanvas @ref="@_offcanvas" Direction="@(OffcanvasDirection.End)" UseButton="false">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title">Filtering and Sorting</h5>
+        <h5 class="offcanvas-title">Edit Filter</h5>
     </div>
     <div class="offcanvas-body">
-        @if (_editingFilter is null)
-        {
-            <div class="input-group">
-                <select class="form-select" @onchange="@OnFilterSelect">
-                    <option value="">All</option>
-                    @foreach (var filter in _filters)
-                    {
-                        <option value="@(filter.Id)" selected="@(FilterId == filter.Id)">@(filter.Name)</option>
-                    }
-                </select>
-                @if (FilterId is not null)
-                {
-                    <button type="button" class="btn btn-primary" @onclick="@EditFilter">Edit Filter</button>
-                }
-                <button type="button" class="btn btn-success" @onclick="@CreateFilter">New Filter</button>
-            </div>
-        }
-        else
-        {
-            <EditForm Model="@_editingFilter" OnValidSubmit="@SaveFilter">
-                <DataAnnotationsValidator/>
-                <div class="mb-3">
-                    <div class="form-floating mb-1">
-                        <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_editingFilter.Name)"></InputText>
-                        <label for="nameInput">Name</label>
-                    </div>
-                    <ValidationMessage For="@(() => _editingFilter.Name)"></ValidationMessage>
+        <EditForm Model="@_filter" OnValidSubmit="@SaveFilterAsync">
+            <DataAnnotationsValidator/>
+            <div class="mb-3">
+                <div class="form-floating mb-1">
+                    <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_filter!.Name)"></InputText>
+                    <label for="nameInput">Name</label>
                 </div>
-                <button type="button" class="btn btn-outline-danger mb-3" @onclick="@(() => _editingFilter = null)">Cancel</button>
-                <button type="submit" class="btn btn-success mb-3">Save</button>
-            </EditForm>
-            <CriteriaPicker Filter="@_editingFilter"></CriteriaPicker>
-        }
+                <ValidationMessage For="@(() => _filter.Name)"></ValidationMessage>
+            </div>
+            <button type="button" class="btn btn-outline-danger mb-3" @onclick="@CloseAsync">Cancel</button>
+            <button type="submit" class="btn btn-success mb-3">Save</button>
+        </EditForm>
+        <CriteriaPicker Filter="@_filter"></CriteriaPicker>
     </div>
 </Offcanvas>

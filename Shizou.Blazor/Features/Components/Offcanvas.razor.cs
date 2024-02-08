@@ -34,22 +34,41 @@ public partial class Offcanvas
     public OffcanvasDirection Direction { get; set; }
 
     [Parameter]
+    [EditorRequired]
+    public bool UseButton { get; set; }
+
+    [Parameter]
     public RenderFragment ChildContent { get; set; } = default!;
 
-    private async Task ToggleAsync()
+    public async Task ToggleAsync()
     {
-        _open = !_open;
         if (_open)
+            await CloseAsync();
+        else
+            await OpenAsync();
+    }
+
+    public async Task OpenAsync()
+    {
+        if (!_open)
         {
+            _open = true;
+            StateHasChanged();
             _displayClass = "showing";
             await Task.Delay(150);
             _displayClass = "show";
+            StateHasChanged();
         }
-        else
+    }
+
+    public async Task CloseAsync()
+    {
+        if (_open)
         {
             _displayClass = "hiding";
             await Task.Delay(300);
             _displayClass = string.Empty;
+            _open = false;
         }
     }
 }
