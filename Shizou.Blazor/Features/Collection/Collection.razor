@@ -5,11 +5,11 @@
 <FilterOffcanvas @ref="@(_filterOffcanvas)"></FilterOffcanvas>
 <PageTitle>Collection</PageTitle>
 <main class="container-fluid">
-    <div class="row justify-content-end mb-2">
-        <div class="col-auto">
+    <div class="row justify-content-center mb-2">
+        <div class="col-auto m-1">
             <LiveSearchBox GetResults="@GetSearchResultsAsync" OnResultsRetrieved="@SetSearchResults" ShowSelect="false" PlaceholderText="Search Anime..."></LiveSearchBox>
         </div>
-        <div class="col-auto">
+        <div class="col-auto m-1">
             <div class="input-group">
                 <select class="form-select" @onchange="@OnSortSelect">
                     @foreach (var sort in Enum.GetValues<AnimeSort>())
@@ -22,7 +22,7 @@
                 </button>
             </div>
         </div>
-        <div class="col-auto">
+        <div class="col-auto m-1">
             <div class="input-group">
                 <select class="form-select" @onchange="@OnFilterSelect">
                     <option value="">All</option>
