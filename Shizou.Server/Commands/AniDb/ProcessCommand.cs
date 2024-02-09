@@ -126,7 +126,7 @@ public class ProcessCommand : Command<ProcessArgs>
         UpdateAniDb(result);
 
         // Dispatch after updating db to minimize conflict with xref creation
-        if (!_context.AniDbAnimes.Any(a => a.Id == result.AnimeId))
+        if (!_context.AniDbAnimes.Any(a => a.Id == result.AnimeId) || !_context.AniDbEpisodes.Any(ep => ep.Id == result.EpisodeId))
             _commandService.Dispatch(new AnimeArgs(result.AnimeId));
 
         Completed = true;
