@@ -1,5 +1,5 @@
 ﻿.anime-card {
-    height: 25vh;
+    max-height: 35vh;
     min-height: 12rem;
     max-width: 35vw;
     min-width: 10rem;
