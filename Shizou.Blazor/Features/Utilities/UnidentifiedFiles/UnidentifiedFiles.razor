@@ -2,7 +2,7 @@
 @using Shizou.Data.Models
 <PageTitle>Unidentified Files</PageTitle>
 
-<div class="container-fluid">
+<div class="container-md">
     <div class="d-flex mb-2 gap-2 align-items-center">
         <button type="button" class="btn btn-primary" @onclick="@(() => ScanFiles(_localFiles))">
             <i class="bi bi-search"></i> Scan All
@@ -16,11 +16,11 @@
     </div>
     <div class="row">
         <div class="col overflow-auto">
-            <SelectTable TValue="@LocalFile" OnChange="@OnSelectChanged" class="table table-hover" style="min-width: 50rem">
+            <SelectTable TValue="@LocalFile" OnChange="@OnSelectChanged" class="table table-hover">
                 <thead>
                 <tr>
                     <th>Folder</th>
-                    <th class="absorbing-column" style="min-width: 40%">Name</th>
+                    <th class="absorbing-column">Name</th>
                 </tr>
                 </thead>
                 <tbody>
