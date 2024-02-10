@@ -27,7 +27,7 @@
                 @foreach (var (file, idx) in _localFiles.Select((file, idx) => (file, idx)))
                 {
                     <SelectRow @key="@file" TValue="@LocalFile" Index="@idx" Value="@file" class="@(file.Ignored ? "ignored-file" : "")">
-                        <td>@(file.ImportFolder!.Path)</td>
+                        <td>@(Path.GetDirectoryName(Path.Combine(file.ImportFolder!.Path, file.PathTail)))</td>
                         <td>@(Path.GetFileName(file.PathTail))</td>
                     </SelectRow>
                 }
