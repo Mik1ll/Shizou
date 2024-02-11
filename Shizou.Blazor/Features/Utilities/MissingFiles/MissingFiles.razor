@@ -1,30 +1,31 @@
 ﻿@page "/MissingFiles"
-@using Shizou.Data.Models
 <PageTitle>Missing Files</PageTitle>
 
 <div class="container-md">
-    <div class="row mb-2 gap-2">
-        <button type="button" class="btn btn-primary" @onclick="@(() => RemoveMissing(_localFiles))">
+    <div class="d-flex mb-2 gap-2">
+        <button type="button" class="btn btn-primary" @onclick="@RemoveMissing">
             <i class="bi bi-search"></i> Remove All
         </button>
     </div>
     <div class="row">
-        <SelectTable TValue="@LocalFile" OnChange="@OnSelectChanged" class="table table-hover">
-            <thead>
-            <tr>
-                <th>Folder</th>
-                <th class="absorbing-column">Name</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach (var (file, idx) in _localFiles.Select((file, idx) => (file, idx)))
-            {
-                <SelectRow @key="@file" TValue="@LocalFile" Index="@idx" Value="@file" class="@(file.Ignored ? "ignored-file" : "")">
-                    <td>@(Path.GetDirectoryName(Path.Combine(file.ImportFolder!.Path, file.PathTail)))</td>
-                    <td>@(Path.GetFileName(file.PathTail))</td>
-                </SelectRow>
-            }
-            </tbody>
-        </SelectTable>
+        <div class="col overflow-auto">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>Folder</th>
+                    <th class="absorbing-column">Name</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var file in _localFiles)
+                {
+                    <tr>
+                        <td>@(file.ImportFolder is null ? string.Empty : Path.GetDirectoryName(Path.Combine(file.ImportFolder.Path, file.PathTail)))</td>
+                        <td>@(Path.GetFileName(file.PathTail))</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
