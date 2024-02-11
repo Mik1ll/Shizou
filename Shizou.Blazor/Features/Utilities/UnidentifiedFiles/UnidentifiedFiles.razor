@@ -44,28 +44,30 @@
                     </h5>
                     @if (_selectedFiles.Count > 0)
                     {
-                        <button type="button" class="btn btn-primary" @onclick="@(() => ScanFiles(_selectedFiles))">
-                            <i class="bi bi-search"></i> Scan
-                        </button>
-                        <button type="button" class="btn btn-primary" @onclick="@(() => HashFiles(_selectedFiles))">
-                            <i class="bi bi-hash"></i> Hash
-                        </button>
-                        if (_selectedFiles.All(lf => lf.Ignored == false))
-                        {
-                            <button type="button" class="btn btn-primary" @onclick="@(() => SetIgnored(_selectedFiles, true))">
-                                <i class="bi bi-slash-circle"></i> Ignore
+                        <div class="d-flex gap-1">
+                            <button type="button" class="btn btn-primary" @onclick="@(() => ScanFiles(_selectedFiles))">
+                                <i class="bi bi-search"></i> Scan
                             </button>
-                        }
-                        else
-                        {
-                            <button type="button" class="btn btn-primary" @onclick="@(() => SetIgnored(_selectedFiles, false))">
-                                <i class="bi bi-circle"></i> Unignore
+                            <button type="button" class="btn btn-primary" @onclick="@(() => HashFiles(_selectedFiles))">
+                                <i class="bi bi-hash"></i> Hash
                             </button>
-                        }
+                            @if (_selectedFiles.All(lf => lf.Ignored == false))
+                            {
+                                <button type="button" class="btn btn-primary" @onclick="@(() => SetIgnored(_selectedFiles, true))">
+                                    <i class="bi bi-slash-circle"></i> Ignore
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-primary" @onclick="@(() => SetIgnored(_selectedFiles, false))">
+                                    <i class="bi bi-circle"></i> Unignore
+                                </button>
+                            }
 
-                        <button type="button" class="btn btn-primary" @onclick="@(async () => await CreateManualLinkAsync(_selectedFiles))">
-                            <i class="bi bi-link"></i> Manually Link
-                        </button>
+                            <button type="button" class="btn btn-primary" @onclick="@(async () => await CreateManualLinkAsync(_selectedFiles))">
+                                <i class="bi bi-link"></i> Manually Link
+                            </button>
+                        </div>
                     }
                     @if (_selectedFiles.Count == 1)
                     {
