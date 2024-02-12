@@ -16,7 +16,6 @@ public partial class NavMenu
     protected override async Task OnInitializedAsync()
     {
         _isDarkMode = await JsRuntime.InvokeAsync<string>("getTheme") == "dark";
-        await base.OnInitializedAsync();
     }
 
     private void ToggleCollapse()

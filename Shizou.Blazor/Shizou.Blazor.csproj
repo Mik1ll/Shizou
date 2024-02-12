@@ -19,6 +19,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.175" />
+        <PackageReference Include="WebEssentials.AspNetCore.PWA" Version="1.0.85" />
     </ItemGroup>
 
     <ItemGroup>

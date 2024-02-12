@@ -5,6 +5,7 @@ using Shizou.Blazor.Features;
 using Shizou.Blazor.Services;
 using Shizou.Data;
 using Shizou.Server.Extensions;
+using WebEssentials.AspNetCore.Pwa;
 
 Log.Logger = new LoggerConfiguration()
     .ConfigureSerilog()
@@ -17,6 +18,11 @@ var builder = WebApplication.CreateBuilder();
 builder.Services.AddRazorPages();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddProgressiveWebApp(new PwaOptions
+{
+    Strategy = ServiceWorkerStrategy.Minimal
+});
 
 builder.Services.AddCascadingAuthenticationState();
 
