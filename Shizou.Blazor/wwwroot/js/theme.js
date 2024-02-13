@@ -14,7 +14,13 @@ const setTheme = theme => {
     } else {
         document.documentElement.setAttribute('data-bs-theme', theme);
     }
-    document.querySelector('meta[name="theme-color"]').setAttribute('content', window.getComputedStyle(document.documentElement).getPropertyValue('--bs-secondary-bg'));
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (meta == null) {
+        meta = document.createElement('meta');
+        meta.setAttribute('name', 'theme-color');
+        document.getElementsByTagName('head')[0].appendChild(meta);
+    }
+    meta.setAttribute('content', window.getComputedStyle(document.documentElement).getPropertyValue('--bs-secondary-bg'));
 }
 function getTheme() {
     return document.documentElement.getAttribute("data-bs-theme") || "light";
@@ -26,4 +32,4 @@ function toggleTheme() {
     setTheme(theme);
     return theme;
 }
-setTheme(getPreferredTheme());
+window.onload = e => setTheme(getPreferredTheme());
