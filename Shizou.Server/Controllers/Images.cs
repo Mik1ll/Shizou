@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -39,11 +40,10 @@ public class Images : ControllerBase
     public Results<PhysicalFileHttpResult, NotFound> GetAnimePoster(int animeId)
     {
         var posterName = _context.AniDbAnimes.Where(a => a.Id == animeId).Select(a => a.ImageFilename).FirstOrDefault();
-        if (posterName is null)
+        if (posterName is null || new FileInfo(FilePaths.AnimePosterPath(posterName)) is not { Exists: true } poster)
             return TypedResults.NotFound();
-        var path = FilePaths.AnimePosterPath(posterName);
         _contentTypeProvider.TryGetContentType(posterName, out var mimeType);
-        return TypedResults.PhysicalFile(path, mimeType);
+        return TypedResults.PhysicalFile(poster.FullName, mimeType, poster.Name, poster.LastWriteTimeUtc);
     }
 
     [HttpGet("[action]/{episodeId:int}")]
@@ -54,6 +54,6 @@ public class Images : ControllerBase
         if (_imageService.GetEpisodeThumbnail(episodeId) is not { Exists: true } thumbnail)
             return TypedResults.NotFound();
         _contentTypeProvider.TryGetContentType(thumbnail.Name, out var mimeType);
-        return TypedResults.PhysicalFile(thumbnail.FullName, mimeType, thumbnail.Name);
+        return TypedResults.PhysicalFile(thumbnail.FullName, mimeType, thumbnail.Name, thumbnail.LastWriteTimeUtc);
     }
 }
