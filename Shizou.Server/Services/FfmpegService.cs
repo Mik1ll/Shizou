@@ -80,9 +80,10 @@ public class FfmpegService
         var fps = 3;
         var thumbnailWindow = 30;
         var height = 480;
+        var width = 854;
         process.StartInfo.Arguments =
             $"-v fatal -y -ss {duration * .4} -t {thumbnailWindow} -i \"{fileInfo.FullName}\" -map 0:V:0 " +
-            $"-vf \"fps={fps},select='min(eq(selected_n,0)+gt(scene,0.4),1)',thumbnail={thumbnailWindow * fps},scale=-2:{height}\" " +
+            $"-vf \"fps={fps},select='min(eq(selected_n,0)+gt(scene,0.4),1)',thumbnail={thumbnailWindow * fps},scale=-2:{height},crop={width}\" " +
             $"-frames:v 1 -pix_fmt yuv420p -c:v libwebp -compression_level 6 -preset drawing \"{outputPath}\"";
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
