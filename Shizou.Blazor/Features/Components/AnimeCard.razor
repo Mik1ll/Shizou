@@ -1,7 +1,7 @@
 ﻿@using Shizou.Data.Extensions
 @using Shizou.Server.Controllers
 <div class="card anime-card" role="button" @onclick="@(() => GoToAnime(AniDbAnime.Id))">
-    <img alt="@(AniDbAnime.TitleTranscription)" loading="lazy" class="card-img object-fit-contain h-100" src="@(LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId = AniDbAnime.Id }))">
+    <img alt="" loading="lazy" class="card-img object-fit-contain h-100" src="@(LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId = AniDbAnime.Id }))">
     <div class="card-img-overlay d-flex p-0 align-items-end">
         <div class="p-2 text-center text-white bg-black bg-opacity-50 w-100 overflow-hidden" style="text-shadow: 2px -1px 2px #000">
             @(AniDbAnime.TitleTranscription.TruncateWithSuffix(45, "..."))

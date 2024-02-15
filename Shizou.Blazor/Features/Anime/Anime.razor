@@ -11,7 +11,7 @@
                 @* ReSharper disable once RedundantAnonymousTypePropertyName *@
                 @if (_anime.ImageFilename is not null)
                 {
-                    <img src="@(LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId = AnimeId }))">
+                    <img alt="" src="@(LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId = AnimeId }))" class="rounded">
                 }
             </div>
             <div class="col-xl-3 col-lg-4 col-md-6 col-12 d-flex justify-content-start align-items-start">
