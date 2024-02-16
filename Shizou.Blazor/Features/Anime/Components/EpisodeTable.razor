@@ -1,7 +1,7 @@
-﻿<table class="table table-hover">
+﻿@using Shizou.Data.Extensions
+<table class="table table-hover">
     <thead>
     <tr>
-        <th>Ep</th>
         <th>Title</th>
         <th></th>
         <th class="text-end">Files</th>
@@ -13,24 +13,17 @@
     @foreach (var ep in _episodes)
     {
         <tr role="button" @onclick="@(() => ToggleEpExpand(ep))">
-            <td class="text-end">
-                @(ep.EpString)
-            </td>
             <td class="absorbing-column">
-                <div class="d-inline-flex">
-                    @if (_fileCounts[ep.Id] > 0)
-                    {
-                        <div class="d-inline-block align-self-center">
-                            <img loading="lazy" src="@(GetEpisodeThumbnailPath(ep.Id))" alt="" class="me-2 d-inline-block rounded" style="height: 5em"/>
-                        </div>
-                    }
-                    <div class="d-inline-block">
-                        <span class="text-body">@(ep.TitleTranscription ?? ep.TitleEnglish)</span><br/>
-                        <p class="text-body-secondary">
-                            <small>@(ep.Summary)</small>
-                        </p>
-                    </div>
-                </div>
+                <span class="text-body d-block">
+                    <strong>@(ep.EpString)</strong> &nbsp; @(ep.TitleTranscription ?? ep.TitleEnglish)
+                </span>
+                @if (_fileCounts[ep.Id] > 0)
+                {
+                    <img loading="lazy" src="@(GetEpisodeThumbnailPath(ep.Id))" alt="" class="me-2 rounded float-start" style="height: 5em"/>
+                }
+                <span class="text-body-secondary">
+                    <small>@(ep.Summary?.TruncateWithSuffix(200, "..."))</small>
+                </span>
             </td>
             <td>
                 @if (_watchedEps.Contains(ep.Id))
