@@ -26,7 +26,7 @@ public class Images : ControllerBase
         _contentTypeProvider = contentTypeProvider;
     }
 
-    [HttpPut("[action]")]
+    [HttpPut("MissingAnimePosters")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     public Ok GetMissingAnimePosters()
     {
@@ -34,7 +34,7 @@ public class Images : ControllerBase
         return TypedResults.Ok();
     }
 
-    [HttpGet("[action]/{animeId:int}")]
+    [HttpGet("AnimePosters/{animeId:int}")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<PhysicalFileHttpResult, NotFound> GetAnimePoster(int animeId)
@@ -46,7 +46,7 @@ public class Images : ControllerBase
         return TypedResults.PhysicalFile(poster.FullName, mimeType, poster.Name, poster.LastWriteTimeUtc);
     }
 
-    [HttpGet("[action]/{episodeId:int}")]
+    [HttpGet("EpisodeThumbnails/{episodeId:int}")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<PhysicalFileHttpResult, NotFound> GetEpisodeThumbnail(int episodeId)
