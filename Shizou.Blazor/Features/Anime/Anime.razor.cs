@@ -7,6 +7,7 @@ using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
+using Shizou.Server.Controllers;
 using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
 
@@ -20,6 +21,7 @@ public partial class Anime
     private EpisodeTable? _episodeTable;
     private List<(RelatedAnimeType, AniDbAnime)>? _relatedAnime;
     private string[] _splitDescription = default!;
+    private string _posterPath = default!;
 
     [Inject]
     private IShizouContextFactory ContextFactory { get; set; } = default!;
@@ -41,6 +43,7 @@ public partial class Anime
 
     protected override void OnInitialized()
     {
+        _posterPath = LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId }) ?? throw new ArgumentException();
         using var context = ContextFactory.CreateDbContext();
         _anime = context.AniDbAnimes
             .Include(a => a.MalAnimes)
