@@ -22,7 +22,7 @@
                     <i class="bi bi-hash"></i> Rehash
                 </button>
                 <button class="btn btn-primary me-1 mb-1" type="button" @onclick="@(() => CommandService.Dispatch(new ProcessArgs(LocalFile.Id, IdTypeLocalOrFile.LocalId)))">
-                    <i class="bi bi-hash"></i> Rescan
+                    <i class="bi bi-arrow-clockwise"></i> Rescan
                 </button>
                 <button type="button" class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-1 mb-1" @onclick="@(async () => await MarkAsync(!_watchedState.Watched))">
                     <i class="bi @(_watchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
@@ -36,22 +36,26 @@
                     {
                         @("Manual Link")
                     }
-                    else if (LocalFile.AniDbFile.AniDbGroup is not null)
-                    {
-                        <a href="https://anidb.net/group/@(LocalFile.AniDbFile.AniDbGroupId)" target="_blank">[@(LocalFile.AniDbFile.AniDbGroup.ShortName)]</a>
-                        <span>&nbsp;</span>
-                    }
                     else
                     {
-                        <span>No Group&nbsp;</span>
+                        <a class="bi bi-box-arrow-up-right" href="https://anidb.net/file/@(LocalFile.AniDbFileId)" target="_blank"></a>
+                        <text>&nbsp;</text>
+                        if (LocalFile.AniDbFile.AniDbGroup is not null)
+                        {
+                            <a href="https://anidb.net/group/@(LocalFile.AniDbFile.AniDbGroupId)" target="_blank">[@(LocalFile.AniDbFile.AniDbGroup.ShortName)]</a>
+                            <text>&nbsp;</text>
+                        }
+                        else
+                        {
+                            <text>No Group&nbsp;</text>
+                        }
                     }
                 </strong>
                 @if (LocalFile.AniDbFile?.Video is not null)
                 {
-                    <span>@(LocalFile.AniDbFile.Video.Height)x@(LocalFile.AniDbFile.Video.Width) @(LocalFile.AniDbFile.Video.ColorDepth)bit&nbsp;</span>
+                    <text>@($"{LocalFile.AniDbFile.Video.Height}x{LocalFile.AniDbFile.Video.Width} {LocalFile.AniDbFile.Video.ColorDepth}bit ")</text>
                 }
                 <strong>@(LocalFile.AniDbFile?.Source)</strong>
-                @(LocalFile.Crc)
             </span>
         </li>
         <li class="list-group-item">

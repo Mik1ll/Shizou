@@ -15,7 +15,8 @@
         <tr role="button" @onclick="@(() => ToggleEpExpand(ep))">
             <td class="absorbing-column">
                 <span class="text-body d-block">
-                    <strong>@(ep.EpString)</strong> &nbsp; @(ep.TitleTranscription ?? ep.TitleEnglish)
+                    <strong>@(ep.EpString)</strong> &nbsp; @(ep.TitleTranscription ?? ep.TitleEnglish) &nbsp;
+                    <a class="bi bi-box-arrow-up-right" href="https://anidb.net/episode/@(ep.Id)" target="_blank"></a>
                 </span>
                 @if (_fileCounts[ep.Id] > 0)
                 {
