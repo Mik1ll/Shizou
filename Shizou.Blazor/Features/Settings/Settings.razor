@@ -1,4 +1,5 @@
 ﻿@page "/Settings"
+@using Shizou.Data.Enums
 <PageTitle>Settings</PageTitle>
 
 <main class="container-md">
@@ -31,6 +32,44 @@
             <label class="form-label">
                 AniDB UDP Server Port
                 <InputNumber class="form-control" @bind-Value="@(_options.AniDb.UdpServerPort)"></InputNumber>
+            </label>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">
+                Anime relation fetch depth
+                <InputNumber class="form-control" @bind-Value="@(_options.AniDb.FetchRelationDepth)"></InputNumber>
+            </label>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">
+                Disable MyList Sync
+                <InputCheckbox class="form-check-inline" @bind-Value="@(_options.AniDb.MyList.DisableSync)"></InputCheckbox>
+            </label>
+        </div>
+        <div class="mb-2">
+            <label class="form-label me-3">
+                Present files state
+                <InputSelect class="form-select" @bind-Value="@(_options.AniDb.MyList.PresentFileState)">
+                    @foreach (var state in Enum.GetValues<MyListState>())
+                    {
+                        <option value="@state">@state</option>
+                    }
+                </InputSelect>
+            </label>
+            <label class="form-label">
+                Absent files state
+                <InputSelect class="form-select" @bind-Value="@(_options.AniDb.MyList.AbsentFileState)">
+                    @foreach (var state in Enum.GetValues<MyListState>())
+                    {
+                        <option value="@state">@state</option>
+                    }
+                </InputSelect>
+            </label>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">
+                MyAnimeList Client ID
+                <InputText class="form-control" @bind-Value="@(_options.MyAnimeList.ClientId)"></InputText>
             </label>
         </div>
         <button type="submit" class="btn btn-success">Save</button>
