@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Shizou.Data;
@@ -14,7 +16,7 @@ public class ShizouOptions
     public const string Shizou = "Shizou";
 
     // @formatter:off
-    public const string Schema = /*lang=json*/ $$"""
+    public static readonly string Schema = /*lang=json*/ $$"""
 {
     "$schema": "https://json-schema.org/draft-07/schema",
     "type": "object",
@@ -77,21 +79,13 @@ public class ShizouOptions
                                 "{{nameof(AniDb.MyList.AbsentFileState)}}": {
                                     "description": "State to mark files if they are not present in local collection",
                                     "enum": [
-                                        "{{nameof(MyListState.Unknown)}}",
-                                        "{{nameof(MyListState.Internal)}}",
-                                        "{{nameof(MyListState.External)}}",
-                                        "{{nameof(MyListState.Deleted)}}",
-                                        "{{nameof(MyListState.Remote)}}"
+                                        {{string.Join(',', Enum.GetNames<MyListState>().Select(n => '"' + n + '"'))}}
                                     ]
                                 },
                                 "{{nameof(AniDb.MyList.PresentFileState)}}": {
                                     "description": "State to mark files if they are present in local collection",
                                     "enum": [
-                                        "{{nameof(MyListState.Unknown)}}",
-                                        "{{nameof(MyListState.Internal)}}",
-                                        "{{nameof(MyListState.External)}}",
-                                        "{{nameof(MyListState.Deleted)}}",
-                                        "{{nameof(MyListState.Remote)}}"
+                                        {{string.Join(',', Enum.GetNames<MyListState>().Select(n => '"' + n + '"'))}}
                                     ]
                                 }
                             }
