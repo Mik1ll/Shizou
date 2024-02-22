@@ -83,7 +83,7 @@ public sealed class AniDbUdpState : IDisposable
     }
 
     public string ServerHost { get; }
-    public ushort ServerPort { get; }
+    public int ServerPort { get; }
 
     public TimeSpan BanPeriod { get; } = new(12, 0, 0);
     public TimeSpan LogoutPeriod { get; } = new(0, 10, 0);

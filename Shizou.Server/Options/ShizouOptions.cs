@@ -153,11 +153,11 @@ public class AniDbOptions
 
     public string? ImageServerHost { get; set; }
 
-    public ushort UdpServerPort { get; set; } = 9000;
+    public int UdpServerPort { get; set; } = 9000;
 
-    public ushort HttpServerPort { get; set; } = 9001;
+    public int HttpServerPort { get; set; } = 9001;
 
-    public ushort ClientPort { get; set; } = 4556;
+    public int ClientPort { get; set; } = 4556;
 
     public MyListOptions MyList { get; set; } = new();
 

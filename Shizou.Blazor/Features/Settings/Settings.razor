@@ -1,0 +1,38 @@
+﻿@page "/Settings"
+<PageTitle>Settings</PageTitle>
+
+<main class="container-md">
+    <EditForm Model="@_options" OnValidSubmit="@_options.SaveToFile">
+        <div class="mb-2">
+            <label class="form-label">
+                AniDB Username
+                <InputText class="form-control" @bind-Value="@(_options.AniDb.Username)"></InputText>
+            </label>
+            <label class="form-label">
+                AniDB Password
+                <InputText class="form-control" type="password" @bind-Value="@(_options.AniDb.Password)"></InputText>
+            </label>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">
+                AniDB API Host
+                <InputText class="form-control" @bind-Value="@(_options.AniDb.ServerHost)"></InputText>
+            </label>
+            <label class="form-label">
+                AniDB HTTP Server Port
+                <InputNumber class="form-control" @bind-Value="@(_options.AniDb.HttpServerPort)"></InputNumber>
+            </label>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">
+                AniDB UDP Client Port
+                <InputNumber class="form-control" @bind-Value="@(_options.AniDb.ClientPort)"></InputNumber>
+            </label>
+            <label class="form-label">
+                AniDB UDP Server Port
+                <InputNumber class="form-control" @bind-Value="@(_options.AniDb.UdpServerPort)"></InputNumber>
+            </label>
+        </div>
+        <button type="submit" class="btn btn-success">Save</button>
+    </EditForm>
+</main>
