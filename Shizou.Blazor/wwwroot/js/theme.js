@@ -1,6 +1,6 @@
 ﻿'use strict';
-const getStoredTheme = () => localStorage.getItem('theme');
-const setStoredTheme = theme => localStorage.setItem('theme', theme);
+const getStoredTheme = () => localStorage.getItem('shizou.theme');
+const setStoredTheme = theme => localStorage.setItem('shizou.theme', theme);
 const getPreferredTheme = () => {
     const storedTheme = getStoredTheme();
     if (storedTheme) {
