@@ -21,7 +21,7 @@
                     <button class="btn btn-success mb-1" type="button" @onclick="@(() => OpenVideoAsync(_localFile.Id))">
                         <i class="bi bi-play-fill"></i>
                     </button>
-                    <a class="btn btn-success me-2 mb-1" href="@(GetExternalPlaylistUri(false))">
+                    <a class="btn btn-success me-2 mb-1" href="@_externalPlaybackUrl">
                         <i class="bi bi-cast"></i>
                     </a>
                 </div>

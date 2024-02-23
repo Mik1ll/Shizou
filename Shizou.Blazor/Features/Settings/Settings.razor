@@ -3,7 +3,7 @@
 <PageTitle>Settings</PageTitle>
 
 <main class="container-md">
-    <EditForm Model="@_options" OnValidSubmit="@_options.SaveToFile">
+    <EditForm Model="@_options" OnValidSubmit="@SaveAsync">
         <div class="mb-2">
             <label class="form-label">
                 AniDB Username
@@ -70,6 +70,12 @@
             <label class="form-label">
                 MyAnimeList Client ID
                 <InputText class="form-control" @bind-Value="@(_options.MyAnimeList.ClientId)"></InputText>
+            </label>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">
+                External Player Scheme
+                <InputText class="form-control" @bind-Value="@_externalPlayerScheme"></InputText>
             </label>
         </div>
         <button type="submit" class="btn btn-success">Save</button>

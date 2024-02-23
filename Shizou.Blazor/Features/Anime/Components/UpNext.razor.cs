@@ -17,6 +17,7 @@ public partial class UpNext
     private AniDbEpisode? _episode;
     private LocalFile? _localFile;
     private IWatchedState? _watchedState;
+    private string _externalPlaybackUrl = default!;
 
     [Inject]
     private IShizouContextFactory ContextFactory { get; set; } = default!;
@@ -37,9 +38,11 @@ public partial class UpNext
     [EditorRequired]
     public int AnimeId { get; set; }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         Reload();
+        if (_localFile is not null)
+            _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(_localFile.Ed2k, false);
     }
 
     private void Reload()
@@ -88,7 +91,4 @@ public partial class UpNext
     {
         await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), localFileId)).Result;
     }
-
-    private string GetExternalPlaylistUri(bool single) =>
-        ExternalPlaybackService.GetExternalPlaylistUri(_localFile?.Ed2k ?? throw new ArgumentNullException(), single);
 }

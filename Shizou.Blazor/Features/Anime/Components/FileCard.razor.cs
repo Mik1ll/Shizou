@@ -12,6 +12,7 @@ namespace Shizou.Blazor.Features.Anime.Components;
 public partial class FileCard
 {
     private IWatchedState _watchedState = default!;
+    private string _externalPlaybackUrl = default!;
 
     [Inject]
     private WatchStateService WatchStateService { get; set; } = default!;
@@ -35,7 +36,7 @@ public partial class FileCard
     [Parameter]
     public EventCallback OnChanged { get; set; }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if (LocalFile.ImportFolder is null)
             throw new ArgumentNullException(nameof(LocalFile.ImportFolder));
@@ -44,6 +45,8 @@ public partial class FileCard
         if (LocalFile.AniDbFile?.FileWatchedState is null && LocalFile.ManualLinkEpisode?.EpisodeWatchedState is null)
             throw new ArgumentNullException(nameof(IWatchedState));
         _watchedState = (IWatchedState?)LocalFile.AniDbFile?.FileWatchedState ?? LocalFile.ManualLinkEpisode!.EpisodeWatchedState;
+
+        _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(LocalFile.Ed2k, true);
     }
 
     private Task MarkAsync(bool watched)
@@ -79,6 +82,4 @@ public partial class FileCard
     {
         await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), localFileId)).Result;
     }
-
-    private string GetExternalPlaylistUri(bool single) => ExternalPlaybackService.GetExternalPlaylistUri(LocalFile.Ed2k, single);
 }
