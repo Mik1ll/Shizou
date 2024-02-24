@@ -48,3 +48,10 @@
         </div>
     </div>
 </nav>
+
+@if (_themeColor is not null)
+{
+    <HeadContent>
+        <meta name="theme-color" content="@_themeColor"/>
+    </HeadContent>
+}

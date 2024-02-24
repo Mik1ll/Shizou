@@ -1,6 +1,7 @@
 ﻿@inject IHostEnvironment Env
 <!DOCTYPE html>
 <html lang="en">
+<!--suppress HtmlRequiredTitleElement -->
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -23,7 +24,6 @@
     <meta name="msapplication-TileColor" content="#da532c">
     @* Favicon end *@
 
-    <script src="js/theme.js"></script>
     <HeadOutlet @rendermode="@(new InteractiveServerRenderMode(false))"/>
 </head>
 <body>
@@ -50,12 +50,14 @@
     </div>
 </div>
 
-<script src="lib/libass-wasm/js/subtitles-octopus.min.js"></script>
-<script src="lib/video.js/alt/video.novtt.min.js"></script>
-
 @* ReSharper disable Html.PathError *@
 <script src="_framework/blazor.web.js"></script>
 @* ReSharper restore Html.PathError *@
+
+<script src="lib/libass-wasm/js/subtitles-octopus.min.js"></script>
+<script src="lib/video.js/alt/video.novtt.min.js"></script>
+
+<script src="js/theme.js"></script>
 
 <script type="text/javascript">
 function loadTooltip(element) {
