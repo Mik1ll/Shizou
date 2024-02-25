@@ -168,7 +168,6 @@ public static class InitializationExtensions
             .AddSingleton<AnimeTitleSearchService>() // Uses an in memory cache
             .AddSingleton<MyAnimeListService>() // Has State and Code challenge shared state
             .AddTransient<FfmpegService>()
-            .AddTransient<AnimeService>()
             .AddTransient<ManualLinkService>();
         return services;
     }
