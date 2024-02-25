@@ -1,10 +1,20 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Features.Collection.Components;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
+using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Features.Collection;
+
+public enum AnimeSort
+{
+    AnimeId = 0,
+    AirDate = 1,
+    Alphabetical = 2,
+    RecentFiles = 3
+}
 
 // ReSharper disable once ClassNeverInstantiated.Global
 public partial class Collection
@@ -15,9 +25,8 @@ public partial class Collection
     private AnimeFilter? _filter;
     private AnimeSort _sort;
     private FilterOffcanvas _filterOffcanvas = default!;
+    private Dictionary<int, int>? _animeLatestLocalFileId;
 
-    [Inject]
-    private AnimeService AnimeService { get; set; } = default!;
 
     [Inject]
     private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
@@ -42,14 +51,42 @@ public partial class Collection
 
     protected override void OnParametersSet()
     {
+        using var context = ContextFactory.CreateDbContext();
+        _filters = context.AnimeFilters.AsNoTracking().ToList();
         _sort = Sort is null ? default : Enum.Parse<AnimeSort>(Sort);
-        RefreshAnime();
-        RefreshFilters();
-    }
+        _filter = _filters.FirstOrDefault(f => f.Id == FilterId);
+        var filtered = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(_filter?.Criteria.Criterion ?? (_ => true)).AsEnumerable();
+        IEnumerable<AniDbAnime> sorted;
+        switch (_sort)
+        {
+            case AnimeSort.AnimeId:
+                sorted = filtered.OrderBy(a => a.Id);
+                break;
+            case AnimeSort.AirDate:
+                sorted = filtered.OrderBy(a => a.AirDate);
+                break;
+            case AnimeSort.Alphabetical:
+                sorted = filtered.OrderBy(a => a.TitleTranscription);
+                break;
+            case AnimeSort.RecentFiles:
+                if (_animeLatestLocalFileId is null)
+                {
+                    var recentlyAddedQuery = from a in context.AniDbAnimes.AsNoTracking()
+                        let recentManLink = a.AniDbEpisodes.SelectMany(ep => ep.ManualLinkLocalFiles.Select(lf => lf.Id)).DefaultIfEmpty().Max()
+                        let recentRegular = a.AniDbEpisodes.SelectMany(ep => ep.AniDbFiles.Select(f => f.LocalFile!.Id)).DefaultIfEmpty().Max()
+                        select new { Aid = a.Id, RecentLocalId = Math.Max(recentManLink, recentRegular) };
+                    _animeLatestLocalFileId = recentlyAddedQuery.ToDictionary(a => a.Aid, a => a.RecentLocalId);
+                }
 
-    private void RefreshAnime()
-    {
-        _anime = AnimeService.GetFilteredAndSortedAnime(FilterId, Descending, _sort, true);
+                sorted = from a in filtered
+                    orderby _animeLatestLocalFileId.GetValueOrDefault(a.Id, 0) descending
+                    select a;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        _anime = (Descending ? sorted.Reverse() : sorted).ToList();
     }
 
     private Task<List<(int, string)>?> GetSearchResultsAsync(string query) => AnimeTitleSearchService.SearchAsync(query, true);
@@ -63,7 +100,6 @@ public partial class Collection
                 select a).ToList();
     }
 
-
     private void OnSortSelect(ChangeEventArgs e)
     {
         NavigationManager.NavigateTo(Enum.TryParse<AnimeSort>((string)e.Value!, out var sort)
@@ -71,18 +107,9 @@ public partial class Collection
             : NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int?)null));
     }
 
-
     private void OnSortDirectionChanged()
     {
         NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Descending), !Descending));
-    }
-
-
-    private void RefreshFilters()
-    {
-        using var context = ContextFactory.CreateDbContext();
-        _filters = context.AnimeFilters.ToList();
-        _filter = _filters.FirstOrDefault(f => f.Id == FilterId);
     }
 
     private void OnFilterSelect(ChangeEventArgs e)
