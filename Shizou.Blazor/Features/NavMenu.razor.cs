@@ -9,6 +9,7 @@ public partial class NavMenu
     private bool _collapsed = true;
     private bool _isDarkMode = false;
     private string? _themeColor;
+    private bool _expandFileUtils = false;
 
     private string? NavMenuCssClass => _collapsed ? null : "show";
 

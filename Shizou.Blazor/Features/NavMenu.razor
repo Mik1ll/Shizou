@@ -16,19 +16,25 @@
                         <i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i> Collection
                     </NavLink>
                 </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="UnidentifiedFiles" Match="NavLinkMatch.Prefix">
-                        <i class="bi bi-question-diamond" aria-hidden="true"></i> Unidentified
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="MissingFiles" Match="NavLinkMatch.Prefix">
-                        <i class="bi bi-question-diamond" aria-hidden="true"></i> Missing
-                    </NavLink>
+                <li class="nav-item dropdown" @onmouseleave="@(() => { _expandFileUtils = false; })">
+                    <button class="btn nav-link dropdown-toggle @(_expandFileUtils ? "show" : "")" role="button" @onclick="@(() => { _expandFileUtils = !_expandFileUtils; })">
+                        <i class="bi bi-file-earmark-play-fill" aria-hidden="true"></i> File Utilities
+                    </button>
+                    <ul class="dropdown-menu @(_expandFileUtils ? "show" : "")">
+                        <li>
+                            <NavLink class="dropdown-item" href="UnidentifiedFiles" Match="NavLinkMatch.Prefix">Unidentified</NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="dropdown-item" href="MissingFiles" Match="NavLinkMatch.Prefix">Missing</NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="dropdown-item" href="ManualLinks" Match="NavLinkMatch.Prefix">Manual Links</NavLink>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <NavLink class="nav-link" href="Settings" Match="NavLinkMatch.Prefix">
-                        <i class="bi bi-gear" aria-hidden="true"></i> Settings
+                        <i class="bi bi-gear-fill" aria-hidden="true"></i> Settings
                     </NavLink>
                 </li>
             </ul>
