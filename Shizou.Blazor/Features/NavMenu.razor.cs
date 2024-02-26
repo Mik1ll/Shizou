@@ -31,10 +31,11 @@ public partial class NavMenu
         _themeColor = await JsRuntime.InvokeAsync<string>("getThemeColor");
     }
 
-    private void ToggleCollapse()
-    {
-        _collapsed = !_collapsed;
-    }
+    private void ToggleCollapse() => _collapsed = !_collapsed;
+
+    private void ToggleFileUtilDropdown() => _expandFileUtils = !_expandFileUtils;
+
+    private void CloseFileUtilDropdown() => _expandFileUtils = false;
 
     private async Task ToggleDarkModeAsync()
     {
