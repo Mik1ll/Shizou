@@ -12,7 +12,7 @@
                         <h4 class="card-title">
                             @_anime.TitleTranscription <a class="bi bi-box-arrow-up-right" href="https://anidb.net/anime/@(_anime.Id)" target="_blank"></a>
                         </h4>
-                        <img alt="" src="@_posterPath" onerror="this.onerror=null;this.src='images/missing_poster.png';" class="rounded float-md-start me-2 mb-2" style="width: 15rem;">
+                        <img alt="" src="@_posterPath" onerror="this.onerror=null;this.src='images/missing_poster.png';" class="anime-image rounded float-start me-2 mb-2">
                         <p class="card-text">
                             @for (var i = 0; i < _splitDescription.Length; i++)
                             {

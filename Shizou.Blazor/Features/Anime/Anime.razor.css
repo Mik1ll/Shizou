@@ -1,0 +1,18 @@
+﻿/* xs */
+.anime-image {
+    width: 10rem;
+}
+
+/* md */
+@media (min-width: 768px) {
+    .anime-image {
+        width: 12rem;
+    }
+}
+
+/* lg */
+@media (min-width: 992px) {
+    .anime-image {
+        width: 15rem;
+    }
+}
