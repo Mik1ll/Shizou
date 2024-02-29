@@ -42,7 +42,7 @@ app.UseIdentityCookieParameter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireAuthorization();
 
 app.MigrateDatabase();
 app.PopulateOptions();

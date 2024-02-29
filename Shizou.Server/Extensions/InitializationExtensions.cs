@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -120,27 +119,20 @@ public static class InitializationExtensions
             .AddDefaultTokenProviders().Services
             .ConfigureApplicationCookie(opts =>
             {
-                opts.LoginPath = "/Account/Login";
-                opts.LogoutPath = "/Account/Logout";
-                opts.Events.OnRedirectToLogin = context =>
-                {
-                    if (context.Request.Path.StartsWithSegments(Constants.ApiPrefix))
+                opts.Events.OnRedirectToAccessDenied =
+                    opts.Events.OnRedirectToLogin = ctx =>
                     {
-                        context.Response.Clear();
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        return Task.CompletedTask;
-                    }
+                        if (ctx.Request.Path.StartsWithSegments(Constants.ApiPrefix))
+                        {
+                            ctx.Response.Clear();
+                            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            return Task.CompletedTask;
+                        }
 
-                    context.Response.Redirect(context.RedirectUri);
-                    return Task.CompletedTask;
-                };
+                        ctx.Response.Redirect(ctx.RedirectUri);
+                        return Task.CompletedTask;
+                    };
                 opts.Cookie.Name = Constants.IdentityCookieName;
-            })
-            .AddAuthorization(options =>
-            {
-                options.FallbackPolicy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build();
             })
             .AddScoped<IShizouContext, ShizouContext>(p => p.GetRequiredService<ShizouContext>())
             .AddSingleton<IShizouContextFactory, ShizouContextFactory>(p =>

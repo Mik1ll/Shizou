@@ -1,4 +1,4 @@
-﻿using Shizou.Blazor.Features.Components;
+﻿using Shizou.Blazor.Components.Shared;
 
 namespace Shizou.Blazor.Services;
 

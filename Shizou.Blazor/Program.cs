@@ -2,7 +2,7 @@ using Blazored.Modal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.StaticFiles;
 using Serilog;
-using Shizou.Blazor.Features;
+using Shizou.Blazor.Components;
 using Shizou.Blazor.Services;
 using Shizou.Data;
 using Shizou.Server.Extensions;
@@ -82,13 +82,12 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.MapControllers().Finally(endpointBuilder =>
+app.MapControllers().RequireAuthorization().Finally(endpointBuilder =>
 {
     // PWA manifest/service worker is locked behind auth without this
     if (typeof(PwaController).FullName is { } fn && (endpointBuilder.DisplayName?.StartsWith(fn) ?? false))
         endpointBuilder.Metadata.Add(new AllowAnonymousAttribute());
 });
-app.Map($"{Constants.ApiPrefix}/{{**slug}}", (HttpContext ctx) => { ctx.Response.StatusCode = StatusCodes.Status404NotFound; });
 
 app.MapRazorPages();
 app.MapRazorComponents<App>()
