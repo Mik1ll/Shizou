@@ -5,7 +5,7 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="navbar-collapse collapse @NavMenuCssClass bg-secondary mt-2 mt-md-0" @onclick="@ToggleCollapse">
-            <ul class="navbar-nav me-auto mb-2 mb-md-0">
+            <ul class="navbar-nav me-auto">
                 <li class="nav-item">
                     <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                         <i class="bi bi-house-fill" aria-hidden="true"></i> Dashboard
@@ -39,10 +39,10 @@
                     </NavLink>
                 </li>
             </ul>
-            <ul class="navbar-nav mb-2 mb-md-0">
+            <ul class="navbar-nav">
                 <li class="nav-item">
                     <button type="button" class="nav-link w-100" @onclick="@ToggleDarkModeAsync">
-                        <i class="bi @(_isDarkMode ? "bi-moon-stars-fill" : "bi-sun-fill") text-start" aria-hidden="true"></i>
+                        <i class="bi @(_themeIconClasses[_theme]) text-start text-md-center" aria-hidden="true"></i>
                         <span class="d-md-none">Toggle Theme</span>
                     </button>
                 </li>
@@ -55,10 +55,3 @@
         </div>
     </div>
 </nav>
-
-@if (_themeColor is not null)
-{
-    <HeadContent>
-        <meta name="theme-color" content="@_themeColor"/>
-    </HeadContent>
-}
