@@ -4,7 +4,7 @@ EXPOSE 80
 EXPOSE 443
 LABEL org.opencontainers.image.source=https://github.com/Mik1ll/Shizou
 RUN apk update
-RUN apk add rhash-libs ffmpeg
+RUN apk add rhash-libs=1.4.4-r0 ffmpeg
 
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS publish
 ARG TARGETARCH
@@ -20,5 +20,5 @@ RUN dotnet publish "Shizou.Blazor.csproj" -c Release -a $TARGETARCH --no-restore
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-RUN ln -fs /usr/lib/librhash.so.0 /app/RHash/librhash.so
+RUN ln -fs /usr/lib/librhash.so.1.4.4 /app/RHash/librhash.so
 ENTRYPOINT ["./Shizou.Blazor"]
