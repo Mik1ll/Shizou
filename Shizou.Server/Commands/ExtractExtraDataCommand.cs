@@ -23,6 +23,7 @@ public class ExtractExtraDataCommand : Command<ExtractExtraDataArgs>
 
     protected override async Task ProcessInnerAsync()
     {
+        _logger.LogInformation("Extracting extra file date for local file id: {LocalFileId}", CommandArgs.LocalFileId);
         var localFile = _context.LocalFiles.Include(lf => lf.ImportFolder).FirstOrDefault(lf => lf.Id == CommandArgs.LocalFileId);
         if (localFile is null)
         {

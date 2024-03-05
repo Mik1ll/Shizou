@@ -33,6 +33,8 @@ public class FfmpegService
 
     public async Task ExtractSubtitlesAsync(LocalFile localFile)
     {
+        _logger.LogInformation("Extracting subtitles for local file id: {LocalFileId}", localFile.Id);
+
         if (GetLocalFileInfo(localFile) is not { } fileInfo)
             return;
 
@@ -59,6 +61,8 @@ public class FfmpegService
     {
         if (GetLocalFileInfo(localFile) is not { } fileInfo)
             return;
+
+        _logger.LogInformation("Extracting thumbnail for local file id: {LocalFileId}", localFile.Id);
 
         if (!await HasVideoAsync(fileInfo).ConfigureAwait(false))
         {

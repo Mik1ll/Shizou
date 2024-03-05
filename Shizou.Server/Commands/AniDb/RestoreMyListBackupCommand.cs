@@ -42,6 +42,7 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
 
     protected override async Task ProcessInnerAsync()
     {
+        _logger.LogInformation("Restoring mylist from backup on {BackupDate}", CommandArgs.Date);
         var backupPath = CommandArgs switch
         {
             { Date: { } date } => Path.Combine(FilePaths.MyListBackupDir, date.ToString("yyyy-MM-dd") + ".xml"),

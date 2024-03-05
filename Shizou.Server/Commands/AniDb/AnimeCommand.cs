@@ -117,6 +117,8 @@ public class AnimeCommand : Command<AnimeArgs>
 
     protected override async Task ProcessInnerAsync()
     {
+        _logger.LogInformation("Updating data for anime id: {AnimeId}", CommandArgs.AnimeId);
+
         var animeResult = await GetAnimeAsync().ConfigureAwait(false);
 
         if (animeResult is null)

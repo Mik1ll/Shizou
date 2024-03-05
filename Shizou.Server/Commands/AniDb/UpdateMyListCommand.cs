@@ -35,16 +35,27 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
         {
             case { Lid: not null, Fid: null, Aid: null, EpNo: null, Edit: true }:
                 _myListAddRequest.SetParameters(CommandArgs.Lid.Value, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState);
+                _logger.LogInformation(
+                    "Sending EDIT mylist request: MyListId = {Lid}, Watched = {Watched}, WatchedDate = {WatchedDate}, MyListState = {MyListState}",
+                    CommandArgs.Lid, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState);
                 break;
             case { Fid: not null, Lid: null, Aid: null, EpNo: null, Edit: false }:
                 _myListAddRequest.SetParameters(CommandArgs.Fid.Value, CommandArgs.Edit, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState);
+                _logger.LogInformation(
+                    "Sending ADD mylist request: FileId = {Fid}, Watched = {Watched}, WatchedDate = {WatchedDate}, MyListState = {MyListState}",
+                    CommandArgs.Fid, CommandArgs.Watched, CommandArgs.WatchedDate, CommandArgs.MyListState);
                 break;
             case { Aid: not null, EpNo: not null, Lid: null, Fid: null }:
                 _myListAddRequest.SetParameters(CommandArgs.Aid.Value, CommandArgs.EpNo, CommandArgs.Edit, CommandArgs.Watched, CommandArgs.WatchedDate,
                     CommandArgs.MyListState);
+                _logger.LogInformation(
+                    "Sending {RequestType} mylist request: AnimeId = {Aid}, EpNo = {EpNo}, Watched = {Watched}, WatchedDate = {WatchedDate}, MyListState = {MyListState}",
+                    CommandArgs.Edit ? "EDIT" : "ADD", CommandArgs.Aid, CommandArgs.EpNo, CommandArgs.Watched, CommandArgs.WatchedDate,
+                    CommandArgs.MyListState);
                 break;
             default: throw new ArgumentException($"{nameof(UpdateMyListArgs)} not valid");
         }
+
 
         var response = await _myListAddRequest.ProcessAsync().ConfigureAwait(false);
         switch (response?.ResponseCode)
@@ -57,7 +68,7 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
                     if (entryResponse?.MyListEntryResult is { } entryResult)
                         if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == entryResult.EpisodeId) is { } eWs)
                         {
-                            _logger.LogDebug("Updating episode {EpisodeId} with generic file id {GenericId} and mylist id {MyListId}",
+                            _logger.LogInformation("Updating episode {EpisodeId} with generic file id {GenericId} and mylist id {MyListId}",
                                 entryResult.EpisodeId, entryResult.FileId, entryResult.MyListId);
                             eWs.AniDbFileId = entryResult.FileId;
                             eWs.MyListId = entryResult.MyListId;

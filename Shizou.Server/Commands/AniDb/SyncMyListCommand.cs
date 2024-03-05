@@ -101,6 +101,9 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
             return;
         }
 
+        _logger.LogInformation("Starting mylist sync, Present State: {PresentState}, Absent State: {AbsentState}",
+            _options.AniDb.MyList.PresentFileState, _options.AniDb.MyList.AbsentFileState);
+
         var myListResult = await GetMyListAsync().ConfigureAwait(false);
 
         if (myListResult is null)
@@ -232,6 +235,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
             return null;
         }
 
+        _logger.LogInformation("Sending HTTP mylist request");
         _myListRequest.SetParameters();
         await _myListRequest.ProcessAsync().ConfigureAwait(false);
         if (_myListRequest.MyListResult is null)
