@@ -82,7 +82,7 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.MapControllers().RequireAuthorization().Finally(endpointBuilder =>
+app.MapControllers().Finally(endpointBuilder =>
 {
     // PWA manifest/service worker is locked behind auth without this
     if (typeof(PwaController).FullName is { } fn && (endpointBuilder.DisplayName?.StartsWith(fn) ?? false))
