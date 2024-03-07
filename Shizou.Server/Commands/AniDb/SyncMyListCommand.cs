@@ -229,32 +229,39 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
     private async Task<MyListResult?> GetMyListAsync()
     {
         // return new XmlSerializer(typeof(MyListResult)).Deserialize(new XmlTextReader(FilePaths.MyListPath)) as MyListResult;
-        var requestable = true;
-        var fileInfo = new FileInfo(FilePaths.MyListPath);
-        if (fileInfo.Exists)
-            requestable = DateTime.UtcNow - fileInfo.LastWriteTimeUtc > _myListRequestPeriod;
-        if (!requestable)
+        var timer = _context.Timers.FirstOrDefault(t => t.Type == TimerType.MyListRequest);
+        if (timer is not null && timer.Expires > DateTime.UtcNow)
         {
             _logger.LogWarning("Failed to get mylist: already requested in last {Hours} hours", _myListRequestPeriod.TotalHours);
             return null;
         }
+
+        var expires = DateTime.UtcNow + _myListRequestPeriod;
+        if (timer is not null)
+            timer.Expires = expires;
+        else
+            _context.Timers.Add(new Timer
+            {
+                Type = TimerType.MyListRequest,
+                Expires = expires
+            });
+
+        _context.SaveChanges();
 
         _logger.LogInformation("Sending HTTP mylist request");
         _myListRequest.SetParameters();
         await _myListRequest.ProcessAsync().ConfigureAwait(false);
         if (_myListRequest.MyListResult is null)
         {
-            if (!File.Exists(FilePaths.MyListPath))
-                await File.Create(FilePaths.MyListPath).DisposeAsync().ConfigureAwait(false);
-            File.SetLastWriteTimeUtc(FilePaths.MyListPath, DateTime.UtcNow);
-            _logger.LogWarning("Failed to get mylist data from AniDb, retry in {Hours} hours", _myListRequestPeriod.TotalHours);
+            _logger.LogWarning("Failed to get mylist data from AniDB, retry in {Hours} hours", _myListRequestPeriod.TotalHours);
         }
         else
         {
-            _logger.LogDebug("Overwriting mylist file");
+            _logger.LogDebug("Saving mylist file to \"{MyListPath}\"", FilePaths.MyListPath);
             Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.MyListPath)!);
             await File.WriteAllTextAsync(FilePaths.MyListPath, _myListRequest.ResponseText, Encoding.UTF8).ConfigureAwait(false);
             var backupFilePath = Path.Combine(FilePaths.MyListBackupDir, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".xml");
+            _logger.LogDebug("Saving mylist backup to \"{MyListBackupPath}\"", backupFilePath);
             Directory.CreateDirectory(FilePaths.MyListBackupDir);
             await File.WriteAllTextAsync(backupFilePath, _myListRequest.ResponseText, Encoding.UTF8).ConfigureAwait(false);
             _logger.LogInformation("HTTP Get mylist succeeded");
