@@ -11,4 +11,6 @@ public class HashProcessor : CommandProcessor
         : base(logger, QueueType.Hash, contextFactory, scopeFactory)
     {
     }
+
+    public override string DisplayName { get; } = "Hash";
 }

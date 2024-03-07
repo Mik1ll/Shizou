@@ -11,4 +11,6 @@ public class ImageProcessor : CommandProcessor
         : base(logger, QueueType.Image, contextFactory, scopeFactory)
     {
     }
+
+    public override string DisplayName { get; } = "Image";
 }

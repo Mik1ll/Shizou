@@ -11,4 +11,6 @@ public class GeneralProcessor : CommandProcessor
         : base(logger, QueueType.General, contextFactory, scopeFactory)
     {
     }
+
+    public override string DisplayName { get; } = "General";
 }

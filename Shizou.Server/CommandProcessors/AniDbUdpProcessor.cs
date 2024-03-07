@@ -19,6 +19,8 @@ public class AniDbUdpProcessor : CommandProcessor
         _aniDbUdpState = aniDbUdpState;
     }
 
+    public override string DisplayName { get; } = "AniDB UDP";
+
     public override bool Paused
     {
         get => _aniDbUdpState.Banned || base.Paused;

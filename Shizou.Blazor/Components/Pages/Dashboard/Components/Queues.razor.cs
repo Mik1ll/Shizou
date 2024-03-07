@@ -21,6 +21,21 @@ public partial class Queues : IDisposable
             processor.PropertyChanged += OnCommandChanged;
     }
 
+    private void PauseAll()
+    {
+        foreach (var p in Processors) p.Pause();
+    }
+
+    private void UnpauseAll()
+    {
+        foreach (var p in Processors) p.Unpause();
+    }
+
+    private void ClearAll()
+    {
+        foreach (var p in Processors) p.ClearQueue();
+    }
+
 #pragma warning disable VSTHRD100
     private async void OnCommandChanged(object? sender, PropertyChangedEventArgs e)
 #pragma warning restore VSTHRD100

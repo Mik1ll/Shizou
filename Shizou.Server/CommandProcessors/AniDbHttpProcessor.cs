@@ -17,6 +17,8 @@ public class AniDbHttpProcessor : CommandProcessor
         _httpState = httpState;
     }
 
+    public override string DisplayName { get; } = "AniDB HTTP";
+
     public override bool Paused
     {
         get => _httpState.Banned || base.Paused;

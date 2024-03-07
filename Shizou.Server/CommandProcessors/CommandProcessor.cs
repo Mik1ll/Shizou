@@ -51,6 +51,9 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+
+    public abstract string DisplayName { get; }
+
     public virtual bool Paused
     {
         get => _paused;
