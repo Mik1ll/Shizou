@@ -12,6 +12,7 @@ using Shizou.Data;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
+using Shizou.Data.Extensions;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
@@ -236,7 +237,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         var timer = _context.Timers.FirstOrDefault(t => t.Type == TimerType.MyListRequest);
         if (timer is not null && timer.Expires > DateTime.UtcNow)
         {
-            _logger.LogWarning("Failed to get mylist: already requested in last {Hours} hours", _myListRequestPeriod.TotalHours);
+            _logger.LogWarning("Failed to get mylist: already requested, try again after {TimeLeft}", (timer.Expires - DateTime.UtcNow).ToHumanTimeString());
             return null;
         }
 
