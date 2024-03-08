@@ -166,57 +166,61 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
     [SuppressMessage("ReSharper.DPA", "DPA0007: Large number of DB records", MessageId = "count: 2000")]
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
+        // Get watched states for files and generic files, episode watch states without a file id excluded
         var watchedStatesByFileId = _context.FileWatchedStates.Select(ws => new { FileId = ws.AniDbFileId, WatchedState = (IWatchedState)ws }).ToList()
             .Union((from ws in _context.EpisodeWatchedStates
                 where ws.AniDbFileId != null
                 select new { FileId = ws.AniDbFileId!.Value, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId, f => f.WatchedState);
+
+        // Get file id and generic file ids for files with local files
         var fileIdsWithLocal = _context.AniDbFiles.Where(f => f.LocalFile != null).Select(f => f.Id)
             .Union(_context.EpisodeWatchedStates.Where(ws => ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any())
                 .Select(ws => ws.AniDbFileId!.Value)).ToHashSet();
-        var epIdsMissingGenericFileId = (from ws in _context.EpisodeWatchedStates
-            where ws.AniDbFileId == null
+
+        // Get episode ids that do not have a generic file id, and have manual links
+        var epIdsMissingGenericFile = (from ws in _context.EpisodeWatchedStates
+            where ws.AniDbFileId == null && ws.AniDbEpisode.ManualLinkLocalFiles.Any()
             select ws.AniDbEpisodeId).ToHashSet();
 
-        List<UpdateMyListArgs> toUpdate = new();
-        List<ProcessArgs> toProcess = new();
-
-        // case 1: matching file id with local regular file
-        //         sync with file watch state and file state with present if there are local files
-        // case 2: matching file id with local generic file
-        //         sync with episode watch state and file state with present if there are manual links
-        // case 3: file id doesn't match any local file/generic file
-        //         3a: it only has one episode relation and matching local episode that does not have a generic file
-        //             don't update it, dispatch a process command
-        //         3b: default
-        //             don't update watch state, file state to absent
+        List<UpdateMyListArgs> toUpdate = [];
+        List<ProcessArgs> toProcess = [];
 
         foreach (var item in myListItems)
-            if (watchedStatesByFileId.TryGetValue(item.Fid, out var watchedState))
+        {
+            var expectedState = fileIdsWithLocal.Contains(item.Fid) ? _options.AniDb.MyList.PresentFileState : _options.AniDb.MyList.AbsentFileState;
+            var itemWatched = item.Viewdate is not null;
+            var hasWatchedStateWithFileId = watchedStatesByFileId.TryGetValue(item.Fid, out var watchedState);
+            var fileMayBeGeneric = !hasWatchedStateWithFileId && item.Eids.Count == 1 && epIdsMissingGenericFile.Contains(item.Eids.First());
+            var updateQueued = false;
+
+            if (hasWatchedStateWithFileId)
             {
-                var expectedState = fileIdsWithLocal.Contains(item.Fid) ? _options.AniDb.MyList.PresentFileState : _options.AniDb.MyList.AbsentFileState;
-                var itemWatched = item.Viewdate is not null;
-                var updateWatched = watchedState.WatchedUpdated is not null &&
-                                    DateOnly.FromDateTime(watchedState.WatchedUpdated.Value) >= item.Updated
-                                    && watchedState.Watched != itemWatched;
-                if (updateWatched)
-                    toUpdate.Add(new UpdateMyListArgs(true, expectedState, watchedState.Watched, watchedState.WatchedUpdated, item.Id));
-                else if (item.State != expectedState || item.FileState != MyListFileState.Normal)
-                    toUpdate.Add(new UpdateMyListArgs(true, expectedState, Lid: item.Id));
+                if (watchedState!.Watched != itemWatched)
+                {
+                    if (watchedState.WatchedUpdated is not null &&
+                        DateOnly.FromDateTime(watchedState.WatchedUpdated.Value) >= item.Updated)
+                    {
+                        toUpdate.Add(new UpdateMyListArgs(true, expectedState, watchedState.Watched, watchedState.WatchedUpdated, item.Id));
+                        updateQueued = true;
+                    }
+                    else
+                    {
+                        watchedState.Watched = itemWatched;
+                        watchedState.WatchedUpdated = null;
+                    }
+                }
 
                 watchedState.MyListId = item.Id;
-                if (!updateWatched && watchedState.Watched != itemWatched)
-                {
-                    watchedState.Watched = itemWatched;
-                    watchedState.WatchedUpdated = null;
-                }
             }
-            else
+            else if (fileMayBeGeneric)
             {
-                if (item.Eids.Count == 1 && epIdsMissingGenericFileId.Contains(item.Eids.First()))
-                    toProcess.Add(new ProcessArgs(item.Fid, IdTypeLocalOrFile.FileId));
-                else if (item.State != _options.AniDb.MyList.AbsentFileState || item.FileState != MyListFileState.Normal)
-                    toUpdate.Add(new UpdateMyListArgs(true, _options.AniDb.MyList.AbsentFileState, Lid: item.Id));
+                // Check if file in mylist is a generic file for an episode with manual links
+                toProcess.Add(new ProcessArgs(item.Fid, IdTypeLocalOrFile.FileId));
             }
+
+            if (!updateQueued && !fileMayBeGeneric && (item.State != expectedState || item.FileState != MyListFileState.Normal))
+                toUpdate.Add(new UpdateMyListArgs(true, expectedState, Lid: item.Id));
+        }
 
         _context.SaveChanges();
 
