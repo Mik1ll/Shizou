@@ -42,9 +42,9 @@ public class ProcessCommand : Command<ProcessArgs>
         _options = optionsSnapshot.Value;
     }
 
-    private static AniDbFile FileResultToAniDbFile(FileResult result)
+    private static AniDbNormalFile FileResultToAniDbFile(FileResult result)
     {
-        return new AniDbFile
+        return new AniDbNormalFile
         {
             Id = result.FileId,
             Ed2k = result.Ed2K ?? throw new NullReferenceException("Ed2k is null, cannot be null for non-generic file"),
@@ -181,7 +181,7 @@ public class ProcessCommand : Command<ProcessArgs>
         _context.SaveChanges();
     }
 
-    private void UpdateNavigations(AniDbFile file)
+    private void UpdateNavigations(AniDbNormalFile file)
     {
         if (file.AniDbGroup is not null)
             if (_context.AniDbGroups.FirstOrDefault(g => g.Id == file.AniDbGroupId) is { } eAniDbGroup)

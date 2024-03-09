@@ -10,6 +10,6 @@ public record UnwatchedFilesCriterion(bool Negated) : TermCriterion(Negated)
     {
         return anime => anime.AniDbEpisodes.Any(e =>
             e.EpisodeType != EpisodeType.Credits && e.EpisodeType != EpisodeType.Trailer &&
-            (e.AniDbFiles.Any(f => f.FileWatchedState.Watched == false) || (e.ManualLinkLocalFiles.Any() && e.EpisodeWatchedState.Watched == false)));
+            e.AniDbFiles.Any(f => f.FileWatchedState.Watched == false));
     }
 }

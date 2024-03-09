@@ -26,11 +26,6 @@ public class LocalFile
     [JsonIgnore]
     public ImportFolder? ImportFolder { get; set; }
 
-    public int? ManualLinkEpisodeId { get; set; }
-
-    [JsonIgnore]
-    public AniDbEpisode? ManualLinkEpisode { get; set; }
-
     public int? AniDbFileId { get; set; }
 
     [JsonIgnore]

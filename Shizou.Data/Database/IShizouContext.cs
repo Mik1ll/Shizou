@@ -27,6 +27,12 @@ public interface IShizouContext : IDisposable
     IShizouDbSet<AniDbFile> AniDbFiles { get; }
 
     /// <inheritdoc cref="DbSet{TEntity}" />
+    IShizouDbSet<AniDbNormalFile> AniDbNormalFiles { get; }
+
+    /// <inheritdoc cref="DbSet{TEntity}" />
+    IShizouDbSet<AniDbGenericFile> AniDbGenericFiles { get; }
+
+    /// <inheritdoc cref="DbSet{TEntity}" />
     IShizouDbSet<AniDbGroup> AniDbGroups { get; }
 
     /// <inheritdoc cref="DbSet{TEntity}" />
@@ -46,9 +52,6 @@ public interface IShizouContext : IDisposable
 
     /// <inheritdoc cref="DbSet{TEntity}" />
     IShizouDbSet<FileWatchedState> FileWatchedStates { get; }
-
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<EpisodeWatchedState> EpisodeWatchedStates { get; }
 
     /// <inheritdoc cref="DbSet{TEntity}" />
     IShizouDbSet<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; }

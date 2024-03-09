@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shizou.Data.Database;
 
@@ -10,9 +11,11 @@ using Shizou.Data.Database;
 namespace Shizou.Data.Migrations
 {
     [DbContext(typeof(ShizouContext))]
-    partial class ShizouContextModelSnapshot : ModelSnapshot
+    [Migration("20240309121123_FileHierarchy")]
+    partial class FileHierarchy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.1");
@@ -417,6 +420,30 @@ namespace Shizou.Data.Migrations
                     b.ToTable("CommandRequests");
                 });
 
+            modelBuilder.Entity("Shizou.Data.Models.EpisodeWatchedState", b =>
+                {
+                    b.Property<int>("AniDbEpisodeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("AniDbFileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("MyListId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Watched")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("WatchedUpdated")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("AniDbEpisodeId");
+
+                    b.HasIndex("MyListId");
+
+                    b.ToTable("EpisodeWatchedStates");
+                });
+
             modelBuilder.Entity("Shizou.Data.Models.FileWatchedState", b =>
                 {
                     b.Property<int>("AniDbFileId")
@@ -767,6 +794,17 @@ namespace Shizou.Data.Migrations
                     b.Navigation("AniDbFile");
                 });
 
+            modelBuilder.Entity("Shizou.Data.Models.EpisodeWatchedState", b =>
+                {
+                    b.HasOne("Shizou.Data.Models.AniDbEpisode", "AniDbEpisode")
+                        .WithOne("EpisodeWatchedState")
+                        .HasForeignKey("Shizou.Data.Models.EpisodeWatchedState", "AniDbEpisodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AniDbEpisode");
+                });
+
             modelBuilder.Entity("Shizou.Data.Models.FileWatchedState", b =>
                 {
                     b.HasOne("Shizou.Data.Models.AniDbFile", "AniDbFile")
@@ -959,6 +997,9 @@ namespace Shizou.Data.Migrations
             modelBuilder.Entity("Shizou.Data.Models.AniDbEpisode", b =>
                 {
                     b.Navigation("AniDbEpisodeFileXrefs");
+
+                    b.Navigation("EpisodeWatchedState")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbFile", b =>
