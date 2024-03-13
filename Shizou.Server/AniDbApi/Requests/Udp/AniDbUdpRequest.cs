@@ -80,6 +80,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         if (retry)
         {
             Logger.LogDebug("Error handled, retrying request");
+            await PrepareRequestAsync().ConfigureAwait(false);
             using (await _rateLimiter.AcquireAsync().ConfigureAwait(false))
             {
                 await SendRequestAsync().ConfigureAwait(false);
@@ -206,10 +207,12 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
             case AniDbResponseCode.InvalidSession:
                 Logger.LogWarning("Invalid session, reauth");
                 AniDbUdpState.LoggedIn = false;
+                AniDbUdpState.SessionKey = null;
                 return true;
             case AniDbResponseCode.LoginFirst:
                 Logger.LogWarning("Not logged in, reauth");
                 AniDbUdpState.LoggedIn = false;
+                AniDbUdpState.SessionKey = null;
                 return true;
             case AniDbResponseCode.AccessDenied:
                 Logger.LogError("Access denied");
