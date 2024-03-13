@@ -134,7 +134,8 @@ public class ProcessCommand : Command<ProcessArgs>
 
     private void UpdateAniDb(FileResult result)
     {
-        if ((FileIsGeneric(result) && _context.AniDbEpisodes.Any(ep => ep.Id == result.EpisodeId && ep.ManualLinkLocalFiles.Any())) ||
+        if ((FileIsGeneric(result) &&
+             _context.AniDbEpisodes.Any(ep => ep.Id == result.EpisodeId && ep.AniDbFiles.OfType<AniDbGenericFile>().Any(f => f.LocalFiles.Any()))) ||
             _context.LocalFiles.Any(lf => lf.Ed2k == result.Ed2K))
             if (result.MyListId is null)
                 _commandService.Dispatch(new UpdateMyListArgs(false, _options.AniDb.MyList.PresentFileState, Fid: result.FileId));
@@ -153,7 +154,7 @@ public class ProcessCommand : Command<ProcessArgs>
     private void UpdateFile(FileResult result)
     {
         _logger.LogInformation("Updating AniDb file information for file id {FileId}", result.FileId);
-        var eFile = _context.AniDbFiles.FirstOrDefault(f => f.Id == result.FileId);
+        var eFile = _context.AniDbNormalFiles.FirstOrDefault(f => f.Id == result.FileId);
         var file = FileResultToAniDbFile(result);
 
         if (eFile is null)
@@ -194,20 +195,22 @@ public class ProcessCommand : Command<ProcessArgs>
         else
             _context.Entry(file.FileWatchedState).State = EntityState.Added;
 
-        if (_context.LocalFiles.Include(lf => lf.ManualLinkEpisode)
-                .ThenInclude(ep => ep!.EpisodeWatchedState)
+        if (_context.LocalFiles.Include(lf => lf.AniDbFile)
+                .ThenInclude(f => f!.FileWatchedState)
+                .Include(lf => lf.AniDbFile)
+                .ThenInclude(f => f!.AniDbEpisodeFileXrefs)
                 .FirstOrDefault(lf => lf.Ed2k == file.Ed2k) is { } eLocalFile)
         {
-            eLocalFile.AniDbFileId = file.Id;
-            if (eLocalFile.ManualLinkEpisode is not null)
+            if (eLocalFile.AniDbFile is AniDbGenericFile)
             {
                 _logger.LogInformation("Replacing manual link from local file {LocalId} with episode {EpisodeId} with file relation", eLocalFile.Id,
-                    eLocalFile.ManualLinkEpisodeId);
-                eLocalFile.ManualLinkEpisodeId = null;
+                    eLocalFile.AniDbFile.AniDbEpisodeFileXrefs.First().AniDbEpisodeId);
                 var fws = eFileWatchedState ?? file.FileWatchedState;
-                fws.Watched = eLocalFile.ManualLinkEpisode.EpisodeWatchedState.Watched;
+                fws.Watched = eLocalFile.AniDbFile.FileWatchedState.Watched;
                 fws.WatchedUpdated = DateTime.UtcNow;
             }
+
+            eLocalFile.AniDbFileId = file.Id;
         }
     }
 
@@ -215,7 +218,8 @@ public class ProcessCommand : Command<ProcessArgs>
     {
         _logger.LogInformation("Updating generic AniDb file information for file id {FileId}", result.FileId);
 
-        if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == result.EpisodeId) is { } eEpisodeWatchedState)
+        if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFile.AniDbEpisodeFileXrefs.First().AniDbEpisodeId == result.EpisodeId) is
+            { } eEpisodeWatchedState)
         {
             if (eEpisodeWatchedState.WatchedUpdated is null)
                 eEpisodeWatchedState.Watched = result.MyListViewed ?? false;
@@ -232,7 +236,7 @@ public class ProcessCommand : Command<ProcessArgs>
     private void UpdateEpRelations(int fileId, List<int> episodeIds)
     {
         var eRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == fileId).ToList();
-        var eHangingRels = _context.HangingEpisodeFileXrefs.Where(x => x.AniDbFileId == fileId).ToList();
+        var eHangingRels = _context.HangingEpisodeFileXrefs.Where(x => x.AniDbNormalFileId == fileId).ToList();
         _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(episodeIds, x => x.AniDbEpisodeId));
         _context.HangingEpisodeFileXrefs.RemoveRange(eHangingRels.ExceptBy(episodeIds, x => x.AniDbEpisodeId));
         foreach (var rel in episodeIds
@@ -248,7 +252,7 @@ public class ProcessCommand : Command<ProcessArgs>
                 _context.HangingEpisodeFileXrefs.Add(new HangingEpisodeFileXref
                 {
                     AniDbEpisodeId = rel,
-                    AniDbFileId = fileId
+                    AniDbNormalFileId = fileId
                 });
     }
 

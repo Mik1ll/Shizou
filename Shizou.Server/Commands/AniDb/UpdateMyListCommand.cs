@@ -4,8 +4,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
+using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
+using Shizou.Server.Exceptions;
 
 namespace Shizou.Server.Commands.AniDb;
 
@@ -65,15 +67,59 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
                 {
                     _myListEntryRequest.SetParameters(aid, epno);
                     var entryResponse = await _myListEntryRequest.ProcessAsync().ConfigureAwait(false);
-                    if (entryResponse?.MyListEntryResult is { } entryResult)
-                        if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == entryResult.EpisodeId) is { } eWs)
-                        {
-                            _logger.LogInformation("Updating episode {EpisodeId} with generic file id {GenericId} and mylist id {MyListId}",
-                                entryResult.EpisodeId, entryResult.FileId, entryResult.MyListId);
-                            eWs.AniDbFileId = entryResult.FileId;
-                            eWs.MyListId = entryResult.MyListId;
-                            _context.SaveChanges();
-                        }
+                    switch (entryResponse?.ResponseCode)
+                    {
+                        case AniDbResponseCode.MyList:
+                            if (entryResponse.MyListEntryResult is { } entryResult)
+                            {
+                                if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == entryResult.FileId) is { } eWs)
+                                {
+                                    _logger.LogInformation("Updating episode id {EpisodeId} with generic file id {GenericId} and mylist id {MyListId}",
+                                        entryResult.EpisodeId, entryResult.FileId, entryResult.MyListId);
+                                    eWs.AniDbFileId = entryResult.FileId;
+                                    eWs.MyListId = entryResult.MyListId;
+                                    _context.SaveChanges();
+                                }
+                                else
+                                {
+                                    _logger.LogInformation(
+                                        "Adding watch state for episode id {EpisodeId} with generic file id {GenericId} and mylist id {MyListId}",
+                                        entryResult.EpisodeId, entryResult.FileId, entryResult.MyListId);
+                                    if (!_context.AniDbFiles.Any(f => f.Id == entryResult.FileId))
+                                        _context.AniDbGenericFiles.Add(new AniDbGenericFile
+                                        {
+                                            Id = entryResult.FileId,
+                                            AniDbEpisodeFileXrefs =
+                                                [new AniDbEpisodeFileXref { AniDbFileId = entryResult.FileId, AniDbEpisodeId = entryResult.EpisodeId }]
+                                        });
+                                    _context.FileWatchedStates.Add(new FileWatchedState
+                                    {
+                                        AniDbFileId = entryResult.FileId,
+                                        Watched = CommandArgs.Watched ?? entryResult.ViewDate is not null,
+                                        WatchedUpdated = CommandArgs.Watched is null ? entryResult.ViewDate?.UtcDateTime : DateTime.UtcNow,
+                                        MyListId = entryResult.MyListId
+                                    });
+                                    _context.SaveChanges();
+                                }
+                            }
+                            else
+                            {
+                                throw new AniDbUdpRequestException("UDP MYLIST entry result should not be null");
+                            }
+
+                            break;
+                        case AniDbResponseCode.MultipleMyListEntries:
+                            _logger.LogWarning(
+                                "Could not get generic file mylist entry for anime id {AnimeId} episode {EpisodeNumber}, multiple entries returned", aid, epno);
+                            break;
+                        case AniDbResponseCode.NoSuchEntry:
+                            _logger.LogError("Could not get generic file mylist entry for anime id {AnimeId} episode {EpisodeNumber}, no file returned", aid,
+                                epno);
+                            break;
+                        default:
+                            throw new AniDbUdpRequestException(
+                                $"Unexpected response for UDP MYLIST Code:{entryResponse?.ResponseCode}, Text:\"{entryResponse?.ResponseText}\"");
+                    }
                 }
                 else if (response.AddedEntryId is not null && CommandArgs.Fid is not null)
                 {
@@ -106,8 +152,6 @@ public class UpdateMyListCommand : Command<UpdateMyListArgs>
     {
         if (_context.FileWatchedStates.Find(fileId) is { } fileWatchedState)
             fileWatchedState.MyListId = myListId;
-        else if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == fileId) is { } epWatchedState)
-            epWatchedState.MyListId = myListId;
 
         _context.SaveChanges();
     }

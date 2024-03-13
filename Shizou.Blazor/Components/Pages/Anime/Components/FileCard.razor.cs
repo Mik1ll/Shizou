@@ -11,7 +11,7 @@ namespace Shizou.Blazor.Components.Pages.Anime.Components;
 
 public partial class FileCard
 {
-    private IWatchedState _watchedState = default!;
+    private FileWatchedState _watchedState = default!;
     private string _externalPlaybackUrl = default!;
 
     [Inject]
@@ -40,30 +40,18 @@ public partial class FileCard
     {
         if (LocalFile.ImportFolder is null)
             throw new ArgumentNullException(nameof(LocalFile.ImportFolder));
-        if (LocalFile.AniDbFile is null && LocalFile.ManualLinkEpisode is null)
+        if (LocalFile.AniDbFile is null)
             throw new ArgumentException("Must have either AniDb file or Manual Link");
-        if (LocalFile.AniDbFile?.FileWatchedState is null && LocalFile.ManualLinkEpisode?.EpisodeWatchedState is null)
-            throw new ArgumentNullException(nameof(IWatchedState));
-        _watchedState = (IWatchedState?)LocalFile.AniDbFile?.FileWatchedState ?? LocalFile.ManualLinkEpisode!.EpisodeWatchedState;
+        _watchedState = LocalFile.AniDbFile?.FileWatchedState ?? throw new ArgumentNullException(nameof(FileWatchedState));
 
         _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(LocalFile.Ed2k, true);
     }
 
     private Task MarkAsync(bool watched)
     {
-        switch (_watchedState)
-        {
-            case FileWatchedState fws:
-                if (WatchStateService.MarkFile(fws.AniDbFileId, watched))
-                    _watchedState.Watched = watched;
-                break;
-            case EpisodeWatchedState ews:
-                if (WatchStateService.MarkEpisode(ews.AniDbEpisodeId, watched))
-                    _watchedState.Watched = watched;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(_watchedState));
-        }
+        if (WatchStateService.MarkFile(_watchedState!.AniDbFileId, watched))
+            _watchedState.Watched = watched;
+
 
         return OnChanged.InvokeAsync();
     }
@@ -71,8 +59,10 @@ public partial class FileCard
     private async Task UnlinkAsync(LocalFile localFile)
     {
         using var context = ContextFactory.CreateDbContext();
-        context.LocalFiles.Attach(localFile);
-        localFile.ManualLinkEpisodeId = null;
+        // ReSharper disable once MethodHasAsyncOverload
+        context.LocalFiles.Attach(localFile).Reference(lf => lf.AniDbFile).Load();
+        if (localFile.AniDbFile is AniDbGenericFile)
+            localFile.AniDbFileId = null;
 
         context.SaveChanges();
         await OnChanged.InvokeAsync();

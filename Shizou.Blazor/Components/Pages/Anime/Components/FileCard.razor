@@ -1,5 +1,6 @@
 ﻿@using Shizou.Data.CommandInputArgs
 @using Shizou.Data.Enums
+@using Shizou.Data.Models
 <div class="card">
     <ul class="list-group list-group-flush">
         <li class="list-group-item">
@@ -31,31 +32,32 @@
         </li>
         <li class="list-group-item">
             <span>
-                <strong>
-                    @if (LocalFile.AniDbFile is null)
-                    {
-                        @("Manual Link")
-                    }
-                    else
-                    {
+                @if (LocalFile.AniDbFile is AniDbNormalFile f)
+                {
+                    <strong>
                         <a class="bi bi-box-arrow-up-right" href="https://anidb.net/file/@(LocalFile.AniDbFileId)" target="_blank"></a>
                         <text>&nbsp;</text>
-                        if (LocalFile.AniDbFile.AniDbGroup is not null)
+                        @if (f.AniDbGroup is not null)
                         {
-                            <a href="https://anidb.net/group/@(LocalFile.AniDbFile.AniDbGroupId)" target="_blank">[@(LocalFile.AniDbFile.AniDbGroup.ShortName)]</a>
+                            <a href="https://anidb.net/group/@(f.AniDbGroupId)" target="_blank">[@(f.AniDbGroup.ShortName)]</a>
                             <text>&nbsp;</text>
                         }
                         else
                         {
                             <text>No Group&nbsp;</text>
                         }
+                    </strong>
+                    @if (f.Video is not null)
+                    {
+                        <text>@($"{f.Video.Height}x{f.Video.Width} {f.Video.ColorDepth}bit ")</text>
                     }
-                </strong>
-                @if (LocalFile.AniDbFile?.Video is not null)
-                {
-                    <text>@($"{LocalFile.AniDbFile.Video.Height}x{LocalFile.AniDbFile.Video.Width} {LocalFile.AniDbFile.Video.ColorDepth}bit ")</text>
+
+                    <strong>@(f.Source)</strong>
                 }
-                <strong>@(LocalFile.AniDbFile?.Source)</strong>
+                else
+                {
+                    <strong>Manual Link</strong>
+                }
             </span>
         </li>
         <li class="list-group-item">

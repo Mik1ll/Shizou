@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
-using Shizou.Data.Enums;
 using Shizou.Server.Extensions.Query;
 using Shizou.Server.Options;
 
@@ -32,8 +32,6 @@ public class WatchStateService
         using var context = _contextFactory.CreateDbContext();
         if (context.FileWatchedStates.Find(fileId) is not { } fileWatchedState)
         {
-            if (context.EpisodeWatchedStates.Where(ws => ws.AniDbFileId == fileId).Select(f => (int?)f.AniDbEpisodeId).FirstOrDefault() is { } episodeId)
-                return MarkEpisode(episodeId, watched);
             _logger.LogWarning("File Id {FileId} watched state not found, not marking", fileId);
             return false;
         }
@@ -54,18 +52,15 @@ public class WatchStateService
     {
         updatedTime ??= DateTime.UtcNow;
         using var context = _contextFactory.CreateDbContext();
-        if (context.EpisodeWatchedStates.Where(ews => ews.AniDbEpisodeId == episodeId)
-                .Select(ews => new
-                {
-                    WatchedState = ews,
-                    Episode = new
-                    {
-                        ews.AniDbEpisode.AniDbAnimeId, ews.AniDbEpisode.EpisodeType, ews.AniDbEpisode.Number,
-                        HasManualLinks = ews.AniDbEpisode.ManualLinkLocalFiles.Any()
-                    }
-                }).FirstOrDefault() is not { WatchedState: { } episodeWatchedState, Episode: { } episode })
+
+        var episodeWatchedState = context.AniDbGenericFiles
+            .Include(gf => gf.AniDbEpisodes)
+            .Include(gf => gf.FileWatchedState)
+            .Where(gf => gf.AniDbEpisodeFileXrefs.Any(e => e.AniDbEpisodeId == episodeId))
+            .Select(gf => gf.FileWatchedState).FirstOrDefault();
+        if (episodeWatchedState is null)
         {
-            _logger.LogWarning("Episode Id {EpisodeId} watched state/episode not found, not marking", episodeId);
+            _logger.LogWarning("Episode id {EpisodeId} watched state not found, not marking", episodeId);
             return false;
         }
 
@@ -76,18 +71,13 @@ public class WatchStateService
 
 
         var myListOptions = _optionsMonitor.CurrentValue.AniDb.MyList;
-        var state = episode.HasManualLinks ? myListOptions.PresentFileState : myListOptions.AbsentFileState;
+        var state = myListOptions.PresentFileState;
 
         // Don't use generic episode mylist edit, because it edits all files not just generic
-        var fileId = context.EpisodeWatchedStates.Where(ws => ws.AniDbEpisodeId == episodeId && ws.AniDbFileId != null)
-            .Select(ws => ws.AniDbFileId).FirstOrDefault();
-        if (fileId is not null)
-            _commandService.Dispatch(episodeWatchedState.MyListId is not null
-                ? new UpdateMyListArgs(true, state, watched, updatedTime, episodeWatchedState.MyListId)
-                : new UpdateMyListArgs(false, state, watched, updatedTime, Fid: fileId));
-        else
-            _commandService.Dispatch(new UpdateMyListArgs(false, state, watched, updatedTime, Aid: episode.AniDbAnimeId,
-                EpNo: episode.EpisodeType.GetEpString(episode.Number)));
+        var fileId = episodeWatchedState.AniDbFileId;
+        _commandService.Dispatch(episodeWatchedState.MyListId is not null
+            ? new UpdateMyListArgs(true, state, watched, updatedTime, episodeWatchedState.MyListId)
+            : new UpdateMyListArgs(false, state, watched, updatedTime, Fid: fileId));
 
         return true;
     }
@@ -98,19 +88,13 @@ public class WatchStateService
         using var context = _contextFactory.CreateDbContext();
 
         var filesWithLocal = (from file in context.AniDbFiles.ByAnimeId(animeId)
-            where file.LocalFile != null
+            where file.LocalFiles.Any()
             select file).ToList();
-        var epsWithManualLink = (from episode in context.AniDbEpisodes
-            where episode.AniDbAnimeId == animeId && episode.ManualLinkLocalFiles.Any()
-            select episode).ToList();
 
         foreach (var f in filesWithLocal)
             if (!MarkFile(f.Id, watched, updatedTime))
                 return false;
 
-        foreach (var ep in epsWithManualLink)
-            if (!MarkEpisode(ep.Id, watched, updatedTime))
-                return false;
         return true;
     }
 }

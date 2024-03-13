@@ -107,7 +107,7 @@ public class HashCommand : Command<HashArgs>
                 hashes[HashIds.Crc32]);
         }
 
-        var eAniDbFileId = _context.AniDbFiles.Where(f => f.Ed2k == localFile.Ed2k).Select(f => new { f.Id }).FirstOrDefault()?.Id;
+        var eAniDbFileId = _context.AniDbNormalFiles.Where(f => f.Ed2k == localFile.Ed2k).Select(f => new { f.Id }).FirstOrDefault()?.Id;
         localFile.AniDbFileId = eAniDbFileId;
         _context.SaveChanges();
 

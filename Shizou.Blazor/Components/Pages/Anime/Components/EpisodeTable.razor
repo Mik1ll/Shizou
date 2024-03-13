@@ -46,16 +46,9 @@
         {
             <tr>
                 <td colspan="5">
-                    @foreach (var aniDbFile in ep.AniDbFiles)
+                    @foreach (var localFile in ep.AniDbFiles.SelectMany(f => f.LocalFiles))
                     {
-                        if (aniDbFile.LocalFile is not null)
-                        {
-                            <FileCard LocalFile="@(aniDbFile.LocalFile)" OnChanged="@Reload"></FileCard>
-                        }
-                    }
-                    @foreach (var localFile in ep.ManualLinkLocalFiles)
-                    {
-                        <FileCard LocalFile="@localFile" OnChanged="@Reload"></FileCard>
+                        <FileCard LocalFile="@(localFile)" OnChanged="@Reload"></FileCard>
                     }
                 </td>
             </tr>

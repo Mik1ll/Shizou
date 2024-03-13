@@ -96,12 +96,6 @@ public class AnimeCommand : Command<AnimeArgs>
                     ?.Text,
                 TitleOriginal = e.Title.FirstOrDefault(t => t.Lang.StartsWith(originalLangPrefix, StringComparison.OrdinalIgnoreCase))
                     ?.Text,
-                EpisodeWatchedState = new EpisodeWatchedState
-                {
-                    AniDbEpisodeId = e.Id,
-                    Watched = false,
-                    WatchedUpdated = null
-                }
             }).ToList(),
             Updated = DateTime.UtcNow
         };
@@ -128,7 +122,7 @@ public class AnimeCommand : Command<AnimeArgs>
             return;
         }
 
-        var eAniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes).ThenInclude(ep => ep.EpisodeWatchedState)
+        var eAniDbAnime = _context.AniDbAnimes.Include(a => a.AniDbEpisodes)
             .FirstOrDefault(a => a.Id == CommandArgs.AnimeId);
         var aniDbAnime = AnimeResultToAniDbAnime(animeResult);
         if (eAniDbAnime is null)
@@ -150,11 +144,11 @@ public class AnimeCommand : Command<AnimeArgs>
                 _context.AniDbEpisodes.Add(ep);
             foreach (var eHangingXref in _context.HangingEpisodeFileXrefs.Where(x => x.AniDbEpisodeId == ep.Id))
             {
-                if (!_context.AniDbEpisodeFileXrefs.Any(x => x.AniDbEpisodeId == ep.Id && x.AniDbFileId == eHangingXref.AniDbFileId))
+                if (!_context.AniDbEpisodeFileXrefs.Any(x => x.AniDbEpisodeId == ep.Id && x.AniDbFileId == eHangingXref.AniDbNormalFileId))
                     _context.AniDbEpisodeFileXrefs.Add(new AniDbEpisodeFileXref
                     {
                         AniDbEpisodeId = ep.Id,
-                        AniDbFileId = eHangingXref.AniDbFileId
+                        AniDbFileId = eHangingXref.AniDbNormalFileId
                     });
                 _context.HangingEpisodeFileXrefs.Remove(eHangingXref);
             }

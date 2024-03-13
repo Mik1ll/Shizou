@@ -16,7 +16,7 @@ public partial class UpNext
 {
     private AniDbEpisode? _episode;
     private LocalFile? _localFile;
-    private IWatchedState? _watchedState;
+    private FileWatchedState? _watchedState;
     private string _externalPlaybackUrl = default!;
 
     [Inject]
@@ -48,19 +48,14 @@ public partial class UpNext
     private void Reload()
     {
         using var context = ContextFactory.CreateDbContext();
-        _episode = context.AniDbEpisodes.AsSingleQuery().HasLocalFiles()
-            .Where(e => e.AniDbAnimeId == AnimeId && e.EpisodeWatchedState.Watched == false && e.AniDbFiles.All(f => f.FileWatchedState.Watched == false))
+        _episode = context.AniDbEpisodes.Include(ep => ep.AniDbFiles).ThenInclude(f => f.LocalFiles)
+            .Include(ep => ep.AniDbFiles).ThenInclude(f => f.FileWatchedState).AsSingleQuery().HasLocalFiles()
+            .Where(e => e.AniDbAnimeId == AnimeId && e.AniDbFiles.All(f => f.FileWatchedState.Watched == false))
             .OrderBy(e => e.EpisodeType).ThenBy(e => e.Number).FirstOrDefault();
         if (_episode is null)
             return;
-        var fileAndWatchState = context.LocalFiles.Where(lf => lf.AniDbFile!.AniDbEpisodes.Any(e => e.Id == _episode.Id))
-                                    .Select(lf => new { LocalFile = lf, WatchedState = (IWatchedState)lf.AniDbFile!.FileWatchedState }).FirstOrDefault()
-                                ?? context.LocalFiles
-                                    .Where(lf => lf.ManualLinkEpisodeId == _episode.Id)
-                                    .Select(lf => new { LocalFile = lf, WatchedState = (IWatchedState)lf.ManualLinkEpisode!.EpisodeWatchedState })
-                                    .FirstOrDefault();
-        _localFile = fileAndWatchState!.LocalFile;
-        _watchedState = fileAndWatchState.WatchedState;
+        _localFile = _episode.AniDbFiles.SelectMany(f => f.LocalFiles).First();
+        _watchedState = _localFile.AniDbFile!.FileWatchedState;
     }
 
 
@@ -70,19 +65,8 @@ public partial class UpNext
 
     private void Mark(bool watched)
     {
-        switch (_watchedState)
-        {
-            case FileWatchedState fws:
-                if (WatchStateService.MarkFile(fws.AniDbFileId, watched))
-                    _watchedState.Watched = watched;
-                break;
-            case EpisodeWatchedState ews:
-                if (WatchStateService.MarkEpisode(ews.AniDbEpisodeId, watched))
-                    _watchedState.Watched = watched;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(_watchedState));
-        }
+        if (WatchStateService.MarkFile(_watchedState!.AniDbFileId, watched))
+            _watchedState.Watched = watched;
 
         Reload();
     }

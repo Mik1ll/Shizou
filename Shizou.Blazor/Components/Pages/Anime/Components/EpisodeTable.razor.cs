@@ -30,10 +30,10 @@ public partial class EpisodeTable
         using var context = ContextFactory.CreateDbContext();
         _fileCounts = (from ep in context.AniDbEpisodes
                 where ep.AniDbAnimeId == AnimeId
-                select new { EpId = ep.Id, Count = ep.AniDbFiles.Count(f => f.LocalFile != null) + ep.ManualLinkLocalFiles.Count })
+                select new { EpId = ep.Id, Count = ep.AniDbFiles.Count(f => f.LocalFiles.Any()) })
             .ToDictionary(x => x.EpId, x => x.Count);
         _watchedEps = (from ep in context.AniDbEpisodes
-            where ep.AniDbAnimeId == AnimeId && (ep.EpisodeWatchedState.Watched || ep.AniDbFiles.Any(f => f.FileWatchedState.Watched))
+            where ep.AniDbAnimeId == AnimeId && ep.AniDbFiles.Any(f => f.FileWatchedState.Watched)
             select ep.Id).ToHashSet();
     }
 
@@ -61,13 +61,11 @@ public partial class EpisodeTable
         using var context = ContextFactory.CreateDbContext();
         context.Attach(episode).Collection(ep => ep.AniDbFiles)
             .Query().AsSplitQuery()
-            .Include(f => f.LocalFile)
-            .ThenInclude(lf => lf!.ImportFolder)
-            .Include(f => f.AniDbGroup)
+            .Include(f => f.LocalFiles)
+            .ThenInclude(lf => lf.ImportFolder)
+            .Include(f => ((AniDbNormalFile)f).AniDbGroup)
             .Include(f => f.FileWatchedState)
             .Load();
-        context.Entry(episode).Collection(ep => ep.ManualLinkLocalFiles).Query().Include(lf => lf.ImportFolder).Load();
-        context.Entry(episode).Reference(ep => ep.EpisodeWatchedState).Load();
     }
 
     private string GetEpisodeThumbnailPath(int episodeId)
