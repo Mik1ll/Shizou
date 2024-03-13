@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -25,7 +26,14 @@ public class ManualLinkService
         _logger = logger;
     }
 
-    public void LinkFile(LocalFile localFile, int aniDbEpisodeId)
+    public enum LinkResult
+    {
+        Yes,
+        Maybe,
+        No
+    }
+
+    public LinkResult LinkFile(LocalFile localFile, int aniDbEpisodeId)
     {
         var options = _optionsMonitor.CurrentValue.AniDb.MyList;
         using var context = _contextFactory.CreateDbContext();
@@ -34,23 +42,26 @@ public class ManualLinkService
         if (episode is null)
         {
             _logger.LogError("Episode with id {EpisodeId} is not present, cannot link", aniDbEpisodeId);
-            return;
+            return LinkResult.No;
         }
 
         var genericFile = episode.AniDbFiles.OfType<AniDbGenericFile>().FirstOrDefault();
         if (genericFile is null)
         {
-            _logger.LogError("Generic file for episode {EpisodeId} is not present, cannot link", aniDbEpisodeId);
-            _commandService.Dispatch(new UpdateMyListArgs(false, options.PresentFileState, Aid: episode.AniDbAnimeId,
-                EpNo: episode.EpString));
-            return;
+            _logger.LogError("Generic file for episode {EpisodeId} is not present, attempting to link after mylist add", aniDbEpisodeId);
+            _commandService.Dispatch(new UpdateMyListByEpisodeArgs(false, episode.AniDbAnimeId, episode.EpString, options.PresentFileState,
+                ManualLinkToLocalFileId: localFile.Id));
+            return LinkResult.Maybe;
         }
 
         localFile.AniDbFileId = genericFile.Id;
+        context.SaveChanges();
+        _logger.LogInformation("Local file id {LocalFileId} with name \"{LocalFileName}\" manually linked to episode id {EpisodeId}", localFile.Id,
+            Path.GetFileName(localFile.PathTail), aniDbEpisodeId);
         var watchedState = genericFile.FileWatchedState;
         _commandService.Dispatch(watchedState.MyListId is not null
             ? new UpdateMyListArgs(true, options.PresentFileState, Lid: watchedState.MyListId)
             : new UpdateMyListArgs(false, options.PresentFileState, Fid: watchedState.AniDbFileId));
-        context.SaveChanges();
+        return LinkResult.Yes;
     }
 }

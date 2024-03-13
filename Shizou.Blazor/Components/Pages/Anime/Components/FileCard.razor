@@ -1,6 +1,6 @@
-﻿@using Shizou.Data.CommandInputArgs
+﻿@using Shizou.Data.Models
+@using Shizou.Data.CommandInputArgs
 @using Shizou.Data.Enums
-@using Shizou.Data.Models
 <div class="card">
     <ul class="list-group list-group-flush">
         <li class="list-group-item">
@@ -13,7 +13,7 @@
                         <i class="bi bi-cast"></i>
                     </a>
                 </div>
-                @if (LocalFile.AniDbFile is null)
+                @if (LocalFile.AniDbFile is AniDbGenericFile)
                 {
                     <button class="btn btn-outline-danger me-1 mb-1" type="button" @onclick="@(() => UnlinkAsync(LocalFile))">
                         <i class="bi bi-slash-circle"></i> Unlink File

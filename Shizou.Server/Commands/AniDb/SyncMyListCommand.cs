@@ -56,8 +56,9 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         }).ToList();
     }
 
-    private static void CombineUpdates(List<MyListItem> myListItems, List<UpdateMyListArgs> toUpdate)
+    private static List<UpdateMyListByEpisodeArgs> CombineUpdates(List<MyListItem> myListItems, List<UpdateMyListArgs> toUpdate)
     {
+        var combinedUpdates = new List<UpdateMyListByEpisodeArgs>();
         foreach (var aGroup in from i in myListItems
                  group i by i.Aids.First()
                  into aGroup
@@ -82,15 +83,18 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
             {
                 foreach (var u in updates)
                     toUpdate.Remove(u);
-                toUpdate.Add(new UpdateMyListArgs(true, firstUpdate.MyListState, Aid: aGroup.Key, EpNo: "0"));
+                combinedUpdates.Add(new UpdateMyListByEpisodeArgs(true, aGroup.Key, "0", firstUpdate.MyListState));
             }
             else if (newStates.All(s => s.State == firstUpdate.MyListState && s.Watched == firstUpdate.Watched && s.WatchedDate == firstUpdate.WatchedDate))
             {
                 foreach (var u in updates)
                     toUpdate.Remove(u);
-                toUpdate.Add(new UpdateMyListArgs(true, firstUpdate.MyListState, firstUpdate.Watched, firstUpdate.WatchedDate, Aid: aGroup.Key, EpNo: "0"));
+                combinedUpdates.Add(new UpdateMyListByEpisodeArgs(true, aGroup.Key, "0", firstUpdate.MyListState, firstUpdate.Watched,
+                    firstUpdate.WatchedDate));
             }
         }
+
+        return combinedUpdates;
     }
 
     protected override async Task ProcessInnerAsync()
@@ -225,10 +229,11 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         //
         // _context.SaveChanges();
         //
-        // CombineUpdates(myListItems, toUpdate);
+        // var combinedUpdates = CombineUpdates(myListItems, toUpdate);
         //
         // _commandService.DispatchRange(toUpdate);
         // _commandService.DispatchRange(toProcess);
+        // _commandService.DispatchRange(combinedUpdates);
     }
 
     private async Task<MyListResult?> GetMyListAsync()

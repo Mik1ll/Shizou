@@ -100,7 +100,12 @@ public partial class ManuallyLinkModal
     {
         foreach (var ep in _selectedAnime!.AniDbEpisodes)
             if (_mapping.TryGetValue(ep, out var localFile))
-                ManualLinkService.LinkFile(localFile, ep.Id);
+            {
+                var result = ManualLinkService.LinkFile(localFile, ep.Id);
+                if (result is ManualLinkService.LinkResult.Maybe)
+                    ToastService.ShowWarn("Manual Link Result",
+                        $"Manual link for \"{Path.GetFileName(localFile.PathTail)}\" pending, wait for update mylist udp command to finish");
+            }
 
         await _modal.CloseAsync();
     }
