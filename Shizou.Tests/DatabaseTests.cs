@@ -22,7 +22,7 @@ public class DatabaseTests : SeededDatabaseTests
     {
         using var context = GetContext();
         var result = from file in context.AniDbFiles
-            where file.LocalFile != null && file.AniDbEpisodes.Any(ep => ep.AniDbAnimeId == 5)
+            where file.LocalFiles.Any() && file.AniDbEpisodes.Any(ep => ep.AniDbAnimeId == 5)
             select file;
         Assert.IsNotNull(result);
     }
@@ -61,7 +61,7 @@ public class DatabaseTests : SeededDatabaseTests
     public void TestJsonColumns()
     {
         using var context = GetContext();
-        var file = context.AniDbFiles.First();
+        var file = context.AniDbNormalFiles.First();
         var audio = file.Audio;
         var subtitles = file.Subtitles;
         Assert.IsFalse(audio.Count == 0);

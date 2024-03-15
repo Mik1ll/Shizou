@@ -38,7 +38,7 @@ public class SeededDatabaseTests
                     TitleOriginal = null,
                     TitleEngish = null
                 });
-                var file = context.AniDbFiles.Add(new AniDbFile
+                var file = context.AniDbFiles.Add(new AniDbNormalFile
                 {
                     Id = 24,
                     Ed2k = "asdf",
@@ -56,7 +56,6 @@ public class SeededDatabaseTests
                     Chaptered = false,
                     AniDbGroupId = null,
                     AniDbGroup = null,
-                    LocalFile = null,
                     Video = null,
                     Audio =
                     [
@@ -100,8 +99,6 @@ public class SeededDatabaseTests
                     Updated = null,
                     ImportFolderId = null,
                     ImportFolder = null,
-                    ManualLinkEpisodeId = null,
-                    ManualLinkEpisode = null,
                     AniDbFile = file
                 }, new LocalFile
                 {
@@ -115,8 +112,6 @@ public class SeededDatabaseTests
                     Updated = null,
                     ImportFolderId = null,
                     ImportFolder = null,
-                    ManualLinkEpisodeId = null,
-                    ManualLinkEpisode = null
                 });
 
                 context.SaveChanges();
