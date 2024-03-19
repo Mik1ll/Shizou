@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data;
@@ -99,7 +100,6 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
 
     protected override async Task ProcessInnerAsync()
     {
-        throw new NotImplementedException();
         if (_options.AniDb.MyList.DisableSync)
         {
             _logger.LogWarning("Sync command disabled in settings, skipping");
@@ -131,109 +131,105 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
 
     private void RelationshipFixup(List<MyListItem> myListItems)
     {
-        // var eAnimeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
-        // var eFileIds = _context.AniDbFiles.Select(f => f.Id).ToHashSet();
-        // var eEpIds = _context.AniDbEpisodes.Select(e => e.Id).ToHashSet();
-        // var animeToAdd = new HashSet<int>();
-        // var eRelsLkup = _context.AniDbEpisodeFileXrefs.AsNoTracking().ToLookup(xref => xref.AniDbFileId);
-        // var eHangingRelsLkup = _context.HangingEpisodeFileXrefs.AsNoTracking().ToLookup(xref => xref.AniDbFileId);
-        // foreach (var item in myListItems.Where(i => eFileIds.Contains(i.Fid)))
-        // {
-        //     var eRels = eRelsLkup[item.Fid].ToList();
-        //     var eHangingRels = eHangingRelsLkup[item.Fid].ToList();
-        //     _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
-        //     _context.HangingEpisodeFileXrefs.RemoveRange(eHangingRels.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
-        //     foreach (var relEid in item.Eids
-        //                  .Except(eRels.Select(x => x.AniDbEpisodeId))
-        //                  .Except(eHangingRels.Select(x => x.AniDbEpisodeId)))
-        //         if (eEpIds.Contains(relEid))
-        //             _context.AniDbEpisodeFileXrefs.Add(new AniDbEpisodeFileXref
-        //             {
-        //                 AniDbEpisodeId = relEid,
-        //                 AniDbFileId = item.Fid
-        //             });
-        //         else
-        //             _context.HangingEpisodeFileXrefs.Add(new HangingEpisodeFileXref
-        //             {
-        //                 AniDbEpisodeId = relEid,
-        //                 AniDbFileId = item.Fid
-        //             });
-        //     foreach (var aid in item.Aids)
-        //         if (!eAnimeIds.Contains(aid))
-        //             animeToAdd.Add(aid);
-        // }
-        //
-        // _context.SaveChanges();
-        //
-        // _commandService.DispatchRange(animeToAdd.Select(aid => new AnimeArgs(aid)));
+        var eAnimeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
+        var eFileIds = _context.AniDbFiles.Select(f => f.Id).ToHashSet();
+        var eEpIds = _context.AniDbEpisodes.Select(e => e.Id).ToHashSet();
+        var animeToAdd = new HashSet<int>();
+        var eRelsLkup = _context.AniDbEpisodeFileXrefs.AsNoTracking().ToLookup(xref => xref.AniDbFileId);
+        var eHangingRelsLkup = _context.HangingEpisodeFileXrefs.AsNoTracking().ToLookup(xref => xref.AniDbNormalFileId);
+        foreach (var item in myListItems.Where(i => eFileIds.Contains(i.Fid)))
+        {
+            var eRels = eRelsLkup[item.Fid].ToList();
+            var eHangingRels = eHangingRelsLkup[item.Fid].ToList();
+            _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
+            _context.HangingEpisodeFileXrefs.RemoveRange(eHangingRels.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
+            foreach (var relEid in item.Eids
+                         .Except(eRels.Select(x => x.AniDbEpisodeId))
+                         .Except(eHangingRels.Select(x => x.AniDbEpisodeId)))
+                if (eEpIds.Contains(relEid))
+                    _context.AniDbEpisodeFileXrefs.Add(new AniDbEpisodeFileXref
+                    {
+                        AniDbEpisodeId = relEid,
+                        AniDbFileId = item.Fid
+                    });
+                else
+                    _context.HangingEpisodeFileXrefs.Add(new HangingEpisodeFileXref
+                    {
+                        AniDbEpisodeId = relEid,
+                        AniDbNormalFileId = item.Fid
+                    });
+            foreach (var aid in item.Aids)
+                if (!eAnimeIds.Contains(aid))
+                    animeToAdd.Add(aid);
+        }
+
+        _context.SaveChanges();
+
+        _commandService.DispatchRange(animeToAdd.Select(aid => new AnimeArgs(aid)));
     }
 
     [SuppressMessage("ReSharper.DPA", "DPA0007: Large number of DB records", MessageId = "count: 2000")]
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
-        // // Get watched states for files and generic files, episode watch states without a file id excluded
-        // var watchedStatesByFileId = _context.FileWatchedStates.Select(ws => new { FileId = ws.AniDbFileId, WatchedState = (IWatchedState)ws }).ToList()
-        //     .Union((from ws in _context.EpisodeWatchedStates
-        //         where ws.AniDbFileId != null
-        //         select new { FileId = ws.AniDbFileId!.Value, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId, f => f.WatchedState);
-        //
-        // // Get file id and generic file ids for files with local files
-        // var fileIdsWithLocal = _context.AniDbFiles.Where(f => f.LocalFile != null).Select(f => f.Id)
-        //     .Union(_context.EpisodeWatchedStates.Where(ws => ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any())
-        //         .Select(ws => ws.AniDbFileId!.Value)).ToHashSet();
-        //
-        // // Get episode ids that do not have a generic file id, and have manual links
-        // var epIdsMissingGenericFile = (from ws in _context.EpisodeWatchedStates
-        //     where ws.AniDbFileId == null && ws.AniDbEpisode.ManualLinkLocalFiles.Any()
-        //     select ws.AniDbEpisodeId).ToHashSet();
-        //
-        // List<UpdateMyListArgs> toUpdate = [];
-        // List<ProcessArgs> toProcess = [];
-        //
-        // foreach (var item in myListItems)
-        // {
-        //     var expectedState = fileIdsWithLocal.Contains(item.Fid) ? _options.AniDb.MyList.PresentFileState : _options.AniDb.MyList.AbsentFileState;
-        //     var itemWatched = item.Viewdate is not null;
-        //     var hasWatchedStateWithFileId = watchedStatesByFileId.TryGetValue(item.Fid, out var watchedState);
-        //     var fileMayBeGeneric = !hasWatchedStateWithFileId && item.Eids.Count == 1 && epIdsMissingGenericFile.Contains(item.Eids.First());
-        //     var updateQueued = false;
-        //
-        //     if (hasWatchedStateWithFileId)
-        //     {
-        //         if (watchedState!.Watched != itemWatched)
-        //         {
-        //             if (watchedState.WatchedUpdated is not null &&
-        //                 DateOnly.FromDateTime(watchedState.WatchedUpdated.Value) >= item.Updated)
-        //             {
-        //                 toUpdate.Add(new UpdateMyListArgs(true, expectedState, watchedState.Watched, watchedState.WatchedUpdated, item.Id));
-        //                 updateQueued = true;
-        //             }
-        //             else
-        //             {
-        //                 watchedState.Watched = itemWatched;
-        //                 watchedState.WatchedUpdated = null;
-        //             }
-        //         }
-        //
-        //         watchedState.MyListId = item.Id;
-        //     }
-        //     else if (fileMayBeGeneric)
-        //     {
-        //         // Check if file in mylist is a generic file for an episode with manual links
-        //         toProcess.Add(new ProcessArgs(item.Fid, IdTypeLocalOrFile.FileId));
-        //     }
-        //
-        //     if (!updateQueued && !fileMayBeGeneric && (item.State != expectedState || item.FileState != MyListFileState.Normal))
-        //         toUpdate.Add(new UpdateMyListArgs(true, expectedState, Lid: item.Id));
-        // }
-        //
-        // _context.SaveChanges();
-        //
-        // var combinedUpdates = CombineUpdates(myListItems, toUpdate);
-        //
-        // _commandService.DispatchRange(toUpdate);
-        // _commandService.DispatchRange(toProcess);
-        // _commandService.DispatchRange(combinedUpdates);
+        // Get watched states for files and generic files, episode watch states without a file id excluded
+        var watchedStatesByFileId = _context.FileWatchedStates.Select(ws => new { FileId = ws.AniDbFileId, WatchedState = ws })
+            .ToDictionary(f => f.FileId, f => f.WatchedState);
+
+        // Get file id and generic file ids for files with local files
+        var fileIdsWithLocal = _context.AniDbFiles.Where(f => f.LocalFiles.Any()).Select(f => f.Id).ToHashSet();
+
+        // Get episode ids that do not have a generic file id
+        var epIdsMissingGenericFile = (from ep in _context.AniDbEpisodes
+            where !ep.AniDbFiles.OfType<AniDbGenericFile>().Any()
+            select ep.Id).ToHashSet();
+
+        List<UpdateMyListArgs> toUpdate = [];
+        List<ProcessArgs> toProcess = [];
+
+        foreach (var item in myListItems)
+        {
+            var expectedState = fileIdsWithLocal.Contains(item.Fid) ? _options.AniDb.MyList.PresentFileState : _options.AniDb.MyList.AbsentFileState;
+            var itemWatched = item.Viewdate is not null;
+            var hasWatchedStateWithFileId = watchedStatesByFileId.TryGetValue(item.Fid, out var watchedState);
+            var fileMayBeGeneric = !hasWatchedStateWithFileId && item.Eids.Count == 1 && epIdsMissingGenericFile.Contains(item.Eids.First());
+            var updateQueued = false;
+
+            if (hasWatchedStateWithFileId)
+            {
+                if (watchedState!.Watched != itemWatched)
+                {
+                    if (watchedState.WatchedUpdated is not null &&
+                        DateOnly.FromDateTime(watchedState.WatchedUpdated.Value) >= item.Updated)
+                    {
+                        toUpdate.Add(new UpdateMyListArgs(true, expectedState, watchedState.Watched, watchedState.WatchedUpdated, item.Id));
+                        updateQueued = true;
+                    }
+                    else
+                    {
+                        watchedState.Watched = itemWatched;
+                        watchedState.WatchedUpdated = null;
+                    }
+                }
+
+                watchedState.MyListId = item.Id;
+            }
+            else if (fileMayBeGeneric)
+            {
+                // Check if file in mylist is a generic file for an episode with manual links
+                toProcess.Add(new ProcessArgs(item.Fid, IdTypeLocalOrFile.FileId));
+            }
+
+            if (!updateQueued && !fileMayBeGeneric && (item.State != expectedState || item.FileState != MyListFileState.Normal))
+                toUpdate.Add(new UpdateMyListArgs(true, expectedState, Lid: item.Id));
+        }
+
+        _context.SaveChanges();
+
+        var combinedUpdates = CombineUpdates(myListItems, toUpdate);
+
+        _commandService.DispatchRange(toUpdate);
+        _commandService.DispatchRange(toProcess);
+        _commandService.DispatchRange(combinedUpdates);
     }
 
     private async Task<MyListResult?> GetMyListAsync()

@@ -85,7 +85,7 @@ public class ProcessCommand : Command<ProcessArgs>
                 },
             Subtitles = result.SubLangugages.Select(s => new AniDbSubtitle
                 {
-                    Language = s,
+                    Language = s
                 })
                 .ToList(),
             FileName = result.AniDbFileName,
@@ -109,10 +109,7 @@ public class ProcessCommand : Command<ProcessArgs>
         };
     }
 
-    private static bool FileIsGeneric(FileResult result)
-    {
-        return result.Ed2K is null && result.State == 0;
-    }
+    private static bool FileIsGeneric(FileResult result) => result.Ed2K is null && result.State == 0;
 
     protected override async Task ProcessInnerAsync()
     {
@@ -218,18 +215,40 @@ public class ProcessCommand : Command<ProcessArgs>
     {
         _logger.LogInformation("Updating generic AniDb file information for file id {FileId}", result.FileId);
 
-        if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFile.AniDbEpisodeFileXrefs.First().AniDbEpisodeId == result.EpisodeId) is
-            { } eEpisodeWatchedState)
+        if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == result.FileId) is { } eWs)
         {
-            if (eEpisodeWatchedState.WatchedUpdated is null)
-                eEpisodeWatchedState.Watched = result.MyListViewed ?? false;
-            eEpisodeWatchedState.AniDbFileId = result.FileId;
-            eEpisodeWatchedState.MyListId = result.MyListId;
+            if (eWs.WatchedUpdated is null)
+                eWs.Watched = result.MyListViewed ?? false;
+            eWs.MyListId = result.MyListId;
             _context.SaveChanges();
+        }
+        else if (_context.AniDbEpisodes.Include(ep => ep.AniDbFiles).FirstOrDefault(ep => ep.Id == result.EpisodeId) is { } eEp)
+        {
+            if (eEp.AniDbFiles.OfType<AniDbGenericFile>().FirstOrDefault() is { } eFile)
+            {
+                if (eFile.Id != result.FileId)
+                    throw new InvalidOperationException(
+                        $"Exising generic file for episode id {eFile.Id} does not match returned generic file id {result.FileId}");
+            }
+            else
+            {
+                eEp.AniDbFiles.Add(new AniDbGenericFile
+                {
+                    Id = result.FileId,
+                    FileWatchedState = new FileWatchedState
+                    {
+                        Watched = result.MyListViewed ?? false,
+                        WatchedUpdated = null,
+                        MyListId = result.MyListId,
+                        AniDbFileId = result.FileId
+                    }
+                });
+                _context.SaveChanges();
+            }
         }
         else
         {
-            _logger.LogWarning("Failed to update generic file id {FileId}, did not find episode {EpisodeId} watch state", result.FileId, result.EpisodeId);
+            _logger.LogWarning("Failed to update generic file id {FileId}, did not find episode id {EpisodeId}", result.FileId, result.EpisodeId);
         }
     }
 
