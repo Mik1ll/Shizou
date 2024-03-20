@@ -102,9 +102,16 @@ public partial class ManuallyLinkModal
             if (_mapping.TryGetValue(ep, out var localFile))
             {
                 var result = ManualLinkService.LinkFile(localFile, ep.Id);
-                if (result is ManualLinkService.LinkResult.Maybe)
-                    ToastService.ShowWarn("Manual Link Result",
-                        $"Manual link for \"{Path.GetFileName(localFile.PathTail)}\" pending, wait for update mylist udp command to finish");
+                switch (result)
+                {
+                    case ManualLinkService.LinkResult.Maybe:
+                        ToastService.ShowWarn("Manual Link Result",
+                            $"Manual link for \"{Path.GetFileName(localFile.PathTail)}\" pending, wait for update mylist udp command to finish");
+                        break;
+                    case ManualLinkService.LinkResult.No:
+                        ToastService.ShowError("Manual Link Result", $"Manual link for \"{Path.GetFileName(localFile.PathTail)}\" failed");
+                        break;
+                }
             }
 
         await _modal.CloseAsync();

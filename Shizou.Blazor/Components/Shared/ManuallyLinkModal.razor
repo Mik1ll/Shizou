@@ -44,9 +44,21 @@
                                                 <i class="bi bi-arrow-up"></i>
                                             </button>
                                         }
+                                        else
+                                        {
+                                            <button type="button" class="btn p-0 invisible" disabled>
+                                                <i class="bi bi-arrow-up"></i>
+                                            </button>
+                                        }
                                         @if (idx != _selectedAnime.AniDbEpisodes.Count - 1)
                                         {
                                             <button type="button" class="btn p-0" @onclick="@(() => MoveLocalFile(ep, localFile, idx + 1))">
+                                                <i class="bi bi-arrow-down"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn p-0 invisible" disabled>
                                                 <i class="bi bi-arrow-down"></i>
                                             </button>
                                         }
