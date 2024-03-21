@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
 using Shizou.Server.Options;
@@ -34,6 +35,6 @@ public partial class Settings
         await LocalStorage.SetAsync(LocalStorageKeys.ExternalPlayerScheme, _externalPlayerScheme);
         using var context = ContextFactory.CreateDbContext();
         // ReSharper disable once MethodHasAsyncOverload
-        context.Database.EnsureCreated();
+        context.Database.Migrate();
     }
 }
