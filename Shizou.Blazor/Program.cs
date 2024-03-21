@@ -93,7 +93,7 @@ app.MapRazorPages();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.MigrateDatabase();
 app.PopulateOptions();
+app.MigrateDatabase();
 
 app.Run();

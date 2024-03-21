@@ -27,7 +27,7 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
         {
             var connectionString = new SqliteConnectionStringBuilder
             {
-                DataSource = FilePaths.DatabasePath,
+                DataSource = FilePaths.DatabasePath(string.Empty),
                 ForeignKeys = true,
                 Cache = SqliteCacheMode.Private,
                 Pooling = true

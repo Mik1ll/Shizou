@@ -44,7 +44,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MigrateDatabase();
 app.PopulateOptions();
+app.MigrateDatabase();
 
 app.Run();

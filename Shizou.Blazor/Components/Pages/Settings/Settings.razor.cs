@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.Extensions.Options;
+using Shizou.Data.Database;
 using Shizou.Server.Options;
 
 namespace Shizou.Blazor.Components.Pages.Settings;
@@ -17,6 +18,9 @@ public partial class Settings
     [Inject]
     private ProtectedLocalStorage LocalStorage { get; set; } = default!;
 
+    [Inject]
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
         _options = OptionsSnapShot.Value;
@@ -28,5 +32,8 @@ public partial class Settings
     {
         _options.SaveToFile();
         await LocalStorage.SetAsync(LocalStorageKeys.ExternalPlayerScheme, _externalPlayerScheme);
+        using var context = ContextFactory.CreateDbContext();
+        // ReSharper disable once MethodHasAsyncOverload
+        context.Database.EnsureCreated();
     }
 }

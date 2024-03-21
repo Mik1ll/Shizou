@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -107,7 +108,18 @@ public static class InitializationExtensions
 
     public static IServiceCollection AddShizouServices(this IServiceCollection services)
     {
-        services.AddDbContextFactory<ShizouContext>()
+        services.AddDbContextFactory<ShizouContext>((provider, opts) =>
+            {
+                var username = provider.GetService<IOptionsMonitor<ShizouOptions>>()?.CurrentValue.AniDb.Username ?? string.Empty;
+                opts.UseSqlite(new SqliteConnectionStringBuilder
+                    {
+                        DataSource = FilePaths.DatabasePath(username),
+                        ForeignKeys = true,
+                        Cache = SqliteCacheMode.Private,
+                        Pooling = true
+                    }.ConnectionString)
+                    .EnableSensitiveDataLogging();
+            })
             .AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedEmail = false;
