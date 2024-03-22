@@ -119,7 +119,7 @@ public static class InitializationExtensions
                         Pooling = true
                     }.ConnectionString)
                     .EnableSensitiveDataLogging();
-            })
+            }, ServiceLifetime.Transient)
             .AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedEmail = false;
@@ -149,7 +149,7 @@ public static class InitializationExtensions
             })
             .AddAuthorization(opts => opts.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
             .AddScoped<IShizouContext, ShizouContext>(p => p.GetRequiredService<ShizouContext>())
-            .AddSingleton<IShizouContextFactory, ShizouContextFactory>(p =>
+            .AddTransient<IShizouContextFactory, ShizouContextFactory>(p =>
                 new ShizouContextFactory(p.GetRequiredService<IDbContextFactory<ShizouContext>>()))
             .AddHostedService<StartupService>()
             .AddTransient<AniDbFileResultCache>()
