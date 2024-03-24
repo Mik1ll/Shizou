@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -11,7 +12,7 @@ using Shizou.Data.Enums;
 
 namespace Shizou.Server.Options;
 
-public class ShizouOptions
+public class ShizouOptions : IValidatableObject
 {
     public const string Shizou = "Shizou";
 
@@ -131,6 +132,15 @@ public class ShizouOptions
             File.WriteAllText(FilePaths.OptionsPath, jsonSettings);
         }
     }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        var results = new List<ValidationResult>();
+
+        Validator.TryValidateObject(AniDb, new ValidationContext(AniDb), results, true);
+
+        return results;
+    }
 }
 
 public class ImportOptions
@@ -143,6 +153,8 @@ public class AniDbOptions
     private static bool _userSet;
     private static string _username = string.Empty;
 
+    [Required(ErrorMessage = "Shizou:AniDb:Username is required on startup", AllowEmptyStrings = false)]
+    [StringLength(16, MinimumLength = 3, ErrorMessage = "Shizou:AniDb:Username must be between 3 and 16 characters")]
     public string Username
     {
         get => _username;
@@ -152,8 +164,7 @@ public class AniDbOptions
             {
                 if (!_userSet)
                     _username = value;
-                if (!string.IsNullOrWhiteSpace(_username))
-                    _userSet = true;
+                _userSet = true;
             }
         }
     }
@@ -177,7 +188,7 @@ public class AniDbOptions
 
 public class MyListOptions
 {
-    public bool DisableSync { get; set; } = false;
+    public bool DisableSync { get; set; }
     public MyListState AbsentFileState { get; set; } = MyListState.Deleted;
     public MyListState PresentFileState { get; set; } = MyListState.Internal;
 }

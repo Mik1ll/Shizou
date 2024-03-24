@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shizou.Data.CommandInputArgs;
@@ -12,29 +11,8 @@ namespace Shizou.Data.Database;
 
 public sealed class ShizouContext : DbContext, IShizouContext
 {
-    public ShizouContext()
-    {
-    }
-
     public ShizouContext(DbContextOptions<ShizouContext> options) : base(options)
     {
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            var connectionString = new SqliteConnectionStringBuilder
-            {
-                DataSource = FilePaths.DatabasePath(string.Empty),
-                ForeignKeys = true,
-                Cache = SqliteCacheMode.Private,
-                Pooling = true
-            }.ConnectionString;
-            optionsBuilder
-                .UseSqlite(connectionString)
-                .EnableSensitiveDataLogging();
-        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

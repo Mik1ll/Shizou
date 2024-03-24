@@ -112,7 +112,6 @@ try
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
-    app.PopulateOptions();
     app.MigrateDatabase();
 
     app.Run();

@@ -63,7 +63,6 @@ try
 
     app.MapControllers();
 
-    app.PopulateOptions();
     app.MigrateDatabase();
 
     app.Run();

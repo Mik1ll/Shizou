@@ -50,6 +50,8 @@ public static class InitializationExtensions
         Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.OptionsPath)!);
         if (!File.Exists(FilePaths.OptionsPath))
             new ShizouOptions().SaveToFile();
+        if (!File.Exists(FilePaths.SchemaPath) || File.ReadAllText(FilePaths.SchemaPath) != ShizouOptions.Schema)
+            File.WriteAllText(FilePaths.SchemaPath, ShizouOptions.Schema);
         var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? throw new ApplicationException("No Entry assembly???");
         builder.Configuration
             .AddJsonFile($"appsettings.{assemblyName}.json", true, true)
@@ -79,19 +81,11 @@ public static class InitializationExtensions
 
     public static WebApplication MigrateDatabase(this WebApplication app)
     {
-        using var context = app.Services.GetRequiredService<IShizouContextFactory>().CreateDbContext();
+        using var scope = app.Services.CreateScope();
+        using var context = scope.ServiceProvider.GetRequiredService<IShizouContext>();
         context.Database.Migrate();
-        using var identityContext = app.Services.GetRequiredService<AuthContext>();
+        using var identityContext = scope.ServiceProvider.GetRequiredService<AuthContext>();
         identityContext.Database.Migrate();
-        return app;
-    }
-
-    public static WebApplication PopulateOptions(this WebApplication app)
-    {
-        var options = app.Services.GetRequiredService<IOptions<ShizouOptions>>();
-        options.Value.SaveToFile();
-        if (!File.Exists(FilePaths.SchemaPath) || File.ReadAllText(FilePaths.SchemaPath) != ShizouOptions.Schema)
-            File.WriteAllText(FilePaths.SchemaPath, ShizouOptions.Schema);
         return app;
     }
 
@@ -121,8 +115,8 @@ public static class InitializationExtensions
                         Pooling = true
                     }.ConnectionString)
                     .EnableSensitiveDataLogging();
-            }, ServiceLifetime.Transient)
-            .AddDbContext<AuthContext>(ServiceLifetime.Transient)
+            })
+            .AddDbContext<AuthContext>()
             .AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedEmail = false;
@@ -152,7 +146,7 @@ public static class InitializationExtensions
             })
             .AddAuthorization(opts => opts.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
             .AddScoped<IShizouContext, ShizouContext>(p => p.GetRequiredService<ShizouContext>())
-            .AddTransient<IShizouContextFactory, ShizouContextFactory>(p =>
+            .AddSingleton<IShizouContextFactory, ShizouContextFactory>(p =>
                 new ShizouContextFactory(p.GetRequiredService<IDbContextFactory<ShizouContext>>()))
             .AddHostedService<StartupService>()
             .AddTransient<AniDbFileResultCache>()

@@ -8,14 +8,7 @@
         <div class="mb-2">
             <label class="form-label">
                 AniDB Username
-                @if (string.IsNullOrWhiteSpace(_options.AniDb.Username))
-                {
-                    <InputText class="form-control" @bind-Value="@(_options.AniDb.Username)"></InputText>
-                }
-                else
-                {
-                    <input class="form-control-plaintext" readonly value="@(_options.AniDb.Username)">
-                }
+                <input class="form-control-plaintext" readonly value="@(_options.AniDb.Username)">
             </label>
             <label class="form-label">
                 AniDB Password

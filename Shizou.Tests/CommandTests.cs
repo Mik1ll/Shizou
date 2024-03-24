@@ -42,7 +42,7 @@ public class CommandTests
     public async Task TestAnimeTitlesAsync()
     {
         var clientFact = Mock.Of<IHttpClientFactory>(c => c.CreateClient(It.IsAny<string>()) == new HttpClient());
-        var dbcontextfact = Mock.Of<IShizouContextFactory>(c => c.CreateDbContext() == new ShizouContext());
+        var dbcontextfact = Mock.Of<IShizouContextFactory>(c => c.CreateDbContext() == new ShizouContext(new DbContextOptions<ShizouContext>()));
         var service = new AnimeTitleSearchService(Mock.Of<ILogger<AnimeTitleSearchService>>(), clientFact, dbcontextfact);
         _ = await service.SearchAsync("Appleseed");
     }
