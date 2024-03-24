@@ -15,7 +15,7 @@ Log.Logger = new LoggerConfiguration()
 Directory.CreateDirectory(FilePaths.ApplicationDataDir);
 
 
-using var appMutex = new Mutex(false, @"Global\ShizouApp");
+using var appMutex = new Mutex(false, Constants.AppLockName);
 var hasHandle = false;
 try
 {
