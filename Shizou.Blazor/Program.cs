@@ -15,7 +15,6 @@ Log.Logger = new LoggerConfiguration()
 Directory.CreateDirectory(FilePaths.ApplicationDataDir);
 
 
-// $"Global\\{FilePaths.ApplicationDataDir.Replace('\\', '/')}/ShizouMutex.lock"
 using var appMutex = new Mutex(false, @"Global\ShizouApp");
 var hasHandle = false;
 try
