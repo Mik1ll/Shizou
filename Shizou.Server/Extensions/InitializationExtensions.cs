@@ -81,6 +81,8 @@ public static class InitializationExtensions
     {
         using var context = app.Services.GetRequiredService<IShizouContextFactory>().CreateDbContext();
         context.Database.Migrate();
+        using var identityContext = app.Services.GetRequiredService<AuthContext>();
+        identityContext.Database.Migrate();
         return app;
     }
 
@@ -120,6 +122,7 @@ public static class InitializationExtensions
                     }.ConnectionString)
                     .EnableSensitiveDataLogging();
             }, ServiceLifetime.Transient)
+            .AddDbContext<AuthContext>(ServiceLifetime.Transient)
             .AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedEmail = false;
@@ -128,7 +131,7 @@ public static class InitializationExtensions
                 options.Password.RequireUppercase = false;
                 options.Password.RequireNonAlphanumeric = false;
             })
-            .AddEntityFrameworkStores<ShizouContext>()
+            .AddEntityFrameworkStores<AuthContext>()
             .AddDefaultTokenProviders().Services
             .ConfigureApplicationCookie(opts =>
             {

@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -11,7 +10,7 @@ using Timer = Shizou.Data.Models.Timer;
 
 namespace Shizou.Data.Database;
 
-public sealed class ShizouContext : IdentityDbContext, IShizouContext
+public sealed class ShizouContext : DbContext, IShizouContext
 {
     public ShizouContext()
     {

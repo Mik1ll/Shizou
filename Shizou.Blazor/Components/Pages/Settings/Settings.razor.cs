@@ -20,7 +20,7 @@ public partial class Settings
     private ProtectedLocalStorage LocalStorage { get; set; } = default!;
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IServiceProvider ServiceProvider { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -31,9 +31,9 @@ public partial class Settings
 
     private async Task SaveAsync()
     {
-        _options.SaveToFile();
         await LocalStorage.SetAsync(LocalStorageKeys.ExternalPlayerScheme, _externalPlayerScheme);
-        using var context = ContextFactory.CreateDbContext();
+        _options.SaveToFile();
+        using var context = ServiceProvider.GetRequiredService<IShizouContext>();
         // ReSharper disable once MethodHasAsyncOverload
         context.Database.Migrate();
     }
