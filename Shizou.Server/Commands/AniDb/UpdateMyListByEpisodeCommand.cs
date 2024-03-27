@@ -3,14 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 using Shizou.Server.Exceptions;
-using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Server.Commands.AniDb;
@@ -22,17 +20,14 @@ public class UpdateMyListByEpisodeCommand : Command<UpdateMyListByEpisodeArgs>
     private readonly IMyListAddRequest _myListAddRequest;
     private readonly IMyListEntryRequest _myListEntryRequest;
     private readonly CommandService _commandService;
-    private readonly ShizouOptions _options;
 
     public UpdateMyListByEpisodeCommand(
         ILogger<UpdateMyListByEpisodeCommand> logger,
         IShizouContext context,
         IMyListAddRequest myListAddRequest,
         IMyListEntryRequest myListEntryRequest,
-        CommandService commandService,
-        IOptionsSnapshot<ShizouOptions> optionsSnapshot)
+        CommandService commandService)
     {
-        _options = optionsSnapshot.Value;
         _logger = logger;
         _context = context;
         _myListAddRequest = myListAddRequest;
@@ -114,8 +109,8 @@ public class UpdateMyListByEpisodeCommand : Command<UpdateMyListByEpisodeArgs>
 
                     ManuallyLinkFile(entryResult);
                     if (addResponse.EntriesAffected == 0)
-                        _commandService.Dispatch(new UpdateMyListArgs(true, _options.AniDb.MyList.PresentFileState, CommandArgs.Watched,
-                            CommandArgs.WatchedDate, entryResult.MyListId));
+                        _commandService.Dispatch(new UpdateMyListArgs(entryResult.MyListId, CommandArgs.MyListState ?? entryResult.State, CommandArgs.Watched,
+                            CommandArgs.WatchedDate));
                 }
                 else
                 {

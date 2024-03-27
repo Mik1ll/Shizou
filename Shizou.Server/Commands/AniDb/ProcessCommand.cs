@@ -135,9 +135,9 @@ public class ProcessCommand : Command<ProcessArgs>
              _context.AniDbEpisodes.Any(ep => ep.Id == result.EpisodeId && ep.AniDbFiles.OfType<AniDbGenericFile>().Any(f => f.LocalFiles.Any()))) ||
             _context.LocalFiles.Any(lf => lf.Ed2k == result.Ed2K))
             if (result.MyListId is null)
-                _commandService.Dispatch(new UpdateMyListArgs(false, _options.AniDb.MyList.PresentFileState, Fid: result.FileId));
+                _commandService.Dispatch(new AddMyListArgs(result.FileId, _options.AniDb.MyList.PresentFileState, null, null));
             else if (result.MyListState != _options.AniDb.MyList.PresentFileState || result.MyListFileState != MyListFileState.Normal)
-                _commandService.Dispatch(new UpdateMyListArgs(true, _options.AniDb.MyList.PresentFileState, Lid: result.MyListId!));
+                _commandService.Dispatch(new UpdateMyListArgs(result.MyListId!.Value, _options.AniDb.MyList.PresentFileState, null, null));
     }
 
     private void UpdateDatabase(FileResult result)

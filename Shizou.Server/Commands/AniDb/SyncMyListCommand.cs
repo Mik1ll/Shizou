@@ -76,7 +76,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
                 continue;
             var newStates = updateItems.Select(ui => new
             {
-                State = ui.u?.MyListState!.Value ?? ui.i.State, Watched = ui.u?.Watched ?? ui.i.Viewdate is not null,
+                State = ui.u?.MyListState ?? ui.i.State, Watched = ui.u?.Watched ?? ui.i.Viewdate is not null,
                 WatchedDate = ui.u?.Watched is null ? ui.i.Viewdate : ui.u.WatchedDate
             }).ToList();
             var firstUpdate = updates.First();
@@ -201,7 +201,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
                     if (watchedState.WatchedUpdated is not null &&
                         DateOnly.FromDateTime(watchedState.WatchedUpdated.Value) >= item.Updated)
                     {
-                        toUpdate.Add(new UpdateMyListArgs(true, expectedState, watchedState.Watched, watchedState.WatchedUpdated, item.Id));
+                        toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, watchedState.Watched, watchedState.WatchedUpdated));
                         updateQueued = true;
                     }
                     else
@@ -220,7 +220,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
             }
 
             if (!updateQueued && !fileMayBeGeneric && (item.State != expectedState || item.FileState != MyListFileState.Normal))
-                toUpdate.Add(new UpdateMyListArgs(true, expectedState, Lid: item.Id));
+                toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, null, null));
         }
 
         _context.SaveChanges();

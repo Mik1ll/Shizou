@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data.CommandInputArgs;
@@ -42,43 +41,10 @@ public class WatchStateService
         context.SaveChanges();
         var myListOptions = _optionsMonitor.CurrentValue.AniDb.MyList;
         var state = myListOptions.PresentFileState;
-        _commandService.Dispatch(fileWatchedState.MyListId is not null
-            ? new UpdateMyListArgs(true, state, watched, updatedTime, fileWatchedState.MyListId)
-            : new UpdateMyListArgs(false, state, watched, updatedTime, Fid: fileId));
-        return true;
-    }
-
-    public bool MarkEpisode(int episodeId, bool watched, DateTime? updatedTime = null)
-    {
-        updatedTime ??= DateTime.UtcNow;
-        using var context = _contextFactory.CreateDbContext();
-
-        var episodeWatchedState = context.AniDbGenericFiles
-            .Include(gf => gf.AniDbEpisodes)
-            .Include(gf => gf.FileWatchedState)
-            .Where(gf => gf.AniDbEpisodeFileXrefs.Any(e => e.AniDbEpisodeId == episodeId))
-            .Select(gf => gf.FileWatchedState).FirstOrDefault();
-        if (episodeWatchedState is null)
-        {
-            _logger.LogWarning("Episode id {EpisodeId} watched state not found, not marking", episodeId);
-            return false;
-        }
-
-        episodeWatchedState.Watched = watched;
-        episodeWatchedState.WatchedUpdated = updatedTime;
-
-        context.SaveChanges();
-
-
-        var myListOptions = _optionsMonitor.CurrentValue.AniDb.MyList;
-        var state = myListOptions.PresentFileState;
-
-        // Don't use generic episode mylist edit, because it edits all files not just generic
-        var fileId = episodeWatchedState.AniDbFileId;
-        _commandService.Dispatch(episodeWatchedState.MyListId is not null
-            ? new UpdateMyListArgs(true, state, watched, updatedTime, episodeWatchedState.MyListId)
-            : new UpdateMyListArgs(false, state, watched, updatedTime, Fid: fileId));
-
+        if (fileWatchedState.MyListId is not null)
+            _commandService.Dispatch(new UpdateMyListArgs(fileWatchedState.MyListId.Value, state, watched, updatedTime));
+        else
+            _commandService.Dispatch(new AddMyListArgs(fileId, state, watched, updatedTime));
         return true;
     }
 

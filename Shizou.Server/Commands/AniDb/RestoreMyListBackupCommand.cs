@@ -67,7 +67,7 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
 
         var dbWatchStates = _context.FileWatchedStates.ToDictionary(ws => ws.AniDbFileId);
         var dbFilesWithLocal = _context.AniDbFiles.Where(f => f.LocalFiles.Any()).Select(f => f.Id).ToHashSet();
-        List<UpdateMyListArgs> toUpdate = [];
+        List<CommandArgs> toUpdate = [];
 
         var backupMyList = backup.MyListItems.DistinctBy(i => i.Id).ToList();
         var myList = _myListRequest.MyListResult.MyListItems.DistinctBy(i => i.Id).ToList();
@@ -97,9 +97,9 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
             }
 
             if (item is null)
-                toUpdate.Add(new UpdateMyListArgs(false, expectedState, watched, watchedDate, Fid: bitem.Fid));
-            else if (item.Viewdate is null && bitem.Viewdate is not null)
-                toUpdate.Add(new UpdateMyListArgs(true, expectedState, watched, watchedDate, item.Id));
+                toUpdate.Add(new AddMyListArgs(bitem.Fid, expectedState, watched, watchedDate));
+            else if (item.Viewdate is not null != watched || item.State != expectedState)
+                toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, watched, watchedDate));
         }
 
         _context.SaveChanges();

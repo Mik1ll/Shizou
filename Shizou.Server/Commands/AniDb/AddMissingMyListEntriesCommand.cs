@@ -40,7 +40,7 @@ public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArg
         else
             _logger.LogInformation("No files are missing mylist entries");
         _commandService.DispatchRange(filesMissingMyListId.Select(f =>
-            new UpdateMyListArgs(false, _options.AniDb.MyList.PresentFileState, f.Watched, f.WatchedUpdated, Fid: f.Fid)));
+            new AddMyListArgs(f.Fid, _options.AniDb.MyList.PresentFileState, f.Watched, f.WatchedUpdated)));
 
         Completed = true;
         return Task.CompletedTask;

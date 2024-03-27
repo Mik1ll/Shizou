@@ -59,9 +59,10 @@ public class ManualLinkService
         _logger.LogInformation("Local file id {LocalFileId} with name \"{LocalFileName}\" manually linked to episode id {EpisodeId}", localFile.Id,
             Path.GetFileName(localFile.PathTail), aniDbEpisodeId);
         var watchedState = genericFile.FileWatchedState;
-        _commandService.Dispatch(watchedState.MyListId is not null
-            ? new UpdateMyListArgs(true, options.PresentFileState, Lid: watchedState.MyListId)
-            : new UpdateMyListArgs(false, options.PresentFileState, Fid: watchedState.AniDbFileId));
+        if (watchedState.MyListId is not null)
+            _commandService.Dispatch(new UpdateMyListArgs(watchedState.MyListId.Value, options.PresentFileState, null, null));
+        else
+            _commandService.Dispatch(new AddMyListArgs(watchedState.AniDbFileId, options.PresentFileState, null, null));
         return LinkResult.Yes;
     }
 }

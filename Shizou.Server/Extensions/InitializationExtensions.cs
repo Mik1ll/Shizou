@@ -157,6 +157,7 @@ public static class InitializationExtensions
             .AddTransient<ProcessCommand>()
             .AddTransient<SyncMyListCommand>()
             .AddTransient<UpdateMyListCommand>()
+            .AddTransient<AddMyListCommand>()
             .AddTransient<UpdateMyListByEpisodeCommand>()
             .AddTransient<AddMissingMyListEntriesCommand>()
             .AddTransient<GetImageCommand>()
