@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -79,11 +78,14 @@ public class UpdateMyListByEpisodeCommand : Command<UpdateMyListByEpisodeArgs>
                 {
                     if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == entryResult.FileId) is { } eWs)
                     {
-                        _logger.LogInformation("Updating episode id {EpisodeId} with generic file id {GenericId} and mylist id {MyListId}",
-                            entryResult.EpisodeId, entryResult.FileId, entryResult.MyListId);
-                        eWs.AniDbFileId = entryResult.FileId;
-                        eWs.MyListId = entryResult.MyListId;
-                        _context.SaveChanges();
+                        if (eWs.MyListId != entryResult.MyListId)
+                        {
+                            _logger.LogInformation(
+                                "Updating mylist entry id for episode id {EpisodeId} / generic file id {GenericFileId} with mylist id {MyListId}",
+                                entryResult.EpisodeId, entryResult.FileId, entryResult.MyListId);
+                            eWs.MyListId = entryResult.MyListId;
+                            _context.SaveChanges();
+                        }
                     }
                     else
                     {
@@ -101,7 +103,7 @@ public class UpdateMyListByEpisodeCommand : Command<UpdateMyListByEpisodeArgs>
                         {
                             AniDbFileId = entryResult.FileId,
                             Watched = CommandArgs.Watched ?? entryResult.ViewDate is not null,
-                            WatchedUpdated = CommandArgs.Watched is null ? entryResult.ViewDate?.UtcDateTime : DateTime.UtcNow,
+                            WatchedUpdated = null,
                             MyListId = entryResult.MyListId
                         });
                         _context.SaveChanges();
@@ -142,8 +144,9 @@ public class UpdateMyListByEpisodeCommand : Command<UpdateMyListByEpisodeArgs>
             {
                 localFile.AniDbFileId = entryResult.FileId;
                 _context.SaveChanges();
-                _logger.LogInformation("Local file id {LocalFileId} with name \"{LocalFileName}\" manually linked to episode id {EpisodeId}", localFileId,
-                    Path.GetFileName(localFile.PathTail), entryResult.EpisodeId);
+                _logger.LogInformation(
+                    "Local file id {LocalFileId} with name \"{LocalFileName}\" manually linked to episode id {EpisodeId} / file id {GenericFileId}",
+                    localFileId, Path.GetFileName(localFile.PathTail), entryResult.EpisodeId, entryResult.FileId);
             }
             else
             {
