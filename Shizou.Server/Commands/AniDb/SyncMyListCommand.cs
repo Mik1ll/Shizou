@@ -132,20 +132,22 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
     private void RelationshipFixup(List<MyListItem> myListItems)
     {
         var eAnimeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
-        var eFileIds = _context.AniDbFiles.Select(f => f.Id).ToHashSet();
+        var eNormalFileIds = _context.AniDbNormalFiles.Select(f => f.Id).ToHashSet();
         var eEpIds = _context.AniDbEpisodes.Select(e => e.Id).ToHashSet();
         var animeToAdd = new HashSet<int>();
-        var eRelsLkup = _context.AniDbEpisodeFileXrefs.AsNoTracking().ToLookup(xref => xref.AniDbFileId);
-        var eHangingRelsLkup = _context.HangingEpisodeFileXrefs.AsNoTracking().ToLookup(xref => xref.AniDbNormalFileId);
-        foreach (var item in myListItems.Where(i => eFileIds.Contains(i.Fid)))
+        var eRels = _context.AniDbEpisodeFileXrefs.AsNoTracking().ToList();
+        var eRelsLkup = eRels.ToLookup(xref => xref.AniDbFileId);
+        var eHangingRels = _context.HangingEpisodeFileXrefs.AsNoTracking().ToList();
+        var eHangingRelsLkup = eHangingRels.ToLookup(xref => xref.AniDbNormalFileId);
+
+        foreach (var item in myListItems.Where(i => eNormalFileIds.Contains(i.Fid)))
         {
-            var eRels = eRelsLkup[item.Fid].ToList();
-            var eHangingRels = eHangingRelsLkup[item.Fid].ToList();
-            _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
-            _context.HangingEpisodeFileXrefs.RemoveRange(eHangingRels.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
-            foreach (var relEid in item.Eids
-                         .Except(eRels.Select(x => x.AniDbEpisodeId))
-                         .Except(eHangingRels.Select(x => x.AniDbEpisodeId)))
+            var eRelsForItem = eRelsLkup[item.Fid].ToList();
+            var eHangingRelsForItem = eHangingRelsLkup[item.Fid].ToList();
+            _context.AniDbEpisodeFileXrefs.RemoveRange(eRelsForItem.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
+            _context.HangingEpisodeFileXrefs.RemoveRange(eHangingRelsForItem.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
+            foreach (var relEid in item.Eids.Except(eRelsForItem.Select(x => x.AniDbEpisodeId))
+                         .Except(eHangingRelsForItem.Select(x => x.AniDbEpisodeId)))
                 if (eEpIds.Contains(relEid))
                     _context.AniDbEpisodeFileXrefs.Add(new AniDbEpisodeFileXref
                     {
@@ -158,6 +160,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
                         AniDbEpisodeId = relEid,
                         AniDbNormalFileId = item.Fid
                     });
+
             foreach (var aid in item.Aids)
                 if (!eAnimeIds.Contains(aid))
                     animeToAdd.Add(aid);
