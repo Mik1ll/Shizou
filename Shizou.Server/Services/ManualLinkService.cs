@@ -65,4 +65,27 @@ public class ManualLinkService
             _commandService.Dispatch(new AddMyListArgs(watchedState.AniDbFileId, options.PresentFileState, null, null));
         return LinkResult.Yes;
     }
+
+    public void UnlinkFile(int localFileId)
+    {
+        using var context = _contextFactory.CreateDbContext();
+        var localFile = context.LocalFiles.Include(lf => lf.AniDbFile).FirstOrDefault(lf => lf.Id == localFileId);
+        if (localFile is not null)
+        {
+            if (localFile.AniDbFile is AniDbGenericFile)
+            {
+                localFile.AniDbFileId = null;
+                context.SaveChanges();
+                _logger.LogInformation("Unlinked local file id {LocalFileId} from AniDB generic file id {AniDbFileId}", localFile.Id, localFile.AniDbFileId);
+            }
+            else
+            {
+                _logger.LogWarning("Tried to unlink local file id {LocalFileId} that does not have a linked generic file", localFileId);
+            }
+        }
+        else
+        {
+            _logger.LogWarning("Tried to unlink local file id {LocalFileId} that does not exist", localFileId);
+        }
+    }
 }

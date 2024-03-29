@@ -1,31 +1,41 @@
 ﻿@using Shizou.Data.Models
-@using Shizou.Data.CommandInputArgs
-@using Shizou.Data.Enums
 <div class="card">
     <ul class="list-group list-group-flush">
-        <li class="list-group-item">
+        <li class="list-group-item  @(_fileExists ? "" : "bg-danger-subtle")">
             <div class="d-flex flex-wrap">
                 <div class="btn-group me-auto">
-                    <button class="btn btn-success mb-1" type="button" @onclick="@(() => OpenVideoAsync(LocalFile.Id))">
-                        <i class="bi bi-play-fill"></i>
-                    </button>
-                    <a class="btn btn-success mb-1" type="button" href="@_externalPlaybackUrl">
-                        <i class="bi bi-cast"></i>
-                    </a>
+                    @if (_fileExists)
+                    {
+                        <button class="btn btn-success mb-1" type="button" @onclick="@OpenVideoAsync">
+                            <i class="bi bi-play-fill"></i>
+                        </button>
+                        <a class="btn btn-success mb-1" type="button" href="@_externalPlaybackUrl">
+                            <i class="bi bi-cast"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn btn-danger mb-1" type="button" @onclick="@RemoveLocalFileAsync">
+                            <i class="bi bi-file-earmark-x"></i> Remove Missing File
+                        </button>
+                    }
                 </div>
                 @if (LocalFile.AniDbFile is AniDbGenericFile)
                 {
-                    <button class="btn btn-outline-danger me-1 mb-1" type="button" @onclick="@(() => UnlinkAsync(LocalFile))">
+                    <button class="btn btn-outline-danger me-1 mb-1" type="button" @onclick="@UnlinkAsync">
                         <i class="bi bi-slash-circle"></i> Unlink File
                     </button>
                 }
-                <button class="btn btn-primary me-1 mb-1" type="button" @onclick="@(() => CommandService.Dispatch(new HashArgs(Path.Combine(LocalFile.ImportFolder!.Path, LocalFile.PathTail))))">
-                    <i class="bi bi-hash"></i> Rehash
-                </button>
-                <button class="btn btn-primary me-1 mb-1" type="button" @onclick="@(() => CommandService.Dispatch(new ProcessArgs(LocalFile.Id, IdTypeLocalOrFile.LocalId)))">
+                @if (_fileExists)
+                {
+                    <button class="btn btn-primary me-1 mb-1" type="button" @onclick="@Hash">
+                        <i class="bi bi-hash"></i> Rehash
+                    </button>
+                }
+                <button class="btn btn-primary me-1 mb-1" type="button" @onclick="@Scan">
                     <i class="bi bi-arrow-clockwise"></i> Rescan
                 </button>
-                <button type="button" class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-1 mb-1" @onclick="@(async () => await MarkAsync(!_watchedState.Watched))">
+                <button type="button" class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-1 mb-1" @onclick="@ToggleWatchedAsync">
                     <i class="bi @(_watchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
                 </button>
             </div>
