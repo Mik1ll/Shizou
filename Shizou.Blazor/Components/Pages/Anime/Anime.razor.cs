@@ -61,7 +61,7 @@ public partial class Anime
             ToastService.ShowSuccess("Success", "Anime files marked watched");
         else
             ToastService.ShowError("Error", "Something went wrong while marking anime files watched");
-        _episodeTable?.Reload();
+        _episodeTable?.Load();
     }
 
     private void RefreshAnime()

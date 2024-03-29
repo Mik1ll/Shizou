@@ -46,10 +46,12 @@
         {
             <tr>
                 <td colspan="5">
-                    @foreach (var localFile in ep.AniDbFiles.SelectMany(f => f.LocalFiles))
-                    {
-                        <FileCard LocalFile="@(localFile)" OnChanged="@Reload"></FileCard>
-                    }
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var localFile in ep.AniDbFiles.SelectMany(f => f.LocalFiles))
+                        {
+                            <FileCard LocalFile="@(localFile)" OnChanged="@Load"></FileCard>
+                        }
+                    </div>
                 </td>
             </tr>
         }
