@@ -11,7 +11,7 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class AniDbFiles : EntityGetController<AniDbFile>
+public class AniDbFiles : EntityGetController<AniDbNormalFile>
 {
     private readonly WatchStateService _watchStateService;
 

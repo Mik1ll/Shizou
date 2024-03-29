@@ -57,8 +57,9 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         }).ToList();
     }
 
-    private static void CombineUpdates(List<MyListItem> myListItems, List<UpdateMyListArgs> toUpdate)
+    private static List<UpdateMyListByEpisodeArgs> CombineUpdates(List<MyListItem> myListItems, List<UpdateMyListArgs> toUpdate)
     {
+        var combinedUpdates = new List<UpdateMyListByEpisodeArgs>();
         foreach (var aGroup in from i in myListItems
                  group i by i.Aids.First()
                  into aGroup
@@ -75,7 +76,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
                 continue;
             var newStates = updateItems.Select(ui => new
             {
-                State = ui.u?.MyListState!.Value ?? ui.i.State, Watched = ui.u?.Watched ?? ui.i.Viewdate is not null,
+                State = ui.u?.MyListState ?? ui.i.State, Watched = ui.u?.Watched ?? ui.i.Viewdate is not null,
                 WatchedDate = ui.u?.Watched is null ? ui.i.Viewdate : ui.u.WatchedDate
             }).ToList();
             var firstUpdate = updates.First();
@@ -83,15 +84,18 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
             {
                 foreach (var u in updates)
                     toUpdate.Remove(u);
-                toUpdate.Add(new UpdateMyListArgs(true, firstUpdate.MyListState, Aid: aGroup.Key, EpNo: "0"));
+                combinedUpdates.Add(new UpdateMyListByEpisodeArgs(true, aGroup.Key, "0", firstUpdate.MyListState));
             }
             else if (newStates.All(s => s.State == firstUpdate.MyListState && s.Watched == firstUpdate.Watched && s.WatchedDate == firstUpdate.WatchedDate))
             {
                 foreach (var u in updates)
                     toUpdate.Remove(u);
-                toUpdate.Add(new UpdateMyListArgs(true, firstUpdate.MyListState, firstUpdate.Watched, firstUpdate.WatchedDate, Aid: aGroup.Key, EpNo: "0"));
+                combinedUpdates.Add(new UpdateMyListByEpisodeArgs(true, aGroup.Key, "0", firstUpdate.MyListState, firstUpdate.Watched,
+                    firstUpdate.WatchedDate));
             }
         }
+
+        return combinedUpdates;
     }
 
     protected override async Task ProcessInnerAsync()
@@ -128,20 +132,22 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
     private void RelationshipFixup(List<MyListItem> myListItems)
     {
         var eAnimeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
-        var eFileIds = _context.AniDbFiles.Select(f => f.Id).ToHashSet();
+        var eNormalFileIds = _context.AniDbNormalFiles.Select(f => f.Id).ToHashSet();
         var eEpIds = _context.AniDbEpisodes.Select(e => e.Id).ToHashSet();
         var animeToAdd = new HashSet<int>();
-        var eRelsLkup = _context.AniDbEpisodeFileXrefs.AsNoTracking().ToLookup(xref => xref.AniDbFileId);
-        var eHangingRelsLkup = _context.HangingEpisodeFileXrefs.AsNoTracking().ToLookup(xref => xref.AniDbFileId);
-        foreach (var item in myListItems.Where(i => eFileIds.Contains(i.Fid)))
+        var eRels = _context.AniDbEpisodeFileXrefs.AsNoTracking().ToList();
+        var eRelsLkup = eRels.ToLookup(xref => xref.AniDbFileId);
+        var eHangingRels = _context.HangingEpisodeFileXrefs.AsNoTracking().ToList();
+        var eHangingRelsLkup = eHangingRels.ToLookup(xref => xref.AniDbNormalFileId);
+
+        foreach (var item in myListItems.Where(i => eNormalFileIds.Contains(i.Fid)))
         {
-            var eRels = eRelsLkup[item.Fid].ToList();
-            var eHangingRels = eHangingRelsLkup[item.Fid].ToList();
-            _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
-            _context.HangingEpisodeFileXrefs.RemoveRange(eHangingRels.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
-            foreach (var relEid in item.Eids
-                         .Except(eRels.Select(x => x.AniDbEpisodeId))
-                         .Except(eHangingRels.Select(x => x.AniDbEpisodeId)))
+            var eRelsForItem = eRelsLkup[item.Fid].ToList();
+            var eHangingRelsForItem = eHangingRelsLkup[item.Fid].ToList();
+            _context.AniDbEpisodeFileXrefs.RemoveRange(eRelsForItem.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
+            _context.HangingEpisodeFileXrefs.RemoveRange(eHangingRelsForItem.ExceptBy(item.Eids, x => x.AniDbEpisodeId));
+            foreach (var relEid in item.Eids.Except(eRelsForItem.Select(x => x.AniDbEpisodeId))
+                         .Except(eHangingRelsForItem.Select(x => x.AniDbEpisodeId)))
                 if (eEpIds.Contains(relEid))
                     _context.AniDbEpisodeFileXrefs.Add(new AniDbEpisodeFileXref
                     {
@@ -152,8 +158,9 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
                     _context.HangingEpisodeFileXrefs.Add(new HangingEpisodeFileXref
                     {
                         AniDbEpisodeId = relEid,
-                        AniDbFileId = item.Fid
+                        AniDbNormalFileId = item.Fid
                     });
+
             foreach (var aid in item.Aids)
                 if (!eAnimeIds.Contains(aid))
                     animeToAdd.Add(aid);
@@ -168,20 +175,16 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
         // Get watched states for files and generic files, episode watch states without a file id excluded
-        var watchedStatesByFileId = _context.FileWatchedStates.Select(ws => new { FileId = ws.AniDbFileId, WatchedState = (IWatchedState)ws }).ToList()
-            .Union((from ws in _context.EpisodeWatchedStates
-                where ws.AniDbFileId != null
-                select new { FileId = ws.AniDbFileId!.Value, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId, f => f.WatchedState);
+        var watchedStatesByFileId = _context.FileWatchedStates.Select(ws => new { FileId = ws.AniDbFileId, WatchedState = ws })
+            .ToDictionary(f => f.FileId, f => f.WatchedState);
 
         // Get file id and generic file ids for files with local files
-        var fileIdsWithLocal = _context.AniDbFiles.Where(f => f.LocalFile != null).Select(f => f.Id)
-            .Union(_context.EpisodeWatchedStates.Where(ws => ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any())
-                .Select(ws => ws.AniDbFileId!.Value)).ToHashSet();
+        var fileIdsWithLocal = _context.AniDbFiles.Where(f => f.LocalFiles.Any()).Select(f => f.Id).ToHashSet();
 
-        // Get episode ids that do not have a generic file id, and have manual links
-        var epIdsMissingGenericFile = (from ws in _context.EpisodeWatchedStates
-            where ws.AniDbFileId == null && ws.AniDbEpisode.ManualLinkLocalFiles.Any()
-            select ws.AniDbEpisodeId).ToHashSet();
+        // Get episode ids that do not have a generic file id
+        var epIdsMissingGenericFile = (from ep in _context.AniDbEpisodes
+            where !ep.AniDbFiles.OfType<AniDbGenericFile>().Any()
+            select ep.Id).ToHashSet();
 
         List<UpdateMyListArgs> toUpdate = [];
         List<ProcessArgs> toProcess = [];
@@ -201,7 +204,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
                     if (watchedState.WatchedUpdated is not null &&
                         DateOnly.FromDateTime(watchedState.WatchedUpdated.Value) >= item.Updated)
                     {
-                        toUpdate.Add(new UpdateMyListArgs(true, expectedState, watchedState.Watched, watchedState.WatchedUpdated, item.Id));
+                        toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, watchedState.Watched, watchedState.WatchedUpdated));
                         updateQueued = true;
                     }
                     else
@@ -220,15 +223,16 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
             }
 
             if (!updateQueued && !fileMayBeGeneric && (item.State != expectedState || item.FileState != MyListFileState.Normal))
-                toUpdate.Add(new UpdateMyListArgs(true, expectedState, Lid: item.Id));
+                toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, null, null));
         }
 
         _context.SaveChanges();
 
-        CombineUpdates(myListItems, toUpdate);
+        var combinedUpdates = CombineUpdates(myListItems, toUpdate);
 
         _commandService.DispatchRange(toUpdate);
         _commandService.DispatchRange(toProcess);
+        _commandService.DispatchRange(combinedUpdates);
     }
 
     private async Task<MyListResult?> GetMyListAsync()

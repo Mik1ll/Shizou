@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -11,7 +12,7 @@ using Shizou.Data.Enums;
 
 namespace Shizou.Server.Options;
 
-public class ShizouOptions
+public class ShizouOptions : IValidatableObject
 {
     public const string Shizou = "Shizou";
 
@@ -112,7 +113,7 @@ public class ShizouOptions
 }
 """;
     // @formatter:on
-    private static readonly object Lock = new();
+    private static readonly object FileLock = new();
 
     public ImportOptions Import { get; set; } = new();
 
@@ -123,13 +124,22 @@ public class ShizouOptions
 
     public void SaveToFile()
     {
-        lock (Lock)
+        lock (FileLock)
         {
             Dictionary<string, object> json = new() { { "$schema", Path.GetFileName(FilePaths.SchemaPath) }, { Shizou, this } };
             var jsonSettings = JsonSerializer.Serialize(json,
                 new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true, Converters = { new JsonStringEnumConverter() } });
             File.WriteAllText(FilePaths.OptionsPath, jsonSettings);
         }
+    }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        var results = new List<ValidationResult>();
+
+        Validator.TryValidateObject(AniDb, new ValidationContext(AniDb), results, true);
+
+        return results;
     }
 }
 
@@ -139,7 +149,25 @@ public class ImportOptions
 
 public class AniDbOptions
 {
-    public string Username { get; set; } = string.Empty;
+    private static readonly object UserLock = new();
+    private static bool _userSet;
+    private static string _username = string.Empty;
+
+    [Required(ErrorMessage = "Shizou:AniDb:Username is required on startup", AllowEmptyStrings = false)]
+    [StringLength(16, MinimumLength = 3, ErrorMessage = "Shizou:AniDb:Username must be between 3 and 16 characters")]
+    public string Username
+    {
+        get => _username;
+        set
+        {
+            lock (UserLock)
+            {
+                if (!_userSet)
+                    _username = value;
+                _userSet = true;
+            }
+        }
+    }
 
     public string Password { get; set; } = string.Empty;
 
@@ -160,7 +188,7 @@ public class AniDbOptions
 
 public class MyListOptions
 {
-    public bool DisableSync { get; set; } = false;
+    public bool DisableSync { get; set; }
     public MyListState AbsentFileState { get; set; } = MyListState.Deleted;
     public MyListState PresentFileState { get; set; } = MyListState.Internal;
 }

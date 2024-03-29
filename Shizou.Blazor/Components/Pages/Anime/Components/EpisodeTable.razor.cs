@@ -23,27 +23,27 @@ public partial class EpisodeTable
     [EditorRequired]
     public int AnimeId { get; set; }
 
-    public void Reload()
+    public void Load()
     {
         foreach (var (epId, _) in _episodeExpanded.Where(ep => ep.Value))
-            LoadEpisodeData(_episodes.First(ep => ep.Id == epId));
+            LoadFiles(_episodes.First(ep => ep.Id == epId));
         using var context = ContextFactory.CreateDbContext();
         _fileCounts = (from ep in context.AniDbEpisodes
                 where ep.AniDbAnimeId == AnimeId
-                select new { EpId = ep.Id, Count = ep.AniDbFiles.Count(f => f.LocalFile != null) + ep.ManualLinkLocalFiles.Count })
+                select new { EpId = ep.Id, Count = ep.AniDbFiles.SelectMany(f => f.LocalFiles).Count() })
             .ToDictionary(x => x.EpId, x => x.Count);
         _watchedEps = (from ep in context.AniDbEpisodes
-            where ep.AniDbAnimeId == AnimeId && (ep.EpisodeWatchedState.Watched || ep.AniDbFiles.Any(f => f.FileWatchedState.Watched))
+            where ep.AniDbAnimeId == AnimeId && ep.AniDbFiles.Any(f => f.FileWatchedState.Watched)
             select ep.Id).ToHashSet();
     }
 
     protected override void OnInitialized()
     {
         using var context = ContextFactory.CreateDbContext();
-        _episodes = (from ep in context.AniDbEpisodes
+        _episodes = (from ep in context.AniDbEpisodes.AsNoTracking()
             where ep.AniDbAnimeId == AnimeId
             select ep).OrderBy(e => e.EpisodeType).ThenBy(e => e.Number).ToList();
-        Reload();
+        Load();
     }
 
     private void ToggleEpExpand(AniDbEpisode ep)
@@ -53,21 +53,18 @@ public partial class EpisodeTable
         else
             _episodeExpanded[ep.Id] = true;
         if (_episodeExpanded[ep.Id])
-            LoadEpisodeData(ep);
+            LoadFiles(ep);
     }
 
-    private void LoadEpisodeData(AniDbEpisode episode)
+    private void LoadFiles(AniDbEpisode episode)
     {
         using var context = ContextFactory.CreateDbContext();
-        context.Attach(episode).Collection(ep => ep.AniDbFiles)
-            .Query().AsSplitQuery()
-            .Include(f => f.LocalFile)
-            .ThenInclude(lf => lf!.ImportFolder)
-            .Include(f => f.AniDbGroup)
-            .Include(f => f.FileWatchedState)
-            .Load();
-        context.Entry(episode).Collection(ep => ep.ManualLinkLocalFiles).Query().Include(lf => lf.ImportFolder).Load();
-        context.Entry(episode).Reference(ep => ep.EpisodeWatchedState).Load();
+        episode.AniDbFiles = context.AniDbFiles.AsNoTracking().AsSingleQuery()
+            .Where(f => f.AniDbEpisodeFileXrefs.Any(xr => xr.AniDbEpisodeId == episode.Id))
+            .Include(f => f.LocalFiles)
+            .ThenInclude(lf => lf.ImportFolder)
+            .Include(f => ((AniDbNormalFile)f).AniDbGroup)
+            .Include(f => f.FileWatchedState).ToList();
     }
 
     private string GetEpisodeThumbnailPath(int episodeId)

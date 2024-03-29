@@ -72,9 +72,9 @@ public partial class Collection
                 if (_animeLatestLocalFileId is null)
                 {
                     var recentlyAddedQuery = from a in context.AniDbAnimes.AsNoTracking()
-                        let recentManLink = a.AniDbEpisodes.SelectMany(ep => ep.ManualLinkLocalFiles.Select(lf => lf.Id)).DefaultIfEmpty().Max()
-                        let recentRegular = a.AniDbEpisodes.SelectMany(ep => ep.AniDbFiles.Select(f => f.LocalFile!.Id)).DefaultIfEmpty().Max()
-                        select new { Aid = a.Id, RecentLocalId = Math.Max(recentManLink, recentRegular) };
+                        let recentRegular = a.AniDbEpisodes.SelectMany(ep => ep.AniDbFiles.SelectMany(f => f.LocalFiles).Select(f => f.Id)).DefaultIfEmpty()
+                            .Max()
+                        select new { Aid = a.Id, RecentLocalId = recentRegular };
                     _animeLatestLocalFileId = recentlyAddedQuery.ToDictionary(a => a.Aid, a => a.RecentLocalId);
                 }
 

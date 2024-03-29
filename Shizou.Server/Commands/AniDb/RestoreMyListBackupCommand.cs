@@ -10,7 +10,6 @@ using Microsoft.Extensions.Options;
 using Shizou.Data;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
-using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.AniDbApi.Requests.Http.SubElements;
@@ -66,14 +65,9 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
             return;
         }
 
-        var dbFiles = _context.FileWatchedStates.Select(ws => new { FileId = ws.AniDbFileId, WatchedState = (IWatchedState)ws }).ToList()
-            .Union((from ws in _context.EpisodeWatchedStates
-                where ws.AniDbFileId != null
-                select new { FileId = ws.AniDbFileId!.Value, WatchedState = (IWatchedState)ws }).ToList()).ToDictionary(f => f.FileId);
-        var dbFilesWithLocal = _context.AniDbFiles.Where(f => f.LocalFile != null).Select(f => f.Id)
-            .Union(_context.EpisodeWatchedStates.Where(ws => ws.AniDbFileId != null && ws.AniDbEpisode.ManualLinkLocalFiles.Any())
-                .Select(ws => ws.AniDbFileId!.Value)).ToHashSet();
-        List<UpdateMyListArgs> toUpdate = new();
+        var dbWatchStates = _context.FileWatchedStates.ToDictionary(ws => ws.AniDbFileId);
+        var dbFilesWithLocal = _context.AniDbFiles.Where(f => f.LocalFiles.Any()).Select(f => f.Id).ToHashSet();
+        List<CommandArgs> toUpdate = [];
 
         var backupMyList = backup.MyListItems.DistinctBy(i => i.Id).ToList();
         var myList = _myListRequest.MyListResult.MyListItems.DistinctBy(i => i.Id).ToList();
@@ -93,21 +87,19 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
                 watchedDate = DateTimeOffset.Parse(viewDate);
             }
 
-            dbFiles.TryGetValue(bitem.Fid, out var dbFile);
-            if (dbFile is not null)
+            dbWatchStates.TryGetValue(bitem.Fid, out var dbWatchState);
+            if (dbWatchState is not null)
             {
-                // May not update some episode watch states locally because they don't have the associated generic file id
-                var watchedState = dbFile.WatchedState;
-                watchedState.Watched = watched;
-                watchedState.WatchedUpdated = null;
-                if (dbFilesWithLocal.Contains(dbFile.FileId))
+                dbWatchState.Watched = watched;
+                dbWatchState.WatchedUpdated = null;
+                if (dbFilesWithLocal.Contains(dbWatchState.AniDbFileId))
                     expectedState = _options.AniDb.MyList.PresentFileState;
             }
 
             if (item is null)
-                toUpdate.Add(new UpdateMyListArgs(false, expectedState, watched, watchedDate, Fid: bitem.Fid));
-            else if (item.Viewdate is null && bitem.Viewdate is not null)
-                toUpdate.Add(new UpdateMyListArgs(true, expectedState, watched, watchedDate, item.Id));
+                toUpdate.Add(new AddMyListArgs(bitem.Fid, expectedState, watched, watchedDate));
+            else if (item.Viewdate is not null != watched || item.State != expectedState)
+                toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, watched, watchedDate));
         }
 
         _context.SaveChanges();

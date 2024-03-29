@@ -13,5 +13,5 @@ public class AniDbGroup
     public required string? Url { get; set; }
 
     [JsonIgnore]
-    public List<AniDbFile> AniDbFiles { get; set; } = null!;
+    public List<AniDbNormalFile> AniDbFiles { get; set; } = null!;
 }

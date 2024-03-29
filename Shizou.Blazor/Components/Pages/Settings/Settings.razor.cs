@@ -26,7 +26,7 @@ public partial class Settings
 
     private async Task SaveAsync()
     {
-        _options.SaveToFile();
         await LocalStorage.SetAsync(LocalStorageKeys.ExternalPlayerScheme, _externalPlayerScheme);
+        _options.SaveToFile();
     }
 }

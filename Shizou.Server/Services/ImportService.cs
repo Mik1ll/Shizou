@@ -84,6 +84,22 @@ public class ImportService
         context.SaveChanges();
     }
 
+    public void RemoveLocalFile(int localFileId)
+    {
+        using var context = _contextFactory.CreateDbContext();
+        var localFile = context.LocalFiles.FirstOrDefault(lf => lf.Id == localFileId);
+        if (localFile is not null)
+        {
+            context.LocalFiles.Remove(localFile);
+            context.SaveChanges();
+            _logger.LogInformation("Removed local file with id: {LocalFileId}, PathTail: {PathTail}", localFileId, localFile.PathTail);
+        }
+        else
+        {
+            _logger.LogWarning("Tried to remove non-existant local file with id {LocalFileId}", localFileId);
+        }
+    }
+
     public void SetIgnored(IEnumerable<int> localFileIds, bool ignored)
     {
         using var context = _contextFactory.CreateDbContext();

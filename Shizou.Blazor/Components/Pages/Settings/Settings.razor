@@ -1,5 +1,6 @@
 ﻿@page "/Settings"
 @using Shizou.Data.Enums
+
 <PageTitle>Settings</PageTitle>
 
 <main class="container-md">
@@ -7,7 +8,7 @@
         <div class="mb-2">
             <label class="form-label">
                 AniDB Username
-                <InputText class="form-control" @bind-Value="@(_options.AniDb.Username)"></InputText>
+                <input class="form-control-plaintext" readonly value="@(_options.AniDb.Username)">
             </label>
             <label class="form-label">
                 AniDB Password

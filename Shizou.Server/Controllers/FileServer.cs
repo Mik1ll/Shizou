@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
-using Shizou.Server.Extensions.Query;
+using Shizou.Data.Models;
 using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -87,40 +87,35 @@ public class FileServer : ControllerBase
             throw new ApplicationException("Identity cookie must match name of constant");
         var m3U8 = "#EXTM3U\n";
 
-        var anime = _context.AniDbEpisodes.AsNoTracking()
-            .Where(ep => ep.ManualLinkLocalFiles.Any(lf => lf.Ed2k == ed2K) || ep.AniDbFiles.Any(f => f.LocalFile!.Ed2k == ed2K))
-            .Select(ep => ep.AniDbAnime)
-            .FirstOrDefault();
-        if (anime is null)
+        var animeId = _context.AniDbEpisodes.AsNoTracking()
+            .Where(ep => ep.AniDbFiles.Any(f => f.LocalFiles.Any(lf => lf.Ed2k == ed2K)))
+            .Select(ep => (int?)ep.AniDbAnimeId).FirstOrDefault();
+        if (animeId is null)
             return TypedResults.NotFound();
-        var eps = (from e in _context.AniDbEpisodes.HasLocalFiles()
-            where e.AniDbAnimeId == anime.Id
+        List<AniDbEpisode> eps = (from e in _context.AniDbEpisodes
+                .Include(e => e.AniDbAnime)
+                .Include(e => e.AniDbFiles)
+                .ThenInclude(f => f.LocalFiles).AsNoTracking()
+            where e.AniDbAnimeId == animeId
             orderby e.EpisodeType, e.Number
-            select new
-            {
-                EpType = e.EpisodeType,
-                EpNo = e.Number,
-                ManLocals = e.ManualLinkLocalFiles.Select(lf => new { lf.Ed2k, AniDbGroupId = (int?)null }),
-                Locals = e.AniDbFiles.Select(f => new { f.LocalFile!.Ed2k, f.AniDbGroupId })
-            }).ToList();
-        var ep = eps.First(ep => ep.Locals.Any(l => l.Ed2k == ed2K) || ep.ManLocals.Any(ml => ml.Ed2k == ed2K));
-        if (single is true)
-            eps = new[] { ep }.ToList();
-        var localFile = ep.Locals.Concat(ep.ManLocals).First(l => l.Ed2k == ed2K);
-        var lastEpNo = ep.EpNo - 1;
-        var lastEpType = ep.EpType;
+            select e).ToList();
+        var localFile = eps.SelectMany(ep => ep.AniDbFiles.SelectMany(f => f.LocalFiles)).First(l => l.Ed2k == ed2K);
+        var ep = eps.First(ep => ep.AniDbFiles.Any(f => f.LocalFiles.Any(lf => lf.Ed2k == ed2K)));
+        var groupId = (localFile.AniDbFile as AniDbNormalFile)?.AniDbGroupId;
+        var lastEpNo = ep.Number - 1;
+        var lastEpType = ep.EpisodeType;
         foreach (var loopEp in eps.SkipWhile(x => x != ep))
         {
-            if (lastEpType != loopEp.EpType || lastEpNo != loopEp.EpNo - 1)
+            if (lastEpType != loopEp.EpisodeType || lastEpNo != loopEp.Number - 1)
                 break;
-            var loopLocalFile = loopEp.Locals.Concat(loopEp.ManLocals).FirstOrDefault(l => l.AniDbGroupId == localFile.AniDbGroupId);
+            var loopLocalFile = loopEp.AniDbFiles.Where(l => (l as AniDbNormalFile)?.AniDbGroupId == groupId).SelectMany(f => f.LocalFiles).FirstOrDefault();
             if (loopLocalFile is null)
                 break;
-            m3U8 += $"#EXTINF:-1,{anime.TitleTranscription} - {loopEp.EpType.GetEpString(loopEp.EpNo)}\n";
+            m3U8 += $"#EXTINF:-1,{ep.AniDbAnime.TitleTranscription} - {loopEp.EpisodeType.GetEpString(loopEp.Number)}\n";
             var fileUri = GetFileUri(loopLocalFile.Ed2k, identityCookie);
             m3U8 += $"{fileUri}\n";
-            lastEpType = loopEp.EpType;
-            lastEpNo = loopEp.EpNo;
+            lastEpType = loopEp.EpisodeType;
+            lastEpNo = loopEp.Number;
         }
 
 

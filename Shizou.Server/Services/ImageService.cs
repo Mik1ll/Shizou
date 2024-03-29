@@ -77,7 +77,7 @@ public class ImageService
     {
         using var context = _contextFactory.CreateDbContext();
         var localFiles = context.LocalFiles.AsNoTracking().Include(lf => lf.ImportFolder).Where(lf =>
-            lf.AniDbFile!.AniDbEpisodeFileXrefs.Any(ep => ep.AniDbEpisodeId == episodeId) || lf.ManualLinkEpisodeId == episodeId).ToList();
+            lf.AniDbFile!.AniDbEpisodeFileXrefs.Any(ep => ep.AniDbEpisodeId == episodeId)).ToList();
         foreach (var localFile in localFiles)
             if (new FileInfo(FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k)) is { Exists: true } thumbnail)
                 return thumbnail;

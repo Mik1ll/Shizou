@@ -3,7 +3,9 @@ using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
+using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
 
@@ -11,8 +13,9 @@ namespace Shizou.Blazor.Components.Pages.Anime.Components;
 
 public partial class FileCard
 {
-    private IWatchedState _watchedState = default!;
+    private FileWatchedState _watchedState = default!;
     private string _externalPlaybackUrl = default!;
+    private bool _fileExists;
 
     [Inject]
     private WatchStateService WatchStateService { get; set; } = default!;
@@ -26,6 +29,12 @@ public partial class FileCard
     [Inject]
     private CommandService CommandService { get; set; } = default!;
 
+    [Inject]
+    private ImportService ImportService { get; set; } = default!;
+
+    [Inject]
+    private ManualLinkService ManualLinkService { get; set; } = default!;
+
     [CascadingParameter]
     public IModalService ModalService { get; set; } = default!;
 
@@ -36,50 +45,48 @@ public partial class FileCard
     [Parameter]
     public EventCallback OnChanged { get; set; }
 
+    protected override void OnInitialized()
+    {
+        CheckFileExists();
+    }
+
     protected override async Task OnParametersSetAsync()
     {
-        if (LocalFile.ImportFolder is null)
-            throw new ArgumentNullException(nameof(LocalFile.ImportFolder));
-        if (LocalFile.AniDbFile is null && LocalFile.ManualLinkEpisode is null)
+        if (LocalFile.AniDbFile is null)
             throw new ArgumentException("Must have either AniDb file or Manual Link");
-        if (LocalFile.AniDbFile?.FileWatchedState is null && LocalFile.ManualLinkEpisode?.EpisodeWatchedState is null)
-            throw new ArgumentNullException(nameof(IWatchedState));
-        _watchedState = (IWatchedState?)LocalFile.AniDbFile?.FileWatchedState ?? LocalFile.ManualLinkEpisode!.EpisodeWatchedState;
+        _watchedState = LocalFile.AniDbFile?.FileWatchedState ?? throw new ArgumentNullException(nameof(FileWatchedState));
 
         _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(LocalFile.Ed2k, true);
     }
 
-    private Task MarkAsync(bool watched)
+    private void CheckFileExists() =>
+        _fileExists = LocalFile.ImportFolder is not null && File.Exists(Path.Combine(LocalFile.ImportFolder.Path, LocalFile.PathTail));
+
+    private async Task ToggleWatchedAsync()
     {
-        switch (_watchedState)
-        {
-            case FileWatchedState fws:
-                if (WatchStateService.MarkFile(fws.AniDbFileId, watched))
-                    _watchedState.Watched = watched;
-                break;
-            case EpisodeWatchedState ews:
-                if (WatchStateService.MarkEpisode(ews.AniDbEpisodeId, watched))
-                    _watchedState.Watched = watched;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(_watchedState));
-        }
+        var watched = !_watchedState.Watched;
+        if (WatchStateService.MarkFile(_watchedState.AniDbFileId, watched))
+            _watchedState.Watched = watched;
 
-        return OnChanged.InvokeAsync();
-    }
-
-    private async Task UnlinkAsync(LocalFile localFile)
-    {
-        using var context = ContextFactory.CreateDbContext();
-        context.LocalFiles.Attach(localFile);
-        localFile.ManualLinkEpisodeId = null;
-
-        context.SaveChanges();
         await OnChanged.InvokeAsync();
     }
 
-    private async Task OpenVideoAsync(int localFileId)
+    private async Task RemoveLocalFileAsync()
     {
-        await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), localFileId)).Result;
+        ImportService.RemoveLocalFile(LocalFile.Id);
+        await OnChanged.InvokeAsync();
     }
+
+    private async Task UnlinkAsync()
+    {
+        ManualLinkService.UnlinkFile(LocalFile.Id);
+        await OnChanged.InvokeAsync();
+    }
+
+    private async Task OpenVideoAsync() =>
+        await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), LocalFile.Id)).Result;
+
+    private void Hash() => CommandService.Dispatch(new HashArgs(Path.Combine(LocalFile.ImportFolder!.Path, LocalFile.PathTail)));
+
+    private void Scan() => CommandService.Dispatch(new ProcessArgs(LocalFile.Id, IdTypeLocalOrFile.LocalId));
 }

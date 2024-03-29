@@ -62,42 +62,17 @@ namespace Shizou.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetRoles",
+                name: "AnimeFilters",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    NormalizedName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Criteria = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetRoles", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUsers",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "TEXT", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.PrimaryKey("PK_AnimeFilters", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -212,25 +187,24 @@ namespace Shizou.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false),
-                    Ed2k = table.Column<string>(type: "TEXT", nullable: false),
+                    Discriminator = table.Column<string>(type: "TEXT", maxLength: 21, nullable: false),
+                    Ed2k = table.Column<string>(type: "TEXT", nullable: true),
                     Crc = table.Column<string>(type: "TEXT", nullable: true),
                     Md5 = table.Column<string>(type: "TEXT", nullable: true),
                     Sha1 = table.Column<string>(type: "TEXT", nullable: true),
-                    FileSize = table.Column<long>(type: "INTEGER", nullable: false),
+                    FileSize = table.Column<long>(type: "INTEGER", nullable: true),
                     DurationSeconds = table.Column<int>(type: "INTEGER", nullable: true),
                     Source = table.Column<string>(type: "TEXT", nullable: true),
-                    Updated = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    FileVersion = table.Column<int>(type: "INTEGER", nullable: false),
-                    FileName = table.Column<string>(type: "TEXT", nullable: false),
+                    Updated = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    FileVersion = table.Column<int>(type: "INTEGER", nullable: true),
+                    FileName = table.Column<string>(type: "TEXT", nullable: true),
                     Censored = table.Column<bool>(type: "INTEGER", nullable: true),
-                    Deprecated = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Chaptered = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Deprecated = table.Column<bool>(type: "INTEGER", nullable: true),
+                    Chaptered = table.Column<bool>(type: "INTEGER", nullable: true),
                     AniDbGroupId = table.Column<int>(type: "INTEGER", nullable: true),
-                    Video_Codec = table.Column<string>(type: "TEXT", nullable: true),
-                    Video_BitRate = table.Column<int>(type: "INTEGER", nullable: true),
-                    Video_Width = table.Column<int>(type: "INTEGER", nullable: true),
-                    Video_Height = table.Column<int>(type: "INTEGER", nullable: true),
-                    Video_ColorDepth = table.Column<int>(type: "INTEGER", nullable: true)
+                    Audio = table.Column<string>(type: "TEXT", nullable: true),
+                    Subtitles = table.Column<string>(type: "TEXT", nullable: true),
+                    Video = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -240,112 +214,6 @@ namespace Shizou.Data.Migrations
                         column: x => x.AniDbGroupId,
                         principalTable: "AniDbGroups",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetRoleClaims",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    RoleId = table.Column<string>(type: "TEXT", nullable: false),
-                    ClaimType = table.Column<string>(type: "TEXT", nullable: true),
-                    ClaimValue = table.Column<string>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserClaims",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    ClaimType = table.Column<string>(type: "TEXT", nullable: true),
-                    ClaimValue = table.Column<string>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserClaims_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserLogins",
-                columns: table => new
-                {
-                    LoginProvider = table.Column<string>(type: "TEXT", nullable: false),
-                    ProviderKey = table.Column<string>(type: "TEXT", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "TEXT", nullable: true),
-                    UserId = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserLogins_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserRoles",
-                columns: table => new
-                {
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    RoleId = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserTokens",
-                columns: table => new
-                {
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    LoginProvider = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Value = table.Column<string>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -373,48 +241,6 @@ namespace Shizou.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "EpisodeWatchedStates",
-                columns: table => new
-                {
-                    AniDbEpisodeId = table.Column<int>(type: "INTEGER", nullable: false),
-                    AniDbFileId = table.Column<int>(type: "INTEGER", nullable: true),
-                    Watched = table.Column<bool>(type: "INTEGER", nullable: false),
-                    WatchedUpdated = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    MyListId = table.Column<int>(type: "INTEGER", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EpisodeWatchedStates", x => x.AniDbEpisodeId);
-                    table.ForeignKey(
-                        name: "FK_EpisodeWatchedStates_AniDbEpisodes_AniDbEpisodeId",
-                        column: x => x.AniDbEpisodeId,
-                        principalTable: "AniDbEpisodes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AniDbAudio",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false),
-                    AniDbFileId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Language = table.Column<string>(type: "TEXT", nullable: false),
-                    Codec = table.Column<string>(type: "TEXT", nullable: false),
-                    Bitrate = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AniDbAudio", x => new { x.AniDbFileId, x.Id });
-                    table.ForeignKey(
-                        name: "FK_AniDbAudio_AniDbFiles_AniDbFileId",
-                        column: x => x.AniDbFileId,
-                        principalTable: "AniDbFiles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AniDbEpisodeFileXrefs",
                 columns: table => new
                 {
@@ -432,25 +258,6 @@ namespace Shizou.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_AniDbEpisodeFileXrefs_AniDbFiles_AniDbFileId",
-                        column: x => x.AniDbFileId,
-                        principalTable: "AniDbFiles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AniDbSubtitles",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false),
-                    AniDbFileId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Language = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AniDbSubtitles", x => new { x.AniDbFileId, x.Id });
-                    table.ForeignKey(
-                        name: "FK_AniDbSubtitles_AniDbFiles_AniDbFileId",
                         column: x => x.AniDbFileId,
                         principalTable: "AniDbFiles",
                         principalColumn: "Id",
@@ -482,14 +289,14 @@ namespace Shizou.Data.Migrations
                 columns: table => new
                 {
                     AniDbEpisodeId = table.Column<int>(type: "INTEGER", nullable: false),
-                    AniDbFileId = table.Column<int>(type: "INTEGER", nullable: false)
+                    AniDbNormalFileId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HangingEpisodeFileXrefs", x => new { x.AniDbEpisodeId, x.AniDbFileId });
+                    table.PrimaryKey("PK_HangingEpisodeFileXrefs", x => new { x.AniDbEpisodeId, x.AniDbNormalFileId });
                     table.ForeignKey(
-                        name: "FK_HangingEpisodeFileXrefs_AniDbFiles_AniDbFileId",
-                        column: x => x.AniDbFileId,
+                        name: "FK_HangingEpisodeFileXrefs_AniDbFiles_AniDbNormalFileId",
+                        column: x => x.AniDbNormalFileId,
                         principalTable: "AniDbFiles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -509,17 +316,11 @@ namespace Shizou.Data.Migrations
                     PathTail = table.Column<string>(type: "TEXT", nullable: false),
                     Updated = table.Column<DateTime>(type: "TEXT", nullable: true),
                     ImportFolderId = table.Column<int>(type: "INTEGER", nullable: true),
-                    ManualLinkEpisodeId = table.Column<int>(type: "INTEGER", nullable: true),
                     AniDbFileId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_LocalFiles", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_LocalFiles_AniDbEpisodes_ManualLinkEpisodeId",
-                        column: x => x.ManualLinkEpisodeId,
-                        principalTable: "AniDbEpisodes",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_LocalFiles_AniDbFiles_AniDbFileId",
                         column: x => x.AniDbFileId,
@@ -554,52 +355,10 @@ namespace Shizou.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetRoleClaims_RoleId",
-                table: "AspNetRoleClaims",
-                column: "RoleId");
-
-            migrationBuilder.CreateIndex(
-                name: "RoleNameIndex",
-                table: "AspNetRoles",
-                column: "NormalizedName",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AspNetUserClaims_UserId",
-                table: "AspNetUserClaims",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AspNetUserLogins_UserId",
-                table: "AspNetUserLogins",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AspNetUserRoles_RoleId",
-                table: "AspNetUserRoles",
-                column: "RoleId");
-
-            migrationBuilder.CreateIndex(
-                name: "EmailIndex",
-                table: "AspNetUsers",
-                column: "NormalizedEmail");
-
-            migrationBuilder.CreateIndex(
-                name: "UserNameIndex",
-                table: "AspNetUsers",
-                column: "NormalizedUserName",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_CommandRequests_CommandId",
                 table: "CommandRequests",
                 column: "CommandId",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EpisodeWatchedStates_MyListId",
-                table: "EpisodeWatchedStates",
-                column: "MyListId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_FileWatchedStates_MyListId",
@@ -607,9 +366,9 @@ namespace Shizou.Data.Migrations
                 column: "MyListId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_HangingEpisodeFileXrefs_AniDbFileId",
+                name: "IX_HangingEpisodeFileXrefs_AniDbNormalFileId",
                 table: "HangingEpisodeFileXrefs",
-                column: "AniDbFileId");
+                column: "AniDbNormalFileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImportFolders_Name",
@@ -626,8 +385,7 @@ namespace Shizou.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_LocalFiles_AniDbFileId",
                 table: "LocalFiles",
-                column: "AniDbFileId",
-                unique: true);
+                column: "AniDbFileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LocalFiles_Ed2k",
@@ -640,11 +398,6 @@ namespace Shizou.Data.Migrations
                 table: "LocalFiles",
                 columns: new[] { "ImportFolderId", "PathTail" },
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LocalFiles_ManualLinkEpisodeId",
-                table: "LocalFiles",
-                column: "ManualLinkEpisodeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LocalFiles_Signature",
@@ -671,34 +424,13 @@ namespace Shizou.Data.Migrations
                 name: "AniDbAnimeRelations");
 
             migrationBuilder.DropTable(
-                name: "AniDbAudio");
-
-            migrationBuilder.DropTable(
                 name: "AniDbEpisodeFileXrefs");
 
             migrationBuilder.DropTable(
-                name: "AniDbSubtitles");
-
-            migrationBuilder.DropTable(
-                name: "AspNetRoleClaims");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUserClaims");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUserLogins");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUserRoles");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUserTokens");
+                name: "AnimeFilters");
 
             migrationBuilder.DropTable(
                 name: "CommandRequests");
-
-            migrationBuilder.DropTable(
-                name: "EpisodeWatchedStates");
 
             migrationBuilder.DropTable(
                 name: "FileWatchedStates");
@@ -717,12 +449,6 @@ namespace Shizou.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Timers");
-
-            migrationBuilder.DropTable(
-                name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "AniDbEpisodes");

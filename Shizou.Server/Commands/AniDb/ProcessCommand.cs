@@ -42,9 +42,9 @@ public class ProcessCommand : Command<ProcessArgs>
         _options = optionsSnapshot.Value;
     }
 
-    private static AniDbFile FileResultToAniDbFile(FileResult result)
+    private static AniDbNormalFile FileResultToAniDbFile(FileResult result)
     {
-        return new AniDbFile
+        return new AniDbNormalFile
         {
             Id = result.FileId,
             Ed2k = result.Ed2K ?? throw new NullReferenceException("Ed2k is null, cannot be null for non-generic file"),
@@ -85,7 +85,7 @@ public class ProcessCommand : Command<ProcessArgs>
                 },
             Subtitles = result.SubLangugages.Select(s => new AniDbSubtitle
                 {
-                    Language = s,
+                    Language = s
                 })
                 .ToList(),
             FileName = result.AniDbFileName,
@@ -109,10 +109,7 @@ public class ProcessCommand : Command<ProcessArgs>
         };
     }
 
-    private static bool FileIsGeneric(FileResult result)
-    {
-        return result.Ed2K is null && result.State == 0;
-    }
+    private static bool FileIsGeneric(FileResult result) => result.Ed2K is null && result.State == 0;
 
     protected override async Task ProcessInnerAsync()
     {
@@ -134,12 +131,13 @@ public class ProcessCommand : Command<ProcessArgs>
 
     private void UpdateAniDb(FileResult result)
     {
-        if ((FileIsGeneric(result) && _context.AniDbEpisodes.Any(ep => ep.Id == result.EpisodeId && ep.ManualLinkLocalFiles.Any())) ||
+        if ((FileIsGeneric(result) &&
+             _context.AniDbEpisodes.Any(ep => ep.Id == result.EpisodeId && ep.AniDbFiles.OfType<AniDbGenericFile>().Any(f => f.LocalFiles.Any()))) ||
             _context.LocalFiles.Any(lf => lf.Ed2k == result.Ed2K))
             if (result.MyListId is null)
-                _commandService.Dispatch(new UpdateMyListArgs(false, _options.AniDb.MyList.PresentFileState, Fid: result.FileId));
+                _commandService.Dispatch(new AddMyListArgs(result.FileId, _options.AniDb.MyList.PresentFileState, null, null));
             else if (result.MyListState != _options.AniDb.MyList.PresentFileState || result.MyListFileState != MyListFileState.Normal)
-                _commandService.Dispatch(new UpdateMyListArgs(true, _options.AniDb.MyList.PresentFileState, Lid: result.MyListId!));
+                _commandService.Dispatch(new UpdateMyListArgs(result.MyListId!.Value, _options.AniDb.MyList.PresentFileState, null, null));
     }
 
     private void UpdateDatabase(FileResult result)
@@ -153,7 +151,7 @@ public class ProcessCommand : Command<ProcessArgs>
     private void UpdateFile(FileResult result)
     {
         _logger.LogInformation("Updating AniDb file information for file id {FileId}", result.FileId);
-        var eFile = _context.AniDbFiles.FirstOrDefault(f => f.Id == result.FileId);
+        var eFile = _context.AniDbNormalFiles.FirstOrDefault(f => f.Id == result.FileId);
         var file = FileResultToAniDbFile(result);
 
         if (eFile is null)
@@ -181,7 +179,7 @@ public class ProcessCommand : Command<ProcessArgs>
         _context.SaveChanges();
     }
 
-    private void UpdateNavigations(AniDbFile file)
+    private void UpdateNavigations(AniDbNormalFile file)
     {
         if (file.AniDbGroup is not null)
             if (_context.AniDbGroups.FirstOrDefault(g => g.Id == file.AniDbGroupId) is { } eAniDbGroup)
@@ -194,20 +192,22 @@ public class ProcessCommand : Command<ProcessArgs>
         else
             _context.Entry(file.FileWatchedState).State = EntityState.Added;
 
-        if (_context.LocalFiles.Include(lf => lf.ManualLinkEpisode)
-                .ThenInclude(ep => ep!.EpisodeWatchedState)
+        if (_context.LocalFiles.Include(lf => lf.AniDbFile)
+                .ThenInclude(f => f!.FileWatchedState)
+                .Include(lf => lf.AniDbFile)
+                .ThenInclude(f => f!.AniDbEpisodeFileXrefs)
                 .FirstOrDefault(lf => lf.Ed2k == file.Ed2k) is { } eLocalFile)
         {
-            eLocalFile.AniDbFileId = file.Id;
-            if (eLocalFile.ManualLinkEpisode is not null)
+            if (eLocalFile.AniDbFile is AniDbGenericFile)
             {
                 _logger.LogInformation("Replacing manual link from local file {LocalId} with episode {EpisodeId} with file relation", eLocalFile.Id,
-                    eLocalFile.ManualLinkEpisodeId);
-                eLocalFile.ManualLinkEpisodeId = null;
+                    eLocalFile.AniDbFile.AniDbEpisodeFileXrefs.First().AniDbEpisodeId);
                 var fws = eFileWatchedState ?? file.FileWatchedState;
-                fws.Watched = eLocalFile.ManualLinkEpisode.EpisodeWatchedState.Watched;
+                fws.Watched = eLocalFile.AniDbFile.FileWatchedState.Watched;
                 fws.WatchedUpdated = DateTime.UtcNow;
             }
+
+            eLocalFile.AniDbFileId = file.Id;
         }
     }
 
@@ -215,24 +215,47 @@ public class ProcessCommand : Command<ProcessArgs>
     {
         _logger.LogInformation("Updating generic AniDb file information for file id {FileId}", result.FileId);
 
-        if (_context.EpisodeWatchedStates.FirstOrDefault(ws => ws.AniDbEpisodeId == result.EpisodeId) is { } eEpisodeWatchedState)
+        if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == result.FileId) is { } eWs)
         {
-            if (eEpisodeWatchedState.WatchedUpdated is null)
-                eEpisodeWatchedState.Watched = result.MyListViewed ?? false;
-            eEpisodeWatchedState.AniDbFileId = result.FileId;
-            eEpisodeWatchedState.MyListId = result.MyListId;
+            if (eWs.WatchedUpdated is null)
+                eWs.Watched = result.MyListViewed ?? false;
+            eWs.MyListId = result.MyListId;
             _context.SaveChanges();
+        }
+        else if (_context.AniDbEpisodes.Include(ep => ep.AniDbFiles).FirstOrDefault(ep => ep.Id == result.EpisodeId) is { } eEp)
+        {
+            if (eEp.AniDbFiles.OfType<AniDbGenericFile>().FirstOrDefault() is { } eFile)
+            {
+                if (eFile.Id != result.FileId)
+                    throw new InvalidOperationException(
+                        $"Exising generic file for episode id {eFile.Id} does not match returned generic file id {result.FileId}");
+            }
+            else
+            {
+                eEp.AniDbFiles.Add(new AniDbGenericFile
+                {
+                    Id = result.FileId,
+                    FileWatchedState = new FileWatchedState
+                    {
+                        Watched = result.MyListViewed ?? false,
+                        WatchedUpdated = null,
+                        MyListId = result.MyListId,
+                        AniDbFileId = result.FileId
+                    }
+                });
+                _context.SaveChanges();
+            }
         }
         else
         {
-            _logger.LogWarning("Failed to update generic file id {FileId}, did not find episode {EpisodeId} watch state", result.FileId, result.EpisodeId);
+            _logger.LogWarning("Failed to update generic file id {FileId}, did not find episode id {EpisodeId}", result.FileId, result.EpisodeId);
         }
     }
 
     private void UpdateEpRelations(int fileId, List<int> episodeIds)
     {
         var eRels = _context.AniDbEpisodeFileXrefs.Where(x => x.AniDbFileId == fileId).ToList();
-        var eHangingRels = _context.HangingEpisodeFileXrefs.Where(x => x.AniDbFileId == fileId).ToList();
+        var eHangingRels = _context.HangingEpisodeFileXrefs.Where(x => x.AniDbNormalFileId == fileId).ToList();
         _context.AniDbEpisodeFileXrefs.RemoveRange(eRels.ExceptBy(episodeIds, x => x.AniDbEpisodeId));
         _context.HangingEpisodeFileXrefs.RemoveRange(eHangingRels.ExceptBy(episodeIds, x => x.AniDbEpisodeId));
         foreach (var rel in episodeIds
@@ -248,7 +271,7 @@ public class ProcessCommand : Command<ProcessArgs>
                 _context.HangingEpisodeFileXrefs.Add(new HangingEpisodeFileXref
                 {
                     AniDbEpisodeId = rel,
-                    AniDbFileId = fileId
+                    AniDbNormalFileId = fileId
                 });
     }
 

@@ -17,198 +17,6 @@ namespace Shizou.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.1");
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("NormalizedName")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasDatabaseName("RoleNameIndex");
-
-                    b.ToTable("AspNetRoles", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ClaimType")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ClaimValue")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("RoleId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("AspNetRoleClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
-
-                    b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ClaimType")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ClaimValue")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AspNetUserClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-                {
-                    b.Property<string>("LoginProvider")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ProviderKey")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("LoginProvider", "ProviderKey");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AspNetUserLogins", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("RoleId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("AspNetUserRoles", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("LoginProvider")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Value")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("UserId", "LoginProvider", "Name");
-
-                    b.ToTable("AspNetUserTokens", (string)null);
-                });
-
             modelBuilder.Entity("Shizou.Data.Models.AniDbAnime", b =>
                 {
                     b.Property<int>("Id")
@@ -335,58 +143,18 @@ namespace Shizou.Data.Migrations
                     b.Property<int>("Id")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("AniDbGroupId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool?>("Censored")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Chaptered")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Crc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("Deprecated")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("DurationSeconds")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Ed2k")
+                    b.Property<string>("Discriminator")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("FileSize")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("FileVersion")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Md5")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Sha1")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Source")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Updated")
+                        .HasMaxLength(21)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AniDbGroupId");
-
-                    b.HasIndex("Ed2k")
-                        .IsUnique();
-
                     b.ToTable("AniDbFiles");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("AniDbFile");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbGroup", b =>
@@ -457,30 +225,6 @@ namespace Shizou.Data.Migrations
                     b.ToTable("CommandRequests");
                 });
 
-            modelBuilder.Entity("Shizou.Data.Models.EpisodeWatchedState", b =>
-                {
-                    b.Property<int>("AniDbEpisodeId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("AniDbFileId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("MyListId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Watched")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("WatchedUpdated")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("AniDbEpisodeId");
-
-                    b.HasIndex("MyListId");
-
-                    b.ToTable("EpisodeWatchedStates");
-                });
-
             modelBuilder.Entity("Shizou.Data.Models.FileWatchedState", b =>
                 {
                     b.Property<int>("AniDbFileId")
@@ -507,12 +251,12 @@ namespace Shizou.Data.Migrations
                     b.Property<int>("AniDbEpisodeId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("AniDbFileId")
+                    b.Property<int>("AniDbNormalFileId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("AniDbEpisodeId", "AniDbFileId");
+                    b.HasKey("AniDbEpisodeId", "AniDbNormalFileId");
 
-                    b.HasIndex("AniDbFileId");
+                    b.HasIndex("AniDbNormalFileId");
 
                     b.ToTable("HangingEpisodeFileXrefs");
                 });
@@ -571,9 +315,6 @@ namespace Shizou.Data.Migrations
                     b.Property<int?>("ImportFolderId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("ManualLinkEpisodeId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("PathTail")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -587,13 +328,10 @@ namespace Shizou.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AniDbFileId")
-                        .IsUnique();
+                    b.HasIndex("AniDbFileId");
 
                     b.HasIndex("Ed2k")
                         .IsUnique();
-
-                    b.HasIndex("ManualLinkEpisodeId");
 
                     b.HasIndex("Signature")
                         .IsUnique();
@@ -693,55 +431,67 @@ namespace Shizou.Data.Migrations
                     b.ToTable("Timers");
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+            modelBuilder.Entity("Shizou.Data.Models.AniDbGenericFile", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasBaseType("Shizou.Data.Models.AniDbFile");
+
+                    b.HasDiscriminator().HasValue("AniDbGenericFile");
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+            modelBuilder.Entity("Shizou.Data.Models.AniDbNormalFile", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+                    b.HasBaseType("Shizou.Data.Models.AniDbFile");
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+                    b.Property<int?>("AniDbGroupId")
+                        .HasColumnType("INTEGER");
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<bool?>("Censored")
+                        .HasColumnType("INTEGER");
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+                    b.Property<bool>("Chaptered")
+                        .HasColumnType("INTEGER");
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<string>("Crc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Deprecated")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("DurationSeconds")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Ed2k")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("FileVersion")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Md5")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Sha1")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Source")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("TEXT");
+
+                    b.HasIndex("AniDbGroupId");
+
+                    b.HasIndex("Ed2k")
+                        .IsUnique();
+
+                    b.HasDiscriminator().HasValue("AniDbNormalFile");
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbEpisode", b =>
@@ -774,116 +524,6 @@ namespace Shizou.Data.Migrations
                     b.Navigation("AniDbFile");
                 });
 
-            modelBuilder.Entity("Shizou.Data.Models.AniDbFile", b =>
-                {
-                    b.HasOne("Shizou.Data.Models.AniDbGroup", "AniDbGroup")
-                        .WithMany("AniDbFiles")
-                        .HasForeignKey("AniDbGroupId");
-
-                    b.OwnsMany("Shizou.Data.Models.AniDbAudio", "Audio", b1 =>
-                        {
-                            b1.Property<int>("AniDbFileId")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Bitrate")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<string>("Codec")
-                                .IsRequired()
-                                .HasColumnType("TEXT");
-
-                            b1.Property<string>("Language")
-                                .IsRequired()
-                                .HasColumnType("TEXT");
-
-                            b1.HasKey("AniDbFileId", "Id");
-
-                            b1.ToTable("AniDbFiles");
-
-                            b1.ToJson("Audio");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AniDbFileId");
-                        });
-
-                    b.OwnsMany("Shizou.Data.Models.AniDbSubtitle", "Subtitles", b1 =>
-                        {
-                            b1.Property<int>("AniDbFileId")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<string>("Language")
-                                .IsRequired()
-                                .HasColumnType("TEXT");
-
-                            b1.HasKey("AniDbFileId", "Id");
-
-                            b1.ToTable("AniDbFiles");
-
-                            b1.ToJson("Subtitles");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AniDbFileId");
-                        });
-
-                    b.OwnsOne("Shizou.Data.Models.AniDbVideo", "Video", b1 =>
-                        {
-                            b1.Property<int>("AniDbFileId")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("BitRate")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<string>("Codec")
-                                .IsRequired()
-                                .HasColumnType("TEXT");
-
-                            b1.Property<int>("ColorDepth")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Height")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("Width")
-                                .HasColumnType("INTEGER");
-
-                            b1.HasKey("AniDbFileId");
-
-                            b1.ToTable("AniDbFiles");
-
-                            b1.ToJson("Video");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AniDbFileId");
-                        });
-
-                    b.Navigation("AniDbGroup");
-
-                    b.Navigation("Audio");
-
-                    b.Navigation("Subtitles");
-
-                    b.Navigation("Video");
-                });
-
-            modelBuilder.Entity("Shizou.Data.Models.EpisodeWatchedState", b =>
-                {
-                    b.HasOne("Shizou.Data.Models.AniDbEpisode", "AniDbEpisode")
-                        .WithOne("EpisodeWatchedState")
-                        .HasForeignKey("Shizou.Data.Models.EpisodeWatchedState", "AniDbEpisodeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AniDbEpisode");
-                });
-
             modelBuilder.Entity("Shizou.Data.Models.FileWatchedState", b =>
                 {
                     b.HasOne("Shizou.Data.Models.AniDbFile", "AniDbFile")
@@ -897,34 +537,28 @@ namespace Shizou.Data.Migrations
 
             modelBuilder.Entity("Shizou.Data.Models.HangingEpisodeFileXref", b =>
                 {
-                    b.HasOne("Shizou.Data.Models.AniDbFile", "AniDbFile")
+                    b.HasOne("Shizou.Data.Models.AniDbNormalFile", "AniDbNormalFile")
                         .WithMany("HangingEpisodeFileXrefs")
-                        .HasForeignKey("AniDbFileId")
+                        .HasForeignKey("AniDbNormalFileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AniDbFile");
+                    b.Navigation("AniDbNormalFile");
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.LocalFile", b =>
                 {
                     b.HasOne("Shizou.Data.Models.AniDbFile", "AniDbFile")
-                        .WithOne("LocalFile")
-                        .HasForeignKey("Shizou.Data.Models.LocalFile", "AniDbFileId");
+                        .WithMany("LocalFiles")
+                        .HasForeignKey("AniDbFileId");
 
                     b.HasOne("Shizou.Data.Models.ImportFolder", "ImportFolder")
                         .WithMany("LocalFiles")
                         .HasForeignKey("ImportFolderId");
 
-                    b.HasOne("Shizou.Data.Models.AniDbEpisode", "ManualLinkEpisode")
-                        .WithMany("ManualLinkLocalFiles")
-                        .HasForeignKey("ManualLinkEpisodeId");
-
                     b.Navigation("AniDbFile");
 
                     b.Navigation("ImportFolder");
-
-                    b.Navigation("ManualLinkEpisode");
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.MalAniDbXref", b =>
@@ -973,6 +607,105 @@ namespace Shizou.Data.Migrations
                     b.Navigation("Status");
                 });
 
+            modelBuilder.Entity("Shizou.Data.Models.AniDbNormalFile", b =>
+                {
+                    b.HasOne("Shizou.Data.Models.AniDbGroup", "AniDbGroup")
+                        .WithMany("AniDbFiles")
+                        .HasForeignKey("AniDbGroupId");
+
+                    b.OwnsMany("Shizou.Data.Models.AniDbAudio", "Audio", b1 =>
+                        {
+                            b1.Property<int>("AniDbNormalFileId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("Bitrate")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<string>("Codec")
+                                .IsRequired()
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Language")
+                                .IsRequired()
+                                .HasColumnType("TEXT");
+
+                            b1.HasKey("AniDbNormalFileId", "Id");
+
+                            b1.ToTable("AniDbFiles");
+
+                            b1.ToJson("Audio");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AniDbNormalFileId");
+                        });
+
+                    b.OwnsMany("Shizou.Data.Models.AniDbSubtitle", "Subtitles", b1 =>
+                        {
+                            b1.Property<int>("AniDbNormalFileId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<string>("Language")
+                                .IsRequired()
+                                .HasColumnType("TEXT");
+
+                            b1.HasKey("AniDbNormalFileId", "Id");
+
+                            b1.ToTable("AniDbFiles");
+
+                            b1.ToJson("Subtitles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AniDbNormalFileId");
+                        });
+
+                    b.OwnsOne("Shizou.Data.Models.AniDbVideo", "Video", b1 =>
+                        {
+                            b1.Property<int>("AniDbNormalFileId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("BitRate")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<string>("Codec")
+                                .IsRequired()
+                                .HasColumnType("TEXT");
+
+                            b1.Property<int>("ColorDepth")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("Height")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("Width")
+                                .HasColumnType("INTEGER");
+
+                            b1.HasKey("AniDbNormalFileId");
+
+                            b1.ToTable("AniDbFiles");
+
+                            b1.ToJson("Video");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AniDbNormalFileId");
+                        });
+
+                    b.Navigation("AniDbGroup");
+
+                    b.Navigation("Audio");
+
+                    b.Navigation("Subtitles");
+
+                    b.Navigation("Video");
+                });
+
             modelBuilder.Entity("Shizou.Data.Models.AniDbAnime", b =>
                 {
                     b.Navigation("AniDbEpisodes");
@@ -983,11 +716,6 @@ namespace Shizou.Data.Migrations
             modelBuilder.Entity("Shizou.Data.Models.AniDbEpisode", b =>
                 {
                     b.Navigation("AniDbEpisodeFileXrefs");
-
-                    b.Navigation("EpisodeWatchedState")
-                        .IsRequired();
-
-                    b.Navigation("ManualLinkLocalFiles");
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbFile", b =>
@@ -997,9 +725,7 @@ namespace Shizou.Data.Migrations
                     b.Navigation("FileWatchedState")
                         .IsRequired();
 
-                    b.Navigation("HangingEpisodeFileXrefs");
-
-                    b.Navigation("LocalFile");
+                    b.Navigation("LocalFiles");
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbGroup", b =>
@@ -1015,6 +741,11 @@ namespace Shizou.Data.Migrations
             modelBuilder.Entity("Shizou.Data.Models.MalAnime", b =>
                 {
                     b.Navigation("MalAniDbXrefs");
+                });
+
+            modelBuilder.Entity("Shizou.Data.Models.AniDbNormalFile", b =>
+                {
+                    b.Navigation("HangingEpisodeFileXrefs");
                 });
 #pragma warning restore 612, 618
         }

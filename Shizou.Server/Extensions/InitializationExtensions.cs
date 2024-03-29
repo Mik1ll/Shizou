@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,6 +50,8 @@ public static class InitializationExtensions
         Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.OptionsPath)!);
         if (!File.Exists(FilePaths.OptionsPath))
             new ShizouOptions().SaveToFile();
+        if (!File.Exists(FilePaths.SchemaPath) || File.ReadAllText(FilePaths.SchemaPath) != ShizouOptions.Schema)
+            File.WriteAllText(FilePaths.SchemaPath, ShizouOptions.Schema);
         var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? throw new ApplicationException("No Entry assembly???");
         builder.Configuration
             .AddJsonFile($"appsettings.{assemblyName}.json", true, true)
@@ -78,17 +81,11 @@ public static class InitializationExtensions
 
     public static WebApplication MigrateDatabase(this WebApplication app)
     {
-        using var context = app.Services.GetRequiredService<IShizouContextFactory>().CreateDbContext();
+        using var scope = app.Services.CreateScope();
+        using var context = scope.ServiceProvider.GetRequiredService<IShizouContext>();
         context.Database.Migrate();
-        return app;
-    }
-
-    public static WebApplication PopulateOptions(this WebApplication app)
-    {
-        var options = app.Services.GetRequiredService<IOptions<ShizouOptions>>();
-        options.Value.SaveToFile();
-        if (!File.Exists(FilePaths.SchemaPath) || File.ReadAllText(FilePaths.SchemaPath) != ShizouOptions.Schema)
-            File.WriteAllText(FilePaths.SchemaPath, ShizouOptions.Schema);
+        using var identityContext = scope.ServiceProvider.GetRequiredService<AuthContext>();
+        identityContext.Database.Migrate();
         return app;
     }
 
@@ -107,7 +104,19 @@ public static class InitializationExtensions
 
     public static IServiceCollection AddShizouServices(this IServiceCollection services)
     {
-        services.AddDbContextFactory<ShizouContext>()
+        services.AddDbContextFactory<ShizouContext>((provider, opts) =>
+            {
+                var username = provider.GetService<IOptionsMonitor<ShizouOptions>>()?.CurrentValue.AniDb.Username ?? string.Empty;
+                opts.UseSqlite(new SqliteConnectionStringBuilder
+                    {
+                        DataSource = FilePaths.DatabasePath(username),
+                        ForeignKeys = true,
+                        Cache = SqliteCacheMode.Private,
+                        Pooling = true
+                    }.ConnectionString)
+                    .EnableSensitiveDataLogging();
+            })
+            .AddDbContext<AuthContext>()
             .AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedEmail = false;
@@ -116,7 +125,7 @@ public static class InitializationExtensions
                 options.Password.RequireUppercase = false;
                 options.Password.RequireNonAlphanumeric = false;
             })
-            .AddEntityFrameworkStores<ShizouContext>()
+            .AddEntityFrameworkStores<AuthContext>()
             .AddDefaultTokenProviders().Services
             .ConfigureApplicationCookie(opts =>
             {
@@ -148,6 +157,8 @@ public static class InitializationExtensions
             .AddTransient<ProcessCommand>()
             .AddTransient<SyncMyListCommand>()
             .AddTransient<UpdateMyListCommand>()
+            .AddTransient<AddMyListCommand>()
+            .AddTransient<UpdateMyListByEpisodeCommand>()
             .AddTransient<AddMissingMyListEntriesCommand>()
             .AddTransient<GetImageCommand>()
             .AddTransient<RestoreMyListBackupCommand>()

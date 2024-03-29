@@ -31,5 +31,6 @@ public partial class MissingFiles
     private void RemoveMissing()
     {
         ImportService.RemoveMissingFiles();
+        LoadFiles();
     }
 }

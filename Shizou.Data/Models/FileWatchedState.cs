@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Shizou.Data.Models;
 
 [Index(nameof(MyListId))]
-public class FileWatchedState : IWatchedState
+public class FileWatchedState
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]

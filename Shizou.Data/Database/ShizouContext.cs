@@ -1,6 +1,4 @@
 ﻿using System.Text.Json;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shizou.Data.CommandInputArgs;
@@ -11,40 +9,19 @@ using Timer = Shizou.Data.Models.Timer;
 
 namespace Shizou.Data.Database;
 
-public sealed class ShizouContext : IdentityDbContext, IShizouContext
+public sealed class ShizouContext : DbContext, IShizouContext
 {
-    public ShizouContext()
-    {
-    }
-
     public ShizouContext(DbContextOptions<ShizouContext> options) : base(options)
     {
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            var connectionString = new SqliteConnectionStringBuilder
-            {
-                DataSource = FilePaths.DatabasePath,
-                ForeignKeys = true,
-                Cache = SqliteCacheMode.Private,
-                Pooling = true
-            }.ConnectionString;
-            optionsBuilder
-                .UseSqlite(connectionString)
-                .EnableSensitiveDataLogging();
-        }
-    }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<AniDbFile>()
+        modelBuilder.Entity<AniDbNormalFile>()
             .OwnsMany(f => f.Audio, builder => builder.ToJson());
-        modelBuilder.Entity<AniDbFile>()
+        modelBuilder.Entity<AniDbNormalFile>()
             .OwnsMany(f => f.Subtitles, builder => builder.ToJson());
-        modelBuilder.Entity<AniDbFile>()
+        modelBuilder.Entity<AniDbNormalFile>()
             .OwnsOne(f => f.Video, builder => builder.ToJson());
         modelBuilder.Entity<AniDbAnime>()
             .HasMany(a => a.MalAnimes)
@@ -136,6 +113,10 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
     IShizouDbSet<AniDbEpisode> IShizouContext.AniDbEpisodes => new ShizouDbSet<AniDbEpisode>(AniDbEpisodes);
     public DbSet<AniDbFile> AniDbFiles { get; set; } = null!;
     IShizouDbSet<AniDbFile> IShizouContext.AniDbFiles => new ShizouDbSet<AniDbFile>(AniDbFiles);
+    public DbSet<AniDbNormalFile> AniDbNormalFiles { get; set; } = null!;
+    IShizouDbSet<AniDbNormalFile> IShizouContext.AniDbNormalFiles => new ShizouDbSet<AniDbNormalFile>(AniDbNormalFiles);
+    public DbSet<AniDbGenericFile> AniDbGenericFiles { get; set; } = null!;
+    IShizouDbSet<AniDbGenericFile> IShizouContext.AniDbGenericFiles => new ShizouDbSet<AniDbGenericFile>(AniDbGenericFiles);
     public DbSet<AniDbGroup> AniDbGroups { get; set; } = null!;
     IShizouDbSet<AniDbGroup> IShizouContext.AniDbGroups => new ShizouDbSet<AniDbGroup>(AniDbGroups);
     public DbSet<LocalFile> LocalFiles { get; set; } = null!;
@@ -150,8 +131,6 @@ public sealed class ShizouContext : IdentityDbContext, IShizouContext
     IShizouDbSet<MalAnime> IShizouContext.MalAnimes => new ShizouDbSet<MalAnime>(MalAnimes);
     public DbSet<FileWatchedState> FileWatchedStates { get; set; } = null!;
     IShizouDbSet<FileWatchedState> IShizouContext.FileWatchedStates => new ShizouDbSet<FileWatchedState>(FileWatchedStates);
-    public DbSet<EpisodeWatchedState> EpisodeWatchedStates { get; set; } = null!;
-    IShizouDbSet<EpisodeWatchedState> IShizouContext.EpisodeWatchedStates => new ShizouDbSet<EpisodeWatchedState>(EpisodeWatchedStates);
     public DbSet<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; set; } = null!;
     IShizouDbSet<HangingEpisodeFileXref> IShizouContext.HangingEpisodeFileXrefs => new ShizouDbSet<HangingEpisodeFileXref>(HangingEpisodeFileXrefs);
     public DbSet<Timer> Timers { get; set; } = null!;

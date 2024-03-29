@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -11,40 +12,63 @@ Log.Logger = new LoggerConfiguration()
 
 Directory.CreateDirectory(FilePaths.ApplicationDataDir);
 
-var builder = WebApplication.CreateBuilder();
+using var appMutex = new Mutex(false, Constants.AppLockName);
+var hasHandle = false;
+try
+{
+    try
+    {
+        hasHandle = appMutex.WaitOne(2000, false);
+        if (!hasHandle)
+        {
+            Log.Logger.Error("Only one instance of Shizou may run per user");
+            return;
+        }
+    }
+    catch (AbandonedMutexException)
+    {
+        hasHandle = true;
+    }
 
-builder.AddShizouOptions()
-    .AddShizouLogging()
-    .AddWorkerServices();
+    var builder = WebApplication.CreateBuilder();
 
-builder.Services
-    .AddShizouServices()
-    .AddShizouProcessors()
-    .AddAniDbServices()
-    .AddShizouApiServices();
+    builder.AddShizouOptions()
+        .AddShizouLogging()
+        .AddWorkerServices();
 
-var app = builder.Build();
+    builder.Services
+        .AddShizouServices()
+        .AddShizouProcessors()
+        .AddAniDbServices()
+        .AddShizouApiServices();
 
-if (!app.Environment.IsDevelopment())
-    app.UseHsts();
+    var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+    if (!app.Environment.IsDevelopment())
+        app.UseHsts();
 
-app.UseSerilogRequestLogging();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+    app.UseSerilogRequestLogging();
 
-app.UseRouting();
+    app.UseHttpsRedirection();
 
-app.UseIdentityCookieParameter();
+    app.UseRouting();
 
-app.UseAuthentication();
-app.UseAuthorization();
+    app.UseIdentityCookieParameter();
 
-app.MapControllers();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
-app.MigrateDatabase();
-app.PopulateOptions();
+    app.MapControllers();
 
-app.Run();
+    app.MigrateDatabase();
+
+    app.Run();
+}
+finally
+{
+    if (hasHandle)
+        appMutex.ReleaseMutex();
+}

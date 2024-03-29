@@ -7,6 +7,6 @@ public static class AniDbEpisodesExtensions
 {
     public static IQueryable<AniDbEpisode> HasLocalFiles(this IQueryable<AniDbEpisode> query)
     {
-        return query.Where(e => e.AniDbFiles.Any(f => f.LocalFile != null) || e.ManualLinkLocalFiles.Any());
+        return query.Where(e => e.AniDbFiles.Any(f => f.LocalFiles.Any()));
     }
 }
