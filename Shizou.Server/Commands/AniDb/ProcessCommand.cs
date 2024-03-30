@@ -131,13 +131,20 @@ public class ProcessCommand : Command<ProcessArgs>
 
     private void UpdateAniDb(FileResult result)
     {
-        if ((FileIsGeneric(result) &&
-             _context.AniDbEpisodes.Any(ep => ep.Id == result.EpisodeId && ep.AniDbFiles.OfType<AniDbGenericFile>().Any(f => f.LocalFiles.Any()))) ||
-            _context.LocalFiles.Any(lf => lf.Ed2k == result.Ed2K))
-            if (result.MyListId is null)
-                _commandService.Dispatch(new AddMyListArgs(result.FileId, _options.AniDb.MyList.PresentFileState, null, null));
-            else if (result.MyListState != _options.AniDb.MyList.PresentFileState || result.MyListFileState != MyListFileState.Normal)
-                _commandService.Dispatch(new UpdateMyListArgs(result.MyListId!.Value, _options.AniDb.MyList.PresentFileState, null, null));
+        var aniDbFile = _context.AniDbFiles.AsNoTracking().Include(f => f.FileWatchedState).Include(f => f.LocalFiles).Single(f => f.Id == result.FileId);
+        var presentState = _options.AniDb.MyList.PresentFileState;
+        var watchedState = aniDbFile.FileWatchedState;
+        if (aniDbFile.LocalFiles.Any())
+        {
+            if (watchedState.MyListId is null)
+                _commandService.Dispatch(new AddMyListArgs(aniDbFile.Id, presentState, watchedState.Watched,
+                    watchedState.WatchedUpdated));
+            else if (watchedState.Watched != result.MyListViewed)
+                _commandService.Dispatch(new UpdateMyListArgs(watchedState.MyListId.Value, presentState,
+                    watchedState.Watched, watchedState.WatchedUpdated));
+            else if (result.MyListState != presentState || result.MyListFileState != MyListFileState.Normal)
+                _commandService.Dispatch(new UpdateMyListArgs(watchedState.MyListId.Value, presentState, null, null));
+        }
     }
 
     private void UpdateDatabase(FileResult result)
@@ -202,9 +209,9 @@ public class ProcessCommand : Command<ProcessArgs>
             {
                 _logger.LogInformation("Replacing manual link from local file {LocalId} with episode {EpisodeId} with file relation", eLocalFile.Id,
                     eLocalFile.AniDbFile.AniDbEpisodeFileXrefs.First().AniDbEpisodeId);
-                var fws = eFileWatchedState ?? file.FileWatchedState;
-                fws.Watched = eLocalFile.AniDbFile.FileWatchedState.Watched;
-                fws.WatchedUpdated = DateTime.UtcNow;
+                var ws = eFileWatchedState ?? file.FileWatchedState;
+                ws.Watched = eLocalFile.AniDbFile.FileWatchedState.Watched;
+                ws.WatchedUpdated = eLocalFile.AniDbFile.FileWatchedState.WatchedUpdated;
             }
 
             eLocalFile.AniDbFileId = file.Id;
