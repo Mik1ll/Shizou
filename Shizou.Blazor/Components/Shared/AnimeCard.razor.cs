@@ -27,6 +27,6 @@ public partial class AnimeCard
 
     private void GoToAnime(int animeId)
     {
-        NavigationManager.NavigateTo($"/Collection/{animeId}", true);
+        NavigationManager.NavigateTo($"/Collection/{animeId}");
     }
 }
