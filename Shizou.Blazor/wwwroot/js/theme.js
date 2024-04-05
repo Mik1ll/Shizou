@@ -9,12 +9,9 @@ function setTheme(theme) {
         document.documentElement.setAttribute('data-bs-theme', theme);
     }
     let meta = document.querySelector('meta[name="theme-color"]');
-    if (meta == null) {
-        meta = document.createElement('meta');
-        meta.setAttribute('name', 'theme-color');
-        document.getElementsByTagName('head')[0].appendChild(meta);
+    if (meta != null) {
+        meta.setAttribute('content', window.getComputedStyle(document.documentElement).getPropertyValue('--bs-secondary-bg'));
     }
-    meta.setAttribute('content', window.getComputedStyle(document.documentElement).getPropertyValue('--bs-secondary-bg'));
 }
 function cycleTheme() {
     const themes = ['auto', 'light', 'dark'];
