@@ -8,11 +8,6 @@ public static class EnumerableExtensions
 
     public static IOrderedEnumerable<T> OrderByAlphaNumeric<T>(this IEnumerable<T> source, Func<T, string> selector)
     {
-        var list = source.ToList();
-        var max = list
-            .SelectMany(i => DigitRegex.Matches(selector(i)).Select(m => m.Value.Length))
-            .DefaultIfEmpty().Max();
-
-        return list.OrderBy(i => DigitRegex.Replace(selector(i), m => m.Value.PadLeft(max, '0')));
+        return source.OrderBy(i => DigitRegex.Replace(selector(i), m => m.Value.PadLeft(10, '0')));
     }
 }

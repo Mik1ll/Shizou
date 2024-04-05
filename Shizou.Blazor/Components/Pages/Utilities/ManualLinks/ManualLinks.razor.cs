@@ -21,9 +21,15 @@ public partial class ManualLinks
 
     protected override void OnInitialized()
     {
+        LoadFiles();
+    }
+
+    private void LoadFiles()
+    {
+        _selectedFiles = [];
         using var context = ContextFactory.CreateDbContext();
         _manuallyLinkedFiles = context.LocalFiles
-            .Include(lf => lf.ImportFolder).Where(lf => lf.AniDbFile is AniDbNormalFile).ToList();
+            .Include(lf => lf.ImportFolder).Where(lf => lf.AniDbFile is AniDbGenericFile).ToList();
     }
 
 

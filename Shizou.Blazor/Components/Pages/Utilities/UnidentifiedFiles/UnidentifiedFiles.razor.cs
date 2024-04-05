@@ -38,7 +38,7 @@ public partial class UnidentifiedFiles
 
     private void LoadFiles()
     {
-        _selectedFiles = new List<LocalFile>();
+        _selectedFiles = [];
         using var context = ContextFactory.CreateDbContext();
         _localFiles = context.LocalFiles.Include(lf => lf.ImportFolder).Unidentified()
             .Where(lf => lf.ImportFolder != null && (!lf.Ignored || _includeIgnored)).AsEnumerable()
