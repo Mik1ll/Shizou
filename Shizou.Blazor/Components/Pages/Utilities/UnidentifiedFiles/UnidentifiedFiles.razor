@@ -1,4 +1,5 @@
 ﻿@page "/UnidentifiedFiles"
+@using Shizou.Data.Extensions
 @using Shizou.Data.Models
 <PageTitle>Unidentified Files</PageTitle>
 
@@ -17,18 +18,11 @@
     <div class="row">
         <div class="col overflow-auto">
             <SelectTable TValue="@LocalFile" OnChange="@OnSelectChanged" class="table table-hover">
-                <thead>
-                <tr>
-                    <th>Folder</th>
-                    <th class="absorbing-column">Name</th>
-                </tr>
-                </thead>
                 <tbody>
-                @foreach (var (file, idx) in _localFiles.Select((file, idx) => (file, idx)))
+                @foreach (var (file, idx) in _localFiles.OrderByAlphaNumeric(f => Path.Combine(f.ImportFolder!.Path, f.PathTail)).Select((file, idx) => (file, idx)))
                 {
                     <SelectRow @key="@file" TValue="@LocalFile" Index="@idx" Value="@file" class="@(file.Ignored ? "ignored-file" : "")">
-                        <td>@(Path.GetDirectoryName(Path.Combine(file.ImportFolder!.Path, file.PathTail)))</td>
-                        <td>@(Path.GetFileName(file.PathTail))</td>
+                        <td>@(Path.Combine(file.ImportFolder!.Path, file.PathTail))</td>
                     </SelectRow>
                 }
                 </tbody>
