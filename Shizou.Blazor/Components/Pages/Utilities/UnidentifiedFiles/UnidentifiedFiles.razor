@@ -19,10 +19,10 @@
         <div class="col overflow-auto">
             <SelectTable TValue="@LocalFile" OnChange="@OnSelectChanged" class="table table-hover">
                 <tbody>
-                @foreach (var (file, idx) in _localFiles.OrderByAlphaNumeric(f => Path.Combine(f.ImportFolder!.Path, f.PathTail)).Select((file, idx) => (file, idx)))
+                @foreach (var (file, idx) in _localFiles.OrderByAlphaNumeric(GetFilePath).Select((file, idx) => (file, idx)))
                 {
                     <SelectRow @key="@file" TValue="@LocalFile" Index="@idx" Value="@file" class="@(file.Ignored ? "ignored-file" : "")">
-                        <td>@(Path.Combine(file.ImportFolder!.Path, file.PathTail))</td>
+                        <td>@(GetFilePath(file))</td>
                     </SelectRow>
                 }
                 </tbody>
@@ -71,7 +71,7 @@
                                 <strong>Name:</strong> @(Path.GetFileName(localFile.PathTail))
                             </li>
                             <li class="list-group-item">
-                                <strong>Path:</strong> @(Path.Combine(localFile.ImportFolder!.Path, localFile.PathTail))
+                                <strong>Path:</strong> @(GetFilePath(localFile))
                             </li>
                             <li class="list-group-item">
                                 <strong>Size:</strong> @(Math.Round(localFile.FileSize / (1024.0 * 1024), 2)) MiB

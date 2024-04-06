@@ -7,7 +7,6 @@ using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
-using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Components.Pages.Utilities.UnidentifiedFiles;
@@ -31,6 +30,9 @@ public partial class UnidentifiedFiles
     private IModalService ModalService { get; set; } = default!;
 
 
+    private static string GetFilePath(LocalFile file) => Path.Combine(file.ImportFolder?.Path ?? "<MISSING IMPORT FLD>", file.PathTail);
+
+
     protected override void OnInitialized()
     {
         LoadFiles();
@@ -40,9 +42,8 @@ public partial class UnidentifiedFiles
     {
         _selectedFiles = [];
         using var context = ContextFactory.CreateDbContext();
-        _localFiles = context.LocalFiles.Include(lf => lf.ImportFolder).Unidentified()
-            .Where(lf => lf.ImportFolder != null && (!lf.Ignored || _includeIgnored)).AsEnumerable()
-            .Where(lf => File.Exists(Path.Combine(lf.ImportFolder!.Path, lf.PathTail))).ToList();
+        _localFiles = context.LocalFiles.Include(lf => lf.ImportFolder)
+            .Where(lf => lf.AniDbFile == null && (!lf.Ignored || _includeIgnored)).ToList();
     }
 
     private void ScanFiles(List<LocalFile> localFiles)

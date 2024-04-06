@@ -19,6 +19,8 @@ public partial class ManualLinks
     [Inject]
     private CommandService CommandService { get; set; } = default!;
 
+    private static string GetFilePath(LocalFile file) => Path.Combine(file.ImportFolder?.Path ?? "<MISSING IMPORT FLD>", file.PathTail);
+
     protected override void OnInitialized()
     {
         LoadFiles();
