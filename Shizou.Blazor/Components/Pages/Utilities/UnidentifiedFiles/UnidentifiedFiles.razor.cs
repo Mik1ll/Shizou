@@ -58,9 +58,8 @@ public partial class UnidentifiedFiles
 
     private void HashFiles(List<LocalFile> localFiles)
     {
-        CommandService.DispatchRange(localFiles.Select(lf =>
-            new HashArgs(Path.Combine(lf.ImportFolder?.Path ?? throw new NullReferenceException("Import folder can't be null, need a complete path"),
-                lf.PathTail))));
+        CommandService.DispatchRange(localFiles.Where(lf => lf.ImportFolder != null).Select(lf =>
+            new HashArgs(Path.Combine(lf.ImportFolder!.Path, lf.PathTail))));
     }
 
     private void SetIgnored(List<LocalFile> localFiles, bool ignored)
