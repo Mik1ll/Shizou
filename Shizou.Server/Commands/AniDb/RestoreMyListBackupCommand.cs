@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shizou.Data;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Server.AniDbApi.Requests.Http;
@@ -41,17 +41,24 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
 
     protected override async Task ProcessInnerAsync()
     {
-        _logger.LogInformation("Restoring mylist from backup on {BackupDate}", CommandArgs.Date);
-        var backupPath = CommandArgs switch
+        _logger.LogInformation("Restoring mylist from backup \"{BackupPath}\"", CommandArgs.Path);
+
+        MyListResult? backup;
+        if (Path.GetExtension(CommandArgs.Path) == ".zip")
         {
-            { Date: { } date } => Path.Combine(FilePaths.MyListBackupDir, date.ToString("yyyy-MM-dd") + ".xml"),
-            { Path: { } path } => path,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        var backup = new XmlSerializer(typeof(MyListResult)).Deserialize(new XmlTextReader(backupPath)) as MyListResult;
+            var fs = new FileStream(CommandArgs.Path, FileMode.Open);
+            await using var _ = fs.ConfigureAwait(false);
+            using var arch = new ZipArchive(fs, ZipArchiveMode.Read);
+            backup = new XmlSerializer(typeof(MyListResult)).Deserialize(new XmlTextReader(arch.Entries.First().Open())) as MyListResult;
+        }
+        else
+        {
+            backup = new XmlSerializer(typeof(MyListResult)).Deserialize(new XmlTextReader(CommandArgs.Path)) as MyListResult;
+        }
+
         if (backup is null)
         {
-            _logger.LogError("Failed to read mylist backup \"{BackupPath}\"", backupPath);
+            _logger.LogError("Failed to read mylist backup \"{BackupPath}\"", CommandArgs.Path);
             Completed = true;
             return;
         }

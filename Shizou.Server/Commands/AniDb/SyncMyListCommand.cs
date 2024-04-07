@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -266,17 +267,44 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         }
         else
         {
-            _logger.LogDebug("Saving mylist file to \"{MyListPath}\"", FilePaths.MyListPath);
-            Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.MyListPath)!);
-            await File.WriteAllTextAsync(FilePaths.MyListPath, _myListRequest.ResponseText, Encoding.UTF8).ConfigureAwait(false);
-            var backupFilePath = Path.Combine(FilePaths.MyListBackupDir, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".xml");
-            _logger.LogDebug("Saving mylist backup to \"{MyListBackupPath}\"", backupFilePath);
-            Directory.CreateDirectory(FilePaths.MyListBackupDir);
-            await File.WriteAllTextAsync(backupFilePath, _myListRequest.ResponseText, Encoding.UTF8).ConfigureAwait(false);
+            await CreateMyListBackupAsync().ConfigureAwait(false);
             _logger.LogInformation("HTTP Get mylist succeeded");
         }
 
         return _myListRequest.MyListResult;
+    }
+
+    private async Task CreateMyListBackupAsync()
+    {
+        _logger.LogDebug("Saving mylist file to \"{MyListPath}\"", FilePaths.MyListPath);
+        var myListDirectory = new DirectoryInfo(FilePaths.MyListBackupDir);
+        myListDirectory.Create();
+
+        await File.WriteAllTextAsync(FilePaths.MyListPath, _myListRequest.ResponseText, Encoding.UTF8).ConfigureAwait(false);
+
+        // Create timestamped MyList zip archive
+        // Backup rotation depeonds on filename being universally sortable ("u" format specifier)
+        var archivePath = Path.Join(myListDirectory.FullName, DateTimeOffset.UtcNow.ToString("u").Replace(':', '_') + ".zip");
+        _logger.LogDebug("Saving mylist backup to \"{MyListBackupPath}\"", archivePath);
+        var backupFs = new FileStream(archivePath, FileMode.OpenOrCreate);
+        await using var _ = backupFs.ConfigureAwait(false);
+        using var archive = new ZipArchive(backupFs, ZipArchiveMode.Create);
+        archive.CreateEntryFromFile(FilePaths.MyListPath, Path.GetFileName(FilePaths.MyListPath));
+
+        // Delete oldest backups when more than 30 exist
+        // Only gets zip files that start with ISO 8601 date format YYYY-MM-DD
+        var backupFiles = myListDirectory.GetFiles("????-??-?? *.zip").OrderByDescending(f => f.Name).ToList();
+        var retainedBackupCount = 30;
+        var backUpFilesToDelete = backupFiles.Skip(retainedBackupCount).ToList();
+        foreach (var file in backUpFilesToDelete)
+            try
+            {
+                file.Delete();
+            }
+            catch
+            {
+                // ignored
+            }
     }
 
     private record MyListItem(

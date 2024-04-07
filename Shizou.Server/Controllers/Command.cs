@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -55,13 +54,6 @@ public class Command : ControllerBase
         if (resp is not null)
             return resp.ResponseCodeText + "\n" + resp.ResponseText;
         return string.Empty;
-    }
-
-    [HttpPut("RestoreMyListBackup")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
-    public void RestoreMyListBackup(string date)
-    {
-        _commandService.Dispatch(new RestoreMyListBackupArgs(DateOnly.Parse(date)));
     }
 
     [HttpPut("PingAniDb")]
