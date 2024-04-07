@@ -182,6 +182,12 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
         // Get file id and generic file ids for files with local files
         var fileIdsWithLocal = _context.AniDbFiles.Where(f => f.LocalFiles.Any()).Select(f => f.Id).ToHashSet();
 
+        var myListItemCountByEpisodeId = (from item in myListItems
+            from eid in item.Eids
+            group eid by eid
+            into g
+            select g).ToDictionary(g => g.Key, g => g.Count());
+
         // Get episode ids that do not have a generic file id
         var epIdsMissingGenericFile = (from ep in _context.AniDbEpisodes
             where !ep.AniDbFiles.OfType<AniDbGenericFile>().Any()
@@ -195,7 +201,6 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
             var expectedState = fileIdsWithLocal.Contains(item.Fid) ? _options.AniDb.MyList.PresentFileState : _options.AniDb.MyList.AbsentFileState;
             var itemWatched = item.Viewdate is not null;
             var hasWatchedStateWithFileId = watchedStatesByFileId.TryGetValue(item.Fid, out var watchedState);
-            var fileMayBeGeneric = !hasWatchedStateWithFileId && item.Eids.Count == 1 && epIdsMissingGenericFile.Contains(item.Eids.First());
             var updateQueued = false;
 
             if (hasWatchedStateWithFileId)
@@ -217,13 +222,15 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
 
                 watchedState.MyListId = item.Id;
             }
-            else if (fileMayBeGeneric)
+            else if (item.Eids.Count == 1 && // Generic file will always have a single Ep id
+                     epIdsMissingGenericFile.Contains(item.Eids.First()) && // We have the local episode missing a generic file
+                     myListItemCountByEpisodeId[item.Eids.First()] > 1 // Exclude items whose episode has 1 item associated with it, can be resolved later
+                    )
             {
-                // Check if file in mylist is a generic file for an episode with manual links
                 toProcess.Add(new ProcessArgs(item.Fid, IdTypeLocalOrFile.FileId));
             }
 
-            if (!updateQueued && !fileMayBeGeneric && (item.State != expectedState || item.FileState != MyListFileState.Normal))
+            if (!updateQueued && (item.State != expectedState || item.FileState != MyListFileState.Normal))
                 toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, null, null));
         }
 
