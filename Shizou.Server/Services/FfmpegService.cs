@@ -103,9 +103,11 @@ public class FfmpegService
         p.StartInfo.Arguments =
             $"-v fatal -show_entries \"stream=index,codec_name : stream_tags=language,title,filename\" -of json=c=1 \"{fileInfo.FullName}\"";
         p.Start();
-        List<(int index, string codec, string? lang, string? title, string? filename)> streams = new();
+        List<(int index, string codec, string? lang, string? title, string? filename)> streams = [];
         using var document = JsonDocument.Parse(await p.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
-        foreach (var streamEl in document.RootElement.GetProperty("streams").EnumerateArray())
+        if (!document.RootElement.TryGetProperty("streams", out var streamsEl))
+            return streams;
+        foreach (var streamEl in streamsEl.EnumerateArray())
         {
             var index = streamEl.GetProperty("index").GetInt32();
             var codec = string.Empty;
