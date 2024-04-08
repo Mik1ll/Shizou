@@ -37,9 +37,10 @@ public abstract class HttpRequest : IHttpRequest
         Args["pass"] = options.AniDb.Password;
     }
 
+    public string? ResponseText { get; private set; }
+
     protected Dictionary<string, string?> Args { get; } = new();
     protected bool ParametersSet { get; set; }
-    public string? ResponseText { get; private set; }
 
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="HttpRequestException"></exception>
@@ -75,9 +76,9 @@ public abstract class HttpRequest : IHttpRequest
             throw new HttpRequestException("No http response, may be banned");
         }
 
-        if (ResponseText.StartsWith("<error"))
+        if (ResponseText.StartsWith("<error", StringComparison.OrdinalIgnoreCase))
         {
-            if (ResponseText.Contains("Banned"))
+            if (ResponseText.Contains("banned", StringComparison.OrdinalIgnoreCase))
             {
                 _httpState.Banned = true;
                 _logger.LogWarning("HTTP Banned! waiting {BanPeriod}", _httpState.BanPeriod);
