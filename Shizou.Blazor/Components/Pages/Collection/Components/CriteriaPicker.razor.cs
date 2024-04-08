@@ -26,6 +26,7 @@ public partial class CriteriaPicker
             if (and?.Criteria.Count > index)
                 and.Criteria.RemoveAt(index);
             or.Criteria.RemoveAll(a => a.Criteria.Count == 0);
+            StateHasChanged();
             return;
         }
 
@@ -44,9 +45,11 @@ public partial class CriteriaPicker
         else
         {
             if (and is null)
-                or.Criteria.Add(and = new AndAllCriterion(new List<TermCriterion>()));
+                or.Criteria.Add(and = new AndAllCriterion([]));
             and.Criteria.Add(term);
         }
+
+        StateHasChanged();
     }
 
     private void Replace(AndAllCriterion and, int index, TermCriterion newCriterion)

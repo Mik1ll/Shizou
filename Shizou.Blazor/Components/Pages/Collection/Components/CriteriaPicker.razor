@@ -10,15 +10,15 @@
     </div>
     @foreach (var and in or.Criteria.Append(null))
     {
-        <div @key="@and" class="mt-3 p-2 pt-0 border border-success rounded">
+        <div class="mt-3 p-2 pt-0 border border-success rounded">
             <div class="position-relative">
                 <span class="text-success bg-body ps-1 pe-1 position-absolute" style="top:-.75rem;line-height:1rem">AND</span>
             </div>
-            @foreach (var (term, idx) in (and?.Criteria ?? new List<TermCriterion>()).Append(null).Select((term, idx) => (term, idx)))
+            @foreach (var (term, idx) in (and?.Criteria ?? []).Append(null).Select((term, idx) => (term, idx)))
             {
                 <div class="border border-secondary p-2 mt-2 rounded">
-                    <select @key="@term" class="form-select mb-1" @onchange="@(args => Update(or, and, idx, (string?)args.Value))">
-                        <option value="">@(term is null ? "Pick a Term" : "Remove")</option>
+                    <select class="form-select mb-1" @onchange="@(args => Update(or, and, idx, (string?)args.Value))">
+                        <option value="" selected="@(term is null)">@(term is null ? "Pick a Term" : "Remove")</option>
                         @foreach (var termType in _validTermTypes.Keys)
                         {
                             <option value="@termType" selected="@(termType == term?.GetType().Name)">@(termType.TrimEnd("Criterion").UpperCaseSpaced())</option>
