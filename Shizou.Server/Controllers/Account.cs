@@ -66,13 +66,13 @@ public class Account : ControllerBase
         }
 
         if (!result.Succeeded)
-            return TypedResults.Problem(title: "Something went wrong when creating account/changing password",
+            return TypedResults.Problem(title: $"Something went wrong when creating account/changing password: {result}",
                 statusCode: StatusCodes.Status500InternalServerError);
 
         var signInResult = await _signInManager.PasswordSignInAsync("Admin", password, true, false).ConfigureAwait(false);
         var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == Constants.IdentityCookieName);
         if (!signInResult.Succeeded || token is null)
-            return TypedResults.Problem(title: "Something went wrong when logging in after changing password",
+            return TypedResults.Problem(title: $"Something went wrong when logging in after changing password: {signInResult}",
                 statusCode: StatusCodes.Status500InternalServerError);
         return TypedResults.Ok(token.Value.Value);
     }
