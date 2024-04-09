@@ -11,32 +11,26 @@ public abstract class RateLimiter
     private readonly Stopwatch _activeWatch = new();
     private readonly SemaphoreSlim _rateSemaphore = new(1, 1);
     private readonly Stopwatch _watch = new();
-    protected readonly ILogger<RateLimiter> Logger;
+    private readonly ILogger<RateLimiter> _logger;
 
-    protected RateLimiter(ILogger<RateLimiter> logger)
-    {
-        Logger = logger;
-        _watch.Start();
-    }
+    private DateTimeOffset _nextAvailable = DateTimeOffset.UtcNow;
+
+    protected RateLimiter(ILogger<RateLimiter> logger) => _logger = logger;
 
     protected abstract TimeSpan ShortDelay { get; }
     protected abstract TimeSpan LongDelay { get; }
     protected abstract TimeSpan ShortPeriod { get; }
     protected abstract TimeSpan ResetPeriod { get; }
 
-    public bool Available => _watch.Elapsed > LongDelay ||
-                             (_watch.Elapsed > ShortDelay && _activeWatch.Elapsed < ShortPeriod);
-
-    public DateTimeOffset NextAvailable { get; private set; } = DateTimeOffset.UtcNow;
-
     public async Task<IDisposable> AcquireAsync()
     {
-        Logger.LogTrace("Waiting on rate limiter");
+        _logger.LogTrace("Waiting on rate limiter");
         await _rateSemaphore.WaitAsync().ConfigureAwait(false);
-        Logger.LogTrace("Got rate limiter");
-        if (!Available && NextAvailable - DateTimeOffset.UtcNow is var timeUntilNext && timeUntilNext > TimeSpan.Zero)
+        _logger.LogTrace("Got rate limiter");
+        var timeUntilNext = _nextAvailable - DateTimeOffset.UtcNow;
+        if (timeUntilNext > TimeSpan.Zero)
         {
-            Logger.LogDebug("Time since last command: {WatchElapsed}, waiting for {TimeUntilNext}", _watch.Elapsed, timeUntilNext);
+            _logger.LogDebug("Time since last command: {WatchElapsed}, waiting for {TimeUntilNext}", _watch.Elapsed, timeUntilNext);
             await Task.Delay(timeUntilNext).ConfigureAwait(false);
         }
 
@@ -48,10 +42,11 @@ public abstract class RateLimiter
         if (_rateSemaphore.CurrentCount != 0)
             return;
         if (_watch.Elapsed > ResetPeriod)
-            _activeWatch.Restart();
+            _activeWatch.Reset();
+        _activeWatch.Start();
         _watch.Restart();
-        NextAvailable = DateTimeOffset.UtcNow + (_activeWatch.Elapsed > ShortPeriod ? LongDelay : ShortDelay);
-        Logger.LogTrace("Rate limiter released");
+        _nextAvailable = DateTimeOffset.UtcNow + (_activeWatch.Elapsed < ShortPeriod ? ShortDelay : LongDelay);
+        _logger.LogTrace("Rate limiter released");
         _rateSemaphore.Release();
     }
 
@@ -60,10 +55,7 @@ public abstract class RateLimiter
         private readonly RateLimiter _rateLimiter;
         private bool _isDisposed;
 
-        public ReleaseWrapper(RateLimiter rateLimiter)
-        {
-            _rateLimiter = rateLimiter;
-        }
+        public ReleaseWrapper(RateLimiter rateLimiter) => _rateLimiter = rateLimiter;
 
         public void Dispose()
         {
