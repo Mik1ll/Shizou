@@ -44,13 +44,14 @@ public sealed record FileResult
         Md5 = dataArr[++dataIdx].NullIfWhitespace();
         Sha1 = dataArr[++dataIdx].NullIfWhitespace();
         Crc32 = dataArr[++dataIdx].NullIfWhitespace();
-        VideoColorDepth = dataArr[++dataIdx] != string.Empty ? int.Parse(dataArr[dataIdx]) : null;
+        VideoColorDepth = dataArr[++dataIdx].Split('\'', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).Cast<int?>().FirstOrDefault();
         Source = dataArr[++dataIdx].NullIfWhitespace();
         AudioCodecs = dataArr[++dataIdx].Split('\'', StringSplitOptions.RemoveEmptyEntries).Where(e => e != "none").ToList();
         AudioBitRates = dataArr[++dataIdx].Split('\'', StringSplitOptions.RemoveEmptyEntries).Where(e => e != "none").Select(int.Parse).ToList();
-        VideoCodec = dataArr[++dataIdx] != "none" ? dataArr[dataIdx] : null;
-        VideoBitRate = dataArr[++dataIdx] != "none" ? int.Parse(dataArr[dataIdx]) : null;
-        VideoResolution = dataArr[++dataIdx] != "none" ? dataArr[dataIdx] : null;
+        VideoCodec = dataArr[++dataIdx].Split('\'', StringSplitOptions.RemoveEmptyEntries).Take(1).FirstOrDefault(d => d != "none");
+        VideoBitRate = dataArr[++dataIdx].Split('\'', StringSplitOptions.RemoveEmptyEntries).Take(1).Where(d => d != "none").Select(int.Parse).Cast<int?>()
+            .FirstOrDefault();
+        VideoResolution = dataArr[++dataIdx].Split('\'', StringSplitOptions.RemoveEmptyEntries).Take(1).FirstOrDefault(d => d != "none");
         DubLanguages = dataArr[++dataIdx].Split('\'', StringSplitOptions.RemoveEmptyEntries).Where(e => e != "none").ToList();
         SubLangugages = dataArr[++dataIdx].Split('\'', StringSplitOptions.RemoveEmptyEntries).Where(e => e != "none").ToList();
         LengthInSeconds = dataArr[++dataIdx] != "0" ? int.Parse(dataArr[dataIdx]) : null;
