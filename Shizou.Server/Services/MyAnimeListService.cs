@@ -213,6 +213,7 @@ public class MyAnimeListService
             { "fields", "id,title,media_type,num_episodes,my_list_status{status,num_episodes_watched,updated_at}" }
         });
 
+        _logger.LogInformation("Getting MyAnimeList Anime: {AnimeId}", animeId);
         var result = await httpClient.GetAsync(url).ConfigureAwait(false);
         if (!HandleStatusCode(result))
             return;
@@ -261,6 +262,7 @@ public class MyAnimeListService
             { "fields", "id,title,media_type,num_episodes,list_status{status,num_episodes_watched,updated_at}" },
             { "limit", "1000" }
         });
+        _logger.LogInformation("Getting entries from user's MyAnimeList anime list");
         while (url is not null)
         {
             var result = await httpClient.GetAsync(url).ConfigureAwait(false);
@@ -289,6 +291,8 @@ public class MyAnimeListService
                 }
 
                 url = nextPage;
+                if (url is not null)
+                    _logger.LogInformation("Getting next page of entries from user's MyAnimeList anime list");
             }
             catch (JsonException ex)
             {
@@ -351,6 +355,8 @@ public class MyAnimeListService
             })
         };
 
+        _logger.LogInformation("Sending status update for MyAnimeList entry: id: {AnimeId}, state: {State}, watched eps: {Watched}", animeId, stateStr,
+            status.WatchedEpisodes);
         var result = await httpClient.SendAsync(request).ConfigureAwait(false);
         if (!HandleStatusCode(result))
             return false;
