@@ -35,5 +35,6 @@ public class GetAnimeByEpisodeIdCommand : Command<GetAnimeByEpisodeIdArgs>
 
         _logger.LogInformation("Dispatching anime request for {AnimeId}", res.EpisodeResult.AnimeId);
         _commandService.Dispatch(new AnimeArgs(res.EpisodeResult.AnimeId));
+        Completed = true;
     }
 }
