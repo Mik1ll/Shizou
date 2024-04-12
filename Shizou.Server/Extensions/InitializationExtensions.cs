@@ -163,6 +163,7 @@ public static class InitializationExtensions
             .AddTransient<GetImageCommand>()
             .AddTransient<RestoreMyListBackupCommand>()
             .AddTransient<ExtractExtraDataCommand>()
+            .AddTransient<GetAnimeByEpisodeIdCommand>()
             .AddSingleton<CommandService>()
             .AddHostedService<CommandService>(p => p.GetRequiredService<CommandService>())
             .AddTransient<ImportService>()
@@ -173,7 +174,8 @@ public static class InitializationExtensions
             .AddSingleton<AnimeTitleSearchService>() // Uses an in memory cache
             .AddSingleton<MyAnimeListService>() // Has State and Code challenge shared state
             .AddTransient<FfmpegService>()
-            .AddTransient<ManualLinkService>();
+            .AddTransient<ManualLinkService>()
+            .AddTransient<AnimeService>();
         return services;
     }
 

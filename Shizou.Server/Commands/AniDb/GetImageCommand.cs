@@ -6,7 +6,7 @@ using Shizou.Server.AniDbApi.Requests.Image;
 
 namespace Shizou.Server.Commands.AniDb;
 
-public class GetImageCommand : Command<GetImageCommandArgs>
+public class GetImageCommand : Command<GetImageArgs>
 {
     private readonly ILogger<GetImageCommand> _logger;
     private readonly ImageRequest _imageRequest;

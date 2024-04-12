@@ -35,6 +35,9 @@ public partial class Actions
     [Inject]
     private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
 
+    [Inject]
+    private AnimeService AnimeService { get; set; } = default!;
+
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
 
@@ -103,5 +106,10 @@ public partial class Actions
     private void DisplayToast()
     {
         ToastService.ShowSuccess("blah", "blah");
+    }
+
+    private void GetMissingAnime()
+    {
+        AnimeService.GetMissingAnime();
     }
 }

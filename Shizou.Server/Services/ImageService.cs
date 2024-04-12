@@ -47,7 +47,7 @@ public class ImageService
         {
             var path = FilePaths.AnimePosterPath(name);
             if (!File.Exists(path))
-                _commandService.Dispatch(new GetImageCommandArgs(uri, path));
+                _commandService.Dispatch(new GetImageArgs(uri, path));
         }
     }
 
@@ -70,7 +70,7 @@ public class ImageService
 
         var path = FilePaths.AnimePosterPath(filename);
         var uri = GetAnimePosterUri(imageServer, filename);
-        _commandService.Dispatch(new GetImageCommandArgs(uri, path));
+        _commandService.Dispatch(new GetImageArgs(uri, path));
     }
 
     public FileInfo? GetEpisodeThumbnail(int episodeId)
