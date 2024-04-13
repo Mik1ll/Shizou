@@ -6,6 +6,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <base href="/"/>
+
     <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="lib/open-iconic/font/css/open-iconic-bootstrap.min.css"/>
     <link rel="stylesheet" href="lib/bootstrap-icons/font/bootstrap-icons.min.css"/>
@@ -15,8 +16,6 @@
     <link rel="stylesheet" href="Shizou.Blazor.styles.css"/>
     @* ReSharper restore Html.PathError *@
 
-    <meta name="theme-color" content="white">
-
     @* Favicon start *@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -25,6 +24,9 @@
     <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
     <meta name="msapplication-TileColor" content="#da532c">
     @* Favicon end *@
+
+    <meta name="theme-color" content="white">
+    <script src="js/theme.js"></script>
 
     <HeadOutlet @rendermode="@(new InteractiveServerRenderMode(false))"/>
 </head>
@@ -58,8 +60,6 @@
 
 <script src="lib/libass-wasm/js/subtitles-octopus.min.js"></script>
 <script src="lib/video.js/alt/video.novtt.min.js"></script>
-
-<script src="js/theme.js"></script>
 
 <script type="text/javascript">
 function loadTooltip(element) {
