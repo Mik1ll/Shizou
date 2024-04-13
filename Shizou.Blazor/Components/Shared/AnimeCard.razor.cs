@@ -24,9 +24,8 @@ public partial class AnimeCard
                       throw new ArgumentException();
     }
 
-
-    private void GoToAnime(int animeId)
+    private void GoToAnime()
     {
-        NavigationManager.NavigateTo($"/Collection/{animeId}");
+        NavigationManager.NavigateTo($"/Collection/{AniDbAnime.Id}");
     }
 }

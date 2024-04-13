@@ -8,7 +8,6 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.Controllers;
-using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Components.Pages.Anime;
@@ -41,7 +40,7 @@ public partial class Anime
     [Parameter]
     public int AnimeId { get; set; }
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
         _posterPath = LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId }) ?? throw new ArgumentException();
         using var context = ContextFactory.CreateDbContext();
@@ -50,7 +49,7 @@ public partial class Anime
             .FirstOrDefault(a => a.Id == AnimeId);
         _relatedAnime = (from ra in context.AniDbAnimeRelations
             where ra.AnimeId == AnimeId
-            join a in context.AniDbAnimes.HasLocalFiles() on ra.ToAnimeId equals a.Id
+            join a in context.AniDbAnimes on ra.ToAnimeId equals a.Id
             select new { ra.RelationType, a }).AsEnumerable().Select(x => (x.RelationType, x.a)).ToList();
         _splitDescription = _splitRegex.Split(_anime?.Description ?? "");
     }

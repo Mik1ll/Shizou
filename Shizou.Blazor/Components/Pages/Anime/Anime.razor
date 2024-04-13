@@ -64,7 +64,7 @@
                         <EpisodeTable @ref="@_episodeTable" AnimeId="@AnimeId"></EpisodeTable>
                     </CollapsibleSection>
                     <CollapsibleSection Header="Related Anime">
-                        <div class="d-flex flex-wrap">
+                        <div class="d-flex flex-wrap mt-2">
                             @foreach (var (relationType, anime) in _relatedAnime!)
                             {
                                 <div class="text-center">
