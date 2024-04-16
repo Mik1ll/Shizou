@@ -13,8 +13,8 @@ namespace Shizou.Blazor.Components.Pages.Utilities.UnidentifiedFiles;
 
 public partial class UnidentifiedFiles
 {
-    private List<LocalFile> _localFiles = default!;
-    private List<LocalFile> _selectedFiles = new();
+    private List<LocalFile> _localFiles = [];
+    private List<LocalFile> _selectedFiles = [];
     private bool _includeIgnored;
 
     [Inject]

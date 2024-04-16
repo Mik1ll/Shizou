@@ -5,13 +5,12 @@ namespace Shizou.Blazor.Components.Shared;
 
 public partial class SelectTable<TValue>
 {
-    private HashSet<SelectRow<TValue>> _rows = default!;
+    private HashSet<SelectRow<TValue>> _rows = [];
     private SelectRow<TValue>? _lastClicked;
 
     [Parameter]
     [EditorRequired]
     public EventCallback<List<TValue>> OnChange { get; set; }
-
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -22,6 +21,11 @@ public partial class SelectTable<TValue>
     public void AddChild(SelectRow<TValue> row)
     {
         _rows.Add(row);
+    }
+
+    public void RemoveChild(SelectRow<TValue> row)
+    {
+        _rows.Remove(row);
     }
 
     public async Task RowClickedAsync(SelectRow<TValue> row, MouseEventArgs args)
@@ -53,13 +57,13 @@ public partial class SelectTable<TValue>
         await ChangedAsync();
     }
 
-    public async Task ChangedAsync()
-    {
-        await OnChange.InvokeAsync(_rows.Where(r => r.Active).Select(r => r.Value).ToList());
-    }
-
     protected override void OnInitialized()
     {
-        _rows = new HashSet<SelectRow<TValue>>();
+        _rows = [];
+    }
+
+    private async Task ChangedAsync()
+    {
+        await OnChange.InvokeAsync(_rows.Where(r => r.Active).Select(r => r.Value).ToList());
     }
 }

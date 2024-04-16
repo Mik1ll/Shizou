@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Shizou.Blazor.Components.Shared;
 
-public partial class SelectRow<TValue>
+public partial class SelectRow<TValue> : IDisposable
 {
     private HashSet<string> _classes = default!;
 
@@ -34,10 +34,15 @@ public partial class SelectRow<TValue>
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> AdditionalAttributes { get; set; } = new();
 
+    public void Dispose()
+    {
+        ParentTable.RemoveChild(this);
+    }
+
     protected override void OnInitialized()
     {
         ParentTable.AddChild(this);
-        _classes = new HashSet<string>();
+        _classes = [];
     }
 
     protected override void OnParametersSet()
