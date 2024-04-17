@@ -73,6 +73,8 @@ try
         .AddAniDbServices()
         .AddShizouApiServices();
 
+    builder.Services.AddHsts(cfg => cfg.MaxAge = TimeSpan.FromSeconds(15_768_000));
+
     var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -100,6 +102,8 @@ try
     app.UseAuthorization();
 
     app.UseAntiforgery();
+
+    app.UseSecurityHeaders();
 
     app.MapControllers().Finally(endpointBuilder =>
     {

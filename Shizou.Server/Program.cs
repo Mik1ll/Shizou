@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading;
 using Microsoft.AspNetCore.Builder;
@@ -42,6 +43,8 @@ try
         .AddAniDbServices()
         .AddShizouApiServices();
 
+    builder.Services.AddHsts(cfg => cfg.MaxAge = TimeSpan.FromSeconds(15_768_000));
+
     var app = builder.Build();
 
     if (!app.Environment.IsDevelopment())
@@ -60,6 +63,8 @@ try
 
     app.UseAuthentication();
     app.UseAuthorization();
+
+    app.UseSecurityHeaders();
 
     app.MapControllers();
 

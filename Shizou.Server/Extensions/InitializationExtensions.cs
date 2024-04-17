@@ -72,6 +72,26 @@ public static class InitializationExtensions
         return builder;
     }
 
+    public static IApplicationBuilder UseSecurityHeaders(this IApplicationBuilder builder)
+    {
+        builder.Use(async (context, next) =>
+        {
+            context.Response.Headers.Append("X-Frame-Options", "DENY");
+            context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+            context.Response.Headers.Append("X-XSS-Protection", "0");
+            context.Response.Headers.Append("Content-Security-Policy", "base-uri 'self';" +
+                                                                       "default-src 'self';" +
+                                                                       "img-src data: https:;" +
+                                                                       "object-src 'none';" +
+                                                                       "script-src 'self' 'wasm-unsafe-eval';" +
+                                                                       "style-src 'self' 'unsafe-inline';" +
+                                                                       "font-src 'self' data:;" +
+                                                                       "upgrade-insecure-requests");
+            await next().ConfigureAwait(false);
+        });
+        return builder;
+    }
+
     public static WebApplicationBuilder AddWorkerServices(this WebApplicationBuilder builder)
     {
         builder.Host.UseWindowsService(cfg => cfg.ServiceName = "Shizou")
