@@ -111,7 +111,7 @@ public class FileServer : ControllerBase
             var loopLocalFile = loopEp.AniDbFiles.Where(l => (l as AniDbNormalFile)?.AniDbGroupId == groupId).SelectMany(f => f.LocalFiles).FirstOrDefault();
             if (loopLocalFile is null)
                 break;
-            m3U8 += $"#EXTINF:-1,{ep.AniDbAnime.TitleTranscription} - {loopEp.EpisodeType.GetEpString(loopEp.Number)}\n";
+            m3U8 += $"#EXTINF:-1,{ep.AniDbAnime.ImageFilename} - {ep.AniDbAnime.TitleTranscription} - {loopEp.EpisodeType.GetEpString(loopEp.Number)}\n";
             var fileUri = GetFileUri(loopLocalFile.Ed2k, identityCookie);
             m3U8 += $"{fileUri}\n";
             lastEpType = loopEp.EpisodeType;
