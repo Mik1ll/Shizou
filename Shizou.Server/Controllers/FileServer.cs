@@ -49,6 +49,7 @@ public class FileServer : ControllerBase
     /// </summary>
     /// <param name="ed2K"></param>
     /// <param name="identityCookie"></param>
+    /// <param name="posterFilename"></param>
     /// <returns></returns>
     [HttpGet("{ed2K}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
@@ -56,7 +57,8 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: "application/octet-stream")]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
     // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
-    public Results<FileStreamHttpResult, NotFound> Get(string ed2K, [FromQuery] string? identityCookie = null)
+    // ReSharper disable once UnusedParameter.Global
+    public Results<FileStreamHttpResult, NotFound> Get(string ed2K, [FromQuery] string? identityCookie = null, [FromQuery] string? posterFilename = null)
     {
         if (!string.Equals(nameof(identityCookie), Constants.IdentityCookieName, StringComparison.OrdinalIgnoreCase))
             throw new ApplicationException("Identity cookie must match name of constant");
@@ -81,6 +83,7 @@ public class FileServer : ControllerBase
     [HttpGet("{ed2K}/Playlist")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK)]
+    // ReSharper disable once UnusedParameter.Global
     public Results<FileContentHttpResult, NotFound> GetPlaylist(string ed2K, [FromQuery] bool? single, [FromQuery] string? identityCookie)
     {
         if (!string.Equals(nameof(identityCookie), Constants.IdentityCookieName, StringComparison.OrdinalIgnoreCase))
@@ -104,6 +107,7 @@ public class FileServer : ControllerBase
         var groupId = (localFile.AniDbFile as AniDbNormalFile)?.AniDbGroupId;
         var lastEpNo = ep.Number - 1;
         var lastEpType = ep.EpisodeType;
+        var posterFilename = ep.AniDbAnime.ImageFilename;
         foreach (var loopEp in eps.SkipWhile(x => x != ep))
         {
             if (lastEpType != loopEp.EpisodeType || lastEpNo != loopEp.Number - 1)
@@ -111,8 +115,8 @@ public class FileServer : ControllerBase
             var loopLocalFile = loopEp.AniDbFiles.Where(l => (l as AniDbNormalFile)?.AniDbGroupId == groupId).SelectMany(f => f.LocalFiles).FirstOrDefault();
             if (loopLocalFile is null)
                 break;
-            m3U8 += $"#EXTINF:-1,{ep.AniDbAnime.ImageFilename} - {ep.AniDbAnime.TitleTranscription} - {loopEp.EpisodeType.GetEpString(loopEp.Number)}\n";
-            var fileUri = GetFileUri(loopLocalFile.Ed2k, identityCookie);
+            m3U8 += $"#EXTINF:-1,{ep.AniDbAnime.TitleTranscription} - {loopEp.EpisodeType.GetEpString(loopEp.Number)}\n";
+            var fileUri = GetFileUri(loopLocalFile.Ed2k, identityCookie, posterFilename);
             m3U8 += $"{fileUri}\n";
             lastEpType = loopEp.EpisodeType;
             lastEpNo = loopEp.Number;
@@ -178,10 +182,11 @@ public class FileServer : ControllerBase
         return TypedResults.PhysicalFile(fontPath, mimeType, Path.GetFileName(fontPath));
     }
 
-    private string GetFileUri(string ed2K, string? identityCookie)
+    private string GetFileUri(string ed2K, string? identityCookie, string? posterFilename)
     {
         IDictionary<string, object?> values = new ExpandoObject();
         values["ed2K"] = ed2K;
+        values["posterFilename"] = posterFilename;
         values[Constants.IdentityCookieName] = identityCookie;
         var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
             nameof(FileServer), values) ?? throw new ArgumentException();
