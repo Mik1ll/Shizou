@@ -74,7 +74,9 @@
                             <td>
                                 @if (localFile is not null)
                                 {
-                                    <input class="form-control-sm" style="width: 3rem" @bind="@(_epStringValues[ep.Id])" @bind:event="onchange"
+                                    <input class="form-control-sm" style="width: 3rem" @onfocusin="@(() => _epStringValues[ep.Id] = string.Empty)"
+                                           @onfocusout="@(() => { if (string.IsNullOrWhiteSpace(_epStringValues[ep.Id])) _epStringValues[ep.Id] = ep.EpString; })"
+                                           @bind="@(_epStringValues[ep.Id])" @bind:event="onchange"
                                            @bind:after="@(() => MoveWithEpString(ep, localFile, _epStringValues[ep.Id]))">
                                 }
                                 else
