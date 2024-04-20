@@ -15,14 +15,14 @@
                     }
                     else
                     {
-                        <button class="btn btn-danger mb-1" type="button" @onclick="@RemoveLocalFileAsync">
+                        <button class="btn btn-danger mb-1" type="button" @onclick="@RemoveLocalFile">
                             <i class="bi bi-file-earmark-x"></i> Remove Missing File
                         </button>
                     }
                 </div>
                 @if (LocalFile.AniDbFile is AniDbGenericFile)
                 {
-                    <button class="btn btn-outline-danger me-1 mb-1" type="button" @onclick="@UnlinkAsync">
+                    <button class="btn btn-outline-danger me-1 mb-1" type="button" @onclick="@Unlink">
                         <i class="bi bi-slash-circle"></i> Unlink File
                     </button>
                 }
@@ -35,7 +35,7 @@
                 <button class="btn btn-primary me-1 mb-1" type="button" @onclick="@Scan">
                     <i class="bi bi-arrow-clockwise"></i> Rescan
                 </button>
-                <button type="button" class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-1 mb-1" @onclick="@ToggleWatchedAsync">
+                <button type="button" class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-1 mb-1" @onclick="@ToggleWatched">
                     <i class="bi @(_watchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>
                 </button>
             </div>

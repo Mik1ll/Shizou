@@ -1,7 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
-using Shizou.Blazor.Components.Pages.Anime.Components;
 using Shizou.Blazor.Services;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
@@ -18,7 +17,6 @@ public partial class Anime
     private readonly Regex _splitRegex = new(@"(https?:\/\/\S*?) \[(.+?)\]", RegexOptions.Compiled);
 
     private AniDbAnime? _anime;
-    private EpisodeTable? _episodeTable;
     private List<(RelatedAnimeType, AniDbAnime)>? _relatedAnime;
     private string[] _splitDescription = default!;
     private string _posterPath = default!;
@@ -44,15 +42,23 @@ public partial class Anime
     protected override void OnParametersSet()
     {
         _posterPath = LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId }) ?? throw new ArgumentException();
+        Load();
+        _splitDescription = _splitRegex.Split(_anime?.Description ?? "");
+    }
+
+    private void Load()
+    {
         using var context = ContextFactory.CreateDbContext();
-        _anime = context.AniDbAnimes
+        _anime = context.AniDbAnimes.AsNoTracking().AsSplitQuery()
             .Include(a => a.MalAnimes)
+            .Include(a => a.AniDbEpisodes).ThenInclude(e => e.AniDbFiles).ThenInclude(f => f.LocalFiles).ThenInclude(lf => lf.ImportFolder)
+            .Include(a => a.AniDbEpisodes).ThenInclude(e => e.AniDbFiles).ThenInclude(f => f.FileWatchedState)
+            .Include(a => a.AniDbEpisodes).ThenInclude(e => e.AniDbFiles).ThenInclude(f => ((AniDbNormalFile)f).AniDbGroup)
             .FirstOrDefault(a => a.Id == AnimeId);
         _relatedAnime = (from ra in context.AniDbAnimeRelations
             where ra.AnimeId == AnimeId
             join a in context.AniDbAnimes.HasLocalFiles() on ra.ToAnimeId equals a.Id
             select new { ra.RelationType, a }).AsEnumerable().Select(x => (x.RelationType, x.a)).ToList();
-        _splitDescription = _splitRegex.Split(_anime?.Description ?? "");
     }
 
     private void MarkAllWatched()
@@ -61,7 +67,7 @@ public partial class Anime
             ToastService.ShowSuccess("Success", "Anime files marked watched");
         else
             ToastService.ShowError("Error", "Something went wrong while marking anime files watched");
-        _episodeTable?.Load();
+        Load();
     }
 
     private void RefreshAnime()

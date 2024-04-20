@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Components;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
 using Shizou.Data.CommandInputArgs;
-using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.Services;
@@ -19,9 +18,6 @@ public partial class FileCard
 
     [Inject]
     private WatchStateService WatchStateService { get; set; } = default!;
-
-    [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [Inject]
     private ExternalPlaybackService ExternalPlaybackService { get; set; } = default!;
@@ -54,7 +50,7 @@ public partial class FileCard
     {
         if (LocalFile.AniDbFile is null)
             throw new ArgumentException("Must have either AniDb file or Manual Link");
-        _watchedState = LocalFile.AniDbFile?.FileWatchedState ?? throw new ArgumentNullException(nameof(FileWatchedState));
+        _watchedState = LocalFile.AniDbFile.FileWatchedState;
 
         _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(LocalFile.Ed2k, true);
     }
@@ -62,25 +58,24 @@ public partial class FileCard
     private void CheckFileExists() =>
         _fileExists = LocalFile.ImportFolder is not null && File.Exists(Path.Combine(LocalFile.ImportFolder.Path, LocalFile.PathTail));
 
-    private async Task ToggleWatchedAsync()
+    private void ToggleWatched()
     {
         var watched = !_watchedState.Watched;
-        if (WatchStateService.MarkFile(_watchedState.AniDbFileId, watched))
-            _watchedState.Watched = watched;
+        WatchStateService.MarkFile(_watchedState.AniDbFileId, watched);
 
-        await OnChanged.InvokeAsync();
+        _ = OnChanged.InvokeAsync();
     }
 
-    private async Task RemoveLocalFileAsync()
+    private void RemoveLocalFile()
     {
         ImportService.RemoveLocalFile(LocalFile.Id);
-        await OnChanged.InvokeAsync();
+        _ = OnChanged.InvokeAsync();
     }
 
-    private async Task UnlinkAsync()
+    private void Unlink()
     {
         ManualLinkService.UnlinkFile(LocalFile.Id);
-        await OnChanged.InvokeAsync();
+        _ = OnChanged.InvokeAsync();
     }
 
     private async Task OpenVideoAsync() =>

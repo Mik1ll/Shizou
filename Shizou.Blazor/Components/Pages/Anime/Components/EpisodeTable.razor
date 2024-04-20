@@ -10,7 +10,7 @@
     </tr>
     </thead>
     <tbody class="table-group-divider">
-    @foreach (var ep in _episodes)
+    @foreach (var ep in AniDbAnime.AniDbEpisodes.OrderBy(e => e.EpisodeType).ThenBy(e => e.Number))
     {
         <tr role="button" @onclick="@(() => ToggleEpExpand(ep))">
             <td class="absorbing-column">
@@ -49,7 +49,7 @@
                     <div class="d-flex flex-column gap-2">
                         @foreach (var localFile in ep.AniDbFiles.SelectMany(f => f.LocalFiles))
                         {
-                            <FileCard LocalFile="@(localFile)" OnChanged="@Load"></FileCard>
+                            <FileCard LocalFile="@(localFile)" OnChanged="@OnChanged"></FileCard>
                         }
                     </div>
                 </td>

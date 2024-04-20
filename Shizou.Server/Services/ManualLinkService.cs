@@ -74,9 +74,10 @@ public class ManualLinkService
         {
             if (localFile.AniDbFile is AniDbGenericFile)
             {
+                var anidbFileId = localFile.AniDbFileId;
                 localFile.AniDbFileId = null;
                 context.SaveChanges();
-                _logger.LogInformation("Unlinked local file id {LocalFileId} from AniDB generic file id {AniDbFileId}", localFile.Id, localFile.AniDbFileId);
+                _logger.LogInformation("Unlinked local file id {LocalFileId} from AniDB generic file id {AniDbFileId}", localFile.Id, anidbFileId);
             }
             else
             {

@@ -59,9 +59,9 @@
 
             <div class="row justify-content-center">
                 <div class="mb-3 col-xl-6 col-lg-8 col-md-10 col-12">
-                    <UpNext AnimeId="@AnimeId"></UpNext>
+                    <UpNext AniDbAnime="@_anime" OnChanged="@Load"></UpNext>
                     <CollapsibleSection Header="Episodes" ShowDefault="true">
-                        <EpisodeTable @ref="@_episodeTable" AnimeId="@AnimeId"></EpisodeTable>
+                        <EpisodeTable AniDbAnime="@_anime" OnChanged="@Load"></EpisodeTable>
                     </CollapsibleSection>
                     <CollapsibleSection Header="Related Anime">
                         <div class="d-flex flex-wrap mt-2">
