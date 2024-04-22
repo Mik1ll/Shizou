@@ -1,6 +1,7 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
 using Shizou.Data.CommandInputArgs;
@@ -15,6 +16,7 @@ public partial class FileCard
     private FileWatchedState _watchedState = default!;
     private string _externalPlaybackUrl = default!;
     private bool _fileExists;
+    private bool _schemeHandlerInstalled;
 
     [Inject]
     private WatchStateService WatchStateService { get; set; } = default!;
@@ -30,6 +32,9 @@ public partial class FileCard
 
     [Inject]
     private ManualLinkService ManualLinkService { get; set; } = default!;
+
+    [Inject]
+    private ProtectedLocalStorage LocalStorage { get; set; } = default!;
 
     [CascadingParameter]
     public IModalService ModalService { get; set; } = default!;
@@ -51,6 +56,9 @@ public partial class FileCard
         if (LocalFile.AniDbFile is null)
             throw new ArgumentException("Must have either AniDb file or Manual Link");
         _watchedState = LocalFile.AniDbFile.FileWatchedState;
+
+        var res = await LocalStorage.GetAsync<bool>(LocalStorageKeys.SchemeHandlerInstalled);
+        _schemeHandlerInstalled = res is { Success: true, Value: true };
 
         _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(LocalFile.Ed2k, true);
     }
@@ -84,4 +92,11 @@ public partial class FileCard
     private void Hash() => CommandService.Dispatch(new HashArgs(Path.Combine(LocalFile.ImportFolder!.Path, LocalFile.PathTail)));
 
     private void Scan() => CommandService.Dispatch(new ProcessArgs(LocalFile.Id, IdTypeLocalOrFile.LocalId));
+
+    private async Task OpenSchemeHandlerDownloadModalAsync()
+    {
+        await ModalService.Show<SchemeHandlerDownloadModal>().Result;
+        var res = await LocalStorage.GetAsync<bool>(LocalStorageKeys.SchemeHandlerInstalled);
+        _schemeHandlerInstalled = res is { Success: true, Value: true };
+    }
 }

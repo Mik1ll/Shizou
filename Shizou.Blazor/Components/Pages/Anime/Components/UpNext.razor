@@ -21,9 +21,18 @@
                     <button class="btn btn-success mb-1" type="button" @onclick="@(() => OpenVideoAsync(_localFile.Id))">
                         <i class="bi bi-play-fill"></i>
                     </button>
-                    <a class="btn btn-success me-2 mb-1" href="@_externalPlaybackUrl">
-                        <i class="bi bi-cast"></i>
-                    </a>
+                    @if (_schemeHandlerInstalled)
+                    {
+                        <a class="btn btn-success me-2 mb-1" type="button" href="@_externalPlaybackUrl">
+                            <i class="bi bi-cast"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-success me-2 mb-1" @onclick="@OpenSchemeHandlerDownloadModalAsync">
+                            <i class="bi bi-cast"></i>
+                        </button>
+                    }
                 </div>
                 <button class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2 mb-1" type="button" @onclick:stopPropagation="true" @onclick="@(() => Mark(!_watchedState.Watched))">
                     <i class="bi @(_watchedState.Watched ? "bi-eye-slash" : "bi-eye")"></i>

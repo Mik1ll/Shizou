@@ -64,6 +64,7 @@ public partial class ImportFolderModal
         using var context = ContextFactory.CreateDbContext();
 
         // Need to load related for client set null cascading
+        // ReSharper disable once MethodHasAsyncOverload
         context.Attach(MyImportFolder).Collection(i => i.LocalFiles).Load();
         context.ImportFolders.Remove(MyImportFolder);
 

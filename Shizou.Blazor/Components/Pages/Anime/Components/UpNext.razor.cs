@@ -1,6 +1,7 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
 using Shizou.Data.Models;
@@ -15,6 +16,7 @@ public partial class UpNext
     private LocalFile? _localFile;
     private FileWatchedState? _watchedState;
     private string _externalPlaybackUrl = default!;
+    private bool _schemeHandlerInstalled;
 
     [Inject]
     private WatchStateService WatchStateService { get; set; } = default!;
@@ -24,6 +26,9 @@ public partial class UpNext
 
     [Inject]
     private ExternalPlaybackService ExternalPlaybackService { get; set; } = default!;
+
+    [Inject]
+    private ProtectedLocalStorage LocalStorage { get; set; } = default!;
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
@@ -39,6 +44,10 @@ public partial class UpNext
     protected override async Task OnParametersSetAsync()
     {
         Update();
+
+        var res = await LocalStorage.GetAsync<bool>(LocalStorageKeys.SchemeHandlerInstalled);
+        _schemeHandlerInstalled = res is { Success: true, Value: true };
+
         if (_localFile is not null)
             _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(_localFile.Ed2k, false);
     }
@@ -67,5 +76,13 @@ public partial class UpNext
     private async Task OpenVideoAsync(int localFileId)
     {
         await ModalService.Show<VideoModal>(string.Empty, new ModalParameters().Add(nameof(VideoModal.LocalFileId), localFileId)).Result;
+    }
+
+
+    private async Task OpenSchemeHandlerDownloadModalAsync()
+    {
+        await ModalService.Show<SchemeHandlerDownloadModal>().Result;
+        var res = await LocalStorage.GetAsync<bool>(LocalStorageKeys.SchemeHandlerInstalled);
+        _schemeHandlerInstalled = res is { Success: true, Value: true };
     }
 }

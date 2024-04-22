@@ -9,9 +9,18 @@
                         <button class="btn btn-success mb-1" type="button" @onclick="@OpenVideoAsync">
                             <i class="bi bi-play-fill"></i>
                         </button>
-                        <a class="btn btn-success mb-1" type="button" href="@_externalPlaybackUrl">
-                            <i class="bi bi-cast"></i>
-                        </a>
+                        @if (_schemeHandlerInstalled)
+                        {
+                            <a class="btn btn-success mb-1" type="button" href="@_externalPlaybackUrl">
+                                <i class="bi bi-cast"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-success mb-1" @onclick="@OpenSchemeHandlerDownloadModalAsync">
+                                <i class="bi bi-cast"></i>
+                            </button>
+                        }
                     }
                     else
                     {
