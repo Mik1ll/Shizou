@@ -1,4 +1,5 @@
 ﻿@page "/Settings"
+@using Shizou.Data
 @using Shizou.Data.Enums
 
 <PageTitle>Settings</PageTitle>
@@ -85,8 +86,8 @@
     <div class="card mt-3" style="width: 18rem">
         <div class="card-header">Scheme Handler Downloads</div>
         <div class="card-body">
-            <a class="btn btn-success me-2" href="#">Windows x64</a>
-            <a class="btn btn-success" href="#">Linux x64</a>
+            <a class="btn btn-success me-2" href="@(Constants.SchemeHandlerWindowsDownloadUri)">Windows x64</a>
+            <a class="btn btn-success" href="@(Constants.SchemeHandlerLinuxDownloadUri)">Linux x64</a>
         </div>
     </div>
 </main>
