@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.SchemeHandler", "Shi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.MpvDiscordPresence", "Shizou.MpvDiscordPresence\Shizou.MpvDiscordPresence.csproj", "{77B54C85-B697-4C39-B962-70C2A69E21AF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordGameSDK", "DiscordGameSDK\DiscordGameSDK.csproj", "{08654120-CBE8-46B7-9BF2-F4FC4B192447}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{77B54C85-B697-4C39-B962-70C2A69E21AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77B54C85-B697-4C39-B962-70C2A69E21AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77B54C85-B697-4C39-B962-70C2A69E21AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08654120-CBE8-46B7-9BF2-F4FC4B192447}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08654120-CBE8-46B7-9BF2-F4FC4B192447}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08654120-CBE8-46B7-9BF2-F4FC4B192447}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08654120-CBE8-46B7-9BF2-F4FC4B192447}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
