@@ -18,6 +18,7 @@ using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
+using Shizou.Server.Options;
 using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -83,7 +84,6 @@ public class FileServer : ControllerBase
     [HttpGet("{ed2K}/Playlist")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    // ReSharper disable once UnusedParameter.Global
     public Results<FileContentHttpResult, NotFound> GetPlaylist(string ed2K, [FromQuery] bool? single, [FromQuery] string? identityCookie)
     {
         if (!string.Equals(nameof(identityCookie), Constants.IdentityCookieName, StringComparison.OrdinalIgnoreCase))
@@ -188,6 +188,7 @@ public class FileServer : ControllerBase
         values["ed2K"] = ed2K;
         values["posterFilename"] = posterFilename;
         values[Constants.IdentityCookieName] = identityCookie;
+        values["appId"] = ShizouOptions.Shizou;
         var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
             nameof(FileServer), values) ?? throw new ArgumentException();
         return fileUri;
