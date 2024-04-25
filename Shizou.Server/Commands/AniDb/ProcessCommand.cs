@@ -224,9 +224,9 @@ public class ProcessCommand : Command<ProcessArgs>
 
         if (_context.FileWatchedStates.FirstOrDefault(ws => ws.AniDbFileId == result.FileId) is { } eWs)
         {
-            if (eWs.WatchedUpdated is null)
-                eWs.Watched = result.MyListViewed ?? false;
+            eWs.Watched = result.MyListViewed ?? false;
             eWs.MyListId = result.MyListId;
+            eWs.WatchedUpdated = null;
             _context.SaveChanges();
         }
         else if (_context.AniDbEpisodes.Include(ep => ep.AniDbFiles).FirstOrDefault(ep => ep.Id == result.EpisodeId) is { } eEp)

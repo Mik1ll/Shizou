@@ -35,7 +35,7 @@ public class AddMissingMyListEntriesCommand : Command<AddMissingMyListEntriesArg
             select new { Fid = ws.AniDbFileId, ws.Watched, ws.WatchedUpdated }).ToList();
 
         if (filesMissingMyListId.Count > 0)
-            _logger.LogInformation("Found {NumFilesMissingMyListId} regular files with missing mylist entries, queueing mylist updates",
+            _logger.LogInformation("Found {NumFilesMissingMyListId} files with missing mylist entries, queueing mylist updates",
                 filesMissingMyListId.Count);
         else
             _logger.LogInformation("No files are missing mylist entries");
