@@ -120,6 +120,8 @@ public class FileServer : ControllerBase
             m3U8 += $"{fileUri}\n";
             lastEpType = loopEp.EpisodeType;
             lastEpNo = loopEp.Number;
+            if (single is true)
+                break;
         }
 
 
