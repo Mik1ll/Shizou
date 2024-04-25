@@ -234,6 +234,11 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
                 toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, null, null));
         }
 
+        // Remove my list ids from states without corresponding mylist entry
+        var myListIds = myListItems.Select(i => i.Id).ToHashSet();
+        foreach (var ws in watchedStatesByFileId.Values.Where(ws => ws.MyListId is not null && !myListIds.Contains(ws.MyListId.Value)))
+            ws.MyListId = null;
+
         _context.SaveChanges();
 
         var combinedUpdates = CombineUpdates(myListItems, toUpdate);
