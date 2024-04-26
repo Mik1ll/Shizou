@@ -83,7 +83,7 @@ public static class InitializationExtensions
                                                                        "default-src 'self';" +
                                                                        "img-src data: https:;" +
                                                                        "object-src 'none';" +
-                                                                       "script-src 'self' 'wasm-unsafe-eval';" +
+                                                                       "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';" +
                                                                        "style-src 'self' 'unsafe-inline';" +
                                                                        "font-src 'self' data:;" +
                                                                        "upgrade-insecure-requests");
