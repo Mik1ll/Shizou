@@ -1,7 +1,8 @@
-﻿using Blazored.Modal;
+﻿using System.Text.Json;
+using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.JSInterop;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
 using Shizou.Data.CommandInputArgs;
@@ -34,7 +35,7 @@ public partial class FileCard
     private ManualLinkService ManualLinkService { get; set; } = default!;
 
     [Inject]
-    private ProtectedLocalStorage LocalStorage { get; set; } = default!;
+    private IJSRuntime JsRuntime { get; set; } = default!;
 
     [CascadingParameter]
     public IModalService ModalService { get; set; } = default!;
@@ -57,8 +58,8 @@ public partial class FileCard
             throw new ArgumentException("Must have either AniDb file or Manual Link");
         _watchedState = LocalFile.AniDbFile.FileWatchedState;
 
-        var res = await LocalStorage.GetAsync<bool>(LocalStorageKeys.SchemeHandlerInstalled);
-        _schemeHandlerInstalled = res is { Success: true, Value: true };
+        var res = await JsRuntime.InvokeAsync<JsonElement>("window.localStorage.getItem", LocalStorageKeys.SchemeHandlerInstalled);
+        _schemeHandlerInstalled = res is { ValueKind: JsonValueKind.String } && res.GetString() == "true";
 
         _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(LocalFile.Ed2k, true);
     }
@@ -96,7 +97,7 @@ public partial class FileCard
     private async Task OpenSchemeHandlerDownloadModalAsync()
     {
         await ModalService.Show<SchemeHandlerDownloadModal>().Result;
-        var res = await LocalStorage.GetAsync<bool>(LocalStorageKeys.SchemeHandlerInstalled);
-        _schemeHandlerInstalled = res is { Success: true, Value: true };
+        var res = await JsRuntime.InvokeAsync<JsonElement>("window.localStorage.getItem", LocalStorageKeys.SchemeHandlerInstalled);
+        _schemeHandlerInstalled = res is { ValueKind: JsonValueKind.String } && res.GetString() == "true";
     }
 }

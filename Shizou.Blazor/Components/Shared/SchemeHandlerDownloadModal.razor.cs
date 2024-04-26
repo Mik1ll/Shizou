@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.JSInterop;
 
 namespace Shizou.Blazor.Components.Shared;
 
@@ -8,11 +8,11 @@ public partial class SchemeHandlerDownloadModal : ComponentBase
     private Modal _modal = default!;
 
     [Inject]
-    private ProtectedLocalStorage LocalStorage { get; set; } = default!;
+    private IJSRuntime JsRuntime { get; set; } = default!;
 
     private async Task InstalledAsync()
     {
-        await LocalStorage.SetAsync(LocalStorageKeys.SchemeHandlerInstalled, true);
+        await JsRuntime.InvokeVoidAsync("window.localStorage.setItem", LocalStorageKeys.SchemeHandlerInstalled, true);
         await _modal.CloseAsync();
     }
 

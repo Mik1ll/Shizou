@@ -1,7 +1,8 @@
-﻿using Blazored.Modal;
+﻿using System.Text.Json;
+using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.JSInterop;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
 using Shizou.Data.Models;
@@ -28,7 +29,7 @@ public partial class UpNext
     private ExternalPlaybackService ExternalPlaybackService { get; set; } = default!;
 
     [Inject]
-    private ProtectedLocalStorage LocalStorage { get; set; } = default!;
+    private IJSRuntime JsRuntime { get; set; } = default!;
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
@@ -45,8 +46,8 @@ public partial class UpNext
     {
         Update();
 
-        var res = await LocalStorage.GetAsync<bool>(LocalStorageKeys.SchemeHandlerInstalled);
-        _schemeHandlerInstalled = res is { Success: true, Value: true };
+        var res = await JsRuntime.InvokeAsync<JsonElement>("window.localStorage.getItem", LocalStorageKeys.SchemeHandlerInstalled);
+        _schemeHandlerInstalled = res is { ValueKind: JsonValueKind.String } && res.GetString() == "true";
 
         if (_localFile is not null)
             _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(_localFile.Ed2k, false);
@@ -82,7 +83,7 @@ public partial class UpNext
     private async Task OpenSchemeHandlerDownloadModalAsync()
     {
         await ModalService.Show<SchemeHandlerDownloadModal>().Result;
-        var res = await LocalStorage.GetAsync<bool>(LocalStorageKeys.SchemeHandlerInstalled);
-        _schemeHandlerInstalled = res is { Success: true, Value: true };
+        var res = await JsRuntime.InvokeAsync<JsonElement>("window.localStorage.getItem", LocalStorageKeys.SchemeHandlerInstalled);
+        _schemeHandlerInstalled = res is { ValueKind: JsonValueKind.String } && res.GetString() == "true";
     }
 }

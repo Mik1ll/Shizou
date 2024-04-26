@@ -1,5 +1,6 @@
 ﻿using System.Dynamic;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using System.Text.Json;
+using Microsoft.JSInterop;
 using Shizou.Data;
 using Shizou.Server.Controllers;
 
@@ -9,22 +10,24 @@ public class ExternalPlaybackService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly LinkGenerator _linkGenerator;
-    private readonly ProtectedLocalStorage _localStorage;
+    private readonly IJSRuntime _jsRuntime;
     private string? _extPlayerScheme;
 
-    public ExternalPlaybackService(IHttpContextAccessor httpContextAccessor, LinkGenerator linkGenerator, ProtectedLocalStorage localStorage)
+    public ExternalPlaybackService(IHttpContextAccessor httpContextAccessor, LinkGenerator linkGenerator, IJSRuntime jsRuntime)
     {
         _httpContextAccessor = httpContextAccessor;
         _linkGenerator = linkGenerator;
-        _localStorage = localStorage;
+        _jsRuntime = jsRuntime;
     }
 
     public async Task<string> GetExternalPlaylistUriAsync(string ed2K, bool single)
     {
         if (_extPlayerScheme is null)
         {
-            var playerSchemeRes = await _localStorage.GetAsync<string>(LocalStorageKeys.ExternalPlayerScheme);
-            _extPlayerScheme = playerSchemeRes.Value ?? LocalStorageKeys.ExternalPlayerSchemeDefault;
+            var playerSchemeRes = await _jsRuntime.InvokeAsync<JsonElement>("window.localStorage.getItem", LocalStorageKeys.ExternalPlayerScheme);
+            _extPlayerScheme = playerSchemeRes is { ValueKind: JsonValueKind.String }
+                ? playerSchemeRes.ToString()
+                : LocalStorageKeys.ExternalPlayerSchemeDefault;
         }
 
         var identityCookie = _httpContextAccessor.HttpContext!.Request.Cookies[Constants.IdentityCookieName];
@@ -34,6 +37,6 @@ public class ExternalPlaybackService
         values[Constants.IdentityCookieName] = identityCookie;
         var fileUri = _linkGenerator.GetUriByAction(_httpContextAccessor.HttpContext ?? throw new ArgumentNullException(), nameof(FileServer.GetPlaylist),
             nameof(FileServer), values) ?? throw new ArgumentException();
-        return $"{_extPlayerScheme}:{fileUri}";
+        return $"{_extPlayerScheme}{fileUri}";
     }
 }
