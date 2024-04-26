@@ -49,19 +49,14 @@ public class FileServer : ControllerBase
     ///     Get file by local Id, can optionally end in arbitrary extension
     /// </summary>
     /// <param name="ed2K"></param>
-    /// <param name="identityCookie"></param>
     /// <returns></returns>
     [HttpGet("{ed2K}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status416RangeNotSatisfiable)]
     [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: "application/octet-stream")]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
-    // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
-    // ReSharper disable once UnusedParameter.Global
-    public Results<FileStreamHttpResult, NotFound> Get(string ed2K, [FromQuery] string? identityCookie = null)
+    public Results<FileStreamHttpResult, NotFound> Get(string ed2K)
     {
-        if (!string.Equals(nameof(identityCookie), Constants.IdentityCookieName, StringComparison.OrdinalIgnoreCase))
-            throw new ApplicationException("Identity cookie must match name of constant");
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2K);
         if (localFile is null)
             return TypedResults.NotFound();
@@ -83,10 +78,8 @@ public class FileServer : ControllerBase
     [HttpGet("{ed2K}/Playlist")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public Results<FileContentHttpResult, NotFound> GetPlaylist(string ed2K, [FromQuery] bool? single, [FromQuery] string? identityCookie)
+    public Results<FileContentHttpResult, NotFound> GetPlaylist(string ed2K, [FromQuery] bool? single)
     {
-        if (!string.Equals(nameof(identityCookie), Constants.IdentityCookieName, StringComparison.OrdinalIgnoreCase))
-            throw new ApplicationException("Identity cookie must match name of constant");
         var m3U8 = "#EXTM3U\n";
 
         var animeId = _context.AniDbEpisodes.AsNoTracking()
@@ -102,19 +95,19 @@ public class FileServer : ControllerBase
             orderby e.EpisodeType, e.Number
             select e).ToList();
         var localFile = eps.SelectMany(ep => ep.AniDbFiles.SelectMany(f => f.LocalFiles)).First(l => l.Ed2k == ed2K);
-        var ep = eps.First(ep => ep.AniDbFiles.Any(f => f.LocalFiles.Any(lf => lf.Ed2k == ed2K)));
+        var episode = eps.First(ep => ep.AniDbFiles.Any(f => f.LocalFiles.Any(lf => lf.Ed2k == ed2K)));
         var groupId = (localFile.AniDbFile as AniDbNormalFile)?.AniDbGroupId;
-        var lastEpNo = ep.Number - 1;
-        var lastEpType = ep.EpisodeType;
-        foreach (var loopEp in eps.SkipWhile(x => x != ep))
+        var lastEpNo = episode.Number - 1;
+        var lastEpType = episode.EpisodeType;
+        foreach (var loopEp in eps.SkipWhile(x => x != episode))
         {
             if (lastEpType != loopEp.EpisodeType || lastEpNo != loopEp.Number - 1)
                 break;
             var loopLocalFile = loopEp.AniDbFiles.OrderBy(l => (l as AniDbNormalFile)?.AniDbGroupId != groupId).SelectMany(f => f.LocalFiles).FirstOrDefault();
             if (loopLocalFile is null)
                 break;
-            m3U8 += $"#EXTINF:-1,{ep.AniDbAnime.TitleTranscription} - {loopEp.EpisodeType.GetEpString(loopEp.Number)}\n";
-            var fileUri = GetFileUri(loopLocalFile, loopEp, identityCookie);
+            m3U8 += $"#EXTINF:-1,{episode.AniDbAnime.TitleTranscription} - {loopEp.EpisodeType.GetEpString(loopEp.Number)}\n";
+            var fileUri = GetFileUri(loopLocalFile, loopEp);
             m3U8 += $"{fileUri}\n";
             lastEpType = loopEp.EpisodeType;
             lastEpNo = loopEp.Number;
@@ -122,9 +115,21 @@ public class FileServer : ControllerBase
                 break;
         }
 
-
         _contentTypeProvider.TryGetContentType(".m3u", out var mimeType);
         return TypedResults.File(Encoding.UTF8.GetBytes(m3U8), mimeType, $"{ed2K}.m3u8");
+
+        string GetFileUri(LocalFile lf, AniDbEpisode ep)
+        {
+            IDictionary<string, object?> values = new ExpandoObject();
+            values["ed2K"] = lf.Ed2k;
+            values["posterFilename"] = ep.AniDbAnime.ImageFilename;
+            values["episodeName"] = ep.TitleEnglish;
+            values[Constants.IdentityCookieName] = HttpContext.Request.Cookies[Constants.IdentityCookieName];
+            values["appId"] = ShizouOptions.Shizou;
+            var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
+                nameof(FileServer), values) ?? throw new ArgumentException();
+            return fileUri;
+        }
     }
 
     /// <summary>
@@ -180,18 +185,5 @@ public class FileServer : ControllerBase
         if (!new FileExtensionContentTypeProvider().TryGetContentType(fontName, out var mimeType))
             mimeType = "font/otf";
         return TypedResults.PhysicalFile(fontPath, mimeType, Path.GetFileName(fontPath));
-    }
-
-    private string GetFileUri(LocalFile localFile, AniDbEpisode ep, string? identityCookie)
-    {
-        IDictionary<string, object?> values = new ExpandoObject();
-        values["ed2K"] = localFile.Ed2k;
-        values["posterFilename"] = ep.AniDbAnime.ImageFilename;
-        values["episodeName"] = ep.TitleEnglish;
-        values[Constants.IdentityCookieName] = identityCookie;
-        values["appId"] = ShizouOptions.Shizou;
-        var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
-            nameof(FileServer), values) ?? throw new ArgumentException();
-        return fileUri;
     }
 }
