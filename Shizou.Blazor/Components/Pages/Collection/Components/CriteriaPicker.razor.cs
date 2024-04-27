@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
@@ -13,8 +14,14 @@ public partial class CriteriaPicker
         { nameof(UnwatchedFilesCriterion), typeof(UnwatchedFilesCriterion) },
         { nameof(EpisodeWithoutFilesCriterion), typeof(EpisodeWithoutFilesCriterion) },
         { nameof(AnimeTypeCriterion), typeof(AnimeTypeCriterion) },
-        { nameof(GenericFilesCriterion), typeof(GenericFilesCriterion) }
+        { nameof(GenericFilesCriterion), typeof(GenericFilesCriterion) },
+        { nameof(ReleaseGroupCriterion), typeof(ReleaseGroupCriterion) }
     };
+
+    private List<AniDbGroup>? _anidbGroups;
+
+    [Inject]
+    private IShizouContextFactory ContextFactory { get; set; } = default!;
 
     [Parameter]
     [EditorRequired]
@@ -38,6 +45,7 @@ public partial class CriteriaPicker
             { } t when t == typeof(EpisodeWithoutFilesCriterion) => new EpisodeWithoutFilesCriterion(false),
             { } t when t == typeof(AnimeTypeCriterion) => new AnimeTypeCriterion(false, AnimeType.TvSeries),
             { } t when t == typeof(GenericFilesCriterion) => new GenericFilesCriterion(false),
+            { } t when t == typeof(ReleaseGroupCriterion) => new ReleaseGroupCriterion(false, 0),
             _ => throw new ArgumentOutOfRangeException()
         };
         if (and?.Criteria.Count > index)
@@ -57,5 +65,32 @@ public partial class CriteriaPicker
     private void Replace(AndAllCriterion and, int index, TermCriterion newCriterion)
     {
         and.Criteria[index] = newCriterion;
+    }
+
+    private string GetReleaseGroupPlaceholder(int? groupId)
+    {
+        GetAnidbGroups();
+        return _anidbGroups!.FirstOrDefault(g => g.Id == groupId)?.ShortName ?? "Search group...";
+    }
+
+    private Task<List<(int, string)>?> GetReleaseGroupsAsync(string search)
+    {
+        GetAnidbGroups();
+
+        var results = _anidbGroups!.Where(g =>
+                g.Name.StartsWith(search, StringComparison.OrdinalIgnoreCase) ||
+                g.ShortName.StartsWith(search, StringComparison.OrdinalIgnoreCase))
+            .Take(20).ToList();
+
+        return Task.FromResult(results.Select(g => (g.Id, g.ShortName)).ToList())!;
+    }
+
+    private void GetAnidbGroups()
+    {
+        if (_anidbGroups is null)
+        {
+            using var context = ContextFactory.CreateDbContext();
+            _anidbGroups = context.AniDbGroups.ToList();
+        }
     }
 }

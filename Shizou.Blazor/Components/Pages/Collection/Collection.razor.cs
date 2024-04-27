@@ -27,7 +27,6 @@ public partial class Collection
     private FilterOffcanvas _filterOffcanvas = default!;
     private Dictionary<int, int>? _animeLatestLocalFileId;
 
-
     [Inject]
     private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
 
@@ -49,7 +48,7 @@ public partial class Collection
     [SupplyParameterFromQuery]
     public bool Descending { get; set; }
 
-    protected override void OnParametersSet()
+    public void Load()
     {
         using var context = ContextFactory.CreateDbContext();
         _filters = context.AnimeFilters.AsNoTracking().ToList();
@@ -87,6 +86,12 @@ public partial class Collection
         }
 
         _anime = (Descending ? sorted.Reverse() : sorted).ToList();
+        StateHasChanged();
+    }
+
+    protected override void OnParametersSet()
+    {
+        Load();
     }
 
     private Task<List<(int, string)>?> GetSearchResultsAsync(string query) => AnimeTitleSearchService.SearchAsync(query, true);

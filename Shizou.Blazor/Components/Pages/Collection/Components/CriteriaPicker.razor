@@ -1,6 +1,6 @@
-﻿@using Shizou.Data.Extensions
+﻿@using Shizou.Data.Enums
+@using Shizou.Data.Extensions
 @using Shizou.Data.FilterCriteria
-@using Shizou.Data.Enums
 @{
     var or = Filter.Criteria;
 }
@@ -66,6 +66,11 @@
                                             <option value="@type" selected="@(animeType.AnimeType == type)">@(type.ToString().UpperCaseSpaced())</option>
                                         }
                                     </InputSelect>
+                                    break;
+                                case ReleaseGroupCriterion rGroup:
+                                    <LiveSearchBox GetResults="@GetReleaseGroupsAsync" PlaceholderText="@(GetReleaseGroupPlaceholder(rGroup.GroupId))"
+                                                   @bind-Selected="@rGroup.GroupId">
+                                    </LiveSearchBox>
                                     break;
                             }
                         </EditForm>

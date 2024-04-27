@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Web;
+using Microsoft.AspNetCore.Components;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
 using Shizou.Data.Database;
@@ -21,6 +22,10 @@ public partial class FilterOffcanvas
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
+    [Parameter]
+    [EditorRequired]
+    public Collection Collection { get; set; } = default!;
+
     public async Task OpenAsync(int? filterId = null)
     {
         if (filterId is null)
@@ -40,11 +45,6 @@ public partial class FilterOffcanvas
         await _offcanvas.OpenAsync();
     }
 
-    private void NavigateToFilter(int? id)
-    {
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.FilterId), id));
-    }
-
     private async Task SaveFilterAsync()
     {
         if (_filter is null)
@@ -60,7 +60,11 @@ public partial class FilterOffcanvas
         else
             context.AnimeFilters.Add(_filter);
         context.SaveChanges();
-        NavigateToFilter(_filter.Id);
+        var oldFilterId = HttpUtility.ParseQueryString(new Uri(NavigationManager.Uri).Query).Get(nameof(Collection.FilterId));
+        if (oldFilterId != _filter.Id.ToString())
+            NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.FilterId), (int?)_filter.Id));
+        else
+            Collection.Load();
         await CloseAsync();
     }
 

@@ -38,6 +38,9 @@ public partial class Offcanvas
     public bool UseButton { get; set; }
 
     [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
     public RenderFragment ChildContent { get; set; } = default!;
 
     public async Task ToggleAsync()
@@ -69,6 +72,7 @@ public partial class Offcanvas
             await Task.Delay(300);
             _displayClass = string.Empty;
             _open = false;
+            await OnClose.InvokeAsync();
         }
     }
 }
