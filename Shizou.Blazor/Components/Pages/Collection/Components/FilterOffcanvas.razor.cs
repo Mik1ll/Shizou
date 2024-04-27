@@ -24,7 +24,7 @@ public partial class FilterOffcanvas
 
     [Parameter]
     [EditorRequired]
-    public Collection Collection { get; set; } = default!;
+    public EventCallback ReloadCollection { get; set; }
 
     public async Task OpenAsync(int? filterId = null)
     {
@@ -60,11 +60,14 @@ public partial class FilterOffcanvas
         else
             context.AnimeFilters.Add(_filter);
         context.SaveChanges();
+
+        // Check if filter id is changed and call reload from child if id is the same.
+        // Navigating won't call OnParametersSet if params are the same.
         var oldFilterId = HttpUtility.ParseQueryString(new Uri(NavigationManager.Uri).Query).Get(nameof(Collection.FilterId));
         if (oldFilterId != _filter.Id.ToString())
             NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.FilterId), (int?)_filter.Id));
         else
-            Collection.Load();
+            await ReloadCollection.InvokeAsync();
         await CloseAsync();
     }
 

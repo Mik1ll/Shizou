@@ -48,7 +48,12 @@ public partial class Collection
     [SupplyParameterFromQuery]
     public bool Descending { get; set; }
 
-    public void Load()
+    protected override void OnParametersSet()
+    {
+        Load();
+    }
+
+    private void Load()
     {
         using var context = ContextFactory.CreateDbContext();
         _filters = context.AnimeFilters.AsNoTracking().ToList();
@@ -86,12 +91,6 @@ public partial class Collection
         }
 
         _anime = (Descending ? sorted.Reverse() : sorted).ToList();
-        StateHasChanged();
-    }
-
-    protected override void OnParametersSet()
-    {
-        Load();
     }
 
     private Task<List<(int, string)>?> GetSearchResultsAsync(string query) => AnimeTitleSearchService.SearchAsync(query, true);

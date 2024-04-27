@@ -1,7 +1,7 @@
 ﻿@page "/Collection"
 @using Shizou.Data.Extensions
 
-<FilterOffcanvas @ref="@(_filterOffcanvas)" Collection="@(this)"></FilterOffcanvas>
+<FilterOffcanvas @ref="@(_filterOffcanvas)" ReloadCollection="@Load"></FilterOffcanvas>
 <PageTitle>Collection</PageTitle>
 <main class="container-fluid">
     <div class="row justify-content-center mb-2">
