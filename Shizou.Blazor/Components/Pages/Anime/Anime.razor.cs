@@ -14,12 +14,13 @@ namespace Shizou.Blazor.Components.Pages.Anime;
 
 public partial class Anime
 {
-    private readonly Regex _splitRegex = new(@"(https?:\/\/\S*?) \[(.+?)\]", RegexOptions.Compiled);
+    private static readonly Regex SplitRegex = new(@"(https?:\/\/\S*?) \[(.+?)\]", RegexOptions.Compiled);
 
     private AniDbAnime? _anime;
     private List<(RelatedAnimeType, AniDbAnime)>? _relatedAnime;
     private string[] _splitDescription = default!;
     private string _posterPath = default!;
+    private RenderFragment? _description;
 
     [Inject]
     private IShizouContextFactory ContextFactory { get; set; } = default!;
@@ -43,7 +44,20 @@ public partial class Anime
     {
         _posterPath = LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId }) ?? throw new ArgumentException();
         Load();
-        _splitDescription = _splitRegex.Split(_anime?.Description ?? "");
+        _splitDescription = SplitRegex.Split(_anime?.Description ?? "");
+        _description = GenerateDescription();
+    }
+
+    private RenderFragment GenerateDescription()
+    {
+        return b =>
+        {
+            for (var i = 0; i < _splitDescription.Length; i++)
+                if (i % 3 == 0)
+                    b.AddContent(0, _splitDescription[i]);
+                else if (i % 3 == 1)
+                    b.AddMarkupContent(1, $"<a href=\"{_splitDescription[i]}\" target=\"_blank\">{_splitDescription[i + 1]}</a>");
+        };
     }
 
     private void Load()
