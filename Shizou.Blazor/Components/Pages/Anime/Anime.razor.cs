@@ -5,6 +5,7 @@ using Shizou.Blazor.Services;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
+using Shizou.Data.Extensions;
 using Shizou.Data.Models;
 using Shizou.Server.Controllers;
 using Shizou.Server.Extensions.Query;
@@ -15,12 +16,15 @@ namespace Shizou.Blazor.Components.Pages.Anime;
 public partial class Anime
 {
     private static readonly Regex SplitRegex = new(@"(https?:\/\/\S*?) \[(.+?)\]", RegexOptions.Compiled);
+    private readonly int _maxDescriptionLength = 500;
 
     private AniDbAnime? _anime;
     private List<(RelatedAnimeType, AniDbAnime)>? _relatedAnime;
     private string[] _splitDescription = default!;
     private string _posterPath = default!;
     private RenderFragment? _description;
+    private bool _expandDescription;
+    private bool _descriptionTooLong;
 
     [Inject]
     private IShizouContextFactory ContextFactory { get; set; } = default!;
@@ -45,6 +49,7 @@ public partial class Anime
         _posterPath = LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId }) ?? throw new ArgumentException();
         Load();
         _splitDescription = SplitRegex.Split(_anime?.Description ?? "");
+        _descriptionTooLong = string.Join(string.Empty, _splitDescription.Where((_, i) => i % 3 == 0)).Length > _maxDescriptionLength;
         _description = GenerateDescription();
     }
 
@@ -52,12 +57,29 @@ public partial class Anime
     {
         return b =>
         {
+            var count = 0;
             for (var i = 0; i < _splitDescription.Length; i++)
                 if (i % 3 == 0)
-                    b.AddContent(0, _splitDescription[i]);
+                {
+                    if (_expandDescription)
+                    {
+                        b.AddContent(0, _splitDescription[i]);
+                    }
+                    else
+                    {
+                        b.AddContent(1, _splitDescription[i].TruncateWithSuffix(_maxDescriptionLength - count, "..."));
+                        if ((count += _splitDescription[i].Length) > _maxDescriptionLength)
+                            break;
+                    }
+                }
                 else if (i % 3 == 1)
-                    b.AddMarkupContent(1, $"<a href=\"{_splitDescription[i]}\" target=\"_blank\">{_splitDescription[i + 1]}</a>");
+                    b.AddMarkupContent(2, $"<a href=\"{_splitDescription[i]}\" target=\"_blank\">{_splitDescription[i + 1]}</a>");
         };
+    }
+
+    private void ToggleDescriptionExpand()
+    {
+        _expandDescription = !_expandDescription;
     }
 
     private void Load()

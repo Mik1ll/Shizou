@@ -17,6 +17,12 @@
                         </h4>
                         <p class="card-text">
                             @_description
+                            @if (_descriptionTooLong)
+                            {
+                                <button type="button" class="btn btn-link shadow-none pt-0 pb-0" @onclick="@ToggleDescriptionExpand">
+                                    @(_expandDescription ? "Read Less" : "Read More")
+                                </button>
+                            }
                         </p>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">Aired: @(_anime.AirDate ?? "??") - @(_anime.EndDate ?? "??")</li>
