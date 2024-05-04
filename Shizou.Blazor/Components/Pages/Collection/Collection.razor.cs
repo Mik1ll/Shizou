@@ -60,7 +60,8 @@ public partial class Collection
         _filters = context.AnimeFilters.AsNoTracking().ToList();
         _sort = Sort is null ? default : Enum.Parse<AnimeSort>(Sort);
         _filter = _filters.FirstOrDefault(f => f.Id == FilterId);
-        _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(_filter?.Criteria.Criterion ?? (_ => true)).AsEnumerable()
+        _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(_filter?.Criteria.Criterion ?? (_ => true))
+            .Select(a => new { a.Id, a.AirDate, a.TitleTranscription }).AsEnumerable()
             .Select(a => (a.Id, a.AirDate, a.TitleTranscription)).ToList();
         SortAnime();
     }
