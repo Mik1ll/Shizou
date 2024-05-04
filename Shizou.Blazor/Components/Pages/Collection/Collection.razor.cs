@@ -48,7 +48,7 @@ public partial class Collection
     [SupplyParameterFromQuery]
     public bool Descending { get; set; }
 
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
         Load();
     }
@@ -59,22 +59,28 @@ public partial class Collection
         _filters = context.AnimeFilters.AsNoTracking().ToList();
         _sort = Sort is null ? default : Enum.Parse<AnimeSort>(Sort);
         _filter = _filters.FirstOrDefault(f => f.Id == FilterId);
-        var filtered = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(_filter?.Criteria.Criterion ?? (_ => true)).AsEnumerable();
+        _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(_filter?.Criteria.Criterion ?? (_ => true)).ToList();
+        SortAnime();
+    }
+
+    private void SortAnime()
+    {
         IEnumerable<AniDbAnime> sorted;
         switch (_sort)
         {
             case AnimeSort.AnimeId:
-                sorted = filtered.OrderBy(a => a.Id);
+                sorted = _anime.OrderBy(a => a.Id);
                 break;
             case AnimeSort.AirDate:
-                sorted = filtered.OrderBy(a => a.AirDate);
+                sorted = _anime.OrderBy(a => a.AirDate);
                 break;
             case AnimeSort.Alphabetical:
-                sorted = filtered.OrderBy(a => a.TitleTranscription);
+                sorted = _anime.OrderBy(a => a.TitleTranscription);
                 break;
             case AnimeSort.RecentFiles:
                 if (_animeLatestLocalFileId is null)
                 {
+                    using var context = ContextFactory.CreateDbContext();
                     var recentlyAddedQuery = from a in context.AniDbAnimes.AsNoTracking()
                         let recentRegular = a.AniDbEpisodes.SelectMany(ep => ep.AniDbFiles.SelectMany(f => f.LocalFiles).Select(f => f.Id)).DefaultIfEmpty()
                             .Max()
@@ -82,7 +88,7 @@ public partial class Collection
                     _animeLatestLocalFileId = recentlyAddedQuery.ToDictionary(a => a.Aid, a => a.RecentLocalId);
                 }
 
-                sorted = from a in filtered
+                sorted = from a in _anime
                     orderby _animeLatestLocalFileId.GetValueOrDefault(a.Id, 0) descending
                     select a;
                 break;
@@ -109,11 +115,15 @@ public partial class Collection
         NavigationManager.NavigateTo(Enum.TryParse<AnimeSort>((string)e.Value!, out var sort)
             ? NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int?)sort)
             : NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int?)null));
+        _sort = sort;
+        SortAnime();
     }
 
     private void OnSortDirectionChanged()
     {
         NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Descending), !Descending));
+        Descending = !Descending;
+        SortAnime();
     }
 
     private void OnFilterSelect(ChangeEventArgs e)
@@ -121,6 +131,8 @@ public partial class Collection
         NavigationManager.NavigateTo(int.TryParse((string)e.Value!, out var id)
             ? NavigationManager.GetUriWithQueryParameter(nameof(FilterId), (int?)id)
             : NavigationManager.GetUriWithQueryParameter(nameof(FilterId), (int?)null));
+        FilterId = id;
+        Load();
     }
 
     private async Task EditFilterAsync()

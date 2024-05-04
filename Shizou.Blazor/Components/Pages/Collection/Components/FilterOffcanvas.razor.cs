@@ -1,5 +1,4 @@
-﻿using System.Web;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
 using Shizou.Data.Database;
@@ -61,13 +60,8 @@ public partial class FilterOffcanvas
             context.AnimeFilters.Add(_filter);
         context.SaveChanges();
 
-        // Check if filter id is changed and call reload from child if id is the same.
-        // Navigating won't call OnParametersSet if params are the same.
-        var oldFilterId = HttpUtility.ParseQueryString(new Uri(NavigationManager.Uri).Query).Get(nameof(Collection.FilterId));
-        if (oldFilterId != _filter.Id.ToString())
-            NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.FilterId), (int?)_filter.Id));
-        else
-            await ReloadCollection.InvokeAsync();
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.FilterId), (int?)_filter.Id));
+        await ReloadCollection.InvokeAsync();
         await CloseAsync();
     }
 
