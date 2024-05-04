@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Shizou.Data.Models;
 using Shizou.Server.Controllers;
 
 namespace Shizou.Blazor.Components.Shared;
@@ -16,16 +15,20 @@ public partial class AnimeCard
 
     [Parameter]
     [EditorRequired]
-    public AniDbAnime AniDbAnime { get; set; } = default!;
+    public int AnimeId { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public string Title { get; set; } = default!;
 
     protected override void OnInitialized()
     {
-        _posterPath = LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId = AniDbAnime.Id }) ??
+        _posterPath = LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId }) ??
                       throw new ArgumentException();
     }
 
     private void GoToAnime()
     {
-        NavigationManager.NavigateTo($"/Collection/{AniDbAnime.Id}");
+        NavigationManager.NavigateTo($"/Collection/{AnimeId}");
     }
 }

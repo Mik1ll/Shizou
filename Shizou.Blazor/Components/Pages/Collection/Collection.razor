@@ -41,7 +41,7 @@
     <div class="d-flex flex-wrap justify-content-center gap-3">
         @foreach (var anime in _animeSearchResults ?? _anime)
         {
-            <AnimeCard @key="@(anime.Id)" AniDbAnime="@anime"></AnimeCard>
+            <AnimeCard @key="@(anime.Id)" AnimeId="@(anime.Id)" Title="@(anime.TitleTranscription)"></AnimeCard>
         }
     </div>
 </main>

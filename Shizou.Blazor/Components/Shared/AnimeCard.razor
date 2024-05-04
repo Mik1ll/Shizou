@@ -3,7 +3,7 @@
     <img alt="" loading="lazy" class="card-img object-fit-contain h-100" src="@_posterPath" onerror="this.onerror=null;this.src='images/missing_poster.png';">
     <div class="card-img-overlay d-flex p-0 align-items-end">
         <div class="p-2 text-center text-white bg-black bg-opacity-50 w-100 overflow-hidden" style="text-shadow: 2px -1px 2px #000">
-            @(AniDbAnime.TitleTranscription.TruncateWithSuffix(45, "..."))
+            @(Title.TruncateWithSuffix(45, "..."))
         </div>
     </div>
 </div>
