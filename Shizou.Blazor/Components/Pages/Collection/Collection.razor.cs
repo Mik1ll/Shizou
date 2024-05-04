@@ -5,6 +5,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
+using AnimeResult = (int Id, string? AirDate, string TitleTranscription);
 
 namespace Shizou.Blazor.Components.Pages.Collection;
 
@@ -19,8 +20,8 @@ public enum AnimeSort
 // ReSharper disable once ClassNeverInstantiated.Global
 public partial class Collection
 {
-    private List<AniDbAnime> _anime = default!;
-    private List<AniDbAnime>? _animeSearchResults;
+    private List<AnimeResult> _anime = default!;
+    private List<AnimeResult>? _animeSearchResults;
     private List<AnimeFilter> _filters = default!;
     private AnimeFilter? _filter;
     private AnimeSort _sort;
@@ -59,13 +60,14 @@ public partial class Collection
         _filters = context.AnimeFilters.AsNoTracking().ToList();
         _sort = Sort is null ? default : Enum.Parse<AnimeSort>(Sort);
         _filter = _filters.FirstOrDefault(f => f.Id == FilterId);
-        _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(_filter?.Criteria.Criterion ?? (_ => true)).ToList();
+        _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(_filter?.Criteria.Criterion ?? (_ => true)).AsEnumerable()
+            .Select(a => (a.Id, a.AirDate, a.TitleTranscription)).ToList();
         SortAnime();
     }
 
     private void SortAnime()
     {
-        IEnumerable<AniDbAnime> sorted;
+        IEnumerable<AnimeResult> sorted;
         switch (_sort)
         {
             case AnimeSort.AnimeId:
