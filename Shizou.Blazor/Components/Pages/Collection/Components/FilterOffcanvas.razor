@@ -12,7 +12,11 @@
                 </div>
                 <ValidationMessage For="@(() => _filter.Name)"></ValidationMessage>
             </div>
-            <button type="button" class="btn btn-outline-danger mb-3" @onclick="@CloseAsync">Cancel</button>
+            <button type="button" class="btn btn-outline-secondary me-2 mb-3" @onclick="@CloseAsync">Cancel</button>
+            @if (_editing)
+            {
+                <button type="button" class="btn btn-danger me-2 mb-3" @onclick="@DeleteFilterAsync">Delete</button>
+            }
             <button type="submit" class="btn btn-success mb-3">Save</button>
         </EditForm>
         <CriteriaPicker Filter="@_filter"></CriteriaPicker>

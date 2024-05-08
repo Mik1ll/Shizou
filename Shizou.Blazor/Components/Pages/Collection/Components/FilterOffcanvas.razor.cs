@@ -67,6 +67,22 @@ public partial class FilterOffcanvas
         await CloseAsync();
     }
 
+    private async Task DeleteFilterAsync()
+    {
+        if (_filter is null)
+            return;
+        using var context = ContextFactory.CreateDbContext();
+        var eFilter = context.AnimeFilters.FirstOrDefault(f => f.Id == _filter.Id);
+        if (eFilter is not null)
+        {
+            context.AnimeFilters.Remove(eFilter);
+            context.SaveChanges();
+            await ReloadCollection.InvokeAsync();
+        }
+
+        await CloseAsync();
+    }
+
     private async Task CloseAsync()
     {
         await _offcanvas.CloseAsync();
