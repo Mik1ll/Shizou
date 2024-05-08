@@ -17,7 +17,7 @@
                     }
                 </select>
                 <button type="button" class="btn btn-outline-secondary" @onclick="@OnSortDirectionChanged">
-                    <i class="bi @(Descending ? "bi-arrow-down" : "bi-arrow-up")"></i>
+                    <i class="bi @(_descending ? "bi-arrow-down" : "bi-arrow-up")"></i>
                 </button>
             </div>
         </div>
@@ -27,10 +27,10 @@
                     <option value="">All</option>
                     @foreach (var filter in _filters)
                     {
-                        <option value="@(filter.Id)" selected="@(FilterId == filter.Id)">@(filter.Name)</option>
+                        <option value="@(filter.Id)" selected="@(_filterId == filter.Id)">@(filter.Name)</option>
                     }
                 </select>
-                @if (FilterId is not null)
+                @if (_filterId is not null)
                 {
                     <button type="button" class="btn btn-primary" @onclick="@EditFilterAsync">Edit Filter</button>
                 }

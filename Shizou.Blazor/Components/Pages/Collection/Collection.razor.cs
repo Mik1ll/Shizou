@@ -27,6 +27,8 @@ public partial class Collection
     private AnimeSort _sort;
     private FilterOffcanvas _filterOffcanvas = default!;
     private Dictionary<int, int>? _animeLatestLocalFileId;
+    private int? _filterId;
+    private bool _descending;
 
     [Inject]
     private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
@@ -51,6 +53,9 @@ public partial class Collection
 
     protected override void OnInitialized()
     {
+        _sort = Sort is null ? default : Enum.Parse<AnimeSort>(Sort);
+        _filterId = FilterId;
+        _descending = Descending;
         Load();
     }
 
@@ -58,8 +63,7 @@ public partial class Collection
     {
         using var context = ContextFactory.CreateDbContext();
         _filters = context.AnimeFilters.AsNoTracking().ToList();
-        _sort = Sort is null ? default : Enum.Parse<AnimeSort>(Sort);
-        _filter = _filters.FirstOrDefault(f => f.Id == FilterId);
+        _filter = _filters.FirstOrDefault(f => f.Id == _filterId);
         _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(_filter?.Criteria.Criterion ?? (_ => true))
             .Select(a => new { a.Id, a.AirDate, a.TitleTranscription }).AsEnumerable()
             .Select(a => (a.Id, a.AirDate, a.TitleTranscription)).ToList();
@@ -99,7 +103,7 @@ public partial class Collection
                 throw new ArgumentOutOfRangeException();
         }
 
-        _anime = (Descending ? sorted.Reverse() : sorted).ToList();
+        _anime = (_descending ? sorted.Reverse() : sorted).ToList();
     }
 
     private Task<List<(int, string)>?> GetSearchResultsAsync(string query) => AnimeTitleSearchService.SearchAsync(query, true);
@@ -124,8 +128,8 @@ public partial class Collection
 
     private void OnSortDirectionChanged()
     {
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Descending), !Descending));
-        Descending = !Descending;
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Descending), !_descending));
+        _descending = !_descending;
         SortAnime();
     }
 
@@ -134,7 +138,7 @@ public partial class Collection
         NavigationManager.NavigateTo(int.TryParse((string)e.Value!, out var id)
             ? NavigationManager.GetUriWithQueryParameter(nameof(FilterId), (int?)id)
             : NavigationManager.GetUriWithQueryParameter(nameof(FilterId), (int?)null));
-        FilterId = id;
+        _filterId = id;
         Load();
     }
 
