@@ -20,15 +20,13 @@ public enum AnimeSort
 // ReSharper disable once ClassNeverInstantiated.Global
 public partial class Collection
 {
-    private List<AnimeResult> _anime = default!;
+    private List<AnimeResult>? _anime;
     private List<AnimeResult>? _animeSearchResults;
     private List<AnimeFilter> _filters = default!;
     private AnimeFilter? _filter;
-    private AnimeSort _sort;
     private FilterOffcanvas _filterOffcanvas = default!;
     private Dictionary<int, int>? _animeLatestLocalFileId;
-    private int? _filterId;
-    private bool _descending;
+    private AnimeSort SortEnum => (AnimeSort)Sort;
 
     [Inject]
     private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
@@ -41,21 +39,18 @@ public partial class Collection
 
     [Parameter]
     [SupplyParameterFromQuery]
-    public int? FilterId { get; set; }
+    public int FilterId { get; set; }
 
     [Parameter]
     [SupplyParameterFromQuery]
-    public string? Sort { get; set; }
+    public int Sort { get; set; }
 
     [Parameter]
     [SupplyParameterFromQuery]
     public bool Descending { get; set; }
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
-        _sort = Sort is null ? default : Enum.Parse<AnimeSort>(Sort);
-        _filterId = FilterId;
-        _descending = Descending;
         Load();
     }
 
@@ -63,17 +58,21 @@ public partial class Collection
     {
         using var context = ContextFactory.CreateDbContext();
         _filters = context.AnimeFilters.AsNoTracking().ToList();
-        _filter = _filters.FirstOrDefault(f => f.Id == _filterId);
-        _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(_filter?.Criteria.Criterion ?? (_ => true))
-            .Select(a => new { a.Id, a.AirDate, a.TitleTranscription }).AsEnumerable()
-            .Select(a => (a.Id, a.AirDate, a.TitleTranscription)).ToList();
+        var newFilter = _filters.FirstOrDefault(f => f.Id == FilterId);
+        if (_anime is null || newFilter?.Criteria != _filter?.Criteria)
+            _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(newFilter?.Criteria.Criterion ?? (_ => true))
+                .Select(a => new { a.Id, a.AirDate, a.TitleTranscription }).AsEnumerable()
+                .Select(a => (a.Id, a.AirDate, a.TitleTranscription)).ToList();
+        _filter = newFilter;
         SortAnime();
     }
 
     private void SortAnime()
     {
+        if (_anime is null)
+            return;
         IEnumerable<AnimeResult> sorted;
-        switch (_sort)
+        switch (SortEnum)
         {
             case AnimeSort.AnimeId:
                 sorted = _anime.OrderBy(a => a.Id);
@@ -103,7 +102,7 @@ public partial class Collection
                 throw new ArgumentOutOfRangeException();
         }
 
-        _anime = (_descending ? sorted.Reverse() : sorted).ToList();
+        _anime = (Descending ? sorted.Reverse() : sorted).ToList();
     }
 
     private Task<List<(int, string)>?> GetSearchResultsAsync(string query) => AnimeTitleSearchService.SearchAsync(query, true);
@@ -119,36 +118,29 @@ public partial class Collection
 
     private void OnSortSelect(ChangeEventArgs e)
     {
-        NavigationManager.NavigateTo(Enum.TryParse<AnimeSort>((string)e.Value!, out var sort)
-            ? NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int?)sort)
-            : NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int?)null));
-        _sort = sort;
-        SortAnime();
+        Enum.TryParse<AnimeSort>((string?)e.Value, out var sort);
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int)sort));
     }
 
     private void OnSortDirectionChanged()
     {
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Descending), !_descending));
-        _descending = !_descending;
-        SortAnime();
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Descending), !Descending));
     }
 
     private void OnFilterSelect(ChangeEventArgs e)
     {
-        NavigationManager.NavigateTo(int.TryParse((string)e.Value!, out var id)
-            ? NavigationManager.GetUriWithQueryParameter(nameof(FilterId), (int?)id)
-            : NavigationManager.GetUriWithQueryParameter(nameof(FilterId), (int?)null));
-        _filterId = id;
-        Load();
+        int.TryParse((string?)e.Value, out var filterId);
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(FilterId), filterId));
     }
 
     private async Task EditFilterAsync()
     {
-        await _filterOffcanvas.OpenAsync(_filter?.Id);
+        if (_filter is not null)
+            await _filterOffcanvas.OpenEditAsync(_filter);
     }
 
     private async Task CreateFilterAsync()
     {
-        await _filterOffcanvas.OpenAsync();
+        await _filterOffcanvas.OpenNewAsync();
     }
 }

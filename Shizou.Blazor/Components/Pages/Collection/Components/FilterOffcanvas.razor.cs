@@ -11,6 +11,7 @@ public partial class FilterOffcanvas
 {
     private Offcanvas _offcanvas = default!;
     private AnimeFilter? _filter = default!;
+    private bool _editing;
 
     [Inject]
     private IShizouContextFactory ContextFactory { get; set; } = default!;
@@ -25,22 +26,21 @@ public partial class FilterOffcanvas
     [EditorRequired]
     public EventCallback ReloadCollection { get; set; }
 
-    public async Task OpenAsync(int? filterId = null)
+    public async Task OpenNewAsync()
     {
-        if (filterId is null)
+        _editing = false;
+        _filter = new AnimeFilter
         {
-            _filter = new AnimeFilter
-            {
-                Name = "New Filter",
-                Criteria = new OrAnyCriterion([])
-            };
-        }
-        else
-        {
-            using var context = ContextFactory.CreateDbContext();
-            _filter = context.AnimeFilters.FirstOrDefault(f => f.Id == filterId);
-        }
+            Name = "New Filter",
+            Criteria = new OrAnyCriterion([])
+        };
+        await _offcanvas.OpenAsync();
+    }
 
+    public async Task OpenEditAsync(AnimeFilter filter)
+    {
+        _editing = true;
+        _filter = filter;
         await _offcanvas.OpenAsync();
     }
 
@@ -60,8 +60,10 @@ public partial class FilterOffcanvas
             context.AnimeFilters.Add(_filter);
         context.SaveChanges();
 
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.FilterId), (int?)_filter.Id));
-        await ReloadCollection.InvokeAsync();
+        if (_editing)
+            await ReloadCollection.InvokeAsync();
+        else
+            NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Collection.FilterId), _filter.Id));
         await CloseAsync();
     }
 
