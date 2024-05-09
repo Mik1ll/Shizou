@@ -1,30 +1,19 @@
-﻿using System.Net;
-using Blazored.Modal;
+﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
 using Shizou.Data;
 using Shizou.Data.CommandInputArgs;
-using Shizou.Server.Options;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Components.Pages.Dashboard.Components;
 
 public partial class Actions
 {
-    private IPAddress? _remoteIpAddress;
-
     [Inject]
     private IServiceProvider ServiceProvider { get; set; } = default!;
-
-    [Inject]
-    private IOptionsSnapshot<ShizouOptions> OptionsSnapshot { get; set; } = default!;
-
-    [Inject]
-    private ILogger<Actions> Logger { get; set; } = default!;
 
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
@@ -40,15 +29,6 @@ public partial class Actions
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
-
-    [CascadingParameter]
-    private ToastContainer ToastDisplay { get; set; } = default!;
-
-
-    protected override void OnInitialized()
-    {
-        _remoteIpAddress = HttpContextAccessor.HttpContext!.Connection.RemoteIpAddress;
-    }
 
     private void DispatchNoop()
     {
@@ -82,7 +62,8 @@ public partial class Actions
 
     private async Task OpenMalAuthAsync()
     {
-        var url = ServiceProvider.GetRequiredService<MyAnimeListService>().GetAuthenticationUrl(_remoteIpAddress ?? throw new ArgumentNullException());
+        var url = ServiceProvider.GetRequiredService<MyAnimeListService>()
+            .GetAuthenticationUrl(HttpContextAccessor.HttpContext ?? throw new ArgumentNullException());
         if (url is not null)
             await JsRuntime.InvokeVoidAsync("open", url, "_blank");
     }

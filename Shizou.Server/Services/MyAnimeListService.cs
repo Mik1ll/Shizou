@@ -10,6 +10,8 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,6 +19,7 @@ using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Enums.Mal;
 using Shizou.Data.Models;
+using Shizou.Server.Controllers;
 using Shizou.Server.Options;
 using Base64UrlTextEncoder = Microsoft.AspNetCore.Authentication.Base64UrlTextEncoder;
 
@@ -28,6 +31,7 @@ public class MyAnimeListService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<MyAnimeListService> _logger;
     private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
+    private readonly LinkGenerator _linkGenerator;
     private string? _codeChallengeAndVerifier;
     private string? _state;
 
@@ -35,12 +39,13 @@ public class MyAnimeListService
         ILogger<MyAnimeListService> logger,
         IHttpClientFactory httpClientFactory,
         IOptionsMonitor<ShizouOptions> optionsMonitor,
-        IShizouContextFactory contextFactory)
+        IShizouContextFactory contextFactory, LinkGenerator linkGenerator)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _optionsMonitor = optionsMonitor;
         _contextFactory = contextFactory;
+        _linkGenerator = linkGenerator;
     }
 
     private static void UpsertAnime(IShizouContext context, MalAnime anime)
@@ -111,7 +116,7 @@ public class MyAnimeListService
         }
     }
 
-    public string? GetAuthenticationUrl(IPAddress remoteIp)
+    public string? GetAuthenticationUrl(HttpContext context)
     {
         var options = _optionsMonitor.CurrentValue.MyAnimeList;
         if (string.IsNullOrWhiteSpace(options.ClientId))
@@ -120,14 +125,9 @@ public class MyAnimeListService
             return null;
         }
 
-        if (!IPAddress.IsLoopback(remoteIp))
-        {
-            _logger.LogError("Can only authenticate on localhost due to MAL auth redirect registration");
-            return null;
-        }
-
         _codeChallengeAndVerifier = GetCodeVerifier();
         _state = Guid.NewGuid().ToString();
+        var redirectUri = _linkGenerator.GetUriByAction(context, nameof(MyAnimeList.GetToken), nameof(MyAnimeList));
 
         var url = QueryHelpers.AddQueryString("https://myanimelist.net/v1/oauth2/authorize", new Dictionary<string, string?>
         {
@@ -135,7 +135,8 @@ public class MyAnimeListService
             { "client_id", options.ClientId },
             { "state", _state },
             { "code_challenge", _codeChallengeAndVerifier },
-            { "code_challenge_method", "plain" }
+            { "code_challenge_method", "plain" },
+            { "redirect_uri", redirectUri }
         });
         _logger.LogInformation("Created MAL auth flow url {Url}", url);
         return url;
