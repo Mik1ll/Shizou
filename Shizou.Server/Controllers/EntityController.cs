@@ -45,14 +45,14 @@ public abstract class EntityController<TEntity> : EntityGetController<TEntity> w
     [HttpPut]
     [SwaggerResponse(StatusCodes.Status204NoContent, "Entity updated")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(string))]
     [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails))]
     [Consumes("application/json")]
-    public Results<NoContent, NotFound, BadRequest<string>, BadRequest<ProblemDetails>> Put([FromBody] TEntity entity)
+    [Produces("application/json")]
+    public Results<NoContent, NotFound, BadRequest<ProblemDetails>> Put([FromBody] TEntity entity)
     {
         var id = Selector.Compile()(entity);
         if (id == 0)
-            return TypedResults.BadRequest("Entity id cannot be 0");
+            return TypedResults.BadRequest(new ProblemDetails { Detail = "Entity id cannot be 0", Title = "Invalid Entity Id" });
         Context.Entry(entity).State = EntityState.Modified;
         try
         {
@@ -72,7 +72,7 @@ public abstract class EntityController<TEntity> : EntityGetController<TEntity> w
     [HttpDelete("{id}")]
     [SwaggerResponse(StatusCodes.Status204NoContent, "Entity deleted")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails))]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails), contentTypes: "application/json")]
     public Results<NoContent, NotFound, BadRequest<ProblemDetails>> Delete(int id)
     {
         var entity = DbSet.FirstOrDefault(KeyEqualsExpression(id));

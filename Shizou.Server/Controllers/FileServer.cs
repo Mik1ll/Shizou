@@ -77,7 +77,7 @@ public class FileServer : ControllerBase
 
     [HttpGet("{ed2K}/Playlist")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/x-mpegURL")]
     public Results<FileContentHttpResult, NotFound> GetPlaylist(string ed2K, [FromQuery] bool? single)
     {
         var m3U8 = "#EXTM3U\n";

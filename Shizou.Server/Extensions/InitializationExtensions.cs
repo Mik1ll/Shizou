@@ -77,16 +77,24 @@ public static class InitializationExtensions
         builder.Use(async (context, next) =>
         {
             context.Response.Headers.Append("X-Frame-Options", "DENY");
-            context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-            context.Response.Headers.Append("X-XSS-Protection", "0");
-            context.Response.Headers.Append("Content-Security-Policy", "base-uri 'self';" +
-                                                                       "default-src 'self';" +
-                                                                       "img-src data: https:;" +
-                                                                       "object-src 'none';" +
-                                                                       "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';" +
-                                                                       "style-src 'self' 'unsafe-inline';" +
-                                                                       "font-src 'self' data:;" +
-                                                                       "upgrade-insecure-requests");
+            if (!context.Request.Path.StartsWithSegments("/api"))
+            {
+                context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+                context.Response.Headers.Append("X-XSS-Protection", "0");
+                context.Response.Headers.Append("Content-Security-Policy", "base-uri 'self';" +
+                                                                           "default-src 'self';" +
+                                                                           "img-src data: https:;" +
+                                                                           "object-src 'none';" +
+                                                                           "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';" +
+                                                                           "style-src 'self' 'unsafe-inline';" +
+                                                                           "font-src 'self' data:;" +
+                                                                           "upgrade-insecure-requests");
+            }
+            else
+            {
+                context.Response.Headers.Append("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
+            }
+
             await next().ConfigureAwait(false);
         });
         return builder;

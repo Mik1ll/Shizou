@@ -28,8 +28,7 @@ public class Account : ControllerBase
 
     [HttpPost("Login")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    [SwaggerResponse(StatusCodes.Status200OK, "API Token", typeof(string))]
-    [Produces("text/plain")]
+    [SwaggerResponse(StatusCodes.Status200OK, "API Token", typeof(string), "application/json")]
     [AllowAnonymous]
     public async Task<Results<Ok<string>, BadRequest<string>>> Login([FromBody] string? password)
     {
@@ -41,10 +40,9 @@ public class Account : ControllerBase
     }
 
     [HttpPost("SetPassword")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/json")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, type: typeof(ProblemDetails))]
-    [Produces("application/json")]
+    [SwaggerResponse(StatusCodes.Status500InternalServerError, type: typeof(ProblemDetails), contentTypes: "application/json")]
     [AllowAnonymous]
     public async Task<Results<Ok<string>, BadRequest<string>, ProblemHttpResult>> SetPassword([FromBody] string? password)
     {

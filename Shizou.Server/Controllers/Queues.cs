@@ -36,7 +36,7 @@ public class Queues : ControllerBase
 
     [HttpPut("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponse(StatusCodes.Status409Conflict)]
+    [SwaggerResponse(StatusCodes.Status409Conflict, contentTypes: "application/json")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     public Results<Ok, Conflict<string>> Unpause(QueueType queueType)
     {
@@ -48,9 +48,8 @@ public class Queues : ControllerBase
     }
 
     [HttpGet("{queueType}/[action]")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/json")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    [Produces("application/json")]
     public Ok<PauseResult> PauseState(QueueType queueType)
     {
         var processor = GetProcessor(queueType);
@@ -59,19 +58,17 @@ public class Queues : ControllerBase
 
 
     [HttpGet("{queueType}/[action]")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/json")]
     [SwaggerResponse(StatusCodes.Status204NoContent)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    [Produces("application/json")]
     public Ok<ICommand<CommandArgs>?> Current(QueueType queueType)
     {
         return TypedResults.Ok<ICommand<CommandArgs>?>(GetProcessor(queueType).CurrentCommand);
     }
 
     [HttpGet("{queueType}/[action]")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/json")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    [Produces("application/json")]
     public Ok<List<CommandRequest>> QueuedRequests(QueueType queueType)
     {
         return TypedResults.Ok(GetProcessor(queueType).GetQueuedCommands());

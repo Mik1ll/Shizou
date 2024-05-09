@@ -37,6 +37,7 @@ public class Options : ControllerBase
     /// <param name="options"></param>
     /// <returns></returns>
     [HttpPut]
+    [SwaggerResponse(StatusCodes.Status200OK)]
     public Ok Save([FromBody] ShizouOptions options)
     {
         options.SaveToFile();
