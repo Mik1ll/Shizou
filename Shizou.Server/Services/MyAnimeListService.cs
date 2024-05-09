@@ -27,13 +27,12 @@ namespace Shizou.Server.Services;
 
 public class MyAnimeListService
 {
+    private static readonly Dictionary<string, (string challengeAndVerifier, string redirectUri)> AuthFlows = new();
     private readonly IShizouContextFactory _contextFactory;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<MyAnimeListService> _logger;
     private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
     private readonly LinkGenerator _linkGenerator;
-    private string? _codeChallengeAndVerifier;
-    private string? _state;
 
     public MyAnimeListService(
         ILogger<MyAnimeListService> logger,
@@ -125,16 +124,18 @@ public class MyAnimeListService
             return null;
         }
 
-        _codeChallengeAndVerifier = GetCodeVerifier();
-        _state = Guid.NewGuid().ToString();
-        var redirectUri = _linkGenerator.GetUriByAction(context, nameof(MyAnimeList.GetToken), nameof(MyAnimeList));
+        var codeChallengeAndVerifier = GetCodeVerifier();
+        var state = Guid.NewGuid().ToString();
+        var redirectUri = _linkGenerator.GetUriByAction(context, nameof(MyAnimeList.GetToken), nameof(MyAnimeList)) ?? throw new ArgumentNullException();
+
+        AuthFlows[state] = (codeChallengeAndVerifier, redirectUri);
 
         var url = QueryHelpers.AddQueryString("https://myanimelist.net/v1/oauth2/authorize", new Dictionary<string, string?>
         {
             { "response_type", "code" },
             { "client_id", options.ClientId },
-            { "state", _state },
-            { "code_challenge", _codeChallengeAndVerifier },
+            { "state", state },
+            { "code_challenge", codeChallengeAndVerifier },
             { "code_challenge_method", "plain" },
             { "redirect_uri", redirectUri }
         });
@@ -152,23 +153,13 @@ public class MyAnimeListService
             return false;
         }
 
-        if (_codeChallengeAndVerifier is null)
+        if (!AuthFlows.Remove(state, out var tuple))
         {
-            _logger.LogError("Tried to get MAL token without a code verifier");
+            _logger.LogError("State not found in auth flows");
             return false;
         }
 
-        if (_state is null)
-        {
-            _logger.LogError("Tried to get MAL token without a state");
-            return false;
-        }
-
-        if (state != _state)
-        {
-            _logger.LogError("State did not match stored value");
-            return false;
-        }
+        var (challengeAndVerifier, redirectUri) = tuple;
 
         var httpClient = _httpClientFactory.CreateClient();
         var request = new HttpRequestMessage(HttpMethod.Post, "https://myanimelist.net/v1/oauth2/token")
@@ -178,7 +169,8 @@ public class MyAnimeListService
                 new("client_id", options.MyAnimeList.ClientId),
                 new("grant_type", "authorization_code"),
                 new("code", code),
-                new("code_verifier", _codeChallengeAndVerifier)
+                new("code_verifier", challengeAndVerifier),
+                new("redirect_uri", redirectUri)
             })
         };
         var result = await httpClient.SendAsync(request).ConfigureAwait(false);
@@ -188,8 +180,6 @@ public class MyAnimeListService
         if (!await SaveTokenAsync(result).ConfigureAwait(false))
             return false;
 
-        _state = null;
-        _codeChallengeAndVerifier = null;
         return true;
     }
 
