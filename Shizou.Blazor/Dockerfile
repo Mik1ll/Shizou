@@ -8,7 +8,7 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS publish
 ARG TARGETARCH
 WORKDIR "/src"
 RUN apt-get -y update
-RUN apt-get -y install make gcc libssl-dev ffmpeg jq moreutils
+RUN apt-get -y install make gcc libssl-dev ffmpeg jq moreutils unzip
 RUN wget https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz
 RUN tar -xzvf "v1.4.4.tar.gz"
 WORKDIR "RHash-1.4.4"
