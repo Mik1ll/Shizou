@@ -8,13 +8,17 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS publish
 ARG TARGETARCH
 WORKDIR "/src"
 RUN apt-get -y update
-RUN apt-get -y install make gcc libssl-dev ffmpeg
+RUN apt-get -y install make gcc libssl-dev ffmpeg jq
 RUN wget https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz
 RUN tar -xzvf "v1.4.4.tar.gz"
 WORKDIR "RHash-1.4.4"
 RUN ./configure --disable-gettext --enable-openssl-runtime --enable-lib-shared
 RUN make lib-shared
 WORKDIR "/src"
+RUN wget https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip
+RUN unzip "avdump3_8293_stable.zip" -d "AVDump-8293"
+RUN jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump-8293/AVDump3CL.runtimeconfig.json"
+
 COPY "Shizou.Blazor/Shizou.Blazor.csproj" "Shizou.Blazor/"
 COPY "Shizou.Data/Shizou.Data.csproj" "Shizou.Data/"
 COPY "Shizou.Server/Shizou.Server.csproj" "Shizou.Server/"
@@ -27,4 +31,5 @@ FROM base AS final
 WORKDIR "/app"
 COPY --from=publish "/app/publish" "."
 COPY --from=publish "/src/RHash-1.4.4/librhash/librhash.so.1.4.4" "./RHash/librhash.so"
+COPY --from-publish "/src/AVDump-8293" "/app/AVDump3" 
 ENTRYPOINT ["./Shizou.Blazor"]
