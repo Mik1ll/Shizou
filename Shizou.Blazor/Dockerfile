@@ -23,11 +23,9 @@ RUN unzip "avdump3_8293_stable.zip" -d "AVDump-8293"
 # Need to add roll forward because avdump is built targetting old .net version
 RUN jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump-8293/AVDump3CL.runtimeconfig.json" | sponge "AVDump-8293/AVDump3CL.runtimeconfig.json"
 
-RUN <<EOF
-wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-${TARGETARCH}-static.tar.xz
-tar -xvJf ffmpeg-6.1-${TARGETARCH}-static.tar.xz
-mv ffmpeg-6.1-${TARGETARCH}-static/ffmpeg ffmpeg-6.1-${TARGETARCH}-static/ffprobe ./
-EOF
+RUN "wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-${TARGETARCH}-static.tar.xz"
+RUN "tar -xvJf ffmpeg-6.1-${TARGETARCH}-static.tar.xz"
+RUN "mv ffmpeg-6.1-${TARGETARCH}-static/ffmpeg ffmpeg-6.1-${TARGETARCH}-static/ffprobe ./"
 
 COPY "Shizou.Blazor/Shizou.Blazor.csproj" "Shizou.Blazor/"
 COPY "Shizou.Data/Shizou.Data.csproj" "Shizou.Data/"
