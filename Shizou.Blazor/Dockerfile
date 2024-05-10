@@ -6,7 +6,7 @@ LABEL org.opencontainers.image.source=https://github.com/Mik1ll/Shizou
 
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS publish
 ARG TARGETARCH
-ENV TARGETARCH=$TARGETARCH
+
 WORKDIR "/src"
 RUN apt-get -y update
 RUN apt-get -y install make gcc libssl-dev jq moreutils unzip
@@ -23,9 +23,11 @@ RUN unzip "avdump3_8293_stable.zip" -d "AVDump-8293"
 # Need to add roll forward because avdump is built targetting old .net version
 RUN jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump-8293/AVDump3CL.runtimeconfig.json" | sponge "AVDump-8293/AVDump3CL.runtimeconfig.json"
 
-RUN wget "https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-$TARGETARCH-static.tar.xz" && \
-tar -xvJf "ffmpeg-6.1-$TARGETARCH-static.tar.xz" && \
-mv "ffmpeg-6.1-$TARGETARCH-static/ffmpeg" "ffmpeg-6.1-$TARGETARCH-static/ffprobe" "./"
+RUN <<EOF
+wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-${TARGETARCH}-static.tar.xz
+tar -xvJf ffmpeg-6.1-${TARGETARCH}-static.tar.xz
+mv ffmpeg-6.1-${TARGETARCH}-static/ffmpeg ffmpeg-6.1-${TARGETARCH}-static/ffprobe ./
+EOF
 
 COPY "Shizou.Blazor/Shizou.Blazor.csproj" "Shizou.Blazor/"
 COPY "Shizou.Data/Shizou.Data.csproj" "Shizou.Data/"
