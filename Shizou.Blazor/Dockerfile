@@ -23,7 +23,7 @@ RUN unzip "avdump3_8293_stable.zip" -d "AVDump-8293"
 RUN jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump-8293/AVDump3CL.runtimeconfig.json" | sponge "AVDump-8293/AVDump3CL.runtimeconfig.json"
 
 ENV ENV_TARGETARCH =$TARGETARCH
-RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-${ENV_TARGETARCH}-static.tar.xz
+RUN wget "https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-${ENV_TARGETARCH}-static.tar.xz"
 RUN tar -xvJf "ffmpeg-6.1-${ENV_TARGETARCH}-static.tar.xz"
 RUN mv "ffmpeg-6.1-${ENV_TARGETARCH}-static/ffmpeg" "ffmpeg-6.1-${ENV_TARGETARCH}-static/ffprobe" "./"
 
