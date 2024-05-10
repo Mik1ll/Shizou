@@ -1,7 +1,7 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled AS base
-WORKDIR /app
 EXPOSE 80
 EXPOSE 443
+USER 0:0
 LABEL org.opencontainers.image.source=https://github.com/Mik1ll/Shizou
 
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS publish
