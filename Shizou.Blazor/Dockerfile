@@ -26,5 +26,5 @@ RUN dotnet publish "Shizou.Blazor.csproj" -c Release -a $TARGETARCH --no-restore
 FROM base AS final
 WORKDIR "/app"
 COPY --from=publish "/app/publish" "."
-COPY --from=publish "/src/RHash-1.4.4/librhash/librhash.so.1.4.4" "./librhash.so"
+COPY --from=publish "/src/RHash-1.4.4/librhash/librhash.so.1.4.4" "./RHash/librhash.so"
 ENTRYPOINT ["./Shizou.Blazor"]
