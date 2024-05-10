@@ -9,7 +9,7 @@ ARG TARGETARCH
 
 WORKDIR "/src"
 RUN apt-get -y update
-RUN apt-get -y install make gcc libssl-dev jq moreutils unzip
+RUN apt-get -y install make gcc libssl-dev jq moreutils unzip xz-utils
 
 RUN wget https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz
 RUN tar -xzvf "v1.4.4.tar.gz"
@@ -23,9 +23,9 @@ RUN unzip "avdump3_8293_stable.zip" -d "AVDump-8293"
 # Need to add roll forward because avdump is built targetting old .net version
 RUN jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump-8293/AVDump3CL.runtimeconfig.json" | sponge "AVDump-8293/AVDump3CL.runtimeconfig.json"
 
-RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-amd64-static.tar.xz
-RUN tar -xvJf ffmpeg-6.1-amd64-static.tar.xz
-RUN mv ffmpeg-6.1-amd64-static/ffmpeg ffmpeg-6.1-amd64-static/ffprobe ./
+RUN wget "https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-$TARGETARCH-static.tar.xz"
+RUN tar -xvJf "ffmpeg-6.1-$TARGETARCH-static.tar.xz"
+RUN mv "ffmpeg-6.1-$TARGETARCH-static/ffmpeg" "ffmpeg-6.1-$TARGETARCH-static/ffprobe" "./"
 
 COPY "Shizou.Blazor/Shizou.Blazor.csproj" "Shizou.Blazor/"
 COPY "Shizou.Data/Shizou.Data.csproj" "Shizou.Data/"
