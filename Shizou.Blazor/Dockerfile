@@ -8,7 +8,7 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS publish
 ARG TARGETARCH
 WORKDIR "/src"
 RUN apt-get -y update
-RUN apt-get -y install make gcc libssl-dev ffmpeg jq
+RUN apt-get -y install make gcc libssl-dev ffmpeg jq moreutils
 RUN wget https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz
 RUN tar -xzvf "v1.4.4.tar.gz"
 WORKDIR "RHash-1.4.4"
@@ -17,7 +17,8 @@ RUN make lib-shared
 WORKDIR "/src"
 RUN wget https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip
 RUN unzip "avdump3_8293_stable.zip" -d "AVDump-8293"
-RUN jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump-8293/AVDump3CL.runtimeconfig.json"
+# Need to add roll forward because avdump is built targetting old .net version
+RUN jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump-8293/AVDump3CL.runtimeconfig.json" | sponge "AVDump-8293/AVDump3CL.runtimeconfig.json"
 
 COPY "Shizou.Blazor/Shizou.Blazor.csproj" "Shizou.Blazor/"
 COPY "Shizou.Data/Shizou.Data.csproj" "Shizou.Data/"
