@@ -32,5 +32,5 @@ FROM base AS final
 WORKDIR "/app"
 COPY --from=publish "/app/publish" "."
 COPY --from=publish "/src/RHash-1.4.4/librhash/librhash.so.1.4.4" "./RHash/librhash.so"
-COPY --from-publish "/src/AVDump-8293" "/app/AVDump3" 
+COPY --from=publish "/src/AVDump-8293" "/app/AVDump3" 
 ENTRYPOINT ["./Shizou.Blazor"]
