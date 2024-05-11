@@ -28,7 +28,7 @@ COPY "Shizou.Blazor/Shizou.Blazor.csproj" "Shizou.Blazor/"
 RUN dotnet restore "Shizou.Blazor/Shizou.Blazor.csproj" -a $TARGETARCH
 COPY "." "."
 WORKDIR "/src/Shizou.Blazor"
-RUN dotnet publish "Shizou.Blazor.csproj" -c Release -a $TARGETARCH --no-restore -o "/app/publish"
+RUN dotnet publish "Shizou.Blazor.csproj" -c Release -a $TARGETARCH --self-contained false --no-restore -o "/app/publish"
 
 RUN cp "/src/RHash/librhash/librhash.so.1.4.4" "/app/publish/RHash/librhash.so"
 RUN cp -r "/src/AVDump3" "/app/publish/"
