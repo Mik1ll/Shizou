@@ -7,39 +7,34 @@ LABEL org.opencontainers.image.source=https://github.com/Mik1ll/Shizou
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS publish
 ARG TARGETARCH
 
+RUN apt-get -q -y update && apt-get -q -y --no-install-recommends install make gcc libssl-dev jq moreutils busybox xz-utils
+
+WORKDIR "/src/RHash"
+RUN wget -qO- "https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz" | tar -xz --strip-components=1 && \
+    ./configure --disable-gettext --enable-openssl=runtime --enable-lib-shared && \
+    make lib-shared
+
+WORKDIR "/src/AVDump3"
+RUN wget -qO- "https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip" | busybox unzip -oq - && \
+    jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump3CL.runtimeconfig.json" | sponge "AVDump3CL.runtimeconfig.json"
+
+WORKDIR "/src/ffmpeg"
+RUN wget -qO- "https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-amd64-static.tar.xz" | tar -xJ --strip-components=1
+
 WORKDIR "/src"
-RUN apt-get -y update
-RUN apt-get -y install make gcc libssl-dev jq moreutils unzip xz-utils
-
-RUN wget https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz
-RUN tar -xzvf "v1.4.4.tar.gz"
-WORKDIR "RHash-1.4.4"
-RUN ./configure --disable-gettext --enable-openssl-runtime --enable-lib-shared
-RUN make lib-shared
-
-WORKDIR "/src"
-RUN wget https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip
-RUN unzip "avdump3_8293_stable.zip" -d "AVDump-8293"
-# Need to add roll forward because avdump is built targetting old .net version
-RUN jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump-8293/AVDump3CL.runtimeconfig.json" | sponge "AVDump-8293/AVDump3CL.runtimeconfig.json"
-
-RUN wget "https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-$TARGETARCH-static.tar.xz"
-RUN tar -xvJf "ffmpeg-6.1-$TARGETARCH-static.tar.xz"
-RUN mv "ffmpeg-6.1-$TARGETARCH-static/ffmpeg" "ffmpeg-6.1-$TARGETARCH-static/ffprobe" "./"
-
-COPY "Shizou.Blazor/Shizou.Blazor.csproj" "Shizou.Blazor/"
 COPY "Shizou.Data/Shizou.Data.csproj" "Shizou.Data/"
 COPY "Shizou.Server/Shizou.Server.csproj" "Shizou.Server/"
+COPY "Shizou.Blazor/Shizou.Blazor.csproj" "Shizou.Blazor/"
 RUN dotnet restore "Shizou.Blazor/Shizou.Blazor.csproj" -a $TARGETARCH
 COPY "." "."
 WORKDIR "/src/Shizou.Blazor"
 RUN dotnet publish "Shizou.Blazor.csproj" -c Release -a $TARGETARCH --no-restore -o "/app/publish"
 
+RUN cp "/src/RHash/librhash/librhash.so.1.4.4" "/app/publish/RHash/librhash.so"
+RUN cp "/src/AVDump3" "/app/publish/AVdump3"
+RUN cp "/src/ffmpeg/ffprobe" "/src/ffmpeg/ffmpeg" "/app/publish/"
+
 FROM base AS final
 WORKDIR "/app"
 COPY --from=publish "/app/publish" "."
-COPY --from=publish "/src/RHash-1.4.4/librhash/librhash.so.1.4.4" "./RHash/librhash.so"
-COPY --from=publish "/src/AVDump-8293" "/app/AVDump3"
-COPY --from=publish "/src/ffprobe" "/app/ffprobe"
-COPY --from=publish "/src/ffmpeg" "/app/ffmpeg"
 ENTRYPOINT ["./Shizou.Blazor"]
