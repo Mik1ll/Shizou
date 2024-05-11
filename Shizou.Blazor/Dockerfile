@@ -10,16 +10,16 @@ ARG TARGETARCH
 RUN apt-get -q -y update && apt-get -q -y install make gcc libssl-dev jq moreutils busybox xz-utils
 
 WORKDIR "/src/RHash"
-RUN curl -s "https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz" | tar -xz --strip-components=1 && \
+RUN curl -sL "https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz" | tar -xz --strip-components=1 && \
     ./configure --disable-gettext --enable-openssl=runtime --enable-lib-shared && \
     make lib-shared
 
 WORKDIR "/src/AVDump3"
-RUN curl -s "https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip" | busybox unzip -oq - && \
+RUN curl -sL "https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip" | busybox unzip -oq - && \
     jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump3CL.runtimeconfig.json" | sponge "AVDump3CL.runtimeconfig.json"
 
 WORKDIR "/src/ffmpeg"
-RUN curl -s "https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-amd64-static.tar.xz" | tar -xJ --strip-components=1
+RUN curl -sL "https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-amd64-static.tar.xz" | tar -xJ --strip-components=1
 
 WORKDIR "/src"
 COPY "Shizou.Data/Shizou.Data.csproj" "Shizou.Data/"
