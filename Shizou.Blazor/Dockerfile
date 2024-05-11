@@ -10,16 +10,16 @@ ARG TARGETARCH
 RUN apt-get -q -y update && apt-get -q -y install make gcc libssl-dev jq moreutils busybox xz-utils
 
 WORKDIR "/src/RHash"
-RUN wget -qO- "https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz" | tar -xz --strip-components=1 && \
+RUN curl -s "https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz" | tar -xz --strip-components=1 && \
     ./configure --disable-gettext --enable-openssl=runtime --enable-lib-shared && \
     make lib-shared
 
 WORKDIR "/src/AVDump3"
-RUN wget -qO- "https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip" | busybox unzip -oq - && \
+RUN curl -s "https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip" | busybox unzip -oq - && \
     jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump3CL.runtimeconfig.json" | sponge "AVDump3CL.runtimeconfig.json"
 
 WORKDIR "/src/ffmpeg"
-RUN wget -qO- "https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-amd64-static.tar.xz" | tar -xJ --strip-components=1
+RUN curl -s "https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-amd64-static.tar.xz" | tar -xJ --strip-components=1
 
 WORKDIR "/src"
 COPY "Shizou.Data/Shizou.Data.csproj" "Shizou.Data/"
@@ -30,9 +30,9 @@ COPY "." "."
 WORKDIR "/src/Shizou.Blazor"
 RUN dotnet publish "Shizou.Blazor.csproj" -c Release -a $TARGETARCH --self-contained false --no-restore -o "/app/publish"
 
-RUN cp "/src/RHash/librhash/librhash.so.1.4.4" "/app/publish/RHash/librhash.so"
-RUN cp -r "/src/AVDump3" "/app/publish/"
-RUN cp "/src/ffmpeg/ffprobe" "/src/ffmpeg/ffmpeg" "/app/publish/"
+RUN mv "/src/RHash/librhash/librhash.so.1.4.4" "/app/publish/RHash/librhash.so"
+RUN mv "/src/AVDump3" "/app/publish/"
+RUN mv "/src/ffmpeg/ffprobe" "/src/ffmpeg/ffmpeg" "/app/publish/"
 
 FROM base AS final
 WORKDIR "/app"
