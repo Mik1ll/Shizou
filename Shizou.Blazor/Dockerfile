@@ -7,7 +7,7 @@ LABEL org.opencontainers.image.source=https://github.com/Mik1ll/Shizou
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS publish
 ARG TARGETARCH
 
-RUN apt-get -q -y update && apt-get -q -y --no-install-recommends install make gcc libssl-dev jq moreutils busybox xz-utils
+RUN apt-get -q -y update && apt-get -q -y install make gcc libssl-dev jq moreutils busybox xz-utils
 
 WORKDIR "/src/RHash"
 RUN wget -qO- "https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz" | tar -xz --strip-components=1 && \
