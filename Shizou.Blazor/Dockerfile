@@ -26,9 +26,9 @@ COPY Shizou.Data/Shizou.Data.csproj Shizou.Data/
 COPY Shizou.Server/Shizou.Server.csproj Shizou.Server/
 COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/
 RUN dotnet restore Shizou.Blazor/Shizou.Blazor.csproj -a $TARGETARCH
-COPY Shizou.Data ./
-COPY Shizou.Server ./
-COPY Shizou.Blazor ./
+COPY Shizou.Data Shizou.Data/
+COPY Shizou.Server Shizou.Server/
+COPY Shizou.Blazor Shizou.Blazor/
 WORKDIR /src/Shizou.Blazor
 RUN dotnet publish -c Release -a $TARGETARCH --self-contained false --no-restore -o /app/publish
 RUN mkdir /ShizouBin; mv /app/publish/Shizou.* /ShizouBin/
@@ -36,8 +36,8 @@ RUN mkdir /ShizouBin; mv /app/publish/Shizou.* /ShizouBin/
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /src/ffmpeg/ffprobe /src/ffmpeg/ffmpeg ./
-COPY --from=publish /src/AVDump3 ./
+COPY --from=publish /src/AVDump3 ./AVDump3/
 COPY --from=publish /src/RHash/librhash/librhash.so.1.4.4 ./RHash/librhash.so
-COPY --from=publish /app/publish .
-COPY --from=publish /ShizouBin/* ./
+COPY --from=publish /app/publish ./
+COPY --from=publish /ShizouBin ./
 ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
