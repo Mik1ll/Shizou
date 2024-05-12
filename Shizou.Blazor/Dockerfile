@@ -1,6 +1,4 @@
-﻿# syntax=docker/dockerfile:1.7-labs
-
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled AS base
 EXPOSE 80
 EXPOSE 443
 USER 0:0
@@ -34,6 +32,7 @@ COPY Shizou.Blazor ./
 WORKDIR /src/Shizou.Blazor
 RUN dotnet publish -c Release -a $TARGETARCH --self-contained false --no-restore -o /app/publish
 
+# syntax=docker/dockerfile:1.7-labs
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /src/ffmpeg/ffprobe /src/ffmpeg/ffmpeg ./
