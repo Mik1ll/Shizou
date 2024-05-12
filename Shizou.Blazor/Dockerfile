@@ -31,13 +31,13 @@ COPY Shizou.Server ./
 COPY Shizou.Blazor ./
 WORKDIR /src/Shizou.Blazor
 RUN dotnet publish -c Release -a $TARGETARCH --self-contained false --no-restore -o /app/publish
+RUN mkdir /ShizouBin; mv /app/publish/Shizou.* /ShizouBin/
 
-# syntax=docker/dockerfile:1.7-labs
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /src/ffmpeg/ffprobe /src/ffmpeg/ffmpeg ./
 COPY --from=publish /src/AVDump3 ./
 COPY --from=publish /src/RHash/librhash/librhash.so.1.4.4 ./RHash/librhash.so
-COPY --from=publish --exclude=/app/publish/Shizou.* /app/publish .
-COPY --from=publish /app/publish/Shizou.* .
+COPY --from=publish /app/publish .
+COPY --from=publish /ShizouBin/* ./
 ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
