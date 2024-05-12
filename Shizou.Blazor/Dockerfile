@@ -36,8 +36,8 @@ RUN mkdir /ShizouBin; mv /app/publish/Shizou.* /ShizouBin/
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /src/ffmpeg/ffprobe /src/ffmpeg/ffmpeg ./
-COPY --from=publish /src/AVDump3 ./AVDump3/
-COPY --from=publish /src/RHash/librhash/librhash.so.1.4.4 ./RHash/librhash.so
+COPY --from=publish /src/AVDump3 AVDump3/
+COPY --from=publish /src/RHash/librhash/librhash.so.1.4.4 RHash/librhash.so
 COPY --from=publish /app/publish ./
 COPY --from=publish /ShizouBin ./
 ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
