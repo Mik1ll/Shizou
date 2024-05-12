@@ -7,7 +7,7 @@ LABEL org.opencontainers.image.source=https://github.com/Mik1ll/Shizou
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS publish
 ARG TARGETARCH
 
-RUN dotnet tool install -g Microsoft.Web.LibraryManager.Cli
+RUN dotnet tool install Microsoft.Web.LibraryManager.Cli --tool-path /dotnet-tools
 
 RUN apt-get -q -y update && apt-get -q -y install make gcc libssl-dev jq moreutils busybox xz-utils
 
@@ -29,7 +29,7 @@ COPY Shizou.Server/Shizou.Server.csproj Shizou.Server/
 COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/libman.json Shizou.Blazor/
 WORKDIR /src/Shizou.Blazor
 RUN dotnet restore Shizou.Blazor.csproj -a $TARGETARCH
-RUN libman restore
+RUN /dotnet-tools/libman restore
 COPY Shizou.Data /src/Shizou.Data/
 COPY Shizou.Server /src/Shizou.Server/
 COPY Shizou.Blazor /src/Shizou.Blazor/
