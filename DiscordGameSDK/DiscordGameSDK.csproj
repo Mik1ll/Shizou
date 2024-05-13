@@ -5,7 +5,7 @@
         <LangVersion>12</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PackageOutputPath>$(SolutionDir)LocalPackages</PackageOutputPath>
+        <PackageOutputPath>../LocalPackages</PackageOutputPath>
     </PropertyGroup>
 
     <ItemGroup>
