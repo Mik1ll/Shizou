@@ -19,14 +19,13 @@ WORKDIR /src/ffmpeg
 RUN curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-amd64-static.tar.xz | tar -xJ --strip-components=1
 
 WORKDIR /src
-COPY NuGet.Config ./
 COPY RHashWrapper/RHashWrapper.csproj RHashWrapper/
-RUN dotnet pack RHashWrapper/RHashWrapper.csproj
+RUN dotnet nuget add source ./LocalPackages && dotnet pack RHashWrapper/RHashWrapper.csproj -o ./LocalPackages
 COPY Shizou.Data/Shizou.Data.csproj Shizou.Data/
 COPY Shizou.Server/Shizou.Server.csproj Shizou.Server/
 COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/libman.json Shizou.Blazor/
 WORKDIR /src/Shizou.Blazor
-RUN dotnet restore Shizou.Blazor.csproj -a $TARGETARCH --configfile ../NuGet.Config
+RUN dotnet restore Shizou.Blazor.csproj -a $TARGETARCH
 RUN /dotnet-tools/libman restore
 COPY Shizou.Data /src/Shizou.Data/
 COPY Shizou.Server /src/Shizou.Server/
