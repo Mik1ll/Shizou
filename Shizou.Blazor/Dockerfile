@@ -26,12 +26,12 @@ COPY Shizou.Data/Shizou.Data.csproj Shizou.Data/
 COPY Shizou.Server/Shizou.Server.csproj Shizou.Server/
 COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/libman.json Shizou.Blazor/
 WORKDIR /src/Shizou.Blazor
-RUN dotnet restore Shizou.Blazor.csproj -a $TARGETARCH
 RUN /dotnet-tools/libman restore --verbosity quiet
+RUN dotnet restore Shizou.Blazor.csproj -a $TARGETARCH --configfile ../NuGet.Config
 COPY Shizou.Data /src/Shizou.Data/
 COPY Shizou.Server /src/Shizou.Server/
 COPY Shizou.Blazor /src/Shizou.Blazor/
-RUN dotnet publish -c Release -a $TARGETARCH --no-self-contained -o /app/publish
+RUN dotnet publish -c Release -a $TARGETARCH --no-self-contained -o /app/publish --configfile ../NuGet.Config
 RUN mkdir /ShizouBin; mv /app/publish/Shizou.* /ShizouBin/
 
 FROM base AS final
