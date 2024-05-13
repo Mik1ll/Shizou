@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled AS base
+﻿FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled AS base
 EXPOSE 80
 EXPOSE 443
 USER 0:0
@@ -16,7 +16,7 @@ RUN curl -sL https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip | busy
     jq '.runtimeOptions.framework.rollForward = "Major"' "AVDump3CL.runtimeconfig.json" | sponge AVDump3CL.runtimeconfig.json
 
 WORKDIR /src/ffmpeg
-RUN curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-amd64-static.tar.xz | tar -xJ --strip-components=1
+RUN curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-7.0-${TARGETARCH}-static.tar.xz | tar -xJ --strip-components=1
 
 WORKDIR /src
 COPY NuGet.Config Shizou.sln ./
