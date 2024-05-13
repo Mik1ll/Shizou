@@ -31,7 +31,7 @@ RUN /dotnet-tools/libman restore --verbosity quiet
 COPY Shizou.Data /src/Shizou.Data/
 COPY Shizou.Server /src/Shizou.Server/
 COPY Shizou.Blazor /src/Shizou.Blazor/
-RUN dotnet publish -c Release -a $TARGETARCH --no-self-contained --no-dependencies -o /app/publish
+RUN dotnet publish -c Release -a $TARGETARCH --no-self-contained -o /app/publish
 RUN mkdir /ShizouBin; mv /app/publish/Shizou.* /ShizouBin/
 
 FROM base AS final
