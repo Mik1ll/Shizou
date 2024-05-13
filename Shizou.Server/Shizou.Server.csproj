@@ -38,17 +38,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="RHash\librhash.dll" />
-        <Content Include="RHash\librhash.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <None Remove="RHash\librhash.so" />
-        <Content Include="RHash\librhash.so">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-
-    <ItemGroup>
+        <PackageReference Include="RHashWrapper" Version="1.0.0" />
         <ProjectReference Include="..\Shizou.Data\Shizou.Data.csproj" />
     </ItemGroup>
 

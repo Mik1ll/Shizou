@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
+using RHashWrapper;
 using Shizou.Data;
-using Shizou.Server.RHash;
 using Shizou.Server.Services;
 
 namespace Shizou.Tests;
@@ -8,6 +8,18 @@ namespace Shizou.Tests;
 [TestClass]
 public class HashTests
 {
+    // ReSharper disable once InconsistentNaming
+    private static async Task<FileInfo> CreateTestFileAsync(int sizeInMB, string testFileName)
+    {
+        var file = new FileInfo(Path.Combine(FilePaths.ApplicationDataDir, testFileName));
+        var data = new byte[sizeInMB * 1024 * 1024];
+        var rng = new Random(555);
+        rng.NextBytes(data);
+        await using var stream = file.Create();
+        await stream.WriteAsync(data);
+        return file;
+    }
+
     [TestMethod]
     public async Task TestHashSpeedAsync()
     {
@@ -37,17 +49,5 @@ public class HashTests
     {
         var ex = Assert.ThrowsException<ArgumentException>(() => new RHasher(HashIds.Md4).ToString(HashIds.Sha1 | HashIds.Crc32));
         Assert.AreEqual("No hash id set or multiple hash ids set", ex.Message);
-    }
-
-    // ReSharper disable once InconsistentNaming
-    private static async Task<FileInfo> CreateTestFileAsync(int sizeInMB, string testFileName)
-    {
-        var file = new FileInfo(Path.Combine(FilePaths.ApplicationDataDir, testFileName));
-        var data = new byte[sizeInMB * 1024 * 1024];
-        var rng = new Random(555);
-        rng.NextBytes(data);
-        await using var stream = file.Create();
-        await stream.WriteAsync(data);
-        return file;
     }
 }

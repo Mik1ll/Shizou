@@ -5,11 +5,13 @@
         <LangVersion>12</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PackageOutputPath>$(SolutionDir)LocalPackages</PackageOutputPath>
+        <!-- https://learn.microsoft.com/en-us/nuget/create-packages/native-files-in-net-packages#example-1 -->
+        <!-- <BuildOutputTargetFolder>ref;runtimes/any/lib</BuildOutputTargetFolder> -->
     </PropertyGroup>
 
     <ItemGroup>
         <None Include="runtimes/**" Pack="true" PackagePath="runtimes" />
     </ItemGroup>
-
 </Project>
