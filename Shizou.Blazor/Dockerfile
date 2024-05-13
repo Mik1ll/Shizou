@@ -20,19 +20,18 @@ RUN curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-amd64-static.t
 
 WORKDIR /src
 COPY NuGet.Config Shizou.sln ./
-COPY RHashWrapper/RHashWrapper.csproj RHashWrapper/
+COPY RHashWrapper RHashWrapper/
 RUN dotnet pack RHashWrapper/RHashWrapper.csproj
 COPY Shizou.Data/Shizou.Data.csproj Shizou.Data/
 COPY Shizou.Server/Shizou.Server.csproj Shizou.Server/
 COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/libman.json Shizou.Blazor/
 WORKDIR /src/Shizou.Blazor
 RUN /dotnet-tools/libman restore >/dev/null
-WORKDIR /src
-RUN dotnet restore -a $TARGETARCH
+RUN dotnet restore Shizou.Blazor.csproj -a $TARGETARCH
 COPY Shizou.Data /src/Shizou.Data/
 COPY Shizou.Server /src/Shizou.Server/
 COPY Shizou.Blazor /src/Shizou.Blazor/
-RUN dotnet publish Shizou.Blazor/Shizou.Blazor.csproj -c Release -a $TARGETARCH --no-self-contained -o /app/publish
+RUN dotnet publish Shizou.Blazor.csproj -c Release -a $TARGETARCH --no-self-contained -o /app/publish
 RUN mkdir /ShizouBin; mv /app/publish/Shizou.* /ShizouBin/
 
 FROM base AS final
