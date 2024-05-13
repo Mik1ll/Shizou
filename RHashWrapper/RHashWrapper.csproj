@@ -8,7 +8,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PackageOutputPath>../LocalPackages</PackageOutputPath>
         <!-- https://learn.microsoft.com/en-us/nuget/create-packages/native-files-in-net-packages#example-1 -->
-        <BuildOutputTargetFolder>ref;runtimes/any/lib</BuildOutputTargetFolder>
+        <!-- <BuildOutputTargetFolder>ref;runtimes/any/lib</BuildOutputTargetFolder> -->
     </PropertyGroup>
 
     <ItemGroup>

@@ -28,7 +28,7 @@ COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/libman.json Shizou.Blazor/
 WORKDIR /src/Shizou.Blazor
 RUN /dotnet-tools/libman restore >/dev/null
 WORKDIR /src
-RUN dotnet restore Shizou.Blazor/Shizou.Blazor.csproj -a $TARGETARCH
+RUN dotnet restore -a $TARGETARCH
 COPY Shizou.Data /src/Shizou.Data/
 COPY Shizou.Server /src/Shizou.Server/
 COPY Shizou.Blazor /src/Shizou.Blazor/
