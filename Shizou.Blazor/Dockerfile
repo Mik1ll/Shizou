@@ -20,7 +20,7 @@ RUN curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-6.1-amd64-static.t
 
 WORKDIR /src
 COPY RHashWrapper/RHashWrapper.csproj RHashWrapper/
-RUN dotnet nuget add source ./LocalPackages && dotnet pack RHashWrapper/RHashWrapper.csproj -o ./LocalPackages
+RUN dotnet nuget add source /src/LocalPackages && dotnet pack RHashWrapper/RHashWrapper.csproj -o /src/LocalPackages
 COPY Shizou.Data/Shizou.Data.csproj Shizou.Data/
 COPY Shizou.Server/Shizou.Server.csproj Shizou.Server/
 COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/libman.json Shizou.Blazor/
