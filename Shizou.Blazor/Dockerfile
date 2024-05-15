@@ -1,4 +1,4 @@
-﻿FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled AS base
 EXPOSE 80
 EXPOSE 443
 USER 0:0
