@@ -33,7 +33,7 @@ public class Account : ControllerBase
     public async Task<Results<Ok<string>, BadRequest<string>>> Login([FromBody] string? password)
     {
         if (password is null) return TypedResults.BadRequest("Password not supplied");
-        var signInResult = await _signInManager.PasswordSignInAsync("Admin", password, true, false).ConfigureAwait(false);
+        var signInResult = await _signInManager.PasswordSignInAsync(Constants.IdentityUsername, password, true, false).ConfigureAwait(false);
         var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == Constants.IdentityCookieName);
         if (!signInResult.Succeeded || token is null) return TypedResults.BadRequest("Failed to log in");
         return TypedResults.Ok(token.Value.Value);
@@ -49,11 +49,11 @@ public class Account : ControllerBase
         if (password is null) return TypedResults.BadRequest("Password not supplied");
         if (HttpContext.Connection.RemoteIpAddress is null || !IPAddress.IsLoopback(HttpContext.Connection.RemoteIpAddress))
             return TypedResults.BadRequest("Must be local to change password");
-        var identity = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == "Admin").ConfigureAwait(false);
+        var identity = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == Constants.IdentityUsername).ConfigureAwait(false);
         IdentityResult result;
         if (identity is null)
         {
-            identity = new IdentityUser { UserName = "Admin" };
+            identity = new IdentityUser { UserName = Constants.IdentityUsername };
             result = await _userManager.CreateAsync(identity, password).ConfigureAwait(false);
         }
         else
@@ -67,7 +67,7 @@ public class Account : ControllerBase
             return TypedResults.Problem(title: $"Something went wrong when creating account/changing password: {result}",
                 statusCode: StatusCodes.Status500InternalServerError);
 
-        var signInResult = await _signInManager.PasswordSignInAsync("Admin", password, true, false).ConfigureAwait(false);
+        var signInResult = await _signInManager.PasswordSignInAsync(Constants.IdentityUsername, password, true, false).ConfigureAwait(false);
         var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == Constants.IdentityCookieName);
         if (!signInResult.Succeeded || token is null)
             return TypedResults.Problem(title: $"Something went wrong when logging in after changing password: {signInResult}",
