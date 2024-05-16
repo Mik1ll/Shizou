@@ -18,7 +18,7 @@ public class Login : PageModel
     }
 
     [BindProperty]
-    public required InputModel Input { get; set; }
+    public required LoginModel Input { get; set; }
 
     public ActionResult OnGet(string returnUrl = "")
     {
@@ -30,22 +30,18 @@ public class Login : PageModel
 
     public async Task<IActionResult> OnPostAsync(string returnUrl = "")
     {
+        if (!ModelState.IsValid) return Page();
         returnUrl = Url.Content("~/") + returnUrl.TrimStart('/');
-        if (ModelState.IsValid)
-        {
-            var result = await _signInManager.PasswordSignInAsync(Constants.IdentityUsername, Input.Password, true, false);
-            if (result.Succeeded)
-                return LocalRedirect(returnUrl);
-            ModelState.AddModelError("Input.Password", "Wrong password");
-        }
+        var result = await _signInManager.PasswordSignInAsync(Constants.IdentityUsername, Input.Password, true, false);
+        if (result.Succeeded)
+            return LocalRedirect(returnUrl);
+        ModelState.AddModelError("Input.Password", "Wrong password");
 
         return Page();
     }
 
-    public class InputModel
-    {
+    public record LoginModel(
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; } = default!;
-    }
+        string Password);
 }

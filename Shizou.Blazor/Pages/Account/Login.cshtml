@@ -7,27 +7,13 @@
 
 <h1>@ViewData["Title"]</h1>
 
-@if (User.Identity?.IsAuthenticated ?? false)
-{
-    <h2>Already Logged in</h2>
-}
-else
-{
-    <div class="row" style="margin:50px">
-        <div class="col-md-4">
-            <section>
-                <form id="account" method="post">
-                    <div class="form-floating" style="margin:10px">
-                        <input asp-for="Input.Password" class="form-control" autocomplete="password" aria-required="true">
-                        <label asp-for="Input.Password" class="form-label"></label>
-                        <span asp-validation-for="Input.Password" class="text-danger fs-3"></span>
-                    </div>
-                    <div style="margin:10px">
-                        <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log In</button>
-                    </div>
-                </form>
-            </section>
-            <a asp-page="@(nameof(ChangePassword))">Change Password</a>
-        </div>
+<form method="post" style="width: 30rem">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-floating mb-2">
+        <input asp-for="Input.Password" type="password" class="form-control" autocomplete="password" aria-required="true">
+        <label asp-for="Input.Password" class="form-label"></label>
+        <span asp-validation-for="Input.Password" class="text-danger fs-3"></span>
     </div>
-}
+    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary mb-2">Log In</button>
+</form>
+<a asp-page="@(nameof(ChangePassword))">Change Password</a>

@@ -78,5 +78,5 @@ public class Account : ControllerBase
         return TypedResults.Ok(token.Value.Value);
     }
 
-    public record PasswordModel([property: Required] string Password, [property: Required] string NewPassword);
+    public record PasswordModel([Required] string Password, [Required] string NewPassword);
 }

@@ -23,71 +23,64 @@ public class ChangePassword : PageModel
     [BindProperty]
     public required InputModel Input { get; set; }
 
-    public void OnGet()
-    {
-    }
-
     public async Task<IActionResult> OnPostAsync()
     {
+        if (!ModelState.IsValid) return Page();
+
         var returnUrl = Url.Content("~/");
-        if (ModelState.IsValid)
+        var password = Input.Password;
+        var newPassword = Input.NewPassword;
+        var user = await _userManager.Users.SingleOrDefaultAsync();
+        IdentityResult result;
+        if (user is null)
         {
-            var password = Input.Password;
-            var newPassword = Input.NewPassword;
-            var user = await _userManager.Users.SingleOrDefaultAsync();
-            IdentityResult result;
-            if (user is null)
+            user = new IdentityUser { UserName = Constants.IdentityUsername };
+            result = await _userManager.CreateAsync(user, newPassword);
+        }
+        else
+        {
+            if (await _userManager.CheckPasswordAsync(user, password).ConfigureAwait(false))
             {
-                user = new IdentityUser { UserName = Constants.IdentityUsername };
-                result = await _userManager.CreateAsync(user, newPassword);
+                result = await _userManager
+                    .ResetPasswordAsync(user, await _userManager.GeneratePasswordResetTokenAsync(user).ConfigureAwait(false), newPassword)
+                    .ConfigureAwait(false);
             }
             else
             {
-                if (await _userManager.CheckPasswordAsync(user, password).ConfigureAwait(false))
-                {
-                    result = await _userManager
-                        .ResetPasswordAsync(user, await _userManager.GeneratePasswordResetTokenAsync(user).ConfigureAwait(false), newPassword)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    ModelState.AddModelError($"{nameof(Input)}.{nameof(Input.Password)}", "Password is incorrect");
-                    return Page();
-                }
-            }
-
-            if (!result.Succeeded)
-            {
-                ModelState.AddModelError("", $"Something went wrong when creating account/changing password: {result}");
+                ModelState.AddModelError($"{nameof(Input)}.{nameof(Input.Password)}", "Password is incorrect");
                 return Page();
             }
-
-            var signInResult = await _signInManager.PasswordSignInAsync(user, newPassword, true, false);
-            if (!signInResult.Succeeded)
-            {
-                ModelState.AddModelError("", $"Something went wrong when logging in after changing password: {signInResult}");
-                return Page();
-            }
-
-            return LocalRedirect(returnUrl);
         }
 
-        return Page();
+        if (!result.Succeeded)
+        {
+            ModelState.AddModelError("", $"Something went wrong when creating account/changing password: {result}");
+            return Page();
+        }
+
+        var signInResult = await _signInManager.PasswordSignInAsync(user, newPassword, true, false);
+        if (!signInResult.Succeeded)
+        {
+            ModelState.AddModelError("", $"Something went wrong when logging in after changing password: {signInResult}");
+            return Page();
+        }
+
+        return LocalRedirect(returnUrl);
     }
 
-    public class InputModel
+    public record InputModel
     {
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; } = default!;
+        public required string Password { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
-        public string NewPassword { get; set; } = default!;
+        public required string NewPassword { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
         [Compare(nameof(NewPassword))]
-        public string ConfirmNewPassword { get; set; } = default!;
+        public required string ConfirmNewPassword { get; set; }
     }
 }
