@@ -20,7 +20,7 @@ public class Login : PageModel
     [BindProperty]
     public required LoginModel Input { get; set; }
 
-    public ActionResult OnGet(string returnUrl = "")
+    public IActionResult OnGet(string returnUrl = "")
     {
         returnUrl = Url.Content("~/") + returnUrl.TrimStart('/');
         if (User.Identity?.IsAuthenticated ?? false)
@@ -35,7 +35,7 @@ public class Login : PageModel
         var result = await _signInManager.PasswordSignInAsync(Constants.IdentityUsername, Input.Password, true, false);
         if (result.Succeeded)
             return LocalRedirect(returnUrl);
-        ModelState.AddModelError("Input.Password", "Wrong password");
+        ModelState.AddModelError($"{nameof(Input)}.{nameof(Input.Password)}", "Wrong password");
 
         return Page();
     }
