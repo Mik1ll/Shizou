@@ -105,18 +105,18 @@ public class RHasher
 
         static Bindings()
         {
-            // NativeLibrary.SetDllImportResolver(typeof(RHasher).Assembly, (name, assembly, path) =>
-            // {
-            //     var libHandle = nint.Zero;
-            //     if (name == LibRHash && !NativeLibrary.TryLoad(LibRHash, assembly, path, out libHandle))
-            //         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSArchitecture == Architecture.X64)
-            //             NativeLibrary.TryLoad($"./runtimes/win-x64/native/{LibRHash}", assembly, path, out libHandle);
-            //         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && RuntimeInformation.OSArchitecture == Architecture.X64)
-            //             NativeLibrary.TryLoad($"./runtimes/linux-x64/native/{LibRHash}", assembly, path, out libHandle);
-            //         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSArchitecture == Architecture.X86)
-            //             NativeLibrary.TryLoad($"./runtimes/win-x86/native/{LibRHash}", assembly, path, out libHandle);
-            //     return libHandle;
-            // });
+            NativeLibrary.SetDllImportResolver(typeof(RHasher).Assembly, (name, assembly, path) =>
+            {
+                var libHandle = nint.Zero;
+                if (name == LibRHash && !NativeLibrary.TryLoad(LibRHash, assembly, path, out libHandle))
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSArchitecture == Architecture.X64)
+                        NativeLibrary.TryLoad($"./runtimes/win-x64/native/{LibRHash}", assembly, path, out libHandle);
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && RuntimeInformation.OSArchitecture == Architecture.X64)
+                        NativeLibrary.TryLoad($"./runtimes/linux-x64/native/{LibRHash}", assembly, path, out libHandle);
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && RuntimeInformation.OSArchitecture == Architecture.Arm64)
+                        NativeLibrary.TryLoad($"./runtimes/linux-arm64/native/{LibRHash}", assembly, path, out libHandle);
+                return libHandle;
+            });
             rhash_library_init();
         }
     }
