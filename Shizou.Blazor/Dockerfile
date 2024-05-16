@@ -40,4 +40,5 @@ COPY --from=publish /src/ffmpeg/ffprobe /src/ffmpeg/ffmpeg ./
 COPY --from=publish /src/AVDump3 AVDump3/
 COPY --from=publish /app/publish ./
 COPY --from=publish /ShizouBin ./
+COPY --from=publish /app/publish/librhash.so /usr/lib/aarch64-linux-gnu/
 ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
