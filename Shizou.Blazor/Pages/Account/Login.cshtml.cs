@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Shizou.Data;
 
 namespace Shizou.Blazor.Pages.Account;
 
@@ -32,7 +33,7 @@ public class Login : PageModel
         returnUrl = Url.Content("~/") + returnUrl.TrimStart('/');
         if (ModelState.IsValid)
         {
-            var result = await _signInManager.PasswordSignInAsync("Admin", Input.Password!, true, false);
+            var result = await _signInManager.PasswordSignInAsync(Constants.IdentityUsername, Input.Password, true, false);
             if (result.Succeeded)
                 return LocalRedirect(returnUrl);
             ModelState.AddModelError("Input.Password", "Wrong password");
@@ -45,6 +46,6 @@ public class Login : PageModel
     {
         [Required]
         [DataType(DataType.Password)]
-        public string? Password { get; set; }
+        public string Password { get; set; } = default!;
     }
 }

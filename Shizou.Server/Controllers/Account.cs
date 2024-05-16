@@ -1,12 +1,11 @@
-﻿using System.Linq;
-using System.Net;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Shizou.Data;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -41,37 +40,43 @@ public class Account : ControllerBase
 
     [HttpPost("SetPassword")]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/json")]
-    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails), contentTypes: "application/json")]
     [SwaggerResponse(StatusCodes.Status500InternalServerError, type: typeof(ProblemDetails), contentTypes: "application/json")]
     [AllowAnonymous]
-    public async Task<Results<Ok<string>, BadRequest<string>, ProblemHttpResult>> SetPassword([FromBody] string? password)
+    public async Task<Results<Ok<string>, ProblemHttpResult>> ChangePassword([FromBody] PasswordModel passwordModel)
     {
-        if (password is null) return TypedResults.BadRequest("Password not supplied");
-        if (HttpContext.Connection.RemoteIpAddress is null || !IPAddress.IsLoopback(HttpContext.Connection.RemoteIpAddress))
-            return TypedResults.BadRequest("Must be local to change password");
-        var identity = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName == Constants.IdentityUsername).ConfigureAwait(false);
+        var password = passwordModel.Password;
+        var newPassword = passwordModel.NewPassword;
+
+        var user = _userManager.Users.SingleOrDefault();
+
         IdentityResult result;
-        if (identity is null)
+        if (user is null)
         {
-            identity = new IdentityUser { UserName = Constants.IdentityUsername };
-            result = await _userManager.CreateAsync(identity, password).ConfigureAwait(false);
+            user = new IdentityUser { UserName = Constants.IdentityUsername };
+            result = await _userManager.CreateAsync(user, newPassword).ConfigureAwait(false);
         }
         else
         {
-            result = await _userManager
-                .ResetPasswordAsync(identity, await _userManager.GeneratePasswordResetTokenAsync(identity).ConfigureAwait(false), password)
-                .ConfigureAwait(false);
+            if (await _userManager.CheckPasswordAsync(user, password).ConfigureAwait(false))
+                result = await _userManager
+                    .ResetPasswordAsync(user, await _userManager.GeneratePasswordResetTokenAsync(user).ConfigureAwait(false), newPassword)
+                    .ConfigureAwait(false);
+            else
+                return TypedResults.Problem(title: "Password is incorrect", statusCode: StatusCodes.Status401Unauthorized);
         }
 
         if (!result.Succeeded)
             return TypedResults.Problem(title: $"Something went wrong when creating account/changing password: {result}",
                 statusCode: StatusCodes.Status500InternalServerError);
 
-        var signInResult = await _signInManager.PasswordSignInAsync(Constants.IdentityUsername, password, true, false).ConfigureAwait(false);
+        var signInResult = await _signInManager.PasswordSignInAsync(user, newPassword, true, false).ConfigureAwait(false);
         var token = HttpContext.Response.GetTypedHeaders().SetCookie.FirstOrDefault(c => c.Name == Constants.IdentityCookieName);
         if (!signInResult.Succeeded || token is null)
             return TypedResults.Problem(title: $"Something went wrong when logging in after changing password: {signInResult}",
                 statusCode: StatusCodes.Status500InternalServerError);
         return TypedResults.Ok(token.Value.Value);
     }
+
+    public record PasswordModel([property: Required] string Password, [property: Required] string NewPassword);
 }
