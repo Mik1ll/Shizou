@@ -80,25 +80,25 @@ public class RHasher
 
     private static class Bindings
     {
-        [DllImport(LibRHash)]
+        [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
         private static extern void rhash_library_init();
 
-        [DllImport(LibRHash)]
+        [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
         public static extern nint rhash_init(HashIds hashIds);
 
-        [DllImport(LibRHash)]
+        [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
         public static extern int rhash_update(nint ctx, [In] byte[] message, nuint length);
 
-        [DllImport(LibRHash, CharSet = CharSet.Ansi)]
+        [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern unsafe int rhash_final(nint ctx, byte* firstResult);
 
-        [DllImport(LibRHash)]
+        [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
         public static extern void rhash_reset(nint ctx);
 
-        [DllImport(LibRHash)]
+        [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl)]
         public static extern void rhash_free(nint ctx);
 
-        [DllImport(LibRHash, CharSet = CharSet.Ansi)]
+        [DllImport(LibRHash, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern unsafe nuint rhash_print(byte* output, nint ctx, HashIds hashId, PrintFlags flags);
 
         private const string LibRHash = "librhash";
