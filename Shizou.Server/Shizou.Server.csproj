@@ -37,7 +37,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="RHashWrapper" Version="1.0.3" />
+        <PackageReference Include="RHashWrapper" Version="1.0.4" />
         <ProjectReference Include="..\Shizou.Data\Shizou.Data.csproj" />
     </ItemGroup>
 

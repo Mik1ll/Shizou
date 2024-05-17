@@ -32,13 +32,10 @@ COPY Shizou.Data /src/Shizou.Data/
 COPY Shizou.Server /src/Shizou.Server/
 COPY Shizou.Blazor /src/Shizou.Blazor/
 RUN dotnet publish Shizou.Blazor.csproj -c Release -a $TARGETARCH --no-self-contained -o /app/publish
-RUN mkdir /ShizouBin; mv /app/publish/Shizou.* /ShizouBin/
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /src/ffmpeg/ffprobe /src/ffmpeg/ffmpeg ./
 COPY --from=publish /src/AVDump3 AVDump3/
 COPY --from=publish /app/publish ./
-COPY --from=publish /ShizouBin ./
-COPY --from=publish /app/publish/librhash.so /usr/lib/aarch64-linux-gnu/
 ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
