@@ -82,8 +82,10 @@ public static class InitializationExtensions
                     $@"No certificate found, please add a SSL X.509 ASN.1 Certificate in PEM or PKCS#12 format:
   Must end with one of these extensions: {string.Join(", ", certExts)}
   If PEM key is a separate file, must end with .key
-  Placed inside ""{FilePaths.CertificateDir}""
-  If key is password protected, set env variable: ASPNETCORE_Kestrel__Certificates__Default__Password");
+  Sourced from either:
+    ""{FilePaths.CertificateDir}""
+     env variable ASPNETCORE_Kestrel__Certificates__Default__Path and optionally ASPNETCORE_Kestrel__Certificates__Default__KeyPath
+  If key is password protected, set env variable ASPNETCORE_Kestrel__Certificates__Default__Password");
         }
 
         return builder;
