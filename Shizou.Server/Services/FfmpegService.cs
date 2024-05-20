@@ -201,13 +201,15 @@ public class FfmpegService
 
     private Process NewFfprobeProcess()
     {
-        var streamsP = new Process();
-        streamsP.StartInfo.UseShellExecute = false;
-        streamsP.StartInfo.CreateNoWindow = true;
-        streamsP.StartInfo.RedirectStandardOutput = true;
-        streamsP.StartInfo.StandardOutputEncoding = Encoding.UTF8;
-        streamsP.StartInfo.FileName = "ffprobe";
-        return streamsP;
+        var ffprobeProcess = new Process();
+        ffprobeProcess.StartInfo.UseShellExecute = false;
+        ffprobeProcess.StartInfo.CreateNoWindow = true;
+        ffprobeProcess.StartInfo.RedirectStandardOutput = true;
+        ffprobeProcess.StartInfo.WorkingDirectory = FilePaths.InstallDir;
+        ;
+        ffprobeProcess.StartInfo.StandardOutputEncoding = Encoding.UTF8;
+        ffprobeProcess.StartInfo.FileName = "ffprobe";
+        return ffprobeProcess;
     }
 
     private Process NewFfmpegProcess()
@@ -215,6 +217,7 @@ public class FfmpegService
         var ffmpegProcess = new Process();
         ffmpegProcess.StartInfo.UseShellExecute = false;
         ffmpegProcess.StartInfo.CreateNoWindow = true;
+        ffmpegProcess.StartInfo.WorkingDirectory = FilePaths.InstallDir;
         ffmpegProcess.StartInfo.FileName = "ffmpeg";
         return ffmpegProcess;
     }

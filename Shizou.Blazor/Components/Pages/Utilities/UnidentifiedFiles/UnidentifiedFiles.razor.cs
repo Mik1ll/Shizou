@@ -29,6 +29,9 @@ public partial class UnidentifiedFiles
     [Inject]
     private IModalService ModalService { get; set; } = default!;
 
+    [Inject]
+    private ILogger<UnidentifiedFiles> Logger { get; set; } = default!;
+
 
     private static string GetFilePath(LocalFile file) => Path.Combine(file.ImportFolder?.Path ?? "<MISSING IMPORT FLD>", file.PathTail);
 
@@ -58,8 +61,16 @@ public partial class UnidentifiedFiles
 
     private void HashFiles(List<LocalFile> localFiles)
     {
-        CommandService.DispatchRange(localFiles.Where(lf => lf.ImportFolder != null).Select(lf =>
+        CommandService.DispatchRange(localFiles.Where(lf => lf.ImportFolder is not null).Select(lf =>
             new HashArgs(Path.Combine(lf.ImportFolder!.Path, lf.PathTail))));
+        foreach (var lf in localFiles.Where(lf => lf.ImportFolder is null))
+            Logger.LogWarning("Cannot hash local file id: {LocalFileId}, name: \"{LocalFileName}\", import folder is null", lf.Id,
+                Path.GetFileName(lf.PathTail));
+    }
+
+    private void AvDumpFiles(List<LocalFile> localFiles)
+    {
+        CommandService.DispatchRange(localFiles.Select(lf => new AvDumpArgs(lf.Id)));
     }
 
     private void SetIgnored(List<LocalFile> localFiles, bool ignored)

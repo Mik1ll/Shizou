@@ -1,10 +1,15 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Shizou.Data;
 
 public static class FilePaths
 {
     public static readonly string ApplicationDataDir = GetApplicationDataDir();
+
+    public static readonly string InstallDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ??
+                                               throw new ArgumentException("Executing assembly location shouldn't be empty or root");
+
     public static readonly string TempFileDir = Path.Combine(ApplicationDataDir, "Temp");
     public static readonly string HttpCacheDir = Path.Combine(ApplicationDataDir, "HTTPAnime");
     public static readonly string MyListBackupDir = Path.Combine(ApplicationDataDir, "MyListBackup");
@@ -19,6 +24,7 @@ public static class FilePaths
     public static readonly string MyAnimeListTokenPath = Path.Combine(ApplicationDataDir, "MyAnimeListToken.json");
     public static readonly string IdentityDatabasePath = Path.Combine(ApplicationDataDir, "IdentityDB.sqlite3");
     public static readonly string CertificateDir = Path.Combine(ApplicationDataDir, "Certificate");
+    public static readonly string AvDumpDir = Path.Combine(InstallDir, "AVDump3");
 
     public static string DatabasePath(string username) => Path.Combine(ApplicationDataDir, "ShizouDB" +
                                                                                            (string.IsNullOrWhiteSpace(username)

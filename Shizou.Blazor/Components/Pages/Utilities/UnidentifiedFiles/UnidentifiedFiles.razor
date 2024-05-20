@@ -45,6 +45,9 @@
                             <button type="button" class="btn btn-primary" @onclick="@(() => HashFiles(_selectedFiles))">
                                 <i class="bi bi-hash"></i> Hash
                             </button>
+                            <button type="button" class="btn btn-primary" @onclick="@(() => AvDumpFiles(_selectedFiles))">
+                                <i class="bi bi-hash"></i> AVDump
+                            </button>
                             @if (_selectedFiles.All(lf => lf.Ignored == false))
                             {
                                 <button type="button" class="btn btn-primary" @onclick="@(() => SetIgnored(_selectedFiles, true))">

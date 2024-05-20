@@ -220,6 +220,7 @@ public static class InitializationExtensions
             .AddTransient<ExtractExtraDataCommand>()
             .AddTransient<GetAnimeByEpisodeIdCommand>()
             .AddTransient<GetAnimeTitlesCommand>()
+            .AddTransient<AvDumpCommand>()
             .AddSingleton<CommandService>()
             .AddHostedService<CommandService>(p => p.GetRequiredService<CommandService>())
             .AddTransient<ImportService>()
@@ -231,7 +232,8 @@ public static class InitializationExtensions
             .AddTransient<MyAnimeListService>()
             .AddTransient<FfmpegService>()
             .AddTransient<ManualLinkService>()
-            .AddTransient<AnimeService>();
+            .AddTransient<AnimeService>()
+            .AddTransient<AvDumpService>();
         return services;
     }
 
