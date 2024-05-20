@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json.Serialization;
@@ -57,6 +58,34 @@ public static class InitializationExtensions
             .Bind(builder.Configuration.GetSection(ShizouOptions.Shizou))
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        var certDir = new DirectoryInfo(FilePaths.CertificateDir);
+        certDir.Create();
+        if (!builder.Environment.IsDevelopment())
+        {
+            var certExts = new[] { ".pem", ".cer", ".crt", ".cert", ".pfx", ".p12", ".pkcs12" };
+            if (builder.Configuration.GetSection("Kestrel:Certificates:Default:Path").Value is null)
+            {
+                var files = certDir.GetFiles();
+                var certs = files.Where(f => certExts.Any(ex => f.Name.ToLower().EndsWith(ex))).ToList();
+                if (certs.Count > 1)
+                    throw new InvalidOperationException(
+                        $"Only one certificate store file allowed in \"{FilePaths.CertificateDir}\", if there is a PEM key file, change the file extension to .key");
+                if (certs.FirstOrDefault() is { } certFile)
+                    builder.Configuration["Kestrel:Certificates:Default:Path"] = certFile.FullName;
+
+                if (files.FirstOrDefault(f => f.Name.ToLower().EndsWith(".key")) is { } keyFile)
+                    builder.Configuration["Kestrel:Certificates:Default:KeyPath"] = keyFile.FullName;
+            }
+
+            if (builder.Configuration.GetSection("Kestrel:Certificates:Default:Path").Value is null)
+                throw new InvalidOperationException(
+                    $@"No certificate found, please add a SSL X.509 ASN.1 Certificate in PEM or PKCS#12 format:
+  Must end with one of these extensions: {string.Join(", ", certExts)}
+  If PEM key is a separate file, must end with .key
+  Placed inside ""{FilePaths.CertificateDir}""
+  If key is password protected, set env variable: ASPNETCORE_Kestrel__Certificates__Default__Password");
+        }
+
         return builder;
     }
 

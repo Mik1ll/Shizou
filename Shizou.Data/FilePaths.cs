@@ -18,6 +18,7 @@ public static class FilePaths
     public static readonly string ExtraFileDataDir = Path.Combine(ApplicationDataDir, "ExtraFileData");
     public static readonly string MyAnimeListTokenPath = Path.Combine(ApplicationDataDir, "MyAnimeListToken.json");
     public static readonly string IdentityDatabasePath = Path.Combine(ApplicationDataDir, "IdentityDB.sqlite3");
+    public static readonly string CertificateDir = Path.Combine(ApplicationDataDir, "Certificate");
 
     public static string DatabasePath(string username) => Path.Combine(ApplicationDataDir, "ShizouDB" +
                                                                                            (string.IsNullOrWhiteSpace(username)
