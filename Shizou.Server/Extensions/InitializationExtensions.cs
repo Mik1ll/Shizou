@@ -104,7 +104,7 @@ public static class InitializationExtensions
         builder.Use(async (context, next) =>
         {
             context.Response.Headers.Append("X-Frame-Options", "DENY");
-            if (!context.Request.Path.StartsWithSegments("/api"))
+            if (!context.Request.Path.StartsWithSegments(Constants.ApiPrefix))
             {
                 context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
                 context.Response.Headers.Append("X-XSS-Protection", "0");
