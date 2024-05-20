@@ -3,7 +3,6 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <UserSecretsId>eb93ab3c-3c70-47c9-a0d8-1fd4dd784d79</UserSecretsId>
-        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <TrimMode>copyused</TrimMode>
         <InvariantGlobalization>true</InvariantGlobalization>
@@ -11,6 +10,7 @@
         <NoWarn>$(NoWarn);1591</NoWarn>
         <Nullable>enable</Nullable>
         <LangVersion>12</LangVersion>
+        <OutputType>Library</OutputType>
     </PropertyGroup>
 
     <ItemGroup>
@@ -43,6 +43,10 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="Shizou.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="Properties\launchSettings.json" />
     </ItemGroup>
 
 

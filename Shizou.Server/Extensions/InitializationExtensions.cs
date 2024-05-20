@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -52,10 +51,7 @@ public static class InitializationExtensions
             new ShizouOptions().SaveToFile();
         if (!File.Exists(FilePaths.SchemaPath) || File.ReadAllText(FilePaths.SchemaPath) != ShizouOptions.Schema)
             File.WriteAllText(FilePaths.SchemaPath, ShizouOptions.Schema);
-        var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? throw new ApplicationException("No Entry assembly???");
         builder.Configuration
-            .AddJsonFile($"appsettings.{assemblyName}.json", true, true)
-            .AddJsonFile($"appsettings.{assemblyName}.{builder.Environment.EnvironmentName}.json", true, true)
             .AddJsonFile(FilePaths.OptionsPath, false, true);
         builder.Services.AddOptions<ShizouOptions>()
             .Bind(builder.Configuration.GetSection(ShizouOptions.Shizou))

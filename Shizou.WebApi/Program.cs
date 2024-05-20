@@ -1,8 +1,3 @@
-using System;
-using System.IO;
-using System.Threading;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Hosting;
 using Serilog;
 using Shizou.Data;
 using Shizou.Server.Extensions;
@@ -47,8 +42,8 @@ try
 
     var app = builder.Build();
 
-    if (!app.Environment.IsDevelopment())
-        app.UseHsts();
+    if (!app.Environment.IsDevelopment()) app.UseHsts();
+
 
     app.UseSwagger();
     app.UseSwaggerUI();
