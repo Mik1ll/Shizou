@@ -4,9 +4,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Server.AniDbApi;
-
-// ReSharper disable UnusedVariable
 
 namespace Shizou.Server.Services;
 
@@ -27,7 +26,9 @@ public sealed class StartupService : BackgroundService
         log.LogInformation("Started startup service");
         var udpState = _serviceProvider.GetRequiredService<AniDbUdpState>();
         await udpState.SetupNatAsync().ConfigureAwait(false);
-        
+        var commandService = _serviceProvider.GetRequiredService<CommandService>();
+        commandService.ScheduleCommand(new GetAnimeTitlesArgs(), null, DateTimeOffset.Now, TimeSpan.FromDays(1.05));
+
         log.LogInformation("Startup service finished");
     }
 }

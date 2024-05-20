@@ -64,7 +64,7 @@ public class AnimeTitleSearchService
         return SearchTitles(_animeTitlesMemCache, query, restrictInCollection).Select(t => (t.Aid, t.Title)).ToList();
     }
 
-    private async Task GetTitlesAsync()
+    public async Task GetTitlesAsync()
     {
         string? data;
         using var context = _contextFactory.CreateDbContext();

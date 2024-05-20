@@ -219,6 +219,7 @@ public static class InitializationExtensions
             .AddTransient<RestoreMyListBackupCommand>()
             .AddTransient<ExtractExtraDataCommand>()
             .AddTransient<GetAnimeByEpisodeIdCommand>()
+            .AddTransient<GetAnimeTitlesCommand>()
             .AddSingleton<CommandService>()
             .AddHostedService<CommandService>(p => p.GetRequiredService<CommandService>())
             .AddTransient<ImportService>()
