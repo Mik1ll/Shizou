@@ -13,25 +13,31 @@ public class AvDumpService
 {
     private readonly ILogger<AvDumpService> _logger;
 
+
     public AvDumpService(ILogger<AvDumpService> logger) => _logger = logger;
 
-    public async Task RunAvDumpAsync(LocalFile localFile)
+    public async Task AvDumpFileAsync(LocalFile localFile, string username, string udpKey, int localPort)
     {
         if (localFile.ImportFolder is null) throw new NullReferenceException("Import folder for LocalFile is null, did you include it?");
         var avdumpP = NewAvDumpProcess();
-        avdumpP.StartInfo.ArgumentList.Add("--Cons=ED2K");
-        avdumpP.StartInfo.ArgumentList.Add("--PrintHashes");
         avdumpP.StartInfo.ArgumentList.Add("--HideBuffers");
         avdumpP.StartInfo.ArgumentList.Add("--HideFileProgress");
         avdumpP.StartInfo.ArgumentList.Add("--HideTotalProgress");
         avdumpP.StartInfo.ArgumentList.Add("--ForwardConsoleCursorOnly");
+        avdumpP.StartInfo.ArgumentList.Add("--PrintEd2kLink");
+        avdumpP.StartInfo.ArgumentList.Add($"--Auth={username}:{udpKey}");
+        avdumpP.StartInfo.ArgumentList.Add($"--LPort={localPort}");
+        avdumpP.StartInfo.ArgumentList.Add("--TOut=0:0");
         avdumpP.StartInfo.ArgumentList.Add(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
         avdumpP.Start();
         var res = await avdumpP.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-        var err = await avdumpP.StandardError.ReadToEndAsync().ConfigureAwait(false);
-        _logger.LogInformation("AVDump returned:\n{AvDumpResult}", res);
-        if (!string.IsNullOrWhiteSpace(err))
-            _logger.LogWarning("AVDump returned Error:\n{AvDumpError}", err);
+        if (!string.IsNullOrWhiteSpace(res))
+            if (res.Contains("Error"))
+                _logger.LogError("AVDump returned Error:\n{AvDumpError}", res);
+            else
+                _logger.LogInformation("AVDump returned:\n{AvDumpResult}", res);
+        else
+            _logger.LogError("AVDump did not return any text");
     }
 
     private Process NewAvDumpProcess()

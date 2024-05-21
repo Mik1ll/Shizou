@@ -46,7 +46,7 @@ public sealed class AniDbUdpState : IDisposable
         var options = optionsMonitor.CurrentValue;
         ServerHost = options.AniDb.ServerHost;
         ServerPort = options.AniDb.UdpServerPort;
-        UdpClient = new UdpClient(new IPEndPoint(IPAddress.Any, options.AniDb.ClientPort));
+        UdpClient = new UdpClient(new IPEndPoint(IPAddress.Any, options.AniDb.UdpClientPort));
         UdpClient.Client.ReceiveBufferSize = 1 << 15;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             UdpClient.AllowNatTraversal(true);
@@ -212,7 +212,7 @@ public sealed class AniDbUdpState : IDisposable
         if (_router is null)
             return;
         var optionsVal = _optionsMonitor.CurrentValue;
-        _natMapping = await _router.CreatePortMapAsync(_natMapping ?? new Mapping(Protocol.Udp, optionsVal.AniDb.ClientPort, optionsVal.AniDb.ClientPort))
+        _natMapping = await _router.CreatePortMapAsync(_natMapping ?? new Mapping(Protocol.Udp, optionsVal.AniDb.UdpClientPort, optionsVal.AniDb.UdpClientPort))
             .ConfigureAwait(false);
         _logger.LogInformation("Created port mapping on port private: {ClientPrivatePort} public: {ClientPublicPort} with NAT type: {NatType}",
             _natMapping.PrivatePort, _natMapping.PublicPort, _router.NatProtocol);

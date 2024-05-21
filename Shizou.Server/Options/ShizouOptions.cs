@@ -39,7 +39,7 @@ public class ShizouOptions : IValidatableObject
                         "{{nameof(AniDb.Password)}}": {
                             "description": "Ensure AniDb password is not use anywhere else, it is insecure. Only use alphanumeric characters.",
                             "type": "string",
-                            "pattern": "^[a-zA-z0-9]+$",
+                            "pattern": "^[a-zA-Z0-9]+$",
                             "minLength": 4,
                             "maxLength": 64
                         },
@@ -56,16 +56,16 @@ public class ShizouOptions : IValidatableObject
                             ],
                             "format": "hostname"
                         },
-                        "{{nameof(AniDb.UdpServerPort)}}": {
-                            "description": "Remote port used to connect to AniDb UDP API, should be 9000",
-                            "type": "integer"
-                        },
                         "{{nameof(AniDb.HttpServerPort)}}": {
-                            "description": "Remote port used to connect to AniDb HTTP API, should be 9001",
+                            "description": "Remote HTTP port used to connect to AniDb API, should be 9001",
                             "type": "integer"
                         },
-                        "{{nameof(AniDb.ClientPort)}}": {
-                            "description": "Local port used to connect to UDP API, NAT may affect the port that AniDb sees",
+                        "{{nameof(AniDb.UdpServerPort)}}": {
+                            "description": "Remote UDP port used to connect to AniDb API, should be 9000",
+                            "type": "integer"
+                        },
+                        "{{nameof(AniDb.UdpClientPort)}}": {
+                            "description": "Local UDP port used to connect to API, NAT may affect the port that AniDb sees",
                             "type": "integer",
                             "minimum": 1024,
                             "maximum": 65535
@@ -73,7 +73,7 @@ public class ShizouOptions : IValidatableObject
                         "{{nameof(AniDb.MyList)}}": {
                             "type": "object",
                             "properties": {
-                                "DisableSync": {
+                                "{{nameof(AniDb.MyList.DisableSync)}}": {
                                     "description": "Disables Sync to AniDb command, use if concerned of AniDb data loss/clobbering",
                                     "type": "boolean"
                                 },
@@ -96,6 +96,26 @@ public class ShizouOptions : IValidatableObject
                             "type": "integer",
                             "minimum": 0,
                             "maximum": 4
+                        },
+                        "{{nameof(AniDb.AvDump)}}": {
+                            "type": "object",
+                            "properties": {
+                                "{{nameof(AniDb.AvDump.UdpKey)}}": {
+                                    "description": "AniDB UDP key, this is set in your account settings on AniDB",
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "maxLength": 32,
+                                    "pattern": "^[a-zA-Z1-9]+$"
+                                },
+                                "{{nameof(AniDb.AvDump.UdpClientPort)}}": {
+                                    "description": "Local UDP port used by AVDump, NAT may affect the port that AniDb sees",
+                                    "type": "integer",
+                                    "minimum": 1024,
+                                    "maximum": 65535
+                                }
+                          }
                         }
                     }
                 },
@@ -175,15 +195,17 @@ public class AniDbOptions
 
     public string? ImageServerHost { get; set; }
 
-    public int UdpServerPort { get; set; } = 9000;
-
     public int HttpServerPort { get; set; } = 9001;
 
-    public int ClientPort { get; set; } = 4556;
+    public int UdpServerPort { get; set; } = 9000;
+
+    public int UdpClientPort { get; set; } = 4556;
 
     public MyListOptions MyList { get; set; } = new();
 
     public int FetchRelationDepth { get; set; } = 3;
+
+    public AvDumpOptions AvDump { get; set; } = new();
 }
 
 public class MyListOptions
@@ -196,4 +218,10 @@ public class MyListOptions
 public class MyAnimeListOptions
 {
     public string ClientId { get; set; } = string.Empty;
+}
+
+public class AvDumpOptions
+{
+    public string? UdpKey { get; set; }
+    public int UdpClientPort { get; set; } = 4557;
 }
