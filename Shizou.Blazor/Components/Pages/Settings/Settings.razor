@@ -38,6 +38,16 @@
         </div>
         <div class="mb-2">
             <label class="form-label">
+                AVDump UDP Key
+                <InputText class="form-control" @bind-Value="@(_options.AniDb.AvDump.UdpKey)"></InputText>
+            </label>
+            <label class="form-label">
+                AVDump UDP Client Port
+                <InputNumber class="form-control" @bind-Value="@(_options.AniDb.AvDump.UdpClientPort)"></InputNumber>
+            </label>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">
                 Anime relation fetch depth
                 <InputNumber class="form-control" @bind-Value="@(_options.AniDb.FetchRelationDepth)"></InputNumber>
             </label>
