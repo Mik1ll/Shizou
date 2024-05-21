@@ -3,6 +3,7 @@ using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Components.Shared;
+using Shizou.Blazor.Services;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
@@ -32,6 +33,9 @@ public partial class UnidentifiedFiles
     [Inject]
     private ILogger<UnidentifiedFiles> Logger { get; set; } = default!;
 
+    [Inject]
+    private ToastService ToastService { get; set; } = default!;
+
 
     private static string GetFilePath(LocalFile file) => Path.Combine(file.ImportFolder?.Path ?? "<MISSING IMPORT FLD>", file.PathTail);
 
@@ -52,6 +56,7 @@ public partial class UnidentifiedFiles
     private void ScanFiles(List<LocalFile> localFiles)
     {
         CommandService.DispatchRange(localFiles.Select(lf => new ProcessArgs(lf.Id, IdTypeLocalOrFile.LocalId)));
+        ToastService.ShowInfo("Queued Process Commands", $"Queued Process command for {localFiles.Count} files");
     }
 
     private void OnSelectChanged(List<LocalFile> values)
@@ -61,16 +66,22 @@ public partial class UnidentifiedFiles
 
     private void HashFiles(List<LocalFile> localFiles)
     {
-        CommandService.DispatchRange(localFiles.Where(lf => lf.ImportFolder is not null).Select(lf =>
-            new HashArgs(Path.Combine(lf.ImportFolder!.Path, lf.PathTail))));
+        var hashableFiles = localFiles.Where(lf => lf.ImportFolder is not null).ToList();
+        CommandService.DispatchRange(hashableFiles.Select(lf => new HashArgs(Path.Combine(lf.ImportFolder!.Path, lf.PathTail))));
+        if (hashableFiles.Count > 0)
+            ToastService.ShowInfo("Queued Hash Commands", $"Queued hash commands for {hashableFiles.Count} files");
         foreach (var lf in localFiles.Where(lf => lf.ImportFolder is null))
+        {
             Logger.LogWarning("Cannot hash local file id: {LocalFileId}, name: \"{LocalFileName}\", import folder is null", lf.Id,
                 Path.GetFileName(lf.PathTail));
+            ToastService.ShowWarn("Failed to hash", $"Cannot hash local file id: {lf.Id}, name: \"{Path.GetFileName(lf.PathTail)}\", import folder is null");
+        }
     }
 
     private void AvDumpFiles(List<LocalFile> localFiles)
     {
         CommandService.DispatchRange(localFiles.Select(lf => new AvDumpArgs(lf.Id)));
+        ToastService.ShowInfo("Queued AVDump Commands", $"Queued AVDump for {localFiles.Count} files");
     }
 
     private void SetIgnored(List<LocalFile> localFiles, bool ignored)
