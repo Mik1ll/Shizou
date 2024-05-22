@@ -109,7 +109,7 @@ public partial class Collection
 
     private void SetSearchResults(List<(int, string)>? results)
     {
-        _animeSearchResults = results is null
+        _animeSearchResults = results is null || _anime is null
             ? null
             : (from res in results
                 join a in _anime on res.Item1 equals a.Id

@@ -65,7 +65,7 @@
                             @foreach (var (relationType, anime) in _relatedAnime!)
                             {
                                 <div class="text-center">
-                                    <AnimeCard AniDbAnime="@anime"></AnimeCard>
+                                    <AnimeCard Title="@(anime.TitleTranscription)" AnimeId="@(anime.Id)"></AnimeCard>
                                     <span>@relationType.ToString()</span>
                                 </div>
                             }
