@@ -1,5 +1,10 @@
 ﻿name: Publish Blazor Docker Image
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - dev
 env:
   # Uses docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
@@ -29,7 +34,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Delete older packages
         uses: actions/delete-package-versions@v5
         with:
