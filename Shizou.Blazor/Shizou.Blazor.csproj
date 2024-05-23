@@ -12,9 +12,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.Modal" Version="7.1.0" />
+        <PackageReference Include="Blazored.Modal" Version="7.3.1" />
         <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
-        <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.8.14">
+        <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.10.48">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
