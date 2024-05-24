@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -18,7 +17,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using Microsoft.OpenApi.Models;
 using Serilog;
 using Shizou.Data;
 using Shizou.Data.Database;
@@ -284,21 +282,12 @@ public static class InitializationExtensions
                 opt.OrderActionsBy(apiDesc =>
                     $"{apiDesc.ActionDescriptor.RouteValues["controller"]}_{apiDesc.RelativePath?.Length ?? 0:d3}_{apiDesc.HttpMethod switch { "GET" => "0", "PUT" => "1", "POST" => "2", "DELETE" => "3", _ => "4" }}");
                 opt.EnableAnnotations();
-                opt.AddSecurityDefinition("AspIdentity", new OpenApiSecurityScheme
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Name = Constants.IdentityCookieName,
-                    In = ParameterLocation.Cookie,
-                    Description = "Asp Identity Token",
-                    Flows = new OpenApiOAuthFlows
-                    {
-                        Implicit = new OpenApiOAuthFlow
-                        {
-                            AuthorizationUrl = new Uri($"{Constants.ApiPrefix}/Account/Login", UriKind.Relative),
-                            Scopes = new Dictionary<string, string>()
-                        }
-                    }
-                });
+                // opt.AddSecurityDefinition(Constants.IdentityCookieName, new OpenApiSecurityScheme
+                // {
+                //     Type = SecuritySchemeType.ApiKey,
+                //     Name = Constants.IdentityCookieName,
+                //     In = ParameterLocation.Cookie,
+                // });
                 opt.OperationFilter<SecurityOperationFilter>();
                 opt.OperationFilter<AddResponseHeadersFilter>();
             })
