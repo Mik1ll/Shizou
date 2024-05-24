@@ -36,6 +36,7 @@ using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 using Shizou.Server.SwaggerFilters;
+using Swashbuckle.AspNetCore.Filters;
 using UdpAnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.AnimeRequest;
 using IUdpAnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.Interfaces.IAnimeRequest;
 using HttpAnimeRequest = Shizou.Server.AniDbApi.Requests.Http.AnimeRequest;
@@ -299,6 +300,7 @@ public static class InitializationExtensions
                     }
                 });
                 opt.OperationFilter<SecurityOperationFilter>();
+                opt.OperationFilter<AddResponseHeadersFilter>();
             })
             .AddTransient<IContentTypeProvider, FileExtensionContentTypeProvider>();
         return services;
