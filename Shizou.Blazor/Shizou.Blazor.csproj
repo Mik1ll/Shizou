@@ -12,7 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Blazored.Modal" Version="7.3.1" />
+        <PackageReference Include="Blazored.Modal" Version="7.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
         <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.10.48">
             <PrivateAssets>all</PrivateAssets>
@@ -25,6 +25,10 @@
     <ItemGroup>
         <ProjectReference Include="..\Shizou.Data\Shizou.Data.csproj" />
         <ProjectReference Include="..\Shizou.Server\Shizou.Server.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <InternalsVisibleTo Include="Shizou.Tests" />
     </ItemGroup>
 
     <ItemGroup>

@@ -17,11 +17,12 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Moq" Version="4.20.70" />
-        <PackageReference Include="MSTest.TestAdapter" Version="3.3.1" />
-        <PackageReference Include="MSTest.TestFramework" Version="3.3.1" />
+        <PackageReference Include="MSTest.TestAdapter" Version="3.4.0" />
+        <PackageReference Include="MSTest.TestFramework" Version="3.4.0" />
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Shizou.Blazor\Shizou.Blazor.csproj" />
         <ProjectReference Include="..\Shizou.Server\Shizou.Server.csproj" />
     </ItemGroup>
 

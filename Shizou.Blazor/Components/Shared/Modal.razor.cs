@@ -7,8 +7,8 @@ namespace Shizou.Blazor.Components.Shared;
 public partial class Modal
 {
     private FocusTrap? _focusTrap;
-    private string _classes = string.Empty;
-    private string _displayClass = string.Empty;
+    private string _extraClasses = string.Empty;
+    private string _showClass = string.Empty;
     private bool _opened = false;
 
     [CascadingParameter]
@@ -22,7 +22,7 @@ public partial class Modal
     public EventCallback OnCancel { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
-    public Dictionary<string, object> AdditionalAttributes { get; set; } = new();
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
 
     public async Task CloseAsync()
     {
@@ -31,7 +31,7 @@ public partial class Modal
 
     public async Task CloseAsync(ModalResult modalResult)
     {
-        _displayClass = string.Empty;
+        _showClass = string.Empty;
         StateHasChanged();
         await Task.Delay(300);
         await ModalInstance.CloseAsync(modalResult);
@@ -53,8 +53,9 @@ public partial class Modal
 
     protected override void OnParametersSet()
     {
-        AdditionalAttributes.Remove("class", out var addClasses);
-        _classes = addClasses as string ?? string.Empty;
+        object? addClasses = null;
+        AdditionalAttributes?.Remove("class", out addClasses);
+        _extraClasses = addClasses as string ?? string.Empty;
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -62,7 +63,7 @@ public partial class Modal
         ModalInstance.FocusTrap = _focusTrap;
         if (!_opened)
         {
-            _displayClass = "show";
+            _showClass = "show";
             _opened = true;
         }
     }
