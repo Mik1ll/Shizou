@@ -13,7 +13,6 @@ public class AvDumpService
 {
     private readonly ILogger<AvDumpService> _logger;
 
-
     public AvDumpService(ILogger<AvDumpService> logger) => _logger = logger;
 
     public async Task AvDumpFileAsync(LocalFile localFile, string username, string udpKey, int localPort)
@@ -49,9 +48,9 @@ public class AvDumpService
         avDumpProcess.StartInfo.StandardOutputEncoding = Encoding.UTF8;
         avDumpProcess.StartInfo.RedirectStandardError = true;
         avDumpProcess.StartInfo.StandardErrorEncoding = Encoding.UTF8;
-        avDumpProcess.StartInfo.WorkingDirectory = FilePaths.InstallDir;
+        avDumpProcess.StartInfo.WorkingDirectory = FilePaths.AvDumpDir;
         avDumpProcess.StartInfo.FileName = "dotnet";
-        avDumpProcess.StartInfo.ArgumentList.Add(Path.Combine(FilePaths.AvDumpDir, "AVDump3CL.dll"));
+        avDumpProcess.StartInfo.ArgumentList.Add("AVDump3CL.dll");
         return avDumpProcess;
     }
 }
