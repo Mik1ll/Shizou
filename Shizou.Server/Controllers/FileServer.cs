@@ -16,7 +16,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shizou.Data;
 using Shizou.Data.Database;
-using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
@@ -106,7 +105,7 @@ public class FileServer : ControllerBase
             var loopLocalFile = loopEp.AniDbFiles.OrderBy(l => (l as AniDbNormalFile)?.AniDbGroupId != groupId).SelectMany(f => f.LocalFiles).FirstOrDefault();
             if (loopLocalFile is null)
                 break;
-            m3U8 += $"#EXTINF:-1,{episode.AniDbAnime.TitleTranscription} - {loopEp.EpisodeType.GetEpString(loopEp.Number)}\n";
+            m3U8 += $"#EXTINF:-1,{episode.AniDbAnime.TitleTranscription} - {loopEp.EpString}\n";
             var fileUri = GetFileUri(loopLocalFile, loopEp);
             m3U8 += $"{fileUri}\n";
             lastEpType = loopEp.EpisodeType;
@@ -123,7 +122,10 @@ public class FileServer : ControllerBase
             IDictionary<string, object?> values = new ExpandoObject();
             values["ed2K"] = lf.Ed2k;
             values["posterFilename"] = ep.AniDbAnime.ImageFilename;
+            values["animeName"] = ep.AniDbAnime.TitleTranscription;
             values["episodeName"] = ep.TitleEnglish;
+            values["epNo"] = ep.EpString;
+            values["animeId"] = animeId;
             values[Constants.IdentityCookieName] = HttpContext.Request.Cookies[Constants.IdentityCookieName];
             values["appId"] = ShizouOptions.Shizou;
             var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
