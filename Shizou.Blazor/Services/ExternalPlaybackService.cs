@@ -37,6 +37,7 @@ public class ExternalPlaybackService
         values[Constants.IdentityCookieName] = identityCookie;
         var fileUri = _linkGenerator.GetUriByAction(_httpContextAccessor.HttpContext ?? throw new ArgumentNullException(), nameof(FileServer.GetPlaylist),
             nameof(FileServer), values) ?? throw new ArgumentException();
+        fileUri = Uri.EscapeDataString(fileUri);
         return $"{_extPlayerScheme}{fileUri}";
     }
 }
