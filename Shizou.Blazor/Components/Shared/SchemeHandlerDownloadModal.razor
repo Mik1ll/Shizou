@@ -1,17 +1,17 @@
 ﻿@using Shizou.Data
 <Modal @ref="@_modal">
     <div class="modal-header">
-        <h4 class="modal-title">Download the scheme handler to play video in an external player</h4>
+        <h4 class="modal-title">Download the scheme handler and install to play video in an external player</h4>
     </div>
     <div class="modal-body">
         <div class="d-flex justify-content-center">
             <a class="btn btn-success me-2" href="@(Constants.SchemeHandlerWindowsDownloadUri)">Windows x64</a>
-            <a class="btn btn-success" href="@(Constants.SchemeHandlerLinuxDownloadUri)">Linux x64</a>
+            <a class="btn btn-success me-2" href="@(Constants.SchemeHandlerLinuxDownloadUri)">Linux x64</a>
+            <a class="btn btn-success" href="@(Constants.SchemeHandlerLinuxArmDownloadUri)">Linux arm64</a>
         </div>
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn btn-success" @onclick="@InstalledAsync">Got It</button>
-        <button type="button" class="btn btn-secondary" @onclick="@InstalledAsync">Already Installed</button>
+        <button type="button" class="btn btn-success" @onclick="@InstalledAsync">It's Installed</button>
         <button type="button" class="btn btn-danger" @onclick="@DismissAsync">Dismiss</button>
     </div>
 </Modal>
