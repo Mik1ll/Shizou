@@ -1,0 +1,33 @@
+﻿name: Build RHash
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Up QEMU
+        uses: docker/setup-qemu-action@v3
+        if: ${{ ! startsWith(matrix.arch, 'amd64') }}
+        with:
+          platforms: ${{ matrix.arch }}
+
+      - name: Run Docker
+        run: |
+          curl -sL https://github.com/rhash/RHash/archive/refs/tags/v1.4.4.tar.gz | tar -xz --strip-components=1
+          docker run --rm \
+          --mount type=bind,src=$(pwd),dst=/src -w /src \
+          --platform linux/${{ matrix.arch }} \
+          gcc:latest /bin/sh -c './configure --disable-gettext --disable-openssl --target=${{ matrix.arch }}-linux ; make lib-shared ; uname -a'
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: librhash-1.4.4-${{ matrix.arch }}
+          path: librhash/librhash.so.1.4.4
+          if-no-files-found: error
+
+    strategy:
+      matrix:
+        arch:
+          - amd64
+          - aarch64
