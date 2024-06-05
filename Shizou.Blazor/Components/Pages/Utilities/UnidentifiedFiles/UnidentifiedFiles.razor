@@ -80,7 +80,7 @@
                                 <strong>Size:</strong> @(Math.Round(localFile.FileSize / (1024.0 * 1024), 2)) MiB
                             </li>
                             <li class="list-group-item">
-                                <strong>Hash:</strong> @(localFile.Ed2k)
+                                <strong>Ed2k:</strong> @(GetEd2KLink(localFile))
                             </li>
                             <li class="list-group-item">
                                 <strong>CRC:</strong> @(localFile.Crc)
@@ -88,6 +88,17 @@
                             <li class="list-group-item">
                                 <strong>Updated:</strong> @(localFile.Updated?.ToLocalTime())
                             </li>
+                        </ul>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush overflow-y-auto mt-2" style="max-height: 35vh">
+                            @foreach (var localFile in _selectedFiles)
+                            {
+                                <li class="list-group-item">
+                                    @(GetEd2KLink(localFile))
+                                </li>
+                            }
                         </ul>
                     }
                 </div>
