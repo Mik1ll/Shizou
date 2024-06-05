@@ -39,6 +39,9 @@ public partial class UnidentifiedFiles
 
     private static string GetFilePath(LocalFile file) => Path.Combine(file.ImportFolder?.Path ?? "<MISSING IMPORT FLD>", file.PathTail);
 
+    private static string GetEd2KLink(LocalFile localFile) =>
+        $"ed2k://|file|{Path.GetFileName(localFile.PathTail).Replace('|', '-')}|{localFile.FileSize}|{localFile.Ed2k}|/";
+
 
     protected override void OnInitialized()
     {
