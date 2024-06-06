@@ -41,6 +41,12 @@
                             <button type="button" class="btn btn-primary" @onclick="@(() => HashFiles(_selectedFiles))">
                                 <i class="bi bi-hash"></i> Hash
                             </button>
+                            <button type="button" class="btn btn-primary" @onclick="@(() => AvDumpFiles(_selectedFiles))">
+                                <i class="bi bi-cloud-upload"></i> AVDump
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" @onclick="@(() => UnlinkFiles(_selectedFiles))">
+                                <i class="bi bi-slash-circle"></i> Unlink
+                            </button>
                         </div>
                     }
                     @if (_selectedFiles.Count == 1)
@@ -57,7 +63,7 @@
                                 <strong>Size:</strong> @(Math.Round(localFile.FileSize / (1024.0 * 1024), 2)) MiB
                             </li>
                             <li class="list-group-item">
-                                <strong>Hash:</strong> @(localFile.Ed2k)
+                                <strong>Ed2k:</strong> @(localFile.Ed2KLink)
                             </li>
                             <li class="list-group-item">
                                 <strong>CRC:</strong> @(localFile.Crc)
@@ -65,6 +71,17 @@
                             <li class="list-group-item">
                                 <strong>Updated:</strong> @(localFile.Updated?.ToLocalTime())
                             </li>
+                        </ul>
+                    }
+                    else if (_selectedFiles.Count > 0)
+                    {
+                        <ul class="list-group list-group-flush overflow-y-auto mt-2" style="max-height: 35vh">
+                            @foreach (var localFile in _selectedFiles)
+                            {
+                                <li class="list-group-item">
+                                    @(localFile.Ed2KLink)
+                                </li>
+                            }
                         </ul>
                     }
                 </div>

@@ -80,7 +80,7 @@
                                 <strong>Size:</strong> @(Math.Round(localFile.FileSize / (1024.0 * 1024), 2)) MiB
                             </li>
                             <li class="list-group-item">
-                                <strong>Ed2k:</strong> @(GetEd2KLink(localFile))
+                                <strong>Ed2k:</strong> @(localFile.Ed2KLink)
                             </li>
                             <li class="list-group-item">
                                 <strong>CRC:</strong> @(localFile.Crc)
@@ -90,13 +90,13 @@
                             </li>
                         </ul>
                     }
-                    else
+                    else if (_selectedFiles.Count > 0)
                     {
                         <ul class="list-group list-group-flush overflow-y-auto mt-2" style="max-height: 35vh">
                             @foreach (var localFile in _selectedFiles)
                             {
                                 <li class="list-group-item">
-                                    @(GetEd2KLink(localFile))
+                                    @(localFile.Ed2KLink)
                                 </li>
                             }
                         </ul>

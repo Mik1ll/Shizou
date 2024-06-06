@@ -21,6 +21,8 @@ public class LocalFile
     public required string PathTail { get; set; }
     public DateTime? Updated { get; set; }
 
+    public string Ed2KLink => $"ed2k://|file|{Path.GetFileName(PathTail).Replace('|', '-')}|{FileSize}|{Ed2k}|/";
+
     public int? ImportFolderId { get; set; }
 
     [JsonIgnore]
