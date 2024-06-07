@@ -30,6 +30,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
     protected readonly ILogger<AniDbUdpRequest<TResponse>> Logger;
     private readonly UdpRateLimiter _rateLimiter;
     private string? _requestText;
+    private string? _tag;
 
     protected AniDbUdpRequest(string command, ILogger<AniDbUdpRequest<TResponse>> logger, AniDbUdpState aniDbUdpState, UdpRateLimiter rateLimiter)
     {
@@ -137,45 +138,60 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         }
 
         _requestText = Command;
-        if (Args.Count > 0)
-            _requestText += ' ' + string.Join('&',
-                Args.Select((name, param) => $"{name}={Regex.Replace(HttpUtility.HtmlEncode(param), @"\r?\n|\r", "<br />")}"));
+        Args["tag"] = _tag = Path.GetRandomFileName()[..8];
+        _requestText += ' ' + string.Join('&',
+            Args.Select((name, param) => $"{name}={Regex.Replace(HttpUtility.HtmlEncode(param), @"\r?\n|\r", "<br />")}"));
     }
 
 
     /// <exception cref="AniDbUdpRequestException"></exception>
     private async Task<(string responseText, AniDbResponseCode responseCode, string responseCodeText)?> ReceiveResponseAsync()
     {
-        byte[] receivedBytes;
         Logger.LogTrace("Waiting to receive raw UDP response");
         var receiveTimeout = TimeSpan.FromSeconds(10);
         try
         {
-            using var cancelSource = new CancellationTokenSource(receiveTimeout);
-            receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync(cancelSource.Token).ConfigureAwait(false)).Buffer;
+            while (true)
+            {
+                using var cancelSource = new CancellationTokenSource(receiveTimeout);
+                var receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync(cancelSource.Token).ConfigureAwait(false)).Buffer;
+
+                // Two null bytes and two bytes of Zlib header, seems to ignore trailer automatically
+                await using Stream memStream = receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0
+                    ? new DeflateStream(new MemoryStream(receivedBytes, 4, receivedBytes.Length - 4), CompressionMode.Decompress)
+                    : new MemoryStream(receivedBytes);
+                using var reader = new StreamReader(memStream, Encoding);
+#pragma warning disable VSTHRD103
+                // ReSharper disable MethodHasAsyncOverloadWithCancellation
+                var codeLine = reader.ReadLine();
+                var responseText = reader.ReadToEnd();
+                // ReSharper restore MethodHasAsyncOverloadWithCancellation
+#pragma warning restore VSTHRD103
+                if (string.IsNullOrWhiteSpace(codeLine) || codeLine.Length <= 2)
+                    throw new AniDbUdpRequestException("AniDB response is empty");
+                Logger.LogDebug("Received UDP response:\n{CodeLine}\n{ResponseText}", codeLine, responseText);
+
+                var responseTag = codeLine[..8];
+                var responseCode = (AniDbResponseCode)int.Parse(codeLine[9..12]);
+                var responseCodeText = string.Empty;
+                if (codeLine.Length >= 14)
+                    responseCodeText = codeLine[13..];
+                if (responseTag != _tag)
+                {
+                    HandleSharedErrors((responseText, responseCode, responseCodeText));
+                    Logger.LogError("Tag {Tag} did not match returned tag {ReturnedTag}, retrying receive. Full text:\n{CodeLine}\n{ResponseText}", _tag,
+                        responseTag, codeLine, responseText);
+                    continue;
+                }
+
+                return (responseText, responseCode, responseCodeText);
+            }
         }
         catch (OperationCanceledException)
         {
             Logger.LogWarning("Failed to receive a response before timeout ({Timeout}s)", receiveTimeout.TotalSeconds);
             return null;
         }
-
-        Logger.LogTrace("Got raw UDP response");
-        // Two null bytes and two bytes of Zlib header, seems to ignore trailer automatically
-        await using Stream memStream = receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0
-            ? new DeflateStream(new MemoryStream(receivedBytes, 4, receivedBytes.Length - 4), CompressionMode.Decompress)
-            : new MemoryStream(receivedBytes);
-        using var reader = new StreamReader(memStream, Encoding);
-        var codeLine = await reader.ReadLineAsync().ConfigureAwait(false);
-        var responseText = await reader.ReadToEndAsync().ConfigureAwait(false);
-        if (string.IsNullOrWhiteSpace(codeLine) || codeLine.Length <= 2)
-            throw new AniDbUdpRequestException("AniDB response is empty");
-        Logger.LogDebug("Received AniDB UDP response {CodeString}", codeLine);
-        var responseCode = (AniDbResponseCode)int.Parse(codeLine[..3]);
-        var responseCodeText = string.Empty;
-        if (codeLine.Length >= 5)
-            responseCodeText = codeLine[4..];
-        return (responseText, responseCode, responseCodeText);
     }
 
     /// <summary>
