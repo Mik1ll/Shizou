@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -125,22 +126,20 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
     private async Task PrepareRequestAsync()
     {
         Logger.LogTrace("Preparing {Command} request", Command);
-        var requestBuilder = new StringBuilder(Command + " ");
-        if (!new List<string> { "PING", "ENCRYPT", "AUTH", "VERSION" }.Contains(Command))
+        if (!new[] { "PING", "ENCRYPT", "AUTH", "VERSION" }.Contains(Command))
         {
             await AniDbUdpState.LoginAsync().ConfigureAwait(false);
 
             if (!string.IsNullOrWhiteSpace(AniDbUdpState.SessionKey))
                 Args["s"] = AniDbUdpState.SessionKey;
             else
-                throw new AniDbUdpRequestException("Failed to get new session");
+                throw new AniDbUdpRequestException("Session key was not found");
         }
 
-        foreach (var (name, param) in Args)
-            requestBuilder.Append($"{name}={Regex.Replace(HttpUtility.HtmlEncode(param), @"\r?\n|\r", "<br />")}&");
-        // Removes the extra & at end of parameters
-        requestBuilder.Length--;
-        _requestText = requestBuilder.ToString();
+        _requestText = Command;
+        if (Args.Count > 0)
+            _requestText += ' ' + string.Join('&',
+                Args.Select((name, param) => $"{name}={Regex.Replace(HttpUtility.HtmlEncode(param), @"\r?\n|\r", "<br />")}"));
     }
 
 
@@ -200,6 +199,8 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
             case AniDbResponseCode.Banned:
                 AniDbUdpState.Banned = true;
                 AniDbUdpState.BanReason = responseText;
+                AniDbUdpState.LoggedIn = false;
+                AniDbUdpState.SessionKey = null;
                 AniDbUdpState.ResetBannedTimer();
                 Logger.LogWarning("Banned: {BanReason}, waiting {Hours}hr {Minutes}min ({UnbanTime})", AniDbUdpState.BanReason, AniDbUdpState.BanPeriod.Hours,
                     AniDbUdpState.BanPeriod.Minutes, DateTimeOffset.Now + AniDbUdpState.BanPeriod);
