@@ -140,7 +140,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         _requestText = Command;
         Args["tag"] = _tag = Path.GetRandomFileName()[..8];
         _requestText += ' ' + string.Join('&',
-            Args.Select((name, param) => $"{name}={Regex.Replace(HttpUtility.HtmlEncode(param), @"\r?\n|\r", "<br />")}"));
+            Args.Select(kvp => $"{kvp.Key}={Regex.Replace(HttpUtility.HtmlEncode(kvp.Value), @"\r?\n|\r", "<br />")}"));
     }
 
 
