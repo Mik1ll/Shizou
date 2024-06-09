@@ -106,8 +106,9 @@ public class MyAnimeListService
         }
     }
 
-    private static async Task WriteTokenToFileAsync(MyAnimeListToken newToken)
+    private async Task WriteTokenToFileAsync(MyAnimeListToken newToken)
     {
+        _logger.LogInformation("Saving new MAL token to file");
         var tokenStream = new FileStream(FilePaths.MyAnimeListTokenPath, FileMode.Create, FileAccess.Write);
         await using (tokenStream.ConfigureAwait(false))
         {
@@ -143,7 +144,7 @@ public class MyAnimeListService
         return url;
     }
 
-    public async Task<bool> GetTokenAsync(string code, string state)
+    public async Task<bool> GetNewTokenAsync(string code, string state)
     {
         _logger.LogInformation("Got auth code, requesting new tokens");
         var options = _optionsMonitor.CurrentValue;
@@ -177,22 +178,17 @@ public class MyAnimeListService
         if (!HandleStatusCode(result))
             return false;
 
-        if (!await SaveTokenAsync(result).ConfigureAwait(false))
+        if (await TokenFromResponseAsync(result).ConfigureAwait(false) is not { } newToken)
             return false;
+
+        await WriteTokenToFileAsync(newToken).ConfigureAwait(false);
 
         return true;
     }
 
     public async Task GetAnimeAsync(int animeId)
     {
-        var malToken = await ReadTokenFromFileAsync().ConfigureAwait(false);
-        if (malToken is null)
-        {
-            _logger.LogInformation("MyAnimeList not authenticated, aborting get anime");
-            return;
-        }
-
-        if (!await RefreshTokenAsync(malToken).ConfigureAwait(false))
+        if (await GetTokenRefreshIfRequiredAsync().ConfigureAwait(false) is not { } malToken)
             return;
 
         var httpClient = _httpClientFactory.CreateClient();
@@ -230,14 +226,7 @@ public class MyAnimeListService
 
     public async Task GetUserAnimeListAsync()
     {
-        var malToken = await ReadTokenFromFileAsync().ConfigureAwait(false);
-        if (malToken is null)
-        {
-            _logger.LogWarning("MyAnimeList not authenticated, aborting get user list");
-            return;
-        }
-
-        if (!await RefreshTokenAsync(malToken).ConfigureAwait(false))
+        if (await GetTokenRefreshIfRequiredAsync().ConfigureAwait(false) is not { } malToken)
             return;
 
         var animeWithStatus = new HashSet<int>();
@@ -301,14 +290,7 @@ public class MyAnimeListService
 
     public async Task<bool> UpdateAnimeStatusAsync(int animeId, MalStatus status)
     {
-        var malToken = await ReadTokenFromFileAsync().ConfigureAwait(false);
-        if (malToken is null)
-        {
-            _logger.LogWarning("MyAnimeList not authenticated, aborting update anime state");
-            return false;
-        }
-
-        if (!await RefreshTokenAsync(malToken).ConfigureAwait(false))
+        if (await GetTokenRefreshIfRequiredAsync().ConfigureAwait(false) is not { } malToken)
             return false;
 
         using var context = _contextFactory.CreateDbContext();
@@ -371,36 +353,42 @@ public class MyAnimeListService
         return true;
     }
 
-    private async Task<bool> SaveTokenAsync(HttpResponseMessage result)
+    private async Task<MyAnimeListToken?> TokenFromResponseAsync(HttpResponseMessage result)
     {
         var token = await result.Content.ReadFromJsonAsync<TokenResponse>().ConfigureAwait(false);
         if (token is null)
         {
             _logger.LogError("Couldn't get token from response body");
-            return false;
+            return null;
         }
 
         var newToken = new MyAnimeListToken(token.access_token,
-            DateTimeOffset.UtcNow + TimeSpan.FromSeconds(token.expires_in),
+            DateTimeOffset.UtcNow + TimeSpan.FromHours(1),
             token.refresh_token,
-            DateTimeOffset.UtcNow + TimeSpan.FromDays(31));
-        await WriteTokenToFileAsync(newToken).ConfigureAwait(false);
-        return true;
+            DateTimeOffset.UtcNow + TimeSpan.FromSeconds(token.expires_in));
+        return newToken;
     }
 
-    private async Task<bool> RefreshTokenAsync(MyAnimeListToken malToken)
+    private async Task<MyAnimeListToken?> GetTokenRefreshIfRequiredAsync()
     {
+        var malToken = await ReadTokenFromFileAsync().ConfigureAwait(false);
+        if (malToken is null)
+        {
+            _logger.LogWarning("Unable to get token, none saved");
+            return null;
+        }
+
         if (malToken.RefreshExpiration < DateTimeOffset.UtcNow - TimeSpan.FromMinutes(5))
         {
             _logger.LogError("Refresh token is expired, deleting token");
             File.Delete(FilePaths.MyAnimeListTokenPath);
-            return false;
+            return null;
         }
 
         if (malToken.AccessExpiration > DateTimeOffset.UtcNow + TimeSpan.FromMinutes(5))
         {
             _logger.LogDebug("No need to refresh token, not expired");
-            return true;
+            return malToken;
         }
 
         _logger.LogInformation("Refreshing MAL auth token");
@@ -419,12 +407,14 @@ public class MyAnimeListService
 
         var result = await httpClient.SendAsync(request).ConfigureAwait(false);
         if (!HandleStatusCode(result))
-            return false;
+            return null;
 
-        if (!await SaveTokenAsync(result).ConfigureAwait(false))
-            return false;
+        if (await TokenFromResponseAsync(result).ConfigureAwait(false) is not { } newToken)
+            return null;
 
-        return true;
+        await WriteTokenToFileAsync(newToken).ConfigureAwait(false);
+
+        return malToken;
     }
 
     private bool HandleStatusCode(HttpResponseMessage result)
