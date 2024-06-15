@@ -13,6 +13,7 @@ using FuzzySharp.SimilarityRatio;
 using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
 using Microsoft.Extensions.Logging;
 using Shizou.Data;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Extensions;
@@ -20,23 +21,26 @@ using Timer = Shizou.Data.Models.Timer;
 
 namespace Shizou.Server.Services;
 
-public class AnimeTitleSearchService
+public class AnimeTitleSearchService : IAnimeTitleSearchService
 {
     private static readonly SemaphoreSlim GetTitleLock = new(1);
     private readonly Regex _removeSpecial = new(@"[][【】「」『』、…〜（）`()\\,<>/;:：'""-]+", RegexOptions.Compiled);
     private readonly ILogger<AnimeTitleSearchService> _logger;
     private readonly IHttpClientFactory _clientFactory;
     private readonly IShizouContextFactory _contextFactory;
+    private readonly CommandService _commandService;
     private List<AnimeTitle>? _animeTitlesMemCache;
 
     public AnimeTitleSearchService(
         ILogger<AnimeTitleSearchService> logger,
         IHttpClientFactory clientFactory,
-        IShizouContextFactory contextFactory)
+        IShizouContextFactory contextFactory,
+        CommandService commandService)
     {
         _logger = logger;
         _clientFactory = clientFactory;
         _contextFactory = contextFactory;
+        _commandService = commandService;
     }
 
     private enum TitleType
@@ -97,6 +101,7 @@ public class AnimeTitleSearchService
 
             context.SaveChanges();
             data = await GetFromAniDbAsync().ConfigureAwait(false);
+            ScheduleNextUpdate();
         }
 
         if (data is null)
@@ -204,6 +209,14 @@ public class AnimeTitleSearchService
         if (int.TryParse(query, out var aid))
             return titles.Where(t => t.Aid == aid).Take(1).Concat(refinedResults.Select(r => r.Value)).ToList();
         return refinedResults.Select(r => r.Value).ToList();
+    }
+
+    public void ScheduleNextUpdate()
+    {
+        using var context = _contextFactory.CreateDbContext();
+        var timer = context.Timers.FirstOrDefault(t => t.Type == TimerType.AnimeTitlesRequest);
+        _commandService.ScheduleCommand(new GetAnimeTitlesArgs(), 1,
+            (timer?.Expires > DateTimeOffset.UtcNow ? timer.Expires : DateTimeOffset.UtcNow) + TimeSpan.FromSeconds(10), null, true);
     }
 
     private record AnimeTitle(int Aid, TitleType Type, string Lang, string Title, string ProcessedTitle);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shizou.Data.CommandInputArgs;
@@ -45,7 +46,7 @@ public class CommandService : BackgroundService
             _processors.Single(p => p.QueueType == group.Key).QueueCommands(group);
     }
 
-    public void ScheduleCommand<TArgs>(TArgs commandArgs, int? runTimes, DateTimeOffset nextRun, TimeSpan? frequency)
+    public void ScheduleCommand<TArgs>(TArgs commandArgs, int? runTimes, DateTimeOffset nextRun, TimeSpan? frequency, bool replace = false)
         where TArgs : CommandArgs
     {
         var cmdRequest = commandArgs.CommandRequest;
@@ -61,13 +62,32 @@ public class CommandService : BackgroundService
         };
         using var context = _contextFactory.CreateDbContext();
         using var trans = context.Database.BeginTransaction();
-        if (context.ScheduledCommands.Any(cr => cr.CommandId == scheduledCommand.CommandId))
+        var eScheduledCommand = context.ScheduledCommands.FirstOrDefault(cr => cr.CommandId == scheduledCommand.CommandId);
+        if (eScheduledCommand is not null)
         {
-            _logger.LogWarning("Command {CommandId} already scheduled, ignoring", scheduledCommand.CommandId);
-            return;
+            if (replace)
+            {
+                scheduledCommand.Id = eScheduledCommand.Id;
+                var oldRuns = eScheduledCommand.RunsLeft;
+                var oldNextRun = eScheduledCommand.NextRunTime.ToLocalTime();
+                var oldFreq = eScheduledCommand.FrequencyMinutes;
+                context.Entry(eScheduledCommand).CurrentValues.SetValues(scheduledCommand);
+                if (context.Entry(eScheduledCommand).State != EntityState.Unchanged)
+                    _logger.LogInformation(
+                        "Scheduled command for {CommandId} was updated, previous values: {RunTimes} runs, starting at {NextRun}, every {Frequency} minutes",
+                        scheduledCommand.CommandId, oldRuns, oldNextRun, oldFreq);
+            }
+            else
+            {
+                _logger.LogWarning("Command {CommandId} already scheduled, ignoring", scheduledCommand.CommandId);
+                return;
+            }
+        }
+        else
+        {
+            context.ScheduledCommands.Add(scheduledCommand);
         }
 
-        context.ScheduledCommands.Add(scheduledCommand);
         context.SaveChanges();
         trans.Commit();
         _logger.LogInformation("Command {CommandId} scheduled for {RunTimes} runs, starting at {NextRun}, every {Frequency} minutes",

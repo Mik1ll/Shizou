@@ -20,7 +20,7 @@ public partial class ManuallyLinkModal
     private Modal _modal = default!;
 
     [Inject]
-    private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
+    private IAnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
 
     [Inject]
     private CommandService CommandService { get; set; } = default!;

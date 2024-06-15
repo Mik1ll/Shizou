@@ -6,9 +6,9 @@ namespace Shizou.Server.Commands;
 
 public class GetAnimeTitlesCommand : Command<GetAnimeTitlesArgs>
 {
-    private readonly AnimeTitleSearchService _animeTitleSearchService;
+    private readonly IAnimeTitleSearchService _animeTitleSearchService;
 
-    public GetAnimeTitlesCommand(AnimeTitleSearchService animeTitleSearchService) => _animeTitleSearchService = animeTitleSearchService;
+    public GetAnimeTitlesCommand(IAnimeTitleSearchService animeTitleSearchService) => _animeTitleSearchService = animeTitleSearchService;
 
     protected override async Task ProcessInnerAsync()
     {

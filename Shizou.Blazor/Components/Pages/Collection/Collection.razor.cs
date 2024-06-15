@@ -29,7 +29,7 @@ public partial class Collection
     private AnimeSort SortEnum => (AnimeSort)Sort;
 
     [Inject]
-    private AnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
+    private IAnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
