@@ -5,7 +5,7 @@ namespace Shizou.Server.Services;
 
 public interface IAnimeTitleSearchService
 {
-    Task<List<(int, string)>?> SearchAsync(string query, bool restrictInCollection = false);
+    Task<List<(int, string)>?> SearchAsync(string query, HashSet<int>? searchSpace = null);
     Task GetTitlesAsync();
     void ScheduleNextUpdate();
 }

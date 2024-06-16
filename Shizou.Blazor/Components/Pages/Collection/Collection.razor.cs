@@ -26,6 +26,7 @@ public partial class Collection
     private AnimeFilter? _filter;
     private FilterOffcanvas _filterOffcanvas = default!;
     private Dictionary<int, int>? _animeLatestLocalFileId;
+    private HashSet<int>? _aids;
     private AnimeSort SortEnum => (AnimeSort)Sort;
 
     [Inject]
@@ -65,6 +66,7 @@ public partial class Collection
                 .Select(a => (a.Id, a.AirDate, a.TitleTranscription)).ToList();
         _filter = newFilter;
         SortAnime();
+        _aids = _anime?.Select(a => a.Id).ToHashSet();
     }
 
     private void SortAnime()
@@ -105,7 +107,7 @@ public partial class Collection
         _anime = (Descending ? sorted.Reverse() : sorted).ToList();
     }
 
-    private Task<List<(int, string)>?> GetSearchResultsAsync(string query) => AnimeTitleSearchService.SearchAsync(query, true);
+    private Task<List<(int, string)>?> GetSearchResultsAsync(string query) => AnimeTitleSearchService.SearchAsync(query, _aids);
 
     private void SetSearchResults(List<(int, string)>? results)
     {

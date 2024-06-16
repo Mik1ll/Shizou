@@ -18,6 +18,7 @@ public partial class ManuallyLinkModal
     private AniDbAnime? _selectedAnime;
     private bool _restrictInCollection = true;
     private Modal _modal = default!;
+    private HashSet<int> _collectionAids = default!;
 
     [Inject]
     private IAnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
@@ -51,9 +52,16 @@ public partial class ManuallyLinkModal
         await _modal.CancelAsync();
     }
 
+    protected override void OnParametersSet()
+    {
+        using var context = ContextFactory.CreateDbContext();
+        _collectionAids = context.AniDbAnimes.Select(a => a.Id).ToHashSet();
+    }
+
     private async Task<List<(int, string)>?> GetTitlesAsync(string query)
     {
-        return (await AnimeTitleSearchService.SearchAsync(query, _restrictInCollection))?.Select(p => (p.Item1, $"{p.Item1} {p.Item2}")).ToList();
+        return (await AnimeTitleSearchService.SearchAsync(query, _restrictInCollection ? _collectionAids : null))
+            ?.Select(p => (p.Item1, $"{p.Item1} {p.Item2}")).ToList();
     }
 
     private void SelectAnime()

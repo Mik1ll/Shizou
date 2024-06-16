@@ -38,7 +38,7 @@ public partial class LiveSearchBox
 
     protected override void OnInitialized()
     {
-        _searchTimer = new Timer(TimeSpan.FromMilliseconds(500))
+        _searchTimer = new Timer(TimeSpan.FromMilliseconds(300))
         {
             AutoReset = false
         };
