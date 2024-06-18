@@ -1,4 +1,5 @@
 ﻿@page "/Collection"
+@using Shizou.Data.Enums
 @using Shizou.Data.Extensions
 
 <FilterOffcanvas @ref="@(_filterOffcanvas)" ReloadCollection="@Load"></FilterOffcanvas>
@@ -24,13 +25,22 @@
         <div class="col-auto m-1">
             <div class="input-group">
                 <select class="form-select" @onchange="@OnSeasonSelect">
-                    @foreach (var sort in Enum.GetValues<AnimeSeason>())
+                    @foreach (var season in Enum.GetValues<AnimeSeason>())
                     {
-                        <option value="@sort" selected="@(SeasonEnum == sort)">@(sort.ToString())</option>
+                        <option value="@season" selected="@(SeasonEnum == season)">@(season.ToString())</option>
                     }
                 </select>
                 <InputNumber class="form-control" @bind-Value="@Year" @bind-Value:after="@OnYearChanged" placeholder="Year"/>
             </div>
+        </div>
+        <div class="col-auto m-1">
+            <select class="form-select" @onchange="@OnAnimeTypeSelect">
+                <option value="">Anime Type</option>
+                @foreach (var animeType in Enum.GetValues<AnimeType>().Skip(1))
+                {
+                    <option value="@animeType" selected="@(AnimeTypeEnum == animeType)">@(animeType.ToString().UpperCaseSpaced())</option>
+                }
+            </select>
         </div>
         <div class="col-auto m-1">
             <div class="input-group">

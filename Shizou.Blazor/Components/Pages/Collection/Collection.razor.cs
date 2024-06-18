@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Components.Pages.Collection.Components;
 using Shizou.Data.Database;
+using Shizou.Data.Enums;
 using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
 using Shizou.Server.Extensions.Query;
@@ -38,8 +39,10 @@ public partial class Collection
     private HashSet<int>? _aids;
     private int _oldSeason;
     private int? _oldYear;
+    private int _oldAnimeType;
     private AnimeSort SortEnum => (AnimeSort)Sort;
     private AnimeSeason SeasonEnum => (AnimeSeason)Season;
+    private AnimeType AnimeTypeEnum => (AnimeType)AnimeType;
 
     [Inject]
     private IAnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
@@ -70,6 +73,10 @@ public partial class Collection
     [SupplyParameterFromQuery]
     public int? Year { get; set; }
 
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public int AnimeType { get; set; }
+
     protected override void OnParametersSet()
     {
         Load();
@@ -80,13 +87,15 @@ public partial class Collection
         using var context = ContextFactory.CreateDbContext();
         _filters = context.AnimeFilters.AsNoTracking().ToList();
         var newFilter = _filters.FirstOrDefault(f => f.Id == FilterId);
-        if (_anime is null || newFilter?.Criteria != _filter?.Criteria || Year != _oldYear || Season != _oldSeason)
+        if (_anime is null || newFilter?.Criteria != _filter?.Criteria || Year != _oldYear || Season != _oldSeason || AnimeType != _oldAnimeType)
             _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(newFilter?.Criteria.Criterion ?? (_ => true)).ToList();
         _filter = newFilter;
         _oldYear = Year;
         _oldSeason = Season;
+        _oldAnimeType = AnimeType;
         FilterSeasonYear();
         SortAnime();
+        _anime = _anime.Where(a => AnimeType == 0 || a.AnimeType == AnimeTypeEnum).ToList();
         _aids = _anime?.Select(a => a.Id).ToHashSet();
     }
 
@@ -171,6 +180,12 @@ public partial class Collection
     {
         Enum.TryParse<AnimeSeason>((string?)e.Value, out var season);
         NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Season), (int)season));
+    }
+
+    private void OnAnimeTypeSelect(ChangeEventArgs e)
+    {
+        Enum.TryParse<AnimeType>((string?)e.Value, out var animeType);
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(AnimeType), (int)animeType));
     }
 
     private void OnSortDirectionChanged()
