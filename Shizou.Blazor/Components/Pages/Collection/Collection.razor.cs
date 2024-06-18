@@ -2,10 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Components.Pages.Collection.Components;
 using Shizou.Data.Database;
+using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
 using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
-using AnimeResult = (int Id, string? AirDate, string TitleTranscription);
 
 namespace Shizou.Blazor.Components.Pages.Collection;
 
@@ -17,17 +17,29 @@ public enum AnimeSort
     RecentFiles = 3
 }
 
+public enum AnimeSeason
+{
+    Season,
+    Winter,
+    Spring,
+    Summer,
+    Fall
+}
+
 // ReSharper disable once ClassNeverInstantiated.Global
 public partial class Collection
 {
-    private List<AnimeResult>? _anime;
-    private List<AnimeResult>? _animeSearchResults;
+    private List<AniDbAnime>? _anime;
+    private List<AniDbAnime>? _animeSearchResults;
     private List<AnimeFilter> _filters = default!;
     private AnimeFilter? _filter;
     private FilterOffcanvas _filterOffcanvas = default!;
     private Dictionary<int, int>? _animeLatestLocalFileId;
     private HashSet<int>? _aids;
+    private int _oldSeason;
+    private int? _oldYear;
     private AnimeSort SortEnum => (AnimeSort)Sort;
+    private AnimeSeason SeasonEnum => (AnimeSeason)Season;
 
     [Inject]
     private IAnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
@@ -50,6 +62,14 @@ public partial class Collection
     [SupplyParameterFromQuery]
     public bool Descending { get; set; }
 
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public int Season { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public int? Year { get; set; }
+
     protected override void OnParametersSet()
     {
         Load();
@@ -60,20 +80,43 @@ public partial class Collection
         using var context = ContextFactory.CreateDbContext();
         _filters = context.AnimeFilters.AsNoTracking().ToList();
         var newFilter = _filters.FirstOrDefault(f => f.Id == FilterId);
-        if (_anime is null || newFilter?.Criteria != _filter?.Criteria)
-            _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(newFilter?.Criteria.Criterion ?? (_ => true))
-                .Select(a => new { a.Id, a.AirDate, a.TitleTranscription }).AsEnumerable()
-                .Select(a => (a.Id, a.AirDate, a.TitleTranscription)).ToList();
+        if (_anime is null || newFilter?.Criteria != _filter?.Criteria || Year != _oldYear || Season != _oldSeason)
+            _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(newFilter?.Criteria.Criterion ?? (_ => true)).ToList();
         _filter = newFilter;
+        _oldYear = Year;
+        _oldSeason = Season;
+        FilterSeasonYear();
         SortAnime();
         _aids = _anime?.Select(a => a.Id).ToHashSet();
+    }
+
+    private void FilterSeasonYear()
+    {
+        if (_anime is null || (Year is null && SeasonEnum is AnimeSeason.Season))
+            return;
+
+        var thisYear = DateTimeOffset.UtcNow.Year;
+        var (startMonth, endMonth, startYear, endYear) = SeasonEnum switch
+        {
+            AnimeSeason.Season => ((int?)null, (int?)null, Year, Year + 1),
+            AnimeSeason.Winter => (12, 3, (Year ?? thisYear) - 1, Year ?? thisYear),
+            AnimeSeason.Spring => (3, 6, Year ?? thisYear, Year ?? thisYear),
+            AnimeSeason.Summer => (6, 9, Year ?? thisYear, Year ?? thisYear),
+            AnimeSeason.Fall => (9, 12, Year ?? thisYear, Year ?? thisYear),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        var crit = new AndAllCriterion([
+            new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.OnOrAfter, startYear, startMonth, startMonth is null ? null : 1),
+            new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.Before, endYear, endMonth, endMonth is null ? null : 1)
+        ]);
+        _anime = _anime.Where(crit.Criterion.Compile()).ToList();
     }
 
     private void SortAnime()
     {
         if (_anime is null)
             return;
-        IEnumerable<AnimeResult> sorted;
+        IEnumerable<AniDbAnime> sorted;
         switch (SortEnum)
         {
             case AnimeSort.AnimeId:
@@ -124,9 +167,20 @@ public partial class Collection
         NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int)sort));
     }
 
+    private void OnSeasonSelect(ChangeEventArgs e)
+    {
+        Enum.TryParse<AnimeSeason>((string?)e.Value, out var season);
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Season), (int)season));
+    }
+
     private void OnSortDirectionChanged()
     {
         NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Descending), !Descending));
+    }
+
+    private void OnYearChanged()
+    {
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Year), Year));
     }
 
     private void OnFilterSelect(ChangeEventArgs e)

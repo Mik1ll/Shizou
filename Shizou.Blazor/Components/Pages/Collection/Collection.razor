@@ -23,6 +23,17 @@
         </div>
         <div class="col-auto m-1">
             <div class="input-group">
+                <select class="form-select" @onchange="@OnSeasonSelect">
+                    @foreach (var sort in Enum.GetValues<AnimeSeason>())
+                    {
+                        <option value="@sort" selected="@(SeasonEnum == sort)">@(sort.ToString())</option>
+                    }
+                </select>
+                <InputNumber class="form-control" @bind-Value="@Year" @bind-Value:after="@OnYearChanged" placeholder="Year"/>
+            </div>
+        </div>
+        <div class="col-auto m-1">
+            <div class="input-group">
                 <select class="form-select" @onchange="@OnFilterSelect">
                     <option value="">All</option>
                     @foreach (var filter in _filters)
