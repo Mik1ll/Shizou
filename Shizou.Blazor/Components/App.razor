@@ -58,10 +58,8 @@
 <script src="_framework/blazor.web.js"></script>
 @* ReSharper restore Html.PathError *@
 
-@* Ensure video.js is loaded before subtitle-octopus, so that it can use its web vtt implementation *@
-<script src="lib/video.js/video.min.js"></script>
-<script src="lib/libass-wasm/js/subtitles-octopus.min.js"></script>
+<script src="lib/video.js/video.min.js" integrity="sha384-7WJd15qzjuxEd6cGsqMXUooY6KsQuT9lKEkD7sFJVQKpTh3I5MbGcoGoJEMzNZJf"></script>
 
-<script src="js/webplayer.js"></script>
+<script src="js/webplayer.js" type="module" integrity="sha384-aR1anP+dF9epCphs1SLQMiXBqP9BGq5gJKmP38lFbtrFepha1o3egf8DkNySiJmv"></script>
 </body>
 </html>

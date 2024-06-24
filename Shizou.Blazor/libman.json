@@ -21,12 +21,13 @@
       "destination": "wwwroot/lib/open-iconic"
     },
     {
-      "library": "libass-wasm@4.1.0",
-      "destination": "wwwroot/lib/libass-wasm"
-    },
-    {
       "library": "video.js@8.6.1",
       "destination": "wwwroot/lib/video.js"
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "jassub@1.7.15",
+      "destination": "wwwroot/lib/jassub"
     }
   ]
 }

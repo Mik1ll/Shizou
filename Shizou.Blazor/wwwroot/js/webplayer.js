@@ -1,60 +1,59 @@
-﻿"use strict";
+"use strict";
 
-// noinspection ES6ConvertVarToLetConst
-var subtitleHandler = {
-    instance: null,
-    dispose: function () {
-        if (subtitleHandler.instance) {
-            subtitleHandler.instance.dispose();
-            subtitleHandler.instance = null;
-        }
-    },
-    free: function () {
-        if (subtitleHandler.instance) {
-            subtitleHandler.instance.freeTrack();
-            subtitleHandler.instance.setSubUrl('');
-        }
-    },
-    setTrack: function (subUrl) {
-        if (subtitleHandler.instance && subUrl !== subtitleHandler.instance.subUrl) {
-            subtitleHandler.free();
-            subtitleHandler.instance.setTrackByUrl(subUrl);
-            subtitleHandler.instance.setSubUrl(subUrl);
-        }
-    }
-};
+import JASSUB from '../lib/jassub/dist/jassub.es.js';
 
-// noinspection JSUnusedGlobalSymbols
-function loadPlayer(elementId, subtitleUrls, fontUrls) {
-    videojs(document.getElementById(elementId), {fluid: true}, function onPlayerReady() {
-        if (subtitleUrls.length <= 0) {
-            return;
-        }
-        const video = this.tech_.el_;
-        const options = {
-            video: video, // HTML5 video element
-            subUrl: subtitleUrls[0], // Link to subtitles
-            fonts: fontUrls,
-            workerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker.min.js', // Link to WebAssembly-based file "libassjs-worker.js"
-            legacyWorkerUrl: '/lib/libass-wasm/js/subtitles-octopus-worker-legacy.min.js', // Link to non-WebAssembly worker
-            fallbackFont: '/fonts/default.woff2'
-        };
-
-        subtitleHandler.dispose()
-        subtitleHandler.instance = new SubtitlesOctopus(options);
-        this.textTracks().addEventListener('change', (event) => {
-            const tracks = this.textTracks().tracks_;
-            const showingIdx = tracks.findIndex((track) => track.mode === 'showing');
-            for (let i = 0; i < tracks.length; i++) {
-                if (i !== showingIdx) {
-                    tracks[i].mode = 'disabled';
-                }
-            }
-            if (showingIdx >= 0) {
-                subtitleHandler.setTrack(subtitleUrls[showingIdx]);
-            } else {
-                subtitleHandler.free();
+class WebPlayer {
+    constructor(elementId, subtitleUrls, fontUrls) {
+        this.video = document.getElementById(elementId);
+        this.subUrls = subtitleUrls;
+        this.fontUrls = fontUrls;
+        this.player = videojs(this.video, {
+            fluid: true,
+            textTrackSettings: false,
+            html5: {
+                nativeTextTracks: true
             }
         });
-    });
+        this.player.ready(() => this.onPlayerReady());
+    }
+
+    onPlayerReady() {
+        if (this.subUrls.length > 0) {
+            this.activeSub = 0;
+            this.player.textTracks()[this.activeSub].mode = 'showing';
+            this.subRenderer = new JASSUB({
+                video: this.video, // HTML5 video element
+                subUrl: this.subUrls[this.activeSub], // Link to subtitles
+                fonts: this.fontUrls,
+                workerUrl: new URL('/lib/jassub/dist/jassub-worker.js', import.meta.url).toString(),
+                wasmUrl: new URL('/lib/jassub/dist/jassub-worker.wasm', import.meta.url).toString(),
+                legacyWasmUrl: new URL('/lib/jassub/dist/jassub-worker.wasm.js', import.meta.url).toString(),
+                modernWasmUrl: new URL('/lib/jassub/dist/jassub-worker-modern.wasm', import.meta.url).toString(),
+                availableFonts: {'liberation sans': '/lib/jassub/dist/default.woff2'},
+                fallbackFont: 'liberation sans',
+            });
+        }
+        this.player.textTracks().addEventListener('change', event => {
+            const tracks = this.player.textTracks().tracks_;
+            const showingIdx = tracks.findIndex(track => track.mode === 'showing');
+            if (showingIdx >= 0) {
+                if (showingIdx !== this.activeSub) {
+                    this.subRenderer?.setTrackByUrl(this.subUrls[showingIdx]);
+                    this.activeSub = showingIdx;
+                }
+            } else {
+                this.subRenderer?.freeTrack();
+                this.activeSub = -1;
+            }
+        });
+    }
+
+    dispose() {
+        this.subRenderer?.destroy();
+        this.player?.dispose();
+    }
+}
+
+export function newPlayer(elementId, subtitleUrls, fontUrls) {
+    return new WebPlayer(elementId, subtitleUrls, fontUrls);
 }

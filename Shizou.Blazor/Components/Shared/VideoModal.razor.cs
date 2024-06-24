@@ -13,11 +13,12 @@ namespace Shizou.Blazor.Components.Shared;
 public partial class VideoModal
 {
     private readonly string _videoId = "videoModalId";
-    private readonly List<(string Url, string? Lang, string? Title)> _assSubs = new();
-    private readonly List<string> _fontUrls = new();
-    private bool _loadSubtitles;
+    private readonly List<(string Url, string? Lang, string? Title)> _assSubs = [];
+    private readonly List<string> _fontUrls = [];
+    private bool _loadPlayer;
     private LocalFile? _localFile;
     private string? _localFileMimeType;
+    private IJSObjectReference? _player;
 
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
@@ -52,21 +53,23 @@ public partial class VideoModal
             ContentTypeProvider.TryGetContentType(_localFile.PathTail, out _localFileMimeType);
         _localFileMimeType ??= "video/mp4";
         await GetStreamUrlsAsync();
-        _loadSubtitles = true;
+        _loadPlayer = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_loadSubtitles)
+        if (_loadPlayer)
         {
-            await JsRuntime.InvokeVoidAsync("loadPlayer", _videoId, _assSubs.Select(s => s.Url).ToList(), _fontUrls);
-            _loadSubtitles = false;
+            var module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/webplayer.js");
+            _player = await module.InvokeAsync<IJSObjectReference>("newPlayer", _videoId, _assSubs.Select(s => s.Url).ToList(), _fontUrls);
+            _loadPlayer = false;
         }
     }
 
     private async Task DisposeJavascriptAsync()
     {
-        await JsRuntime.InvokeVoidAsync("subtitleHandler.dispose");
+        if (_player is not null)
+            await _player.InvokeVoidAsync("dispose");
     }
 
     private async Task GetStreamUrlsAsync()

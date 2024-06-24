@@ -4,9 +4,9 @@
         <video id="@_videoId" class="h-100 w-100 object-fit-contain video-js" controls>
             @* ReSharper disable once RedundantAnonymousTypePropertyName *@
             <source src="@(LinkGenerator.GetPathByAction(nameof(FileServer.Get), nameof(FileServer), new { ed2k = _localFile?.Ed2k }) ?? throw new ArgumentException())" type="@(_localFileMimeType)"/>
-            @foreach (var (sub, idx) in _assSubs.Select((sub, idx) => (sub, idx)))
+            @foreach (var sub in _assSubs.AsEnumerable().Reverse())
             {
-                <track default="@(idx == 0)" kind="subtitles" src="/dummy.vtt" srclang="@(sub.Lang)" label="@(sub.Title)"/>
+                <track kind="subtitles" src="" srclang="@(sub.Lang)" label="@(sub.Title)"/>
             }
         </video>
     </div>

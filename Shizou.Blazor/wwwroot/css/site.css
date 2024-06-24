@@ -56,3 +56,9 @@ table .absorbing-column {
     -webkit-user-select: none; /* Safari */
     user-select: none;
 }
+
+
+/* Hide the captions settings item from the captions menu. */
+.vjs-texttrack-settings {
+    display: none;
+}
