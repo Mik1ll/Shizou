@@ -33,7 +33,7 @@ class WebPlayer {
                 fallbackFont: 'liberation sans',
             });
         }
-        this.player.textTracks().addEventListener('change', event => {
+        this.player.textTracks().addEventListener('change', () => {
             const tracks = this.player.textTracks().tracks_;
             const showingIdx = tracks.findIndex(track => track.mode === 'showing');
             if (showingIdx >= 0) {
@@ -54,6 +54,7 @@ class WebPlayer {
     }
 }
 
+// noinspection JSUnusedGlobalSymbols
 export function newPlayer(elementId, subtitleUrls, fontUrls) {
     return new WebPlayer(elementId, subtitleUrls, fontUrls);
 }
