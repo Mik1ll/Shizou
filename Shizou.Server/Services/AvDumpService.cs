@@ -19,14 +19,11 @@ public class AvDumpService
     {
         if (localFile.ImportFolder is null) throw new NullReferenceException("Import folder for LocalFile is null, did you include it?");
         var avdumpP = NewAvDumpProcess();
-        avdumpP.StartInfo.ArgumentList.Add("--HideBuffers");
-        avdumpP.StartInfo.ArgumentList.Add("--HideFileProgress");
-        avdumpP.StartInfo.ArgumentList.Add("--HideTotalProgress");
         avdumpP.StartInfo.ArgumentList.Add("--ForwardConsoleCursorOnly");
         avdumpP.StartInfo.ArgumentList.Add("--PrintEd2kLink");
         avdumpP.StartInfo.ArgumentList.Add($"--Auth={username}:{udpKey}");
         avdumpP.StartInfo.ArgumentList.Add($"--LPort={localPort}");
-        avdumpP.StartInfo.ArgumentList.Add("--TOut=0:0");
+        avdumpP.StartInfo.ArgumentList.Add("--TOut=10:3");
         avdumpP.StartInfo.ArgumentList.Add(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
         avdumpP.Start();
         var res = await avdumpP.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
@@ -48,9 +45,8 @@ public class AvDumpService
         avDumpProcess.StartInfo.StandardOutputEncoding = Encoding.UTF8;
         avDumpProcess.StartInfo.RedirectStandardError = true;
         avDumpProcess.StartInfo.StandardErrorEncoding = Encoding.UTF8;
-        avDumpProcess.StartInfo.WorkingDirectory = FilePaths.AvDumpDir;
         avDumpProcess.StartInfo.FileName = "dotnet";
-        avDumpProcess.StartInfo.ArgumentList.Add("AVDump3CL.dll");
+        avDumpProcess.StartInfo.ArgumentList.Add(Path.Combine(FilePaths.AvDumpDir, "AVDump3CL.dll"));
         return avDumpProcess;
     }
 }
