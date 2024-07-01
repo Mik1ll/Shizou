@@ -1,5 +1,6 @@
 using Blazored.Modal;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.StaticFiles;
 using Serilog;
 using Shizou.Blazor.Components;
@@ -75,6 +76,11 @@ try
     builder.Services.AddHsts(cfg => cfg.MaxAge = TimeSpan.FromSeconds(15_768_000));
 
     var app = builder.Build();
+
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.All
+    });
 
     if (!app.Environment.IsDevelopment())
     {

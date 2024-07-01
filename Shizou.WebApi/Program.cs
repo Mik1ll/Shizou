@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using Shizou.Data;
 using Shizou.Server.Extensions;
@@ -41,6 +42,11 @@ try
     builder.Services.AddHsts(cfg => cfg.MaxAge = TimeSpan.FromSeconds(15_768_000));
 
     var app = builder.Build();
+
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.All
+    });
 
     if (!app.Environment.IsDevelopment()) app.UseHsts();
 

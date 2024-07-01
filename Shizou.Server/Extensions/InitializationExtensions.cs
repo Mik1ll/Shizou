@@ -109,7 +109,7 @@ public static class InitializationExtensions
                 context.Response.Headers.Append("X-XSS-Protection", "0");
                 context.Response.Headers.Append("Content-Security-Policy", "base-uri 'self';" +
                                                                            "default-src 'self';" +
-                                                                           "img-src data: https:;" +
+                                                                           "img-src data: https:;blob:;" +
                                                                            "object-src 'none';" +
                                                                            "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';" +
                                                                            "style-src 'self' 'unsafe-inline';" +
