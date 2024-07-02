@@ -61,10 +61,10 @@
                         <EpisodeTable AniDbAnime="@_anime" OnChanged="@Load"></EpisodeTable>
                     </CollapsibleSection>
                     <CollapsibleSection Header="Related Anime">
-                        <div class="d-flex flex-wrap mt-2">
+                        <div class="d-flex flex-wrap mt-2 column-gap-2">
                             @foreach (var (relationType, anime) in _relatedAnime!)
                             {
-                                <div class="text-center">
+                                <div @key="@(anime.Id)" class="text-center">
                                     <AnimeCard Title="@(anime.TitleTranscription)" AnimeId="@(anime.Id)"></AnimeCard>
                                     <span>@relationType.ToString()</span>
                                 </div>
