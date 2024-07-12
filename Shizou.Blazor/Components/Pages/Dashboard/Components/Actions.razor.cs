@@ -91,6 +91,6 @@ public partial class Actions
 
     private void GetMissingAnime()
     {
-        AnimeService.GetMissingAnime();
+        AnimeService.GetMissingEpisodesAndAnime();
     }
 }
