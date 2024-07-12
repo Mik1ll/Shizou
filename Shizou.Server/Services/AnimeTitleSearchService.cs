@@ -41,6 +41,12 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
         _commandService = commandService;
     }
 
+    /// <summary>
+    ///     Search for an anime by title
+    /// </summary>
+    /// <param name="query">Search Query</param>
+    /// <param name="searchSpace">Anime IDs to search</param>
+    /// <returns>A list of anime Ids and their titles, sorted by relevance</returns>
     public async Task<List<(int, string)>?> SearchAsync(string query, HashSet<int>? searchSpace = null)
     {
         if (_animeTitlesMemCache is null)
@@ -52,6 +58,10 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
             .Select(t => (t.Aid, t.Title)).ToList();
     }
 
+    /// <summary>
+    ///     Try to retrieve the complete list of anime titles from AniDB into the in-memory cache
+    ///     If titles have been requested recently, retrieve from file cache
+    /// </summary>
     public async Task GetTitlesAsync()
     {
         string? data;
@@ -98,6 +108,10 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
         _animeTitlesMemCache = ParseContent(data);
     }
 
+    /// <summary>
+    ///     Retrieve AniDB titles response from the file cache
+    /// </summary>
+    /// <returns>Cached AniDB anime titles response content</returns>
     private async Task<string?> GetFromFileAsync()
     {
         if (File.Exists(FilePaths.AnimeTitlesPath))
@@ -106,6 +120,10 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
         return null;
     }
 
+    /// <summary>
+    ///     Retrieve AniDB titles from the AniDB api
+    /// </summary>
+    /// <returns>The AniDB titles response content or null if there was an error response</returns>
     private async Task<string?> GetFromAniDbAsync()
     {
         // Not using gzip client, didn't work. Maybe it requires a gzip content header in the response
@@ -129,6 +147,11 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
         return data;
     }
 
+    /// <summary>
+    ///     Parse the AniDB titles response content into a list of <see cref="AnimeTitle" />
+    /// </summary>
+    /// <param name="content">AniDB titles response content</param>
+    /// <returns>A list of <see cref="AnimeTitle" /></returns>
     private List<AnimeTitle> ParseContent(string content)
     {
         var titles = new List<AnimeTitle>();
@@ -150,8 +173,19 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
         return titles;
     }
 
-    private string CleanTitle(string s) => _removeSpecial.Replace(s.ToLowerInvariant(), "").Trim();
+    /// <summary>
+    ///     Prepare Anime Title for better searchability
+    /// </summary>
+    /// <param name="title">Anime title</param>
+    /// <returns>Cleaned Anime title</returns>
+    private string CleanTitle(string title) => _removeSpecial.Replace(title.ToLowerInvariant(), "").Trim();
 
+    /// <summary>
+    ///     Search the titles with the given query
+    /// </summary>
+    /// <param name="titles">The titles to search</param>
+    /// <param name="query">The query to use when searching</param>
+    /// <returns>Search Results ordered by relevance score</returns>
     private List<AnimeTitle> SearchTitles(IEnumerable<AnimeTitle> titles, string query)
     {
         var scorer = ScorerCache.Get<PartialRatioScorer>();
@@ -165,6 +199,9 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
         return refinedResults.Select(r => r.Value).ToList();
     }
 
+    /// <summary>
+    ///     Schedule the next anime titles request after the rate limit timer expires
+    /// </summary>
     public void ScheduleNextUpdate()
     {
         using var context = _contextFactory.CreateDbContext();
