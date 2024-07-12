@@ -22,7 +22,7 @@ namespace Shizou.Server.Services;
 
 public class AnimeTitleSearchService : IAnimeTitleSearchService
 {
-    private readonly Regex _removeSpecial = new(@"[][【】「」『』、…〜（）`()\\,<>/;:：'""-]+", RegexOptions.Compiled);
+    private static readonly Regex RemoveSpecial = new(@"[][【】「」『』、…〜（）`()\\,<>/;:：'""-]+", RegexOptions.Compiled);
     private readonly ILogger<AnimeTitleSearchService> _logger;
     private readonly IHttpClientFactory _clientFactory;
     private readonly IShizouContextFactory _contextFactory;
@@ -40,6 +40,13 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
         _contextFactory = contextFactory;
         _commandService = commandService;
     }
+
+    /// <summary>
+    ///     Prepare Anime Title for better searchability
+    /// </summary>
+    /// <param name="title">Anime title</param>
+    /// <returns>Cleaned Anime title</returns>
+    private static string CleanTitle(string title) => RemoveSpecial.Replace(title.ToLowerInvariant(), "").Trim();
 
     /// <summary>
     ///     Search for an anime by title
@@ -109,6 +116,17 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
     }
 
     /// <summary>
+    ///     Schedule the next anime titles request after the rate limit timer expires
+    /// </summary>
+    public void ScheduleNextUpdate()
+    {
+        using var context = _contextFactory.CreateDbContext();
+        var timer = context.Timers.FirstOrDefault(t => t.Type == TimerType.AnimeTitlesRequest);
+        _commandService.ScheduleCommand(new GetAnimeTitlesArgs(), 1,
+            (timer?.Expires > DateTimeOffset.UtcNow ? timer.Expires : DateTimeOffset.UtcNow) + TimeSpan.FromSeconds(10), null, true);
+    }
+
+    /// <summary>
     ///     Retrieve AniDB titles response from the file cache
     /// </summary>
     /// <returns>Cached AniDB anime titles response content</returns>
@@ -174,13 +192,6 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
     }
 
     /// <summary>
-    ///     Prepare Anime Title for better searchability
-    /// </summary>
-    /// <param name="title">Anime title</param>
-    /// <returns>Cleaned Anime title</returns>
-    private string CleanTitle(string title) => _removeSpecial.Replace(title.ToLowerInvariant(), "").Trim();
-
-    /// <summary>
     ///     Search the titles with the given query
     /// </summary>
     /// <param name="titles">The titles to search</param>
@@ -197,17 +208,6 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
             .OrderByDescending(r => r.Score).ToList();
 
         return refinedResults.Select(r => r.Value).ToList();
-    }
-
-    /// <summary>
-    ///     Schedule the next anime titles request after the rate limit timer expires
-    /// </summary>
-    public void ScheduleNextUpdate()
-    {
-        using var context = _contextFactory.CreateDbContext();
-        var timer = context.Timers.FirstOrDefault(t => t.Type == TimerType.AnimeTitlesRequest);
-        _commandService.ScheduleCommand(new GetAnimeTitlesArgs(), 1,
-            (timer?.Expires > DateTimeOffset.UtcNow ? timer.Expires : DateTimeOffset.UtcNow) + TimeSpan.FromSeconds(10), null, true);
     }
 
     private record AnimeTitle(int Aid, string Title, string ProcessedTitle);
