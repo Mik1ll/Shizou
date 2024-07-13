@@ -15,12 +15,16 @@ namespace Shizou.Server.Services;
 
 public class FfmpegService
 {
+    private static readonly string[] ValidSubFormats = ["ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext"];
     private readonly ILogger<FfmpegService> _logger;
 
     public FfmpegService(ILogger<FfmpegService> logger) => _logger = logger;
-    public static string[] ValidSubFormats { get; } = { "ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext" };
-    public static string[] ValidFontFormats { get; } = { "ttf", "otf" };
 
+    /// <summary>
+    ///     Dump the file's attachments to the output directory
+    /// </summary>
+    /// <param name="fileInfo">Target file</param>
+    /// <param name="outputDir">Output directory</param>
     public async Task ExtractAttachmentsAsync(FileInfo fileInfo, string outputDir)
     {
         Directory.CreateDirectory(outputDir);
@@ -31,6 +35,10 @@ public class FfmpegService
         await process.WaitForExitAsync().ConfigureAwait(false);
     }
 
+    /// <summary>
+    ///     Extract and convert compatible subtitle streams to ASS subtitles
+    /// </summary>
+    /// <param name="localFile">The file to extract subtitles from</param>
     public async Task ExtractSubtitlesAsync(LocalFile localFile)
     {
         _logger.LogInformation("Extracting subtitles for local file id: {LocalFileId}", localFile.Id);
@@ -57,6 +65,10 @@ public class FfmpegService
         await process.WaitForExitAsync().ConfigureAwait(false);
     }
 
+    /// <summary>
+    ///     Create a thumbnail from the file's video stream
+    /// </summary>
+    /// <param name="localFile">The file to extract a thumbnail from</param>
     public async Task ExtractThumbnailAsync(LocalFile localFile)
     {
         if (GetLocalFileInfo(localFile) is not { } fileInfo)
@@ -97,6 +109,11 @@ public class FfmpegService
             outputInfo.Delete();
     }
 
+    /// <summary>
+    ///     Get the stream information of a file
+    /// </summary>
+    /// <param name="fileInfo">The file to inspect</param>
+    /// <returns>A list of stream information</returns>
     public async Task<List<(int index, string codec, string? lang, string? title, string? filename)>> GetStreamsAsync(FileInfo fileInfo)
     {
         using var p = NewFfprobeProcess();
@@ -134,6 +151,11 @@ public class FfmpegService
         return streams;
     }
 
+    /// <summary>
+    ///     Try to get <see cref="FileInfo" /> for a local file
+    /// </summary>
+    /// <param name="localFile"></param>
+    /// <returns>The <see cref="FileInfo" /> if it exists, else null</returns>
     private FileInfo? GetLocalFileInfo(LocalFile localFile)
     {
         if (localFile.ImportFolder is null)
@@ -153,6 +175,11 @@ public class FfmpegService
         return fileInfo;
     }
 
+    /// <summary>
+    ///     Try to get the duration of a media file
+    /// </summary>
+    /// <param name="fileInfo">The file to inspect</param>
+    /// <returns>The duration in seconds, if it exists</returns>
     private async Task<double?> GetDurationAsync(FileInfo fileInfo)
     {
         using var process = NewFfprobeProcess();
@@ -190,6 +217,11 @@ public class FfmpegService
             durStr.LastIndexOf('.') is var idx && idx >= 0 && durStr.Length - 1 >= idx + 8 ? durStr.Remove(idx + 8) : durStr;
     }
 
+    /// <summary>
+    ///     Check if a file has a video stream
+    /// </summary>
+    /// <param name="fileInfo">The file to inspect</param>
+    /// <returns>True if the file has a vieo stream</returns>
     private async Task<bool> HasVideoAsync(FileInfo fileInfo)
     {
         using var process = NewFfprobeProcess();
