@@ -31,6 +31,11 @@ public class CommandService : BackgroundService
         _processors = processors.ToList();
     }
 
+    /// <summary>
+    ///     Queues a command given the corresponding arguments
+    /// </summary>
+    /// <param name="commandArgs">Argument object corresponding the the desired command</param>
+    /// <typeparam name="TArgs">The type of the argument object, must be <see cref="CommandArgs" /> or derived</typeparam>
     public void Dispatch<TArgs>(TArgs commandArgs)
         where TArgs : CommandArgs
     {
@@ -38,6 +43,11 @@ public class CommandService : BackgroundService
         processor.QueueCommand(commandArgs.CommandRequest);
     }
 
+    /// <summary>
+    ///     Queues a batch of commands given the corresponding arguments
+    /// </summary>
+    /// <param name="commandArgs">The argument objects corresponding to the desired commands</param>
+    /// <typeparam name="TArgs">The type of the argument objects, must be <see cref="CommandArgs" /> or derived</typeparam>
     public void DispatchRange<TArgs>(IEnumerable<TArgs> commandArgs)
         where TArgs : CommandArgs
     {
@@ -46,6 +56,18 @@ public class CommandService : BackgroundService
             _processors.Single(p => p.QueueType == group.Key).QueueCommands(group);
     }
 
+    /// <summary>
+    ///     Schedule a command to run in the future
+    /// </summary>
+    /// <param name="commandArgs">The argument object corresponding to the desired command</param>
+    /// <param name="runTimes">How many times the command should be scheduled, unlimited if null</param>
+    /// <param name="nextRun">The next time the command should be queued</param>
+    /// <param name="frequency">How frequently the command should be queued, will only be queued once if null</param>
+    /// <param name="replace">
+    ///     Whether to replace a scheduled command if the Command ID matches an existing scheduled command. Will log an error if duplicate is found
+    ///     and replace is false
+    /// </param>
+    /// <typeparam name="TArgs">The type of the argument objects, must be <see cref="CommandArgs" /> or derived</typeparam>
     public void ScheduleCommand<TArgs>(TArgs commandArgs, int? runTimes, DateTimeOffset nextRun, TimeSpan? frequency, bool replace = false)
         where TArgs : CommandArgs
     {
@@ -94,6 +116,9 @@ public class CommandService : BackgroundService
             scheduledCommand.CommandId, runTimes, nextRun.LocalDateTime, frequency?.TotalMinutes);
     }
 
+    /// <summary>
+    ///     Create scheduled commands periodically
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
@@ -101,10 +126,15 @@ public class CommandService : BackgroundService
             CreateScheduledCommands();
     }
 
+    /// <summary>
+    ///     Queue any scheduled commands that are due
+    /// </summary>
     private void CreateScheduledCommands()
     {
         using var context = _contextFactory.CreateDbContext();
         List<ScheduledCommand> scheduledCommands;
+
+        // Suppress the logging of scheduled command DB requests because it clutters the log
         using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
         {
             scheduledCommands = context.ScheduledCommands.DueCommands().ToList();
@@ -112,10 +142,12 @@ public class CommandService : BackgroundService
 
         if (scheduledCommands.Count == 0)
             return;
+        
         _logger.LogInformation("Dispatching {Count} scheduled commands", scheduledCommands.Count);
         var commandArgs = scheduledCommands.Select(sc => sc.CommandArgs).ToList();
         DispatchRange(commandArgs);
         foreach (var cmd in scheduledCommands)
+            // Remove commands that do not have any runs left or a frequency set
             if (cmd.RunsLeft <= 1 || cmd.FrequencyMinutes is null)
             {
                 context.ScheduledCommands.Remove(cmd);
@@ -123,6 +155,7 @@ public class CommandService : BackgroundService
             else
             {
                 cmd.RunsLeft -= 1;
+                // The next run time is set based on the time that the command was queued plus the frequency, not from the time the command was run
                 cmd.NextRunTime = DateTime.UtcNow + TimeSpan.FromMinutes(cmd.FrequencyMinutes.Value);
             }
 

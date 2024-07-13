@@ -15,15 +15,24 @@ public class AvDumpService
 
     public AvDumpService(ILogger<AvDumpService> logger) => _logger = logger;
 
+    /// <summary>
+    ///     AVDump the file, sends the media data and hashes to AniDB for auto-creqing.
+    /// </summary>
+    /// <param name="localFile">The file to dump</param>
+    /// <param name="username">AniDB username</param>
+    /// <param name="udpKey">AniDB api key. This is set in the account settings</param>
+    /// <param name="localPort">Local port to use for the connection</param>
+    /// <exception cref="NullReferenceException"></exception>
+    /// <remarks>Requires .net 6 runtime and AVDump in the <see cref="FilePaths.AvDumpDir" /> directory</remarks>
     public async Task AvDumpFileAsync(LocalFile localFile, string username, string udpKey, int localPort)
     {
         if (localFile.ImportFolder is null) throw new NullReferenceException("Import folder for LocalFile is null, did you include it?");
         var avdumpP = NewAvDumpProcess();
-        avdumpP.StartInfo.ArgumentList.Add("--ForwardConsoleCursorOnly");
+        avdumpP.StartInfo.ArgumentList.Add("--ForwardConsoleCursorOnly"); // Prevents progress bars that are incompatible with logging
         avdumpP.StartInfo.ArgumentList.Add("--PrintEd2kLink");
         avdumpP.StartInfo.ArgumentList.Add($"--Auth={username}:{udpKey}");
         avdumpP.StartInfo.ArgumentList.Add($"--LPort={localPort}");
-        avdumpP.StartInfo.ArgumentList.Add("--TOut=10:3");
+        avdumpP.StartInfo.ArgumentList.Add("--TOut=10:3"); // Timeout 10 seconds between 3 retries
         avdumpP.StartInfo.ArgumentList.Add(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
         avdumpP.Start();
         var res = await avdumpP.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
