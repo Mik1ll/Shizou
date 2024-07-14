@@ -48,12 +48,6 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
     /// <returns>Cleaned Anime title</returns>
     private static string CleanTitle(string title) => RemoveSpecial.Replace(title.ToLowerInvariant(), "").Trim();
 
-    /// <summary>
-    ///     Search for an anime by title
-    /// </summary>
-    /// <param name="query">Search Query</param>
-    /// <param name="searchSpace">Anime IDs to search</param>
-    /// <returns>A list of anime Ids and their titles, sorted by relevance</returns>
     public async Task<List<(int, string)>?> SearchAsync(string query, HashSet<int>? searchSpace = null)
     {
         if (_animeTitlesMemCache is null)
@@ -65,10 +59,6 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
             .Select(t => (t.Aid, t.Title)).ToList();
     }
 
-    /// <summary>
-    ///     Try to retrieve the complete list of anime titles from AniDB into the in-memory cache
-    ///     If titles have been requested recently, retrieve from file cache
-    /// </summary>
     public async Task GetTitlesAsync()
     {
         string? data;
@@ -115,9 +105,6 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
         _animeTitlesMemCache = ParseContent(data);
     }
 
-    /// <summary>
-    ///     Schedule the next anime titles request after the rate limit timer expires
-    /// </summary>
     public void ScheduleNextUpdate()
     {
         using var context = _contextFactory.CreateDbContext();
