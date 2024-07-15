@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shizou.Data;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
@@ -28,7 +30,6 @@ public class AnimeCommand : Command<AnimeArgs>
     private readonly IAnimeRequest _animeRequest;
     private readonly CommandService _commandService;
     private readonly ShizouOptions _options;
-    private string _animeCacheFilename = null!;
 
     public AnimeCommand(
         ILogger<AnimeCommand> logger,
@@ -102,12 +103,6 @@ public class AnimeCommand : Command<AnimeArgs>
         return newAniDbAnime;
     }
 
-    public override AnimeCommand SetParameters(CommandArgs args)
-    {
-        _animeCacheFilename = $"AnimeDoc_{((AnimeArgs)args).AnimeId}.xml";
-        base.SetParameters(args);
-        return this;
-    }
 
     protected override async Task ProcessInnerAsync()
     {
@@ -194,7 +189,7 @@ public class AnimeCommand : Command<AnimeArgs>
         if (timer is not null && timer.Expires > DateTime.UtcNow)
         {
             _logger.LogWarning("Anime {AnimeId} already requested recently, trying cache for HTTP anime request", CommandArgs.AnimeId);
-            return await _animeResultCache.GetAsync(_animeCacheFilename).ConfigureAwait(false);
+            return await _animeResultCache.GetAsync(Path.GetFileName(FilePaths.HttpCachePath(CommandArgs.AnimeId))).ConfigureAwait(false);
         }
 
         var rateLimit = TimeSpan.FromDays(1);
@@ -213,7 +208,8 @@ public class AnimeCommand : Command<AnimeArgs>
         _logger.LogInformation("Getting Anime {AnimeId} from HTTP anime request", CommandArgs.AnimeId);
         _animeRequest.SetParameters(CommandArgs.AnimeId);
         await _animeRequest.ProcessAsync().ConfigureAwait(false);
-        await _animeResultCache.SaveAsync(_animeCacheFilename, _animeRequest.ResponseText ?? string.Empty).ConfigureAwait(false);
+        await _animeResultCache.SaveAsync(Path.GetFileName(FilePaths.HttpCachePath(CommandArgs.AnimeId)), _animeRequest.ResponseText ?? string.Empty)
+            .ConfigureAwait(false);
         if (_animeRequest.AnimeResult is null)
             _logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", rateLimit.TotalHours);
         return _animeRequest.AnimeResult;

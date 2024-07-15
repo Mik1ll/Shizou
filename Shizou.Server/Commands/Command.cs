@@ -11,7 +11,7 @@ public abstract class Command<T> : ICommand<T> where T : CommandArgs
     public string CommandId { get; private set; } = null!;
     public bool Completed { get; protected set; }
 
-    public virtual ICommand<T> SetParameters(CommandArgs args)
+    public ICommand<T> SetParameters(CommandArgs args)
     {
         CommandArgs = (T)args;
         CommandId = args.CommandId;
