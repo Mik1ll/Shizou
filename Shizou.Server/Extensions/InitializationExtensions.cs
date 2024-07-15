@@ -204,7 +204,6 @@ public static class InitializationExtensions
                 new ShizouContextFactory(p.GetRequiredService<IDbContextFactory<ShizouContext>>()))
             .AddHostedService<StartupService>()
             .AddTransient<AniDbFileResultCache>()
-            .AddTransient<HttpAnimeResultCache>()
             .AddTransient<HashCommand>()
             .AddTransient<NoopCommand>()
             .AddTransient<AnimeCommand>()

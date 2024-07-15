@@ -18,7 +18,6 @@ public class CommandTests
     public void TestDI()
     {
         var provider = new ServiceCollection()
-            .AddScoped<HttpAnimeResultCache>()
             .AddScoped<ImageService>()
             .AddScoped<MyAnimeListService>()
             .AddHttpClient()

@@ -3,6 +3,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,7 +16,6 @@ using Shizou.Data.Extensions;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Http;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
-using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -24,7 +25,6 @@ public class AnimeCommand : Command<AnimeArgs>
 {
     private readonly ILogger<AnimeCommand> _logger;
     private readonly IShizouContext _context;
-    private readonly HttpAnimeResultCache _animeResultCache;
     private readonly ImageService _imageService;
     private readonly MyAnimeListService _myAnimeListService;
     private readonly IAnimeRequest _animeRequest;
@@ -34,7 +34,6 @@ public class AnimeCommand : Command<AnimeArgs>
     public AnimeCommand(
         ILogger<AnimeCommand> logger,
         IShizouContext context,
-        HttpAnimeResultCache animeResultCache,
         ImageService imageService,
         MyAnimeListService myAnimeListService,
         IAnimeRequest animeRequest,
@@ -43,7 +42,6 @@ public class AnimeCommand : Command<AnimeArgs>
     {
         _logger = logger;
         _context = context;
-        _animeResultCache = animeResultCache;
         _imageService = imageService;
         _myAnimeListService = myAnimeListService;
         _animeRequest = animeRequest;
@@ -189,7 +187,11 @@ public class AnimeCommand : Command<AnimeArgs>
         if (timer is not null && timer.Expires > DateTime.UtcNow)
         {
             _logger.LogWarning("Anime {AnimeId} already requested recently, trying cache for HTTP anime request", CommandArgs.AnimeId);
-            return await _animeResultCache.GetAsync(Path.GetFileName(FilePaths.HttpCachePath(CommandArgs.AnimeId))).ConfigureAwait(false);
+            var serializer = new XmlSerializer(typeof(AnimeResult));
+            var stream = File.OpenRead(FilePaths.HttpCachePath(CommandArgs.AnimeId));
+            await using var _ = stream.ConfigureAwait(false);
+            using var reader = XmlReader.Create(stream);
+            return serializer.Deserialize(reader) as AnimeResult;
         }
 
         var rateLimit = TimeSpan.FromDays(1);
@@ -208,10 +210,17 @@ public class AnimeCommand : Command<AnimeArgs>
         _logger.LogInformation("Getting Anime {AnimeId} from HTTP anime request", CommandArgs.AnimeId);
         _animeRequest.SetParameters(CommandArgs.AnimeId);
         await _animeRequest.ProcessAsync().ConfigureAwait(false);
-        await _animeResultCache.SaveAsync(Path.GetFileName(FilePaths.HttpCachePath(CommandArgs.AnimeId)), _animeRequest.ResponseText ?? string.Empty)
-            .ConfigureAwait(false);
-        if (_animeRequest.AnimeResult is null)
+        if (_animeRequest.AnimeResult is not null)
+        {
+            var sw = new StreamWriter(FilePaths.HttpCachePath(CommandArgs.AnimeId));
+            await using var _ = sw.ConfigureAwait(false);
+            await sw.WriteAsync(_animeRequest.ResponseText).ConfigureAwait(false);
+        }
+        else
+        {
             _logger.LogWarning("Failed to get HTTP anime data, retry in {Hours} hours", rateLimit.TotalHours);
+        }
+
         return _animeRequest.AnimeResult;
     }
 
