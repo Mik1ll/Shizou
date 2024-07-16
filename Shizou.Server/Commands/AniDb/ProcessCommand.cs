@@ -11,7 +11,6 @@ using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.AniDbApi.Requests.Udp;
 using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
-using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 
@@ -22,7 +21,6 @@ public class ProcessCommand : Command<ProcessArgs>
     private readonly CommandService _commandService;
     private readonly ILogger<ProcessCommand> _logger;
     private readonly IShizouContext _context;
-    private readonly AniDbFileResultCache _fileResultCache;
     private readonly IFileRequest _fileRequest;
     private readonly ShizouOptions _options;
 
@@ -30,14 +28,12 @@ public class ProcessCommand : Command<ProcessArgs>
         ILogger<ProcessCommand> logger,
         IShizouContext context,
         CommandService commandService,
-        AniDbFileResultCache fileResultCache,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,
         IFileRequest fileRequest)
     {
         _logger = logger;
         _context = context;
         _commandService = commandService;
-        _fileResultCache = fileResultCache;
         _fileRequest = fileRequest;
         _options = optionsSnapshot.Value;
     }
@@ -284,8 +280,6 @@ public class ProcessCommand : Command<ProcessArgs>
 
     private async Task<FileResult?> GetFileResultAsync()
     {
-        string? fileCacheFilename;
-        FileResult? result;
         switch (CommandArgs.IdType)
         {
             case IdTypeLocalOrFile.LocalId:
@@ -298,19 +292,11 @@ public class ProcessCommand : Command<ProcessArgs>
                     return null;
                 }
 
-                fileCacheFilename = $"File_Ed2k={localFile.Ed2k}.json";
-                result = await _fileResultCache.GetAsync(fileCacheFilename).ConfigureAwait(false);
-                if (result is not null)
-                    return result;
                 _logger.LogInformation("Processing local file id: {LocalfileId}, ed2k: {LocalFileEd2k}", CommandArgs.Id, localFile.Ed2k);
                 _fileRequest.SetParameters(localFile.FileSize, localFile.Ed2k);
                 break;
             }
             case IdTypeLocalOrFile.FileId:
-                fileCacheFilename = $"File_Id={CommandArgs.Id}.json";
-                result = await _fileResultCache.GetAsync(fileCacheFilename).ConfigureAwait(false);
-                if (result is not null)
-                    return result;
                 _logger.LogInformation("Processing file id: {FileId}", CommandArgs.Id);
                 _fileRequest.SetParameters(CommandArgs.Id);
                 break;
@@ -319,7 +305,7 @@ public class ProcessCommand : Command<ProcessArgs>
         }
 
         var response = await _fileRequest.ProcessAsync().ConfigureAwait(false);
-        result = response?.FileResult;
+        var result = response?.FileResult;
         if (response?.ResponseCode == AniDbResponseCode.NoSuchFile)
         {
             _logger.LogInformation("Skipped processing {IdName}: {Id}, file not found on anidb", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
@@ -328,10 +314,6 @@ public class ProcessCommand : Command<ProcessArgs>
         else if (result is null)
         {
             _logger.LogError("Could not process  {IdName}: {Id}, no file result", Enum.GetName(CommandArgs.IdType), CommandArgs.Id);
-        }
-        else
-        {
-            await _fileResultCache.SaveAsync(fileCacheFilename, result).ConfigureAwait(false);
         }
 
         return result;

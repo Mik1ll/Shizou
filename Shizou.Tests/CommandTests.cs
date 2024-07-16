@@ -4,7 +4,6 @@ using Moq;
 using Shizou.Data.Database;
 using Shizou.Server.AniDbApi.Requests.Http.Interfaces;
 using Shizou.Server.Commands.AniDb;
-using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 

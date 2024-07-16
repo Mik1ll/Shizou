@@ -30,7 +30,6 @@ using Shizou.Server.AniDbApi.Requests.Udp.Interfaces;
 using Shizou.Server.CommandProcessors;
 using Shizou.Server.Commands;
 using Shizou.Server.Commands.AniDb;
-using Shizou.Server.FileCaches;
 using Shizou.Server.Options;
 using Shizou.Server.Services;
 using Shizou.Server.SwaggerFilters;
@@ -203,7 +202,6 @@ public static class InitializationExtensions
             .AddSingleton<IShizouContextFactory, ShizouContextFactory>(p =>
                 new ShizouContextFactory(p.GetRequiredService<IDbContextFactory<ShizouContext>>()))
             .AddHostedService<StartupService>()
-            .AddTransient<AniDbFileResultCache>()
             .AddTransient<HashCommand>()
             .AddTransient<NoopCommand>()
             .AddTransient<AnimeCommand>()
