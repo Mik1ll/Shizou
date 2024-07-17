@@ -10,7 +10,6 @@ public static class FilePaths
     public static readonly string InstallDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ??
                                                throw new ArgumentException("Executing assembly location shouldn't be empty or root");
 
-    public static readonly string TempFileDir = Path.Combine(ApplicationDataDir, "Temp");
     public static readonly string HttpCacheDir = Path.Combine(ApplicationDataDir, "HTTPAnime");
     public static string HttpCachePath(int animeId) => Path.Combine(HttpCacheDir, $"AnimeDoc_{animeId}.xml");
     public static readonly string MyListBackupDir = Path.Combine(ApplicationDataDir, "MyListBackup");

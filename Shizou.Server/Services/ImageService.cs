@@ -31,6 +31,9 @@ public class ImageService
         _commandService = commandService;
     }
 
+    /// <summary>
+    ///     Dispatches commands to retrieve missing anime posters.
+    /// </summary>
     public void GetMissingAnimePosters()
     {
         var imageServer = _optionsMonitor.CurrentValue.AniDb.ImageServerHost;
@@ -51,6 +54,10 @@ public class ImageService
         }
     }
 
+    /// <summary>
+    ///     Dispatch a command to retrieve a specific anime poster.
+    /// </summary>
+    /// <param name="animeId"></param>
     public void GetAnimePoster(int animeId)
     {
         var imageServer = _optionsMonitor.CurrentValue.AniDb.ImageServerHost;
@@ -73,6 +80,11 @@ public class ImageService
         _commandService.Dispatch(new GetImageArgs(uri, path));
     }
 
+    /// <summary>
+    ///     Try to get a stored thumbnail for the episode.
+    /// </summary>
+    /// <param name="episodeId"></param>
+    /// <returns>The fileinfo of the thumbnail file if it exists</returns>
     public FileInfo? GetEpisodeThumbnail(int episodeId)
     {
         using var context = _contextFactory.CreateDbContext();
@@ -84,8 +96,6 @@ public class ImageService
         return null;
     }
 
-    private string GetAnimePosterUri(string imageServer, string filename)
-    {
-        return new UriBuilder("https", imageServer, 443, $"images/main/{filename}").Uri.AbsoluteUri;
-    }
+    private string GetAnimePosterUri(string imageServer, string filename) =>
+        new UriBuilder("https", imageServer, 443, $"images/main/{filename}").Uri.AbsoluteUri;
 }

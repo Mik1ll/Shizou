@@ -23,6 +23,9 @@ public class ImportService
     }
 
 
+    /// <summary>
+    ///     Scans each import folder with the scan on import flag set.
+    /// </summary>
     public void Import()
     {
         _logger.LogInformation("Beginning import");
@@ -66,6 +69,9 @@ public class ImportService
         _commandService.DispatchRange(filesToHash.Select(e => new HashArgs(e.FullName)));
     }
 
+    /// <summary>
+    ///     Removes the Local File entries for files missing from storage.
+    /// </summary>
     public void RemoveMissingFiles()
     {
         _logger.LogInformation("Removing missing local files");
@@ -84,6 +90,10 @@ public class ImportService
         context.SaveChanges();
     }
 
+    /// <summary>
+    ///     Remove a specific local file entry by it's ID.
+    /// </summary>
+    /// <param name="localFileId"></param>
     public void RemoveLocalFile(int localFileId)
     {
         using var context = _contextFactory.CreateDbContext();
@@ -100,6 +110,11 @@ public class ImportService
         }
     }
 
+    /// <summary>
+    ///     Set the ignored state for a list of files. Ignored files will not be hashed/scanned.
+    /// </summary>
+    /// <param name="localFileIds"></param>
+    /// <param name="ignored"></param>
     public void SetIgnored(IEnumerable<int> localFileIds, bool ignored)
     {
         using var context = _contextFactory.CreateDbContext();
