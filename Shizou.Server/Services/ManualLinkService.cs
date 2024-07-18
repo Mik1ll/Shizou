@@ -33,6 +33,14 @@ public class ManualLinkService
         No
     }
 
+    /// <summary>
+    ///     Manually link a <see cref="LocalFile" /> to an <see cref="AniDbEpisode" /> by the episode ID. <br />
+    ///     If a generic AniDB file for the episode does not exist in the database, the action cannot be performed immediately and a
+    ///     <see cref="Shizou.Server.Commands.AniDb.UpdateMyListByEpisodeCommand" /> will be queued
+    /// </summary>
+    /// <param name="localFile"></param>
+    /// <param name="aniDbEpisodeId"></param>
+    /// <returns>A <see cref="LinkResult" /> describing whether the action was sucessful</returns>
     public LinkResult LinkFile(LocalFile localFile, int aniDbEpisodeId)
     {
         var options = _optionsMonitor.CurrentValue.AniDb.MyList;
@@ -66,6 +74,10 @@ public class ManualLinkService
         return LinkResult.Yes;
     }
 
+    /// <summary>
+    ///     Removes the manual link of a local file to an episode.
+    /// </summary>
+    /// <param name="localFileId"></param>
     public void UnlinkFile(int localFileId)
     {
         using var context = _contextFactory.CreateDbContext();
