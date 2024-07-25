@@ -1,5 +1,4 @@
 using Blazored.Modal;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.StaticFiles;
 using Serilog;
@@ -7,7 +6,6 @@ using Shizou.Blazor.Components;
 using Shizou.Blazor.Services;
 using Shizou.Data;
 using Shizou.Server.Extensions;
-using WebEssentials.AspNetCore.Pwa;
 
 Log.Logger = new LoggerConfiguration()
     .ConfigureSerilog()
@@ -38,11 +36,6 @@ try
     builder.Services.AddRazorPages();
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
-
-    builder.Services.AddProgressiveWebApp(new PwaOptions
-    {
-        Strategy = ServiceWorkerStrategy.Minimal
-    });
 
     builder.Services.AddCascadingAuthenticationState();
 
@@ -108,12 +101,7 @@ try
 
     app.UseSecurityHeaders();
 
-    app.MapControllers().Finally(endpointBuilder =>
-    {
-        // PWA manifest/service worker is locked behind auth without this
-        if (typeof(PwaController).FullName is { } fn && (endpointBuilder.DisplayName?.StartsWith(fn) ?? false))
-            endpointBuilder.Metadata.Add(new AllowAnonymousAttribute());
-    });
+    app.MapControllers();
 
     app.MapRazorPages();
     app.MapRazorComponents<App>()
