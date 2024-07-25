@@ -414,7 +414,7 @@ public class MyAnimeListService
 
         await WriteTokenToFileAsync(newToken).ConfigureAwait(false);
 
-        return malToken;
+        return newToken;
     }
 
     private bool HandleStatusCode(HttpResponseMessage result)
