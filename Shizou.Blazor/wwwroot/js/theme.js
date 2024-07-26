@@ -1,14 +1,14 @@
 ﻿'use strict';
 
-function getStoredTheme() {
+export function getStoredTheme() {
     return localStorage.getItem('shizou.theme') || 'auto';
 }
 
-function setStoredTheme(theme) {
+export function setStoredTheme(theme) {
     return localStorage.setItem('shizou.theme', theme);
 }
 
-function setTheme(theme) {
+export function setTheme(theme) {
     theme = theme || getStoredTheme();
     setStoredTheme(theme);
     if (theme === 'auto') {
@@ -23,7 +23,7 @@ function setTheme(theme) {
 }
 
 // noinspection JSUnusedGlobalSymbols
-function cycleTheme() {
+export function cycleTheme() {
     const themes = ['auto', 'light', 'dark'];
     let currThemeIdx = themes.indexOf(getStoredTheme());
     if (currThemeIdx < 0) currThemeIdx = 0;

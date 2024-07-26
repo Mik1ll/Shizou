@@ -17,14 +17,14 @@
 
     <link rel="manifest" href="/manifest.json"/>
     <meta name="theme-color" content="white">
-    <script src="js/theme.js"></script>
 </head>
 <body>
 <div class="container pt-5">
     @RenderBody()
-    <script>
-        setTheme();
-    </script>
 </div>
+<script type="module">
+    import { setTheme } from "/js/theme.js";
+    setTheme();
+</script>
 </body>
 </html>
