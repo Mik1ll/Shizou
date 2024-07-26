@@ -19,6 +19,7 @@ public partial class NavMenu
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         _themeModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/theme.js");
+        await _themeModule.InvokeVoidAsync("setTheme");
         _theme = await _themeModule.InvokeAsync<string>("getStoredTheme");
     }
 
