@@ -9,6 +9,7 @@ function setStoredTheme(theme) {
 }
 
 function setTheme(theme) {
+    theme = theme || getStoredTheme();
     setStoredTheme(theme);
     if (theme === 'auto') {
         document.documentElement.setAttribute('data-bs-theme', window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -30,5 +31,3 @@ function cycleTheme() {
     setTheme(themes[themeIdx]);
     return themes[themeIdx];
 }
-
-setTheme(getStoredTheme());
