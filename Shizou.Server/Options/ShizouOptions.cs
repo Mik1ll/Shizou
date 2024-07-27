@@ -26,7 +26,17 @@ public class ShizouOptions : IValidatableObject
             "type": "object",
             "properties": {
                 "Import": {
-                    "type": "object"
+                    "type": "object",
+                    "description": "Config related to the import/scanning process",
+                    "properties": {
+                        "{{nameof(Import.FileExtensions)}}": {
+                            "description": "The file extensions to scan, other files will be ignored",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
                 },
                 "{{nameof(AniDb)}}": {
                     "type": "object",
