@@ -90,6 +90,12 @@
                 <InputText class="form-control" @bind-Value="@_externalPlayerScheme"></InputText>
             </label>
         </div>
+        <div class="mb-2">
+            <label class="form-label">
+                Scan File Extensions (space delimited)
+                <InputTextArea class="form-control" @bind-Value="@FileExtensionWrapper"></InputTextArea>
+            </label>
+        </div>
         <button type="submit" class="btn btn-success">Save</button>
     </EditForm>
 

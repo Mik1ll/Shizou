@@ -165,6 +165,16 @@ public class ShizouOptions : IValidatableObject
 
 public class ImportOptions
 {
+    public string[] FileExtensions { get; set; } =
+    [
+        // Video
+        "mov", "mkv", "avi", "mp4", "wmv", "mpg", "mpeg", "m4v", "webm", "flv", "f4v", "ts", "m2ts", "mts", "vob", "ogm", "asf", "mk3d", "ogv", "qt", "rm",
+        "rmvb", "swf",
+        // Subtitle
+        "srt", "ass", "ssa", "sub", "sbv", "vtt", "ttxt", "fsb", "idx", "js", "lrc", "mks", "pjs", "rt", "s2k", "smi", "sup", "tts", "txt", "xss", "zeg", "tmp",
+        // Audio
+        "ac3", "m4a", "mp3", "flac", "mka", "ogg", "aac", "dts", "dtshd", "mlp", "ra", "thd", "wav", "wma"
+    ];
 }
 
 public class AniDbOptions

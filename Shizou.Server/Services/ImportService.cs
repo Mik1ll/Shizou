@@ -4,22 +4,27 @@ using System.IO;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
+using Shizou.Server.Options;
 
 namespace Shizou.Server.Services;
 
 public class ImportService
 {
     private readonly CommandService _commandService;
+    private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
     private readonly ILogger<ImportService> _logger;
     private readonly IShizouContextFactory _contextFactory;
 
-    public ImportService(ILogger<ImportService> logger, IShizouContextFactory contextFactory, CommandService commandService)
+    public ImportService(ILogger<ImportService> logger, IShizouContextFactory contextFactory, CommandService commandService,
+        IOptionsMonitor<ShizouOptions> optionsMonitor)
     {
         _logger = logger;
         _contextFactory = contextFactory;
         _commandService = commandService;
+        _optionsMonitor = optionsMonitor;
     }
 
 
@@ -55,16 +60,16 @@ public class ImportService
             return;
         }
 
-        var allFiles = dir.GetFiles("*", new EnumerationOptions
-        {
-            RecurseSubdirectories = true,
-            AttributesToSkip = FileAttributes.Hidden | FileAttributes.System
-        });
+        var extensions = _optionsMonitor.CurrentValue.Import.FileExtensions.Select(ext => ext.TrimStart('.')).ToArray();
         var dbFiles = context.LocalFiles.Include(lf => lf.ImportFolder)
             .Where(lf => lf.ImportFolder != null)
             .ToDictionary(lf => Path.Combine(lf.ImportFolder!.Path, lf.PathTail));
-        var filesToHash = allFiles.Where(f =>
-            !dbFiles.TryGetValue(f.FullName, out var lf) || (!lf.Ignored && (forceRescan || f.Length != lf.FileSize)));
+        var filesToHash = dir.EnumerateFiles("*", new EnumerationOptions
+        {
+            RecurseSubdirectories = true,
+            AttributesToSkip = FileAttributes.Hidden | FileAttributes.System
+        }).Where(f => f.Length > 0 && extensions.Contains(f.Extension.TrimStart('.'), StringComparer.OrdinalIgnoreCase) &&
+                      (!dbFiles.TryGetValue(f.FullName, out var lf) || (!lf.Ignored && (forceRescan || f.Length != lf.FileSize))));
 
         _commandService.DispatchRange(filesToHash.Select(e => new HashArgs(e.FullName)));
     }
