@@ -31,3 +31,5 @@ export function cycleTheme() {
     setTheme(themes[themeIdx]);
     return themes[themeIdx];
 }
+
+setTheme();

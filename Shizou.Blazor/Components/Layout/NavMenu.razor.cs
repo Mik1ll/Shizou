@@ -12,14 +12,13 @@ public partial class NavMenu
     private IJSObjectReference? _themeModule;
 
     private string? NavMenuCssClass => _collapsed ? null : "show";
-
+    
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
         _themeModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/theme.js");
-        await _themeModule.InvokeVoidAsync("setTheme");
         _theme = await _themeModule.InvokeAsync<string>("getStoredTheme");
     }
 
