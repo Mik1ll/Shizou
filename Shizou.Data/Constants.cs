@@ -9,11 +9,11 @@ public static class Constants
     public const string SchemeHandlerVersion = "v2.0.0";
 
     public const string SchemeHandlerWindowsDownloadUri =
-        $"https://github.com/Mik1ll/Shizou/releases/download/SchemeHandler%2F{SchemeHandlerVersion}/SchemeHandler_Win_x64_{SchemeHandlerVersion}.zip";
+        $"https://github.com/Mik1ll/Shizou/releases/download/SchemeHandler%2F{SchemeHandlerVersion}/Shizou.SchemeHandler_Win_x64_{SchemeHandlerVersion}.zip";
 
     public const string SchemeHandlerLinuxDownloadUri =
-        $"https://github.com/Mik1ll/Shizou/releases/download/SchemeHandler%2F{SchemeHandlerVersion}/SchemeHandler_Linux_x64_{SchemeHandlerVersion}.tgz";
+        $"https://github.com/Mik1ll/Shizou/releases/download/SchemeHandler%2F{SchemeHandlerVersion}/Shizou.SchemeHandler_Linux_x64_{SchemeHandlerVersion}.tgz";
 
     public const string SchemeHandlerLinuxArmDownloadUri =
-        $"https://github.com/Mik1ll/Shizou/releases/download/SchemeHandler%2F{SchemeHandlerVersion}/SchemeHandler_Linux_arm64_{SchemeHandlerVersion}.tgz";
+        $"https://github.com/Mik1ll/Shizou/releases/download/SchemeHandler%2F{SchemeHandlerVersion}/Shizou.SchemeHandler_Linux_arm64_{SchemeHandlerVersion}.tgz";
 }
