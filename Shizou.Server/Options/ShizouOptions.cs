@@ -136,6 +136,17 @@ public class ShizouOptions : IValidatableObject
                             "type": "string"
                         }
                     }
+                },
+                "{{nameof(CollectionView)}}": {
+                    "type": "object",
+                    "properties": {
+                        "Enabled": {
+                            "type": "boolean"
+                        },
+                        "Path": {
+                            "type": ["string", "null"]
+                        }
+                    }
                 }
             }
         }
@@ -150,6 +161,8 @@ public class ShizouOptions : IValidatableObject
     public AniDbOptions AniDb { get; set; } = new();
 
     public MyAnimeListOptions MyAnimeList { get; set; } = new();
+
+    public CollectionViewOptions CollectionView { get; set; } = new();
 
 
     public void SaveToFile()
@@ -244,4 +257,10 @@ public class AvDumpOptions
 {
     public string? UdpKey { get; set; }
     public int UdpClientPort { get; set; } = 4557;
+}
+
+public class CollectionViewOptions
+{
+    public bool Enabled { get; set; }
+    public string? Path { get; set; }
 }

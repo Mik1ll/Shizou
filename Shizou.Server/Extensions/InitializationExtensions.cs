@@ -229,7 +229,8 @@ public static class InitializationExtensions
             .AddTransient<FfmpegService>()
             .AddTransient<ManualLinkService>()
             .AddTransient<AnimeService>()
-            .AddTransient<AvDumpService>();
+            .AddTransient<AvDumpService>()
+            .AddTransient<SymbolicCollectionViewService>();
         return services;
     }
 
