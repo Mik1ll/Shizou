@@ -47,7 +47,7 @@ public class SymbolicCollectionViewService
         Directory.CreateDirectory(collectionDir.FullName);
 
         using var context = _contextFactory.CreateDbContext();
-        var animeTitles = context.AniDbAnimes.HasLocalFiles().Select(a => new { a.Id, Title = a.TitleTranscription }).ToDictionary(a => a.Id, a => a.Title);
+        var anime = context.AniDbAnimes.HasLocalFiles().Select(a => new { a.Id, Title = a.TitleTranscription, a.AnimeType }).ToDictionary(a => a.Id, a => a);
         var eps = context.AniDbEpisodes.HasLocalFiles().Select(ep => new
         {
             ep.Id,
@@ -71,13 +71,13 @@ public class SymbolicCollectionViewService
             lf.Crc,
             EpType = eps[epId].EpisodeType,
             EpNo = eps[epId].Number,
-            AnimeId = eps[epId].AniDbAnimeId,
-            Title = animeTitles[eps[epId].AniDbAnimeId]
+            Anime = anime[eps[epId].AniDbAnimeId]
         })).ToList();
 
         List<(string Target, string Path)> linkPaths = files.Select(f => (Path.GetFullPath(Path.Combine(f.Path, f.PathTail)),
-                Path.Combine(options.CollectionView.Path, $"{InvalidCharRegex.Replace(f.Title, "_")} [AniDB-{f.AnimeId}]",
-                    $"{InvalidCharRegex.Replace(f.Title, "_")} {f.EpType.GetEpString(f.EpNo)} [{f.Crc}]{Path.GetExtension(f.PathTail)}")))
+                Path.Combine(options.CollectionView.Path, f.Anime.AnimeType is AnimeType.Movie ? "Movies" : "Shows",
+                    $"{InvalidCharRegex.Replace(f.Anime.Title, "_")} [AniDB-{f.Anime.Id}]",
+                    $"{InvalidCharRegex.Replace(f.Anime.Title, "_")} {f.EpType.GetEpString(f.EpNo)} [{f.Crc}]{Path.GetExtension(f.PathTail)}")))
             .ToList();
 
         var pathsHashSet = linkPaths.Select(p => p.Path).ToHashSet(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -91,12 +91,24 @@ public class SymbolicCollectionViewService
         foreach (var file in toDelete)
             file.Delete();
 
+        RemoveEmptyDirs(collectionDir);
+
         var toCreate = linkPaths.Where(file => File.Exists(file.Target) && !File.Exists(file.Path)).ToList();
 
         foreach (var file in toCreate)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(file.Path)!);
             File.CreateSymbolicLink(file.Path, file.Target);
+        }
+    }
+
+    private void RemoveEmptyDirs(DirectoryInfo dirInfo)
+    {
+        foreach (var dir in dirInfo.EnumerateDirectories())
+        {
+            RemoveEmptyDirs(dir);
+            if (!dir.EnumerateFileSystemInfos().Any())
+                dir.Delete(false);
         }
     }
 }
