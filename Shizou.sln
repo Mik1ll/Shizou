@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.WebApi", "Shizou.Web
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.JellyfinPlugin", "Shizou.JellyfinPlugin\Shizou.JellyfinPlugin.csproj", "{4F2E9D56-ADDF-4986-B616-23F29FE83450}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.HttpClient", "Shizou.HttpClient\Shizou.HttpClient.csproj", "{8B918BB0-5A68-4769-A696-2EAB976DBACF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{4F2E9D56-ADDF-4986-B616-23F29FE83450}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F2E9D56-ADDF-4986-B616-23F29FE83450}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F2E9D56-ADDF-4986-B616-23F29FE83450}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B918BB0-5A68-4769-A696-2EAB976DBACF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B918BB0-5A68-4769-A696-2EAB976DBACF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B918BB0-5A68-4769-A696-2EAB976DBACF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B918BB0-5A68-4769-A696-2EAB976DBACF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

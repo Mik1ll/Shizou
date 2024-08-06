@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>12</LangVersion>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="NSwag.ApiDescription.Client" Version="14.1.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Shizou.WebApi\Shizou.WebApi.csproj" PrivateAssets="All" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <OpenApiReference Include="..\Shizou.WebApi\swagger.json" Options="/JsonLibrary:SystemTextJson" ClassName="HttpClient" />
+    </ItemGroup>
+</Project>

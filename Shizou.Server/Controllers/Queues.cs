@@ -36,7 +36,7 @@ public class Queues : ControllerBase
 
     [HttpPut("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponse(StatusCodes.Status409Conflict, contentTypes: "application/json")]
+    [SwaggerResponse(StatusCodes.Status409Conflict, type: typeof(ProblemDetails), contentTypes: "application/json")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     public Results<Ok, Conflict<string>> Unpause(QueueType queueType)
     {
@@ -48,7 +48,7 @@ public class Queues : ControllerBase
     }
 
     [HttpGet("{queueType}/[action]")]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/json")]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(PauseResult), contentTypes: "application/json")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     public Ok<PauseResult> PauseState(QueueType queueType)
     {
@@ -58,7 +58,7 @@ public class Queues : ControllerBase
 
 
     [HttpGet("{queueType}/[action]")]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/json")]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(ICommand<CommandArgs>), contentTypes: "application/json")]
     [SwaggerResponse(StatusCodes.Status204NoContent)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     public Ok<ICommand<CommandArgs>?> Current(QueueType queueType)
@@ -67,7 +67,7 @@ public class Queues : ControllerBase
     }
 
     [HttpGet("{queueType}/[action]")]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/json")]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<CommandRequest>), contentTypes: "application/json")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     public Ok<List<CommandRequest>> QueuedRequests(QueueType queueType)
     {

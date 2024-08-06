@@ -24,7 +24,7 @@ public class MyAnimeList : ControllerBase
 
     [HttpGet("Authenticate")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/json")]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(string), contentTypes: "application/json")]
     public Results<Ok<string>, BadRequest> Authenticate()
     {
         var url = _myAnimeListService.GetAuthenticationUrl(HttpContext);
