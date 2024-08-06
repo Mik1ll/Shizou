@@ -1,0 +1,1807 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Shizou.WebApi",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/Account/Login": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "description": "Password",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Sets the IdentityCookie cookie",
+                "schema": {
+                  "type": "string",
+                  "description": "Sets the IdentityCookie cookie",
+                  "format": ""
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/Account/SetPassword": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordModel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Sets the IdentityCookie cookie",
+                "schema": {
+                  "type": "string",
+                  "description": "Sets the IdentityCookie cookie",
+                  "format": ""
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AniDbEpisodes": {
+      "get": {
+        "tags": [
+          "AniDbEpisodes"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AniDbEpisode"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbEpisodes/{id}": {
+      "get": {
+        "tags": [
+          "AniDbEpisodes"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AniDbEpisode"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbFiles": {
+      "get": {
+        "tags": [
+          "AniDbFiles"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AniDbNormalFile"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbFiles/{id}": {
+      "get": {
+        "tags": [
+          "AniDbFiles"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AniDbNormalFile"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbFiles/{fileId}/MarkWatched": {
+      "put": {
+        "tags": [
+          "AniDbFiles"
+        ],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbFiles/{fileId}/MarkUnwatched": {
+      "put": {
+        "tags": [
+          "AniDbFiles"
+        ],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Command/PingAniDb": {
+      "put": {
+        "tags": [
+          "Command"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Command/SyncMyList": {
+      "put": {
+        "tags": [
+          "Command"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Command/UpdateMyList": {
+      "put": {
+        "tags": [
+          "Command"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMyListArgs"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMyListArgs"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMyListArgs"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Command/GenericUdpRequest": {
+      "put": {
+        "tags": [
+          "Command"
+        ],
+        "parameters": [
+          {
+            "name": "command",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/FileServer/{ed2K}": {
+      "get": {
+        "tags": [
+          "FileServer"
+        ],
+        "parameters": [
+          {
+            "name": "ed2K",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found"
+          },
+          "416": {
+            "description": "Range Not Satisfiable"
+          },
+          "206": {
+            "description": "Partial Content",
+            "content": {
+              "application/octet-stream": {}
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {}
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/FileServer/{ed2K}/Playlist": {
+      "get": {
+        "tags": [
+          "FileServer"
+        ],
+        "parameters": [
+          {
+            "name": "ed2K",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "single",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/x-mpegURL": {}
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/FileServer/{ed2k}/Fonts/{fontName}": {
+      "get": {
+        "tags": [
+          "FileServer"
+        ],
+        "parameters": [
+          {
+            "name": "ed2K",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fontName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "font/ttf": {},
+              "font/otf": {}
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/FileServer/{ed2K}/Subtitles/{index}": {
+      "get": {
+        "tags": [
+          "FileServer"
+        ],
+        "parameters": [
+          {
+            "name": "ed2K",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "index",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/x-ssa": {}
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Images/MissingAnimePosters": {
+      "put": {
+        "tags": [
+          "Images"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Images/AnimePosters/{animeId}": {
+      "get": {
+        "tags": [
+          "Images"
+        ],
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Images/EpisodeThumbnails/{episodeId}": {
+      "get": {
+        "tags": [
+          "Images"
+        ],
+        "parameters": [
+          {
+            "name": "episodeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Import/start": {
+      "put": {
+        "tags": [
+          "Import"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Import/scan/{folderId}": {
+      "put": {
+        "tags": [
+          "Import"
+        ],
+        "parameters": [
+          {
+            "name": "folderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/ImportFolders": {
+      "get": {
+        "tags": [
+          "ImportFolders"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ImportFolder"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ImportFolders"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportFolder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Entity updated"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ImportFolders"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportFolder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportFolder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/ImportFolders/{id}": {
+      "get": {
+        "tags": [
+          "ImportFolders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportFolder"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ImportFolders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Entity deleted"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/ImportFolders/path/{path}": {
+      "get": {
+        "tags": [
+          "ImportFolders"
+        ],
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/LocalFiles": {
+      "get": {
+        "tags": [
+          "LocalFiles"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LocalFile"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/LocalFiles/{id}": {
+      "get": {
+        "tags": [
+          "LocalFiles"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalFile"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/LocalFiles/ProcessFile/{id}": {
+      "put": {
+        "tags": [
+          "LocalFiles"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/MyAnimeList/GetToken": {
+      "get": {
+        "tags": [
+          "MyAnimeList"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/MyAnimeList/Authenticate": {
+      "get": {
+        "tags": [
+          "MyAnimeList"
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Options": {
+      "get": {
+        "tags": [
+          "Options"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Options"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShizouOptions"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShizouOptions"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShizouOptions"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Queues/{queueType}/Pause": {
+      "put": {
+        "tags": [
+          "Queues"
+        ],
+        "parameters": [
+          {
+            "name": "queueType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "General",
+                "AniDbUdp",
+                "AniDbHttp",
+                "Hash",
+                "Image"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Queues/{queueType}/Clear": {
+      "put": {
+        "tags": [
+          "Queues"
+        ],
+        "parameters": [
+          {
+            "name": "queueType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "General",
+                "AniDbUdp",
+                "AniDbHttp",
+                "Hash",
+                "Image"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Queues/{queueType}/Current": {
+      "get": {
+        "tags": [
+          "Queues"
+        ],
+        "parameters": [
+          {
+            "name": "queueType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "General",
+                "AniDbUdp",
+                "AniDbHttp",
+                "Hash",
+                "Image"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Queues/{queueType}/Unpause": {
+      "put": {
+        "tags": [
+          "Queues"
+        ],
+        "parameters": [
+          {
+            "name": "queueType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "General",
+                "AniDbUdp",
+                "AniDbHttp",
+                "Hash",
+                "Image"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Queues/{queueType}/PauseState": {
+      "get": {
+        "tags": [
+          "Queues"
+        ],
+        "parameters": [
+          {
+            "name": "queueType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "General",
+                "AniDbUdp",
+                "AniDbHttp",
+                "Hash",
+                "Image"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/Queues/{queueType}/QueuedRequests": {
+      "get": {
+        "tags": [
+          "Queues"
+        ],
+        "parameters": [
+          {
+            "name": "queueType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "General",
+                "AniDbUdp",
+                "AniDbHttp",
+                "Hash",
+                "Image"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AniDbAudio": {
+        "required": [
+          "bitrate",
+          "codec",
+          "language"
+        ],
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "codec": {
+            "type": "string"
+          },
+          "bitrate": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AniDbEpisode": {
+        "required": [
+          "airDate",
+          "aniDbAnimeId",
+          "durationMinutes",
+          "episodeType",
+          "id",
+          "number",
+          "summary",
+          "titleEnglish",
+          "titleOriginal",
+          "titleTranscription",
+          "updated"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "titleEnglish": {
+            "type": "string"
+          },
+          "titleTranscription": {
+            "type": "string",
+            "nullable": true
+          },
+          "titleOriginal": {
+            "type": "string",
+            "nullable": true
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "episodeType": {
+            "enum": [
+              "Episode",
+              "Special",
+              "Credits",
+              "Trailer",
+              "Parody",
+              "Other"
+            ],
+            "type": "string"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "airDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "epString": {
+            "type": "string",
+            "readOnly": true
+          },
+          "aniDbAnimeId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AniDbNormalFile": {
+        "required": [
+          "censored",
+          "chaptered",
+          "crc",
+          "deprecated",
+          "durationSeconds",
+          "ed2k",
+          "fileName",
+          "fileSize",
+          "fileVersion",
+          "id",
+          "md5",
+          "sha1",
+          "source",
+          "updated"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ed2k": {
+            "type": "string"
+          },
+          "crc": {
+            "type": "string",
+            "nullable": true
+          },
+          "md5": {
+            "type": "string",
+            "nullable": true
+          },
+          "sha1": {
+            "type": "string",
+            "nullable": true
+          },
+          "fileSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fileVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "censored": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "deprecated": {
+            "type": "boolean"
+          },
+          "chaptered": {
+            "type": "boolean"
+          },
+          "aniDbGroupId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "video": {
+            "$ref": "#/components/schemas/AniDbVideo"
+          },
+          "audio": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AniDbAudio"
+            }
+          },
+          "subtitles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AniDbSubtitle"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "AniDbOptions": {
+        "required": [
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "maxLength": 16,
+            "minLength": 3,
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "serverHost": {
+            "type": "string"
+          },
+          "imageServerHost": {
+            "type": "string",
+            "nullable": true
+          },
+          "httpServerPort": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "udpServerPort": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "udpClientPort": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "myList": {
+            "$ref": "#/components/schemas/MyListOptions"
+          },
+          "fetchRelationDepth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "avDump": {
+            "$ref": "#/components/schemas/AvDumpOptions"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AniDbSubtitle": {
+        "required": [
+          "language"
+        ],
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AniDbVideo": {
+        "required": [
+          "bitRate",
+          "codec",
+          "colorDepth",
+          "height",
+          "width"
+        ],
+        "type": "object",
+        "properties": {
+          "codec": {
+            "type": "string"
+          },
+          "bitRate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "width": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "colorDepth": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AvDumpOptions": {
+        "type": "object",
+        "properties": {
+          "udpKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "udpClientPort": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionViewOptions": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "path": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ImportFolder": {
+        "required": [
+          "name",
+          "path"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "path": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "scanOnImport": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ImportOptions": {
+        "type": "object",
+        "properties": {
+          "fileExtensions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "LocalFile": {
+        "required": [
+          "crc",
+          "ed2k",
+          "fileSize",
+          "ignored",
+          "pathTail",
+          "signature"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ed2k": {
+            "type": "string"
+          },
+          "crc": {
+            "type": "string"
+          },
+          "fileSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "ignored": {
+            "type": "boolean"
+          },
+          "pathTail": {
+            "type": "string"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ed2KLink": {
+            "type": "string",
+            "readOnly": true
+          },
+          "importFolderId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "aniDbFileId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MyAnimeListOptions": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MyListOptions": {
+        "type": "object",
+        "properties": {
+          "disableSync": {
+            "type": "boolean"
+          },
+          "absentFileState": {
+            "enum": [
+              "Unknown",
+              "Internal",
+              "External",
+              "Deleted",
+              "Remote"
+            ],
+            "type": "string"
+          },
+          "presentFileState": {
+            "enum": [
+              "Unknown",
+              "Internal",
+              "External",
+              "Deleted",
+              "Remote"
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PasswordModel": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": {}
+      },
+      "ShizouOptions": {
+        "type": "object",
+        "properties": {
+          "import": {
+            "$ref": "#/components/schemas/ImportOptions"
+          },
+          "aniDb": {
+            "$ref": "#/components/schemas/AniDbOptions"
+          },
+          "myAnimeList": {
+            "$ref": "#/components/schemas/MyAnimeListOptions"
+          },
+          "collectionView": {
+            "$ref": "#/components/schemas/CollectionViewOptions"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateMyListArgs": {
+        "type": "object",
+        "properties": {
+          "lid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "myListState": {
+            "enum": [
+              "Unknown",
+              "Internal",
+              "External",
+              "Deleted",
+              "Remote"
+            ],
+            "type": "string"
+          },
+          "watched": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "watchedDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

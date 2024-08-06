@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using Shizou.Data;
@@ -27,7 +28,9 @@ try
         hasHandle = true;
     }
 
-    var builder = WebApplication.CreateBuilder();
+    var builder = WebApplication.CreateBuilder(
+        // Swagger openapi json won't generate without setting the name here for some reason
+        new WebApplicationOptions { ApplicationName = Assembly.GetExecutingAssembly().GetName().Name });
 
     builder.AddShizouOptions()
         .AddShizouLogging()
