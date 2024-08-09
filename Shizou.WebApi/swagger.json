@@ -404,13 +404,13 @@
           "206": {
             "description": "Partial Content",
             "content": {
-              "application/octet-stream": {}
+              "application/octet-stream": { }
             }
           },
           "200": {
             "description": "OK",
             "content": {
-              "application/octet-stream": {}
+              "application/octet-stream": { }
             }
           },
           "401": {
@@ -448,7 +448,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/x-mpegURL": {}
+              "application/x-mpegURL": { }
             }
           },
           "401": {
@@ -487,8 +487,8 @@
           "200": {
             "description": "OK",
             "content": {
-              "font/ttf": {},
-              "font/otf": {}
+              "font/ttf": { },
+              "font/otf": { }
             }
           },
           "401": {
@@ -528,7 +528,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/x-ssa": {}
+              "text/x-ssa": { }
             }
           },
           "401": {
@@ -1852,7 +1852,7 @@
             "nullable": true
           }
         },
-        "additionalProperties": {}
+        "additionalProperties": { }
       },
       "ShizouOptions": {
         "type": "object",
