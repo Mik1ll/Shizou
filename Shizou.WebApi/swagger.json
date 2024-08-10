@@ -92,6 +92,67 @@
         }
       }
     },
+    "/api/AniDbAnimes": {
+      "get": {
+        "tags": [
+          "AniDbAnimes"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AniDbAnime"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbAnimes/{id}": {
+      "get": {
+        "tags": [
+          "AniDbAnimes"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AniDbAnime"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/AniDbEpisodes": {
       "get": {
         "tags": [
@@ -1300,6 +1361,86 @@
   },
   "components": {
     "schemas": {
+      "AniDbAnime": {
+        "required": [
+          "airDate",
+          "animeType",
+          "description",
+          "endDate",
+          "episodeCount",
+          "id",
+          "imageFilename",
+          "restricted",
+          "titleEngish",
+          "titleOriginal",
+          "titleTranscription",
+          "updated"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "titleTranscription": {
+            "type": "string"
+          },
+          "titleOriginal": {
+            "type": "string",
+            "nullable": true
+          },
+          "titleEngish": {
+            "type": "string",
+            "nullable": true
+          },
+          "animeType": {
+            "enum": [
+              "Unknown",
+              "Movie",
+              "Ova",
+              "TvSeries",
+              "TvSpecial",
+              "Web",
+              "Other",
+              "MusicVideo"
+            ],
+            "type": "string"
+          },
+          "episodeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "airDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "restricted": {
+            "type": "boolean"
+          },
+          "imageFilename": {
+            "type": "string",
+            "nullable": true
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "aniDbUpdated": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "AniDbAudio": {
         "required": [
           "bitrate",

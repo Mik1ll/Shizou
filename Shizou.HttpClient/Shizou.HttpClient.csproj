@@ -12,11 +12,8 @@
         </PackageReference>
     </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\Shizou.WebApi\Shizou.WebApi.csproj" PrivateAssets="All" />
-    </ItemGroup>
 
     <ItemGroup>
-        <OpenApiReference Include="..\Shizou.WebApi\swagger.json" Options="/JsonLibrary:SystemTextJson" ClassName="HttpClient" />
+        <OpenApiReference Include="..\Shizou.WebApi\swagger.json" Options="/JsonLibrary:SystemTextJson" ClassName="ShizouHttpClient"/>
     </ItemGroup>
 </Project>
