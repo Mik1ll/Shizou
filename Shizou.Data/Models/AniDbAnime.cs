@@ -13,7 +13,7 @@ public class AniDbAnime
     public required string? TitleOriginal { get; set; }
     public required string? TitleEngish { get; set; }
     public required AnimeType AnimeType { get; set; }
-    public required int EpisodeCount { get; set; }
+    public required int? EpisodeCount { get; set; }
     public required string? AirDate { get; set; }
     public required string? EndDate { get; set; }
     public required string? Description { get; set; }

@@ -1408,7 +1408,8 @@
           },
           "episodeCount": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "nullable": true
           },
           "airDate": {
             "type": "string",

@@ -68,7 +68,7 @@ public class AnimeCommand : Command<AnimeArgs>
             AirDate = animeResult.Startdate,
             EndDate = animeResult.Enddate,
             AnimeType = animeResult.Type,
-            EpisodeCount = animeResult.Episodecount,
+            EpisodeCount = animeResult.Episodecount == 0 ? null : animeResult.Episodecount,
             ImageFilename = animeResult.Picture,
             TitleTranscription = mainTitle.Text,
             TitleOriginal = animeResult.Titles
