@@ -96,11 +96,11 @@ public class FileServer : ControllerBase
         var localFile = eps.SelectMany(ep => ep.AniDbFiles.SelectMany(f => f.LocalFiles)).First(l => l.Ed2k == ed2K);
         var episode = eps.First(ep => ep.AniDbFiles.Any(f => f.LocalFiles.Any(lf => lf.Ed2k == ed2K)));
         var groupId = (localFile.AniDbFile as AniDbNormalFile)?.AniDbGroupId;
+        var epCount = episode.AniDbAnime.EpisodeCount;
         var lastEpNo = episode.Number - 1;
-        var lastEpType = episode.EpisodeType;
         foreach (var loopEp in eps.SkipWhile(x => x != episode))
         {
-            if (lastEpType != loopEp.EpisodeType || lastEpNo != loopEp.Number - 1)
+            if (loopEp.EpisodeType != episode.EpisodeType || loopEp.Number != lastEpNo + 1)
                 break;
             var loopLocalFile = loopEp.AniDbFiles.OrderBy(l => (l as AniDbNormalFile)?.AniDbGroupId != groupId).SelectMany(f => f.LocalFiles).FirstOrDefault();
             if (loopLocalFile is null)
@@ -108,7 +108,6 @@ public class FileServer : ControllerBase
             m3U8 += $"#EXTINF:-1,{episode.AniDbAnime.TitleTranscription} - {loopEp.EpString}\n";
             var fileUri = GetFileUri(loopLocalFile, loopEp);
             m3U8 += $"{fileUri}\n";
-            lastEpType = loopEp.EpisodeType;
             lastEpNo = loopEp.Number;
             if (single is true)
                 break;
@@ -125,6 +124,7 @@ public class FileServer : ControllerBase
             values["animeName"] = ep.AniDbAnime.TitleTranscription;
             values["episodeName"] = ep.TitleEnglish;
             values["epNo"] = ep.EpString;
+            values["epCount"] = epCount;
             values["animeId"] = animeId;
             values[Constants.IdentityCookieName] = HttpContext.Request.Cookies[Constants.IdentityCookieName];
             values["appId"] = ShizouOptions.Shizou;
