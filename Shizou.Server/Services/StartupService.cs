@@ -27,6 +27,8 @@ public sealed class StartupService : BackgroundService
         await udpState.SetupNatAsync().ConfigureAwait(false);
         var animeTitleSearchService = _serviceProvider.GetRequiredService<IAnimeTitleSearchService>();
         animeTitleSearchService.ScheduleNextUpdate();
+        var collectionViewService = _serviceProvider.GetRequiredService<SymbolicCollectionViewService>();
+        collectionViewService.Update();
         
         log.LogInformation("Startup service finished");
     }
