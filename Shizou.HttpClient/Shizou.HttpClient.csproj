@@ -14,7 +14,7 @@
 
 
     <ItemGroup>
-        <OpenApiReference Include="..\Shizou.WebApi\swagger.json" Options="/JsonLibrary:SystemTextJson" ClassName="ShizouHttpClient"/>
+        <OpenApiReference Include="..\Shizou.WebApi\openapi.json" Options="/JsonLibrary:SystemTextJson" ClassName="ShizouHttpClient"/>
     </ItemGroup>
 
 
