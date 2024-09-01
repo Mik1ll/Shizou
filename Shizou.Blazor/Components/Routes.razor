@@ -1,8 +1,12 @@
-﻿@using Shizou.Blazor.Components.Layout
+﻿@using Shizou.Blazor.Components.Account.Shared
+@using Shizou.Blazor.Components.Layout
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-        </RouteView>
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <NotAuthorized>
+                <RedirectToLogin/>
+            </NotAuthorized>
+        </AuthorizeRouteView>
         <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
     </Found>
 </Router>

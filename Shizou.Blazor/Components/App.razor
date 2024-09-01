@@ -28,10 +28,10 @@
     <meta name="theme-color" content="white">
     <script src="js/theme.js" type="module" integrity="sha384-XRJBZUtcTfftOC6+5RdBDpI9DPFtF6IGQJDJxJe8wM7+kec+XvnlgAsVdMnnm4oe"></script>
 
-    <HeadOutlet @rendermode="@(new InteractiveServerRenderMode(false))"/>
+    <HeadOutlet @rendermode="@RenderModeForPage"/>
 </head>
 <body>
-<Routes @rendermode="@(new InteractiveServerRenderMode(false))"/>
+<Routes @rendermode="@RenderModeForPage"/>
 
 <div id="blazor-error-ui" class="offcanvas offcanvas-bottom bg-danger" style="display:none;transform:none;visibility:visible;height:unset;z-index:5000">
     <div class="d-flex flex-row p-3">
@@ -60,3 +60,14 @@
 
 </body>
 </html>
+
+@code {
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Account")
+        ? null
+        : new InteractiveServerRenderMode(false);
+
+}
