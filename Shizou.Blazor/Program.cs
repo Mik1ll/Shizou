@@ -1,6 +1,7 @@
 using Blazored.Modal;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Shizou.Blazor.Components;
 using Shizou.Blazor.Services;
@@ -110,6 +111,10 @@ try
     app.MigrateDatabase();
 
     app.Run();
+}
+catch (OptionsValidationException ex)
+{
+    foreach (var failure in ex.Failures) Log.Logger.Error("{Failure}", failure);
 }
 finally
 {

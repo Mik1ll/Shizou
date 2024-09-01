@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Shizou.Data;
 using Shizou.Server.Extensions;
@@ -75,6 +76,10 @@ try
     app.MigrateDatabase();
 
     app.Run();
+}
+catch (OptionsValidationException ex)
+{
+    foreach (var failure in ex.Failures) Log.Logger.Error("{Failure}", failure);
 }
 finally
 {

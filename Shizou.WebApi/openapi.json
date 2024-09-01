@@ -26,10 +26,10 @@
             "description": "OK",
             "headers": {
               "Set-Cookie": {
-                "description": "Sets the IdentityCookie cookie",
+                "description": "Sets the Identity cookie",
                 "schema": {
                   "type": "string",
-                  "description": "Sets the IdentityCookie cookie",
+                  "description": "Sets the Identity cookie",
                   "format": ""
                 }
               }
@@ -60,10 +60,10 @@
             "description": "OK",
             "headers": {
               "Set-Cookie": {
-                "description": "Sets the IdentityCookie cookie",
+                "description": "Sets the Identity cookie",
                 "schema": {
                   "type": "string",
-                  "description": "Sets the IdentityCookie cookie",
+                  "description": "Sets the Identity cookie",
                   "format": ""
                 }
               }
