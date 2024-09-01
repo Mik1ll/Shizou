@@ -1,7 +1,7 @@
 ﻿using System.Dynamic;
 using System.Text.Json;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.JSInterop;
-using Shizou.Data;
 using Shizou.Server.Controllers;
 
 namespace Shizou.Blazor.Services;
@@ -30,11 +30,11 @@ public class ExternalPlaybackService
                 : LocalStorageKeys.ExternalPlayerSchemeDefault;
         }
 
-        var identityCookie = _httpContextAccessor.HttpContext!.Request.Cookies[Constants.IdentityCookieName];
+        var identityCookie = _httpContextAccessor.HttpContext!.Request.Cookies[IdentityConstants.ApplicationScheme];
         IDictionary<string, object?> values = new ExpandoObject();
         values["ed2K"] = ed2K;
         values["single"] = single;
-        values[Constants.IdentityCookieName] = identityCookie;
+        values[IdentityConstants.ApplicationScheme] = identityCookie;
         var fileUri = _linkGenerator.GetUriByAction(_httpContextAccessor.HttpContext ?? throw new ArgumentNullException(), nameof(FileServer.GetPlaylist),
             nameof(FileServer), values) ?? throw new ArgumentException();
         fileUri = Uri.EscapeDataString(fileUri);

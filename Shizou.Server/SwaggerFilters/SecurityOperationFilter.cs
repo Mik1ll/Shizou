@@ -27,7 +27,7 @@ public class SecurityOperationFilter : IOperationFilter
         if (!operation.Responses.ContainsKey("401"))
             operation.Responses.Add("401", new OpenApiResponse { Description = "Unauthorized" });
 
-        // if (!operation.Security.Any(requirement => requirement.Any(scheme => scheme.Key.Reference.Id == Constants.IdentityCookieName)))
+        // if (!operation.Security.Any(requirement => requirement.Any(scheme => scheme.Key.Reference.Id == IdentityConstants.ApplicationScheme)))
         //     operation.Security = new List<OpenApiSecurityRequirement>
         //     {
         //         new()
@@ -35,7 +35,7 @@ public class SecurityOperationFilter : IOperationFilter
         //             {
         //                 new OpenApiSecurityScheme
         //                 {
-        //                     Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = Constants.IdentityCookieName }
+        //                     Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = IdentityConstants.ApplicationScheme }
         //                 },
         //                 new List<string>()
         //             }

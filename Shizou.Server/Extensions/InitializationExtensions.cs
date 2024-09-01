@@ -195,7 +195,7 @@ public static class InitializationExtensions
                         ctx.Response.Redirect(ctx.RedirectUri);
                         return Task.CompletedTask;
                     };
-                opts.Cookie.Name = Constants.IdentityCookieName;
+                opts.Cookie.Name = IdentityConstants.ApplicationScheme;
             })
             .AddAuthorization(opts => opts.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
             .AddScoped<IShizouContext, ShizouContext>(p => p.GetRequiredService<ShizouContext>())
@@ -280,10 +280,10 @@ public static class InitializationExtensions
                 opt.OrderActionsBy(apiDesc =>
                     $"{apiDesc.ActionDescriptor.RouteValues["controller"]}_{apiDesc.RelativePath?.Length ?? 0:d3}_{apiDesc.HttpMethod switch { "GET" => "0", "PUT" => "1", "POST" => "2", "DELETE" => "3", _ => "4" }}");
                 opt.EnableAnnotations();
-                // opt.AddSecurityDefinition(Constants.IdentityCookieName, new OpenApiSecurityScheme
+                // opt.AddSecurityDefinition(IdentityConstants.ApplicationScheme, new OpenApiSecurityScheme
                 // {
                 //     Type = SecuritySchemeType.ApiKey,
-                //     Name = Constants.IdentityCookieName,
+                //     Name = IdentityConstants.ApplicationScheme,
                 //     In = ParameterLocation.Cookie,
                 // });
                 opt.OperationFilter<SecurityOperationFilter>();
@@ -297,11 +297,11 @@ public static class InitializationExtensions
     {
         return app.Use((context, next) =>
         {
-            if (!context.Request.Cookies.ContainsKey(Constants.IdentityCookieName) &&
-                context.Request.Query.TryGetValue(Constants.IdentityCookieName, out var identityParam))
+            if (!context.Request.Cookies.ContainsKey(IdentityConstants.ApplicationScheme) &&
+                context.Request.Query.TryGetValue(IdentityConstants.ApplicationScheme, out var identityParam))
                 context.Request.Headers.Cookie = new StringValues(
                     (string.IsNullOrWhiteSpace(context.Request.Headers.Cookie) ? string.Empty : $"{context.Request.Headers.Cookie}; ") +
-                    $"{Constants.IdentityCookieName}={identityParam}");
+                    $"{IdentityConstants.ApplicationScheme}={identityParam}");
 
             return next.Invoke();
         });

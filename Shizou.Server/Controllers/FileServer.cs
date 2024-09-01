@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.StaticFiles;
@@ -126,7 +127,7 @@ public class FileServer : ControllerBase
             values["epNo"] = ep.EpString;
             values["epCount"] = epCount;
             values["animeId"] = animeId;
-            values[Constants.IdentityCookieName] = HttpContext.Request.Cookies[Constants.IdentityCookieName];
+            values[IdentityConstants.ApplicationScheme] = HttpContext.Request.Cookies[IdentityConstants.ApplicationScheme];
             values["appId"] = ShizouOptions.Shizou;
             var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
                 nameof(FileServer), values) ?? throw new ArgumentException();

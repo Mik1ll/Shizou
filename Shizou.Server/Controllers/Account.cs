@@ -28,7 +28,7 @@ public class Account : ControllerBase
 
     [HttpPost("Login")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", "string", $"Sets the {Constants.IdentityCookieName} cookie")]
+    [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", "string", "Sets the Identity cookie")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [AllowAnonymous]
     public async Task<Results<Ok, BadRequest<string>>> Login([FromBody] [SwaggerRequestBody("Password", Required = true)] string password)
@@ -41,7 +41,7 @@ public class Account : ControllerBase
 
     [HttpPost("SetPassword")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", "string", $"Sets the {Constants.IdentityCookieName} cookie")]
+    [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", "string", "Sets the Identity cookie")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails), contentTypes: "application/json")]
     [SwaggerResponse(StatusCodes.Status500InternalServerError, type: typeof(ProblemDetails), contentTypes: "application/json")]
     [AllowAnonymous]
