@@ -28,11 +28,15 @@ public partial class Login : ComponentBase
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
+    protected override void OnParametersSet()
+    {
+        if (HttpContext.User.Identity?.IsAuthenticated is true) RedirectManager.RedirectTo(ReturnUrl);
+    }
 
     private async Task LoginUserAsync(EditContext editContext)
     {
         var messageStore = new ValidationMessageStore(editContext);
-        
+
         var result = await SignInManager.PasswordSignInAsync(Constants.IdentityUsername, Input.Password, true, false);
         if (result.Succeeded)
             RedirectManager.RedirectTo(ReturnUrl);
