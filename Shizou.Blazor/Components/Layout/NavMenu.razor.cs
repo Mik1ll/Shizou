@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
 
 namespace Shizou.Blazor.Components.Layout;
 
-public partial class NavMenu
+public partial class NavMenu : IDisposable
 {
     private bool _collapsed = true;
     private bool _expandFileUtils = false;
@@ -12,6 +13,7 @@ public partial class NavMenu
     private IJSObjectReference? _themeModule;
 
     private string? NavMenuCssClass => _collapsed ? null : "show";
+    private string _currentUrl = default!;
 
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
@@ -19,6 +21,12 @@ public partial class NavMenu
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
+
+    protected override void OnInitialized()
+    {
+        _currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -41,12 +49,14 @@ public partial class NavMenu
         _theme = await _themeModule!.InvokeAsync<string>("cycleTheme");
     }
 
-    private void Logout()
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        var currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        NavigationManager.NavigateTo(string.IsNullOrWhiteSpace(currentUrl)
-                ? "Account/Logout"
-                : $"Account/Logout?returnUrl={Uri.EscapeDataString(currentUrl)}",
-            true);
+        _currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }

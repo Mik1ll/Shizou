@@ -47,9 +47,13 @@
                     </button>
                 </li>
                 <li class="nav-item">
-                    <button type="button" class="nav-link" @onclick="@Logout">
-                        <i class="bi bi-box-arrow-left" aria-hidden="true"></i> Logout
-                    </button>
+                    <form action="Account/Logout" method="post">
+                        <AntiforgeryToken/>
+                        <input type="hidden" name="ReturnUrl" value="@_currentUrl"/>
+                        <button type="submit" class="nav-link">
+                            <i class="bi bi-box-arrow-left" aria-hidden="true"></i> Logout
+                        </button>
+                    </form>
                 </li>
             </ul>
         </div>

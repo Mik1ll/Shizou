@@ -1,5 +1,7 @@
 using Blazored.Modal;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -104,10 +106,18 @@ try
     app.UseSecurityHeaders();
 
     app.MapControllers();
-
+    
     //app.MapRazorPages();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
+
+    app.MapGroup("/Account").MapPost("/Logout", async (
+        SignInManager<IdentityUser> signInManager,
+        [FromForm] string returnUrl) =>
+    {
+        await signInManager.SignOutAsync();
+        return TypedResults.LocalRedirect($"~/{returnUrl}");
+    });
 
     app.MigrateDatabase();
 
