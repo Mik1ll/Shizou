@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Identity;
 using Shizou.Blazor.Services;
 using Shizou.Data;
@@ -10,8 +11,6 @@ namespace Shizou.Blazor.Components.Account.Pages;
 [AllowAnonymous]
 public partial class Login : ComponentBase
 {
-    private string? _errorMessage;
-
     [SupplyParameterFromQuery]
     // ReSharper disable once UnusedAutoPropertyAccessor.Local
     private string? ReturnUrl { get; set; }
@@ -30,12 +29,15 @@ public partial class Login : ComponentBase
     private HttpContext HttpContext { get; set; } = default!;
 
 
-    private async Task LoginUserAsync()
+    private async Task LoginUserAsync(EditContext editContext)
     {
+        var messageStore = new ValidationMessageStore(editContext);
+        
         var result = await SignInManager.PasswordSignInAsync(Constants.IdentityUsername, Input.Password, true, false);
         if (result.Succeeded)
             RedirectManager.RedirectTo(ReturnUrl);
-        _errorMessage = "Wrong password";
+
+        messageStore.Add(() => Input.Password, "Wrong password");
     }
 
     private sealed class LoginModel

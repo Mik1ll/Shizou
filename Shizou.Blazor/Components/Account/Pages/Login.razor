@@ -4,7 +4,6 @@
 <PageTitle>Login</PageTitle>
 <h1>Login</h1>
 
-<StatusMessage Message="@_errorMessage"/>
 <EditForm Model="@Input" method="post" style="max-width: 30rem" OnValidSubmit="@LoginUserAsync" FormName="login">
     <DataAnnotationsValidator/>
     <ValidationSummary class="text-danger" role="alert"/>
