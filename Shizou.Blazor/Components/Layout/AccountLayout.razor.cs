@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Shizou.Blazor.Components.Account.Layout;
+namespace Shizou.Blazor.Components.Layout;
 
 public partial class AccountLayout : LayoutComponentBase
 {
