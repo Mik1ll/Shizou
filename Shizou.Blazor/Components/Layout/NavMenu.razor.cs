@@ -12,14 +12,22 @@ public partial class NavMenu
     private IJSObjectReference? _themeModule;
 
     private string? NavMenuCssClass => _collapsed ? null : "show";
-    
+
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
 
-    protected override async Task OnInitializedAsync()
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _themeModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/theme.js");
-        _theme = await _themeModule.InvokeAsync<string>("getStoredTheme");
+        if (firstRender)
+        {
+            _themeModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/theme.js");
+            _theme = await _themeModule.InvokeAsync<string>("getStoredTheme");
+            StateHasChanged();
+        }
     }
 
     private void ToggleCollapse() => _collapsed = !_collapsed;
@@ -31,5 +39,14 @@ public partial class NavMenu
     private async Task ToggleDarkModeAsync()
     {
         _theme = await _themeModule!.InvokeAsync<string>("cycleTheme");
+    }
+
+    private void Logout()
+    {
+        var currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.NavigateTo(string.IsNullOrWhiteSpace(currentUrl)
+                ? "Account/Logout"
+                : $"Account/Logout?returnUrl={Uri.EscapeDataString(currentUrl)}",
+            true);
     }
 }

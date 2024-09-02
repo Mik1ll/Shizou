@@ -1,0 +1,24 @@
+﻿@page "/Account/Logout"
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager NavigationManager
+@inject SignInManager<IdentityUser> SignInManager
+
+@code {
+
+    [SupplyParameterFromQuery]
+    // ReSharper disable once UnusedAutoPropertyAccessor.Local
+    private string? ReturnUrl { get; set; }
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SignInManager.IsSignedIn(HttpContext.User))
+            await SignInManager.SignOutAsync();
+        NavigationManager.NavigateTo(string.IsNullOrWhiteSpace(ReturnUrl)
+            ? "Account/Login"
+            : $"Account/Login?returnUrl={Uri.EscapeDataString(ReturnUrl)}", true);
+    }
+
+}
