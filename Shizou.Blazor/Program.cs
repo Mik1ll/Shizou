@@ -105,7 +105,7 @@ try
 
     app.UseSecurityHeaders();
 
-    app.MapControllers();
+    app.MapControllers().RequireAuthorization();
     
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
