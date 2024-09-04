@@ -17,7 +17,7 @@ public partial class Login : ComponentBase
 
     [SupplyParameterFromForm]
     // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Local
-    private LoginModel Input { get; set; } = new();
+    private InputModel Input { get; set; } = new();
 
     [Inject]
     private SignInManager<IdentityUser> SignInManager { get; set; } = default!;
@@ -44,7 +44,7 @@ public partial class Login : ComponentBase
         messageStore.Add(() => Input.Password, "Wrong password");
     }
 
-    private sealed class LoginModel
+    private sealed class InputModel
     {
         [Required]
         [DataType(DataType.Password)]
