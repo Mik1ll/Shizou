@@ -107,7 +107,6 @@ try
 
     app.MapControllers();
     
-    //app.MapRazorPages();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
