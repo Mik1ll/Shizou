@@ -46,7 +46,8 @@ public partial class NavMenu : IDisposable
 
     private async Task ToggleDarkModeAsync()
     {
-        _theme = await _themeModule!.InvokeAsync<string>("cycleTheme");
+        if (_themeModule != null)
+            _theme = await _themeModule.InvokeAsync<string>("cycleTheme");
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
