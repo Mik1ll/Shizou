@@ -1,0 +1,19 @@
+﻿@page "/Account/Login"
+@using Shizou.Blazor.Components.Layout
+@layout AccountLayout
+
+<PageTitle>Login</PageTitle>
+<h1>Login</h1>
+
+<EditForm Model="@Input" method="post" style="max-width: 30rem" OnValidSubmit="@LoginUserAsync" FormName="login">
+    <DataAnnotationsValidator/>
+    <ValidationSummary class="text-danger" role="alert"/>
+    <div class="form-floating mb-2">
+        <InputText id="password" @bind-Value="@(Input.Password)" type="password" placeholder="Password" class="form-control" autocomplete="current-password" aria-required="true"></InputText>
+        <label for="password" class="form-label">Password</label>
+    </div>
+    <div>
+        <button type="submit" class="w-100 btn btn-lg btn-primary mb-2">Log In</button>
+    </div>
+</EditForm>
+<a href="Account/ChangePassword">Change Password</a>

@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
 
 namespace Shizou.Blazor.Components.Layout;
 
-public partial class NavMenu
+public partial class NavMenu : IDisposable
 {
     private bool _collapsed = true;
     private bool _expandFileUtils = false;
@@ -12,14 +13,29 @@ public partial class NavMenu
     private IJSObjectReference? _themeModule;
 
     private string? NavMenuCssClass => _collapsed ? null : "show";
-    
+    private string _currentUrl = default!;
+
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
 
-    protected override async Task OnInitializedAsync()
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+
+    protected override void OnInitialized()
     {
-        _themeModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/theme.js");
-        _theme = await _themeModule.InvokeAsync<string>("getStoredTheme");
+        _currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _themeModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/theme.js");
+            _theme = await _themeModule.InvokeAsync<string>("getStoredTheme");
+            StateHasChanged();
+        }
     }
 
     private void ToggleCollapse() => _collapsed = !_collapsed;
@@ -30,6 +46,18 @@ public partial class NavMenu
 
     private async Task ToggleDarkModeAsync()
     {
-        _theme = await _themeModule!.InvokeAsync<string>("cycleTheme");
+        if (_themeModule != null)
+            _theme = await _themeModule.InvokeAsync<string>("cycleTheme");
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }

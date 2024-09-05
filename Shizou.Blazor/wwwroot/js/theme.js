@@ -12,14 +12,15 @@ export function setTheme(theme) {
     theme = theme || getStoredTheme();
     setStoredTheme(theme);
     if (theme === 'auto') {
-        document.documentElement.setAttribute('data-bs-theme', window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-bs-theme', prefersDark() ? 'dark' : 'light');
     } else {
         document.documentElement.setAttribute('data-bs-theme', theme);
     }
     let meta = document.querySelector('meta[name="theme-color"]');
     if (meta != null) {
-        meta.setAttribute('content', window.getComputedStyle(document.documentElement).getPropertyValue('--bs-secondary-bg'));
+        meta.setAttribute('content', getBgColor());
     }
+    document.body.classList.remove('invisible');
 }
 
 // noinspection JSUnusedGlobalSymbols
@@ -32,4 +33,10 @@ export function cycleTheme() {
     return themes[themeIdx];
 }
 
-setTheme();
+export function getBgColor() {
+    return window.getComputedStyle(document.documentElement).getPropertyValue('--bs-secondary-bg');
+}
+
+export function prefersDark() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}

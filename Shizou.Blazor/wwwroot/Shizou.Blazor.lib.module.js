@@ -2,6 +2,15 @@
 
 'use strict';
 
-export function beforeServerStart(options, extensions) {
+import {setTheme} from "./js/theme.js";
+
+export function beforeWebStart(options, extensions) {
     import("/lib/video.js/alt/video.novtt.min.js");
+    setTheme();
+}
+
+export function afterWebStarted(blazor) {
+    blazor.addEventListener("enhancedload", function () {
+        setTheme();
+    });
 }

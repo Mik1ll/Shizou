@@ -47,9 +47,13 @@
                     </button>
                 </li>
                 <li class="nav-item">
-                    <NavLink class="nav-link" href="Account/Logout" Match="NavLinkMatch.All">
-                        <i class="bi bi-box-arrow-left" aria-hidden="true"></i> Logout
-                    </NavLink>
+                    <form action="Account/Logout" method="post">
+                        <AntiforgeryToken/>
+                        <input type="hidden" name="ReturnUrl" value="@_currentUrl"/>
+                        <button type="submit" class="nav-link">
+                            <i class="bi bi-box-arrow-left" aria-hidden="true"></i> Logout
+                        </button>
+                    </form>
                 </li>
             </ul>
         </div>
