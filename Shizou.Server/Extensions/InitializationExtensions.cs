@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -179,21 +178,26 @@ public static class InitializationExtensions
             })
             .AddEntityFrameworkStores<AuthContext>()
             .AddDefaultTokenProviders().Services
+            // Fix web api endpoints redirecting when Blazor is hosted
+            // https://github.com/dotnet/aspnetcore/issues/9039#issuecomment-1026158591
             .ConfigureApplicationCookie(opts =>
             {
-                opts.Events.OnRedirectToAccessDenied =
-                    opts.Events.OnRedirectToLogin = ctx =>
-                    {
-                        if (ctx.Request.Path.StartsWithSegments(Constants.ApiPrefix))
-                        {
-                            ctx.Response.Clear();
-                            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                            return Task.CompletedTask;
-                        }
-
-                        ctx.Response.Redirect(ctx.RedirectUri);
-                        return Task.CompletedTask;
-                    };
+                var loginEvent = opts.Events.OnRedirectToLogin;
+                opts.Events.OnRedirectToLogin = async ctx =>
+                {
+                    if (ctx.Request.Path.StartsWithSegments(Constants.ApiPrefix) && ctx.Response.StatusCode == StatusCodes.Status200OK)
+                        ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    else
+                        await loginEvent(ctx).ConfigureAwait(false);
+                };
+                var accDenEvent = opts.Events.OnRedirectToAccessDenied;
+                opts.Events.OnRedirectToAccessDenied = async ctx =>
+                {
+                    if (ctx.Request.Path.StartsWithSegments(Constants.ApiPrefix) && ctx.Response.StatusCode == StatusCodes.Status200OK)
+                        ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    else
+                        await accDenEvent(ctx).ConfigureAwait(false);
+                };
                 opts.Cookie.Name = IdentityConstants.ApplicationScheme;
             })
             .AddAuthorization()
