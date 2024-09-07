@@ -14,7 +14,7 @@
 
 
     <ItemGroup>
-        <OpenApiReference Include="..\Shizou.WebApi\openapi.json" Options="/JsonLibrary:SystemTextJson" ClassName="ShizouHttpClient"/>
+        <OpenApiReference Include="..\Shizou.WebApi\openapi.json" Options="/JsonLibrary:SystemTextJson /UseBaseUrl:false /GenerateBaseUrlProperty:false" ClassName="ShizouHttpClient"/>
     </ItemGroup>
 
 
