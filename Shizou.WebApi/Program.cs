@@ -71,7 +71,7 @@ try
 
     app.UseSecurityHeaders();
 
-    app.MapControllers();
+    app.MapControllers().RequireAuthorization();
 
     app.MigrateDatabase();
 
