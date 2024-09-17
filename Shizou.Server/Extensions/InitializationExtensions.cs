@@ -46,8 +46,7 @@ public static class InitializationExtensions
         Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.OptionsPath)!);
         if (!File.Exists(FilePaths.OptionsPath))
             new ShizouOptions().SaveToFile();
-        if (!File.Exists(FilePaths.SchemaPath) || File.ReadAllText(FilePaths.SchemaPath) != ShizouOptions.Schema)
-            File.WriteAllText(FilePaths.SchemaPath, ShizouOptions.Schema);
+        ShizouOptions.GenerateSchema();
         builder.Configuration
             .AddJsonFile(FilePaths.OptionsPath, false, true);
         builder.Services.AddOptions<ShizouOptions>()
