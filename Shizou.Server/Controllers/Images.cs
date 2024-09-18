@@ -35,7 +35,7 @@ public class Images : ControllerBase
     }
 
     [HttpGet("AnimePosters/{animeId:int}")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<PhysicalFileHttpResult, NotFound> GetAnimePoster(int animeId)
     {
@@ -47,7 +47,7 @@ public class Images : ControllerBase
     }
 
     [HttpGet("EpisodeThumbnails/{episodeId:int}")]
-    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<PhysicalFileHttpResult, NotFound> GetEpisodeThumbnail(int episodeId)
     {

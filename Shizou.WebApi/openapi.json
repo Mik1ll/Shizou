@@ -669,7 +669,10 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {}
+            }
           },
           "404": {
             "description": "Not Found"
@@ -698,7 +701,10 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {}
+            }
           },
           "404": {
             "description": "Not Found"
