@@ -77,8 +77,8 @@ public class SymbolicCollectionViewService
 
         List<(string Target, string Path)> linkPaths = files.Select(f => (Path.GetFullPath(Path.Combine(f.Path, f.PathTail)),
                 Path.Combine(options.CollectionView.Path, f.Anime.AnimeType is AnimeType.Movie ? "Movies" : "Shows",
-                    $"{InvalidCharRegex.Replace(f.Anime.Title, "_")} [Shizou-{f.Anime.Id}]",
-                    $"{InvalidCharRegex.Replace(f.Anime.Title, "_")} {f.EpType.GetEpString(f.EpNo)} [ShizouEp-{f.EpId}] [{f.Crc}]{Path.GetExtension(f.PathTail)}")))
+                    $"{InvalidCharRegex.Replace(f.Anime.Title, "_")} [anidb-{f.Anime.Id}]",
+                    $"{InvalidCharRegex.Replace(f.Anime.Title, "_")} {f.EpType.GetEpString(f.EpNo)} [anidb-{f.EpId}] [{f.Crc}]{Path.GetExtension(f.PathTail)}")))
             .ToList();
 
         var pathsHashSet = linkPaths.Select(p => p.Path).ToHashSet(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
