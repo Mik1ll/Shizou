@@ -47,10 +47,12 @@ public class SymbolicCollectionViewService
         Directory.CreateDirectory(collectionDir.FullName);
 
         using var context = _contextFactory.CreateDbContext();
-        var anime = context.AniDbAnimes.HasLocalFiles().Select(a => new { a.Id, Title = a.TitleTranscription, a.AnimeType }).ToDictionary(a => a.Id, a => a);
+        var anime = context.AniDbAnimes.HasLocalFiles().Select(a => new { a.Id, Title = a.TitleTranscription, a.AnimeType, a.EpisodeCount })
+            .ToDictionary(a => a.Id, a => a);
         var eps = context.AniDbEpisodes.HasLocalFiles().Select(ep => new
         {
             ep.Id,
+            ep.TitleEnglish,
             ep.AniDbAnimeId,
             ep.Number,
             ep.EpisodeType
@@ -69,16 +71,21 @@ public class SymbolicCollectionViewService
             lf.Path,
             lf.PathTail,
             lf.Crc,
-            EpType = eps[epId].EpisodeType,
-            EpNo = eps[epId].Number,
-            EpId = epId,
+            Episode = eps[epId],
             Anime = anime[eps[epId].AniDbAnimeId]
         })).ToList();
 
+
         List<(string Target, string Path)> linkPaths = files.Select(f => (Path.GetFullPath(Path.Combine(f.Path, f.PathTail)),
-                Path.Combine(options.CollectionView.Path, f.Anime.AnimeType is AnimeType.Movie ? "Movies" : "Shows",
+                Path.Combine(options.CollectionView.Path, f is
+                    {
+                        Anime: { AnimeType: not AnimeType.TvSeries, EpisodeCount: 1 },
+                        Episode.TitleEnglish: "Movie" or "Complete Movie" or "Short Movie" or "OVA" or "OAD" or "Web" or "Special"
+                    }
+                        ? "Movies"
+                        : "Shows",
                     $"{InvalidCharRegex.Replace(f.Anime.Title, "_")} [anidb-{f.Anime.Id}]",
-                    $"{InvalidCharRegex.Replace(f.Anime.Title, "_")} {f.EpType.GetEpString(f.EpNo)} [anidb-{f.EpId}] [{f.Crc}]{Path.GetExtension(f.PathTail)}")))
+                    $"{InvalidCharRegex.Replace(f.Anime.Title, "_")} [anidb-{f.Episode.Id}] [{f.Crc}]{Path.GetExtension(f.PathTail)}")))
             .ToList();
 
         var pathsHashSet = linkPaths.Select(p => p.Path).ToHashSet(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
