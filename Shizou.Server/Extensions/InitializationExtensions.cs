@@ -279,6 +279,7 @@ public static class InitializationExtensions
             {
                 opt.SchemaGeneratorOptions.UseInlineDefinitionsForEnums = true;
                 opt.SchemaGeneratorOptions.SupportNonNullableReferenceTypes = true;
+                opt.CustomOperationIds(e => $"ShizouHttpClient_{e.ActionDescriptor.RouteValues["controller"]}{e.ActionDescriptor.RouteValues["action"]}");
                 opt.OrderActionsBy(apiDesc =>
                     $"{apiDesc.ActionDescriptor.RouteValues["controller"]}_{apiDesc.RelativePath?.Length ?? 0:d3}_{apiDesc.HttpMethod switch { "GET" => "0", "PUT" => "1", "POST" => "2", "DELETE" => "3", _ => "4" }}");
                 opt.EnableAnnotations();

@@ -10,6 +10,7 @@
         "tags": [
           "Account"
         ],
+        "operationId": "ShizouHttpClient_AccountLogin",
         "requestBody": {
           "description": "Password",
           "content": {
@@ -46,6 +47,7 @@
         "tags": [
           "Account"
         ],
+        "operationId": "ShizouHttpClient_AccountChangePassword",
         "requestBody": {
           "content": {
             "application/json": {
@@ -97,6 +99,7 @@
         "tags": [
           "AniDbAnimes"
         ],
+        "operationId": "ShizouHttpClient_AniDbAnimesGet",
         "responses": {
           "200": {
             "description": "OK",
@@ -122,6 +125,7 @@
         "tags": [
           "AniDbAnimes"
         ],
+        "operationId": "ShizouHttpClient_AniDbAnimesGet",
         "parameters": [
           {
             "name": "id",
@@ -158,6 +162,7 @@
         "tags": [
           "AniDbAnimes"
         ],
+        "operationId": "ShizouHttpClient_AniDbAnimesGetAnimeSearch",
         "parameters": [
           {
             "name": "query",
@@ -196,6 +201,7 @@
         "tags": [
           "AniDbEpisodes"
         ],
+        "operationId": "ShizouHttpClient_AniDbEpisodesGet",
         "responses": {
           "200": {
             "description": "OK",
@@ -221,6 +227,7 @@
         "tags": [
           "AniDbEpisodes"
         ],
+        "operationId": "ShizouHttpClient_AniDbEpisodesGet",
         "parameters": [
           {
             "name": "id",
@@ -257,6 +264,7 @@
         "tags": [
           "AniDbFiles"
         ],
+        "operationId": "ShizouHttpClient_AniDbFilesGet",
         "responses": {
           "200": {
             "description": "OK",
@@ -282,6 +290,7 @@
         "tags": [
           "AniDbFiles"
         ],
+        "operationId": "ShizouHttpClient_AniDbFilesGet",
         "parameters": [
           {
             "name": "id",
@@ -318,6 +327,7 @@
         "tags": [
           "AniDbFiles"
         ],
+        "operationId": "ShizouHttpClient_AniDbFilesMarkWatched",
         "parameters": [
           {
             "name": "fileId",
@@ -347,6 +357,7 @@
         "tags": [
           "AniDbFiles"
         ],
+        "operationId": "ShizouHttpClient_AniDbFilesMarkUnwatched",
         "parameters": [
           {
             "name": "fileId",
@@ -376,6 +387,7 @@
         "tags": [
           "Command"
         ],
+        "operationId": "ShizouHttpClient_CommandPingAniDb",
         "responses": {
           "200": {
             "description": "OK"
@@ -391,6 +403,7 @@
         "tags": [
           "Command"
         ],
+        "operationId": "ShizouHttpClient_CommandSyncMyList",
         "responses": {
           "200": {
             "description": "OK"
@@ -406,6 +419,7 @@
         "tags": [
           "Command"
         ],
+        "operationId": "ShizouHttpClient_CommandUpdateMyList",
         "requestBody": {
           "content": {
             "application/json": {
@@ -440,6 +454,7 @@
         "tags": [
           "Command"
         ],
+        "operationId": "ShizouHttpClient_CommandGenericUdpRequest",
         "parameters": [
           {
             "name": "command",
@@ -483,6 +498,7 @@
         "tags": [
           "FileServer"
         ],
+        "operationId": "ShizouHttpClient_FileServerGet",
         "parameters": [
           {
             "name": "ed2K",
@@ -523,6 +539,7 @@
         "tags": [
           "FileServer"
         ],
+        "operationId": "ShizouHttpClient_FileServerGetPlaylist",
         "parameters": [
           {
             "name": "ed2K",
@@ -561,6 +578,7 @@
         "tags": [
           "FileServer"
         ],
+        "operationId": "ShizouHttpClient_FileServerGetFont",
         "parameters": [
           {
             "name": "ed2K",
@@ -601,6 +619,7 @@
         "tags": [
           "FileServer"
         ],
+        "operationId": "ShizouHttpClient_FileServerGetSubtitle",
         "parameters": [
           {
             "name": "ed2K",
@@ -641,6 +660,7 @@
         "tags": [
           "Images"
         ],
+        "operationId": "ShizouHttpClient_ImagesGetMissingAnimePosters",
         "responses": {
           "200": {
             "description": "OK"
@@ -656,6 +676,7 @@
         "tags": [
           "Images"
         ],
+        "operationId": "ShizouHttpClient_ImagesGetAnimePoster",
         "parameters": [
           {
             "name": "animeId",
@@ -671,7 +692,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/octet-stream": {}
+              "application/octet-stream": { }
             }
           },
           "404": {
@@ -688,6 +709,7 @@
         "tags": [
           "Images"
         ],
+        "operationId": "ShizouHttpClient_ImagesGetEpisodeThumbnail",
         "parameters": [
           {
             "name": "episodeId",
@@ -703,7 +725,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/octet-stream": {}
+              "application/octet-stream": { }
             }
           },
           "404": {
@@ -720,6 +742,7 @@
         "tags": [
           "Import"
         ],
+        "operationId": "ShizouHttpClient_ImportStartImport",
         "responses": {
           "200": {
             "description": "OK"
@@ -735,6 +758,7 @@
         "tags": [
           "Import"
         ],
+        "operationId": "ShizouHttpClient_ImportScanFolder",
         "parameters": [
           {
             "name": "folderId",
@@ -761,6 +785,7 @@
         "tags": [
           "ImportFolders"
         ],
+        "operationId": "ShizouHttpClient_ImportFoldersGet",
         "responses": {
           "200": {
             "description": "OK",
@@ -784,6 +809,7 @@
         "tags": [
           "ImportFolders"
         ],
+        "operationId": "ShizouHttpClient_ImportFoldersPut",
         "requestBody": {
           "content": {
             "application/json": {
@@ -819,6 +845,7 @@
         "tags": [
           "ImportFolders"
         ],
+        "operationId": "ShizouHttpClient_ImportFoldersPost",
         "requestBody": {
           "content": {
             "application/json": {
@@ -863,6 +890,7 @@
         "tags": [
           "ImportFolders"
         ],
+        "operationId": "ShizouHttpClient_ImportFoldersGet",
         "parameters": [
           {
             "name": "id",
@@ -897,6 +925,7 @@
         "tags": [
           "ImportFolders"
         ],
+        "operationId": "ShizouHttpClient_ImportFoldersDelete",
         "parameters": [
           {
             "name": "id",
@@ -936,6 +965,7 @@
         "tags": [
           "ImportFolders"
         ],
+        "operationId": "ShizouHttpClient_ImportFoldersGetByPath",
         "parameters": [
           {
             "name": "path",
@@ -964,6 +994,7 @@
         "tags": [
           "LocalFiles"
         ],
+        "operationId": "ShizouHttpClient_LocalFilesGet",
         "responses": {
           "200": {
             "description": "OK",
@@ -989,6 +1020,7 @@
         "tags": [
           "LocalFiles"
         ],
+        "operationId": "ShizouHttpClient_LocalFilesGet",
         "parameters": [
           {
             "name": "id",
@@ -1025,6 +1057,7 @@
         "tags": [
           "LocalFiles"
         ],
+        "operationId": "ShizouHttpClient_LocalFilesProcessFile",
         "parameters": [
           {
             "name": "id",
@@ -1051,6 +1084,7 @@
         "tags": [
           "MyAnimeList"
         ],
+        "operationId": "ShizouHttpClient_MyAnimeListGetToken",
         "parameters": [
           {
             "name": "code",
@@ -1088,6 +1122,7 @@
         "tags": [
           "MyAnimeList"
         ],
+        "operationId": "ShizouHttpClient_MyAnimeListAuthenticate",
         "responses": {
           "400": {
             "description": "Bad Request"
@@ -1113,6 +1148,7 @@
         "tags": [
           "Options"
         ],
+        "operationId": "ShizouHttpClient_OptionsGet",
         "responses": {
           "200": {
             "description": "OK"
@@ -1126,6 +1162,7 @@
         "tags": [
           "Options"
         ],
+        "operationId": "ShizouHttpClient_OptionsSave",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1160,6 +1197,7 @@
         "tags": [
           "Queues"
         ],
+        "operationId": "ShizouHttpClient_QueuesPause",
         "parameters": [
           {
             "name": "queueType",
@@ -1195,6 +1233,7 @@
         "tags": [
           "Queues"
         ],
+        "operationId": "ShizouHttpClient_QueuesClear",
         "parameters": [
           {
             "name": "queueType",
@@ -1230,6 +1269,7 @@
         "tags": [
           "Queues"
         ],
+        "operationId": "ShizouHttpClient_QueuesCurrent",
         "parameters": [
           {
             "name": "queueType",
@@ -1275,6 +1315,7 @@
         "tags": [
           "Queues"
         ],
+        "operationId": "ShizouHttpClient_QueuesUnpause",
         "parameters": [
           {
             "name": "queueType",
@@ -1320,6 +1361,7 @@
         "tags": [
           "Queues"
         ],
+        "operationId": "ShizouHttpClient_QueuesPauseState",
         "parameters": [
           {
             "name": "queueType",
@@ -1362,6 +1404,7 @@
         "tags": [
           "Queues"
         ],
+        "operationId": "ShizouHttpClient_QueuesQueuedRequests",
         "parameters": [
           {
             "name": "queueType",
