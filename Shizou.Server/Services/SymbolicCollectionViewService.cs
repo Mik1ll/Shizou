@@ -53,39 +53,33 @@ public class SymbolicCollectionViewService
         {
             ep.Id,
             ep.TitleEnglish,
-            ep.AniDbAnimeId,
-            ep.Number,
-            ep.EpisodeType
+            ep.AniDbAnimeId
         }).ToDictionary(ep => ep.Id, ep => ep);
+
         var localFiles = context.LocalFiles.Where(lf => lf.ImportFolderId != null && lf.AniDbFileId != null).Select(lf => new
         {
-            lf.Id,
+            lf.AniDbFileId,
             lf.ImportFolder!.Path,
             lf.PathTail,
             lf.Crc,
-            EpIds = lf.AniDbFile!.AniDbEpisodes.Select(ep => ep.Id).ToList()
+            Episodes = lf.AniDbFile!.AniDbEpisodes.Select(ep => new
+            {
+                ep.Id,
+                ep.TitleEnglish,
+                ep.AniDbAnimeId
+            }).ToList()
         }).ToList();
 
-        var files = localFiles.SelectMany(lf => lf.EpIds.Select(epId => new
-        {
-            lf.Path,
-            lf.PathTail,
-            lf.Crc,
-            Episode = eps[epId],
-            Anime = anime[eps[epId].AniDbAnimeId]
-        })).ToList();
-
-
-        List<(string Target, string Path)> linkPaths = files.Select(f => (Path.GetFullPath(Path.Combine(f.Path, f.PathTail)),
-                Path.Combine(options.CollectionView.Path, f is
-                    {
-                        Anime: { AnimeType: not AnimeType.TvSeries, EpisodeCount: 1 },
-                        Episode.TitleEnglish: "Movie" or "Complete Movie" or "Short Movie" or "OVA" or "OAD" or "Web" or "Special"
-                    }
+        List<(string Target, string Path)> linkPaths = localFiles.SelectMany(f => f.Episodes.Select(ep => ep.AniDbAnimeId).Distinct().Select(aid => (
+                Path.GetFullPath(Path.Combine(f.Path, f.PathTail)),
+                Path.Combine(options.CollectionView.Path,
+                    anime[aid] is { AnimeType: not AnimeType.TvSeries, EpisodeCount: 1 } &&
+                    f.Episodes.Single(e => e.AniDbAnimeId == aid).TitleEnglish is
+                        "Movie" or "Complete Movie" or "Short Movie" or "OVA" or "OAD" or "Web" or "Special"
                         ? "Movies"
                         : "Shows",
-                    $"{InvalidCharRegex.Replace(f.Anime.Title, "_")} [anidb-{f.Anime.Id}]",
-                    $"{InvalidCharRegex.Replace(f.Anime.Title, "_")} [anidb-{f.Episode.Id}] [{f.Crc}]{Path.GetExtension(f.PathTail)}")))
+                    $"{InvalidCharRegex.Replace(anime[aid].Title, "_")} [anidb-{aid}]",
+                    $"{InvalidCharRegex.Replace(anime[aid].Title, "_")} [anidb-{f.AniDbFileId}] [{f.Crc}]{Path.GetExtension(f.PathTail)}"))))
             .ToList();
 
         var pathsHashSet = linkPaths.Select(p => p.Path).ToHashSet(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
