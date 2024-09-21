@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
-using Shizou.Data.Enums;
 using Shizou.Server.Extensions.Query;
 using Shizou.Server.Options;
 
@@ -60,20 +59,20 @@ public class SymbolicCollectionViewService
             {
                 ep.Id,
                 ep.TitleEnglish,
-                ep.AniDbAnimeId
+                ep.AniDbAnimeId,
+                ep.EpisodeType,
+                ep.Number
             }).ToList()
         }).ToList();
 
-        List<(string Target, string Path)> linkPaths = localFiles.SelectMany(f => f.Episodes.Select(ep => ep.AniDbAnimeId).Distinct().Select(aid => (
-                Path.GetFullPath(Path.Combine(f.Path, f.PathTail)),
-                Path.Combine(options.CollectionView.Path,
-                    anime[aid] is { AnimeType: not AnimeType.TvSeries, EpisodeCount: 1 } &&
-                    f.Episodes.SingleOrDefault(e => e.AniDbAnimeId == aid)?.TitleEnglish is
-                        "Movie" or "Complete Movie" or "Short Movie" or "OVA" or "OAD" or "Web" or "Special"
-                        ? "Movies"
-                        : "Shows",
-                    $"{InvalidCharRegex.Replace(anime[aid].Title, "_")} [anidb-{aid}]",
-                    $"{InvalidCharRegex.Replace(anime[aid].Title, "_")} [anidb-{f.AniDbFileId}] [{f.Crc}]{Path.GetExtension(f.PathTail)}"))))
+        List<(string Target, string Path)> linkPaths = localFiles.SelectMany(f => f.Episodes.Select(ep => ep.AniDbAnimeId).Distinct().Select(aid =>
+            {
+                var destination = Path.Combine(options.CollectionView.Path, $"{InvalidCharRegex.Replace(anime[aid].Title, "_")} [anidb-{aid}]");
+
+                destination = Path.Combine(destination,
+                    $"{InvalidCharRegex.Replace(anime[aid].Title, "_")} [anidb-{f.AniDbFileId}] [{f.Crc}]{Path.GetExtension(f.PathTail)}");
+                return (Path.GetFullPath(Path.Combine(f.Path, f.PathTail)), target: destination);
+            }))
             .ToList();
 
         var pathsHashSet = linkPaths.Select(p => p.Path).ToHashSet(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
