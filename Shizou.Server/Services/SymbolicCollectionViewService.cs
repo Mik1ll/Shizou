@@ -49,12 +49,6 @@ public class SymbolicCollectionViewService
         using var context = _contextFactory.CreateDbContext();
         var anime = context.AniDbAnimes.HasLocalFiles().Select(a => new { a.Id, Title = a.TitleTranscription, a.AnimeType, a.EpisodeCount })
             .ToDictionary(a => a.Id, a => a);
-        var eps = context.AniDbEpisodes.HasLocalFiles().Select(ep => new
-        {
-            ep.Id,
-            ep.TitleEnglish,
-            ep.AniDbAnimeId
-        }).ToDictionary(ep => ep.Id, ep => ep);
 
         var localFiles = context.LocalFiles.Where(lf => lf.ImportFolderId != null && lf.AniDbFileId != null).Select(lf => new
         {
@@ -74,7 +68,7 @@ public class SymbolicCollectionViewService
                 Path.GetFullPath(Path.Combine(f.Path, f.PathTail)),
                 Path.Combine(options.CollectionView.Path,
                     anime[aid] is { AnimeType: not AnimeType.TvSeries, EpisodeCount: 1 } &&
-                    f.Episodes.Single(e => e.AniDbAnimeId == aid).TitleEnglish is
+                    f.Episodes.SingleOrDefault(e => e.AniDbAnimeId == aid)?.TitleEnglish is
                         "Movie" or "Complete Movie" or "Short Movie" or "OVA" or "OAD" or "Web" or "Special"
                         ? "Movies"
                         : "Shows",
