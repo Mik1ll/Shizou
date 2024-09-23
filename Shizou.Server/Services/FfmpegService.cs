@@ -4,12 +4,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shizou.Data;
 using Shizou.Data.Models;
+using Shizou.Server.Options;
 
 namespace Shizou.Server.Services;
 
@@ -17,8 +18,13 @@ public class FfmpegService
 {
     private static readonly string[] ValidSubFormats = ["ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext"];
     private readonly ILogger<FfmpegService> _logger;
+    private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
 
-    public FfmpegService(ILogger<FfmpegService> logger) => _logger = logger;
+    public FfmpegService(ILogger<FfmpegService> logger, IOptionsMonitor<ShizouOptions> optionsMonitor)
+    {
+        _logger = logger;
+        _optionsMonitor = optionsMonitor;
+    }
 
     /// <summary>
     ///     Dump the file's attachments to the output directory
@@ -28,9 +34,8 @@ public class FfmpegService
     public async Task ExtractAttachmentsAsync(FileInfo fileInfo, string outputDir)
     {
         Directory.CreateDirectory(outputDir);
-        using var process = NewFfmpegProcess();
+        using var process = NewFfmpegProcess(["-v", "fatal", "-y", "-dump_attachment:t", "", "-i", fileInfo.FullName]);
         process.StartInfo.WorkingDirectory = outputDir;
-        process.StartInfo.Arguments = $"-v fatal -y -dump_attachment:t \"\" -i \"{fileInfo.FullName}\"";
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
     }
@@ -58,9 +63,11 @@ public class FfmpegService
             return;
         }
 
-        using var process = NewFfmpegProcess();
-        process.StartInfo.Arguments =
-            $"-v fatal -y -i \"{fileInfo.FullName}\" {string.Join(" ", subStreams.Select(s => $"-map 0:{s.index} -c ass \"{Path.Combine(subsDir, s.filename)}\""))}";
+        using var process = NewFfmpegProcess([
+            "-v", "fatal", "-y",
+            "-i", fileInfo.FullName,
+            .. subStreams.SelectMany(IEnumerable<string> (s) => ["-map", $"0:{s.index}", "-c", "ass", Path.Combine(subsDir, s.filename)])
+        ]);
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
     }
@@ -92,15 +99,23 @@ public class FfmpegService
         var outputPath = FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k);
         if (Path.GetDirectoryName(outputPath) is { } parentPath)
             Directory.CreateDirectory(parentPath);
-        using var process = NewFfmpegProcess();
         var fps = 3;
         var thumbnailWindow = 30;
         var height = 480;
         var width = 854;
-        process.StartInfo.Arguments =
-            $"-v fatal -y -ss {duration * .4} -t {thumbnailWindow} -i \"{fileInfo.FullName}\" -map 0:V:0 " +
-            $"-vf \"fps={fps},select='min(eq(selected_n,0)+gt(scene,0.4),1)',thumbnail={thumbnailWindow * fps},scale=-2:{height},crop='min({width},iw)'\" " +
-            $"-frames:v 1 -pix_fmt yuv420p -c:v libwebp -compression_level 6 -preset drawing \"{outputPath}\"";
+        using var process = NewFfmpegProcess([
+            "-v", "fatal", "-y",
+            "-ss", (duration * .4).Value.ToString(CultureInfo.InvariantCulture),
+            "-t", thumbnailWindow.ToString(),
+            "-i", fileInfo.FullName,
+            "-map", "0:V:0",
+            "-vf", $"fps={fps},select='min(eq(selected_n,0)+gt(scene,0.4),1)',thumbnail={thumbnailWindow * fps},scale=-2:{height},crop='min({width},iw)'",
+            "-frames:v", "1", "-pix_fmt", "yuv420p",
+            "-c:v", "libwebp",
+            "-compression_level", "6",
+            "-preset", "drawing",
+            outputPath
+        ]);
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
 
@@ -116,9 +131,12 @@ public class FfmpegService
     /// <returns>A list of stream information</returns>
     public async Task<List<(int index, string codec, string? lang, string? title, string? filename)>> GetStreamsAsync(FileInfo fileInfo)
     {
-        using var p = NewFfprobeProcess();
-        p.StartInfo.Arguments =
-            $"-v fatal -show_entries \"stream=index,codec_name : stream_tags=language,title,filename\" -of json=c=1 \"{fileInfo.FullName}\"";
+        using var p = NewFfprobeProcess([
+            "-v", "fatal",
+            "-show_entries", "stream=index,codec_name : stream_tags=language,title,filename",
+            "-of", "json=c=1",
+            fileInfo.FullName
+        ]);
         p.Start();
         List<(int index, string codec, string? lang, string? title, string? filename)> streams = [];
         using var document = JsonDocument.Parse(await p.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
@@ -182,9 +200,13 @@ public class FfmpegService
     /// <returns>The duration in seconds, if it exists</returns>
     private async Task<double?> GetDurationAsync(FileInfo fileInfo)
     {
-        using var process = NewFfprobeProcess();
-        process.StartInfo.Arguments =
-            $"-v fatal -select_streams V -show_entries format=duration:stream=duration:stream_tags -sexagesimal -of json \"{fileInfo.FullName}\"";
+        using var process = NewFfprobeProcess([
+            "-v", "fatal",
+            "-select_streams", "V",
+            "-show_entries", "format=duration:stream=duration:stream_tags",
+            "-sexagesimal", "-of", "json",
+            fileInfo.FullName
+        ]);
         process.Start();
         using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream).ConfigureAwait(false);
         var rootEl = doc.RootElement;
@@ -224,33 +246,44 @@ public class FfmpegService
     /// <returns>True if the file has a vieo stream</returns>
     private async Task<bool> HasVideoAsync(FileInfo fileInfo)
     {
-        using var process = NewFfprobeProcess();
-        process.StartInfo.Arguments = $"-v fatal -select_streams V -show_entries stream=codec_name -of csv \"{fileInfo.FullName}\"";
+        using var process = NewFfprobeProcess([
+            "-v", "fatal",
+            "-select_streams", "V",
+            "-show_entries", "stream=codec_name",
+            "-of", "csv",
+            fileInfo.FullName
+        ]);
         process.Start();
         var hasVideo = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
         return !string.IsNullOrWhiteSpace(hasVideo);
     }
 
-    private Process NewFfprobeProcess()
+    private Process NewFfprobeProcess(IEnumerable<string> arguments)
     {
-        var ffprobeProcess = new Process();
-        ffprobeProcess.StartInfo.UseShellExecute = false;
-        ffprobeProcess.StartInfo.CreateNoWindow = true;
-        ffprobeProcess.StartInfo.RedirectStandardOutput = true;
-        ffprobeProcess.StartInfo.WorkingDirectory = FilePaths.InstallDir;
-        ;
-        ffprobeProcess.StartInfo.StandardOutputEncoding = Encoding.UTF8;
-        ffprobeProcess.StartInfo.FileName = "ffprobe";
+        var ffprobePath = _optionsMonitor.CurrentValue.Import.FfprobePath;
+        ffprobePath = string.IsNullOrWhiteSpace(ffprobePath) ? "ffprobe" : ffprobePath;
+        var startInfo = new ProcessStartInfo(ffprobePath, arguments)
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            WorkingDirectory = FilePaths.InstallDir
+        };
+        var ffprobeProcess = new Process() { StartInfo = startInfo };
         return ffprobeProcess;
     }
 
-    private Process NewFfmpegProcess()
+    private Process NewFfmpegProcess(IEnumerable<string> arguments)
     {
-        var ffmpegProcess = new Process();
-        ffmpegProcess.StartInfo.UseShellExecute = false;
-        ffmpegProcess.StartInfo.CreateNoWindow = true;
-        ffmpegProcess.StartInfo.WorkingDirectory = FilePaths.InstallDir;
-        ffmpegProcess.StartInfo.FileName = "ffmpeg";
+        var ffmpegPath = _optionsMonitor.CurrentValue.Import.FfmpegPath;
+        ffmpegPath = string.IsNullOrWhiteSpace(ffmpegPath) ? "ffmpeg" : ffmpegPath;
+        var startInfo = new ProcessStartInfo(ffmpegPath, arguments)
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WorkingDirectory = FilePaths.InstallDir
+        };
+        var ffmpegProcess = new Process() { StartInfo = startInfo };
         return ffmpegProcess;
     }
 }

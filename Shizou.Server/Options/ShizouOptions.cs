@@ -95,6 +95,12 @@ public class ImportOptions
         // Audio
         "ac3", "m4a", "mp3", "flac", "mka", "ogg", "aac", "dts", "dtshd", "mlp", "ra", "thd", "wav", "wma"
     ];
+
+    [JsonSchema.Description("The path to ffmpeg, used for extracting episode thumbnails")]
+    public string? FfmpegPath { get; set; }
+
+    [JsonSchema.Description("The path to ffprobe, used for metadata extraction")]
+    public string? FfprobePath { get; set; }
 }
 
 public class AniDbOptions
