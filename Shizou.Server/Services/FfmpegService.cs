@@ -81,7 +81,7 @@ public class FfmpegService
         if (GetLocalFileInfo(localFile) is not { } fileInfo)
             return;
 
-        _logger.LogInformation("Extracting thumbnail for local file id: {LocalFileId}", localFile.Id);
+        _logger.LogInformation("Extracting thumbnail for local file id: {LocalFileId} at \"{Path}\"", localFile.Id, fileInfo.FullName);
 
         if (!await HasVideoAsync(fileInfo).ConfigureAwait(false))
         {
@@ -89,35 +89,34 @@ public class FfmpegService
             return;
         }
 
-        var duration = await GetDurationAsync(fileInfo).ConfigureAwait(false);
-        if (duration is null)
-        {
-            _logger.LogWarning("Failed to get duration of video for file at \"{FilePath}\"", fileInfo.FullName);
-            return;
-        }
+        var duration = await GetDurationAsync(fileInfo).ConfigureAwait(false) ?? 0;
 
         var outputPath = FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k);
         if (Path.GetDirectoryName(outputPath) is { } parentPath)
             Directory.CreateDirectory(parentPath);
-        var fps = 3;
-        var thumbnailWindow = 30;
+        var fps = 5;
         var height = 480;
         var width = 854;
+        var offset = Math.Max(duration * .05, 10);
+        if (offset > duration)
+            offset = 0;
         using var process = NewFfmpegProcess([
-            "-v", "fatal", "-y",
-            "-ss", (duration * .4).Value.ToString(CultureInfo.InvariantCulture),
-            "-t", thumbnailWindow.ToString(),
+            "-v", "quiet", "-y",
             "-i", fileInfo.FullName,
+            "-ss", offset.ToString(CultureInfo.InvariantCulture),
             "-map", "0:V:0",
-            "-vf", $"fps={fps},select='min(eq(selected_n,0)+gt(scene,0.4),1)',thumbnail={thumbnailWindow * fps},scale=-2:{height},crop='min({width},iw)'",
-            "-frames:v", "1", "-pix_fmt", "yuv420p",
+            "-vf", $"fps={fps},thumbnail=50,scale=-2:{height},crop='min({width},iw)'",
+            "-frames:v", "1",
             "-c:v", "libwebp",
             "-compression_level", "6",
             "-preset", "drawing",
             outputPath
         ]);
+        var t1 = DateTimeOffset.Now;
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
+        var dur = DateTimeOffset.Now - t1;
+        _logger.LogInformation("Thumbnail generation for \"{Filename}\" completed in {Seconds} seconds", fileInfo.Name, dur.TotalSeconds);
 
         var outputInfo = new FileInfo(outputPath);
         if (outputInfo is not { Exists: true, Length: > 0 })
