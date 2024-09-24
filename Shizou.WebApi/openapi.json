@@ -2197,6 +2197,14 @@
             "items": {
               "type": "string"
             }
+          },
+          "ffmpegPath": {
+            "type": "string",
+            "nullable": true
+          },
+          "ffprobePath": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
