@@ -97,7 +97,11 @@ public class FfmpegService
         var fps = 5;
         var height = 480;
         var width = 854;
-        var offset = Math.Max(duration * .05, 10);
+        var offset = duration switch
+        {
+            >= 60 * 30 => 60,
+            _ => 20
+        };
         if (offset > duration)
             offset = 0;
         using var process = NewFfmpegProcess([
