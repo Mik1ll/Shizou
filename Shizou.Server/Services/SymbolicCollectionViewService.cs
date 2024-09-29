@@ -32,7 +32,7 @@ public class SymbolicCollectionViewService
         var options = _optionsMonitor.CurrentValue;
         if (!options.CollectionView.Enabled)
         {
-            _logger.LogWarning("Collection View is disabled, will not update");
+            _logger.LogDebug("Collection View is disabled, will not update");
             return;
         }
 
