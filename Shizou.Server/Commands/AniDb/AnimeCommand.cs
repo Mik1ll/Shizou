@@ -29,6 +29,7 @@ public class AnimeCommand : Command<AnimeArgs>
     private readonly MyAnimeListService _myAnimeListService;
     private readonly IAnimeRequest _animeRequest;
     private readonly CommandService _commandService;
+    private readonly SymbolicCollectionViewService _collectionViewService;
     private readonly ShizouOptions _options;
 
     public AnimeCommand(
@@ -38,7 +39,8 @@ public class AnimeCommand : Command<AnimeArgs>
         MyAnimeListService myAnimeListService,
         IAnimeRequest animeRequest,
         CommandService commandService,
-        IOptionsSnapshot<ShizouOptions> optionsSnapshot)
+        IOptionsSnapshot<ShizouOptions> optionsSnapshot,
+        SymbolicCollectionViewService collectionViewService)
     {
         _logger = logger;
         _context = context;
@@ -46,6 +48,7 @@ public class AnimeCommand : Command<AnimeArgs>
         _myAnimeListService = myAnimeListService;
         _animeRequest = animeRequest;
         _commandService = commandService;
+        _collectionViewService = collectionViewService;
         _options = optionsSnapshot.Value;
     }
 
@@ -156,6 +159,7 @@ public class AnimeCommand : Command<AnimeArgs>
 
         UpdateRelatedAnime(animeResult);
 
+        _collectionViewService.Update();
         Completed = true;
     }
 

@@ -22,6 +22,7 @@ public class ProcessCommand : Command<ProcessArgs>
     private readonly ILogger<ProcessCommand> _logger;
     private readonly IShizouContext _context;
     private readonly IFileRequest _fileRequest;
+    private readonly SymbolicCollectionViewService _collectionViewService;
     private readonly ShizouOptions _options;
 
     public ProcessCommand(
@@ -29,12 +30,14 @@ public class ProcessCommand : Command<ProcessArgs>
         IShizouContext context,
         CommandService commandService,
         IOptionsSnapshot<ShizouOptions> optionsSnapshot,
-        IFileRequest fileRequest)
+        IFileRequest fileRequest,
+        SymbolicCollectionViewService collectionViewService)
     {
         _logger = logger;
         _context = context;
         _commandService = commandService;
         _fileRequest = fileRequest;
+        _collectionViewService = collectionViewService;
         _options = optionsSnapshot.Value;
     }
 
@@ -122,6 +125,7 @@ public class ProcessCommand : Command<ProcessArgs>
         if (!_context.AniDbAnimes.Any(a => a.Id == result.AnimeId) || !_context.AniDbEpisodes.Any(ep => ep.Id == result.EpisodeId))
             _commandService.Dispatch(new AnimeArgs(result.AnimeId));
 
+        _collectionViewService.Update();
         Completed = true;
     }
 
