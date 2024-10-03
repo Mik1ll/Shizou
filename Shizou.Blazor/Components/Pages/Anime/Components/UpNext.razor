@@ -1,4 +1,5 @@
-﻿@if (_episode is not null && _localFile is not null && _watchedState is not null)
+﻿@using Shizou.Data.Extensions
+@if (_episode is not null && _localFile is not null && _watchedState is not null)
 {
     <div class="card mb-3">
         <div class="card-body">
@@ -12,7 +13,7 @@
                 <p class="card-text">
                     <strong>@_episode.EpString</strong> : <span class="text-body">@(_episode.TitleTranscription ?? _episode.TitleEnglish)</span><br/>
                     <span class="text-body-secondary">
-                        <small>@(_episode.Summary)</small>
+                        <small>@(_episode.Summary?.TruncateWithSuffix(200, "..."))</small>
                     </span>
                 </p>
             </div>
