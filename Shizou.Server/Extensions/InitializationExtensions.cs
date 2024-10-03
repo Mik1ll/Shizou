@@ -292,7 +292,8 @@ public static class InitializationExtensions
                 opt.OperationFilter<SecurityOperationFilter>();
                 opt.OperationFilter<AddResponseHeadersFilter>();
             })
-            .AddTransient<IContentTypeProvider, FileExtensionContentTypeProvider>();
+            .AddTransient<IContentTypeProvider, FileExtensionContentTypeProvider>(_ => new FileExtensionContentTypeProvider()
+                { Mappings = { { ".mkv", "video/webm" } } });
         return services;
     }
 
