@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Json.More;
@@ -11,7 +12,7 @@ using Shizou.Data;
 using Shizou.Data.Enums;
 using JsonSchema = Json.Schema.Generation;
 
-
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable PropertyCanBeMadeInitOnly.Global
 
 namespace Shizou.Server.Options;
@@ -53,9 +54,10 @@ public class ShizouOptions : IValidatableObject
         lock (FileLock)
         {
             Dictionary<string, object> json = new() { { "$schema", Path.GetFileName(FilePaths.SchemaPath) }, { Shizou, this } };
-            var jsonSettings = JsonSerializer.Serialize(json,
+            using var file = File.Create(FilePaths.OptionsPath);
+            JsonSerializer.Serialize(file, json,
                 new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true, Converters = { new JsonStringEnumConverter() } });
-            File.WriteAllText(FilePaths.OptionsPath, jsonSettings);
+            file.Write(Encoding.ASCII.GetBytes(Environment.NewLine));
         }
     }
 
@@ -97,9 +99,11 @@ public class ImportOptions
     ];
 
     [JsonSchema.Description("The path to ffmpeg, used for extracting episode thumbnails")]
+    [JsonSchema.Nullable(true)]
     public string? FfmpegPath { get; set; }
 
     [JsonSchema.Description("The path to ffprobe, used for metadata extraction")]
+    [JsonSchema.Nullable(true)]
     public string? FfprobePath { get; set; }
 }
 
