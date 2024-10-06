@@ -122,7 +122,7 @@ public class FileServer : ControllerBase
             IDictionary<string, object?> values = new ExpandoObject();
             values["ed2K"] = lf.Ed2k;
             values["posterFilename"] = ep.AniDbAnime.ImageFilename;
-            values["animeName"] = ep.AniDbAnime.TitleTranscription;
+            values["animeName"] = ep.AniDbAnime.TitleEngish ?? ep.AniDbAnime.TitleTranscription;
             values["episodeName"] = ep.TitleEnglish;
             values["epNo"] = ep.EpString;
             values["epCount"] = epCount;
