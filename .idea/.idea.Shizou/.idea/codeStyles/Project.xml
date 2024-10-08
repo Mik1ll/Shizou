@@ -7,6 +7,9 @@
         <fileSet type="globPattern" pattern="openapi.json" />
       </list>
     </option>
+    <yaml>
+      <option name="INDENT_SEQUENCE_VALUE" value="false" />
+    </yaml>
     <codeStyleSettings language="JSON">
       <option name="SPACE_WITHIN_BRACKETS" value="true" />
       <option name="SPACE_WITHIN_BRACES" value="true" />
