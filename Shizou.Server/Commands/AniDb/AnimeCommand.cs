@@ -63,6 +63,18 @@ public class AnimeCommand : Command<AnimeArgs>
             "x-tht" => "th",
             _ => "none"
         };
+        var tags = animeResult.Tags.ToDictionary(t => t.Id);
+        var filteredTags = tags.Values.Where(t =>
+        {
+            if (!t.ParentidSpecified || (t.Weight < 300 && t.Weight != 0))
+                return false;
+            var pTagId = t.Parentid;
+            while (tags[pTagId].ParentidSpecified)
+                pTagId = tags[pTagId].Parentid;
+            if (tags[pTagId].Id is 2611 or 2607 or 2606)
+                return true;
+            return false;
+        }).Select(t => t.Name).ToList();
         var newAniDbAnime = new AniDbAnime
         {
             Id = animeResult.Id,
@@ -79,6 +91,7 @@ public class AnimeCommand : Command<AnimeArgs>
                 ?.Text,
             TitleEngish = animeResult.Titles.FirstOrDefault(t => t is { Type: "official", Lang: "en" })?.Text,
             Rating = animeResult.Ratings?.Permanent?.Text ?? animeResult.Ratings?.Temporary?.Text,
+            Tags = filteredTags,
             AniDbEpisodes = animeResult.Episodes.Select(e => new AniDbEpisode
             {
                 AniDbAnimeId = animeResult.Id,

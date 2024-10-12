@@ -1679,6 +1679,7 @@
           "imageFilename",
           "rating",
           "restricted",
+          "tags",
           "titleEngish",
           "titleOriginal",
           "titleTranscription",
@@ -1742,6 +1743,12 @@
             "type": "number",
             "format": "float",
             "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "updated": {
             "type": "string",

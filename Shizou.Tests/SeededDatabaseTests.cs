@@ -37,7 +37,8 @@ public class SeededDatabaseTests
                     Updated = default,
                     TitleOriginal = null,
                     TitleEngish = null,
-                    Rating = 9.99f
+                    Rating = 9.99f,
+                    Tags = ["Fantasy"]
                 });
                 var file = context.AniDbFiles.Add(new AniDbNormalFile
                 {

@@ -20,6 +20,7 @@ public class AniDbAnime
     public required bool Restricted { get; set; }
     public required string? ImageFilename { get; set; }
     public required float? Rating { get; set; }
+    public required List<string> Tags { get; set; }
     public required DateTime Updated { get; set; }
     public DateTime? AniDbUpdated { get; set; }
 
