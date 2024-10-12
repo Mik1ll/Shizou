@@ -1677,6 +1677,7 @@
           "episodeCount",
           "id",
           "imageFilename",
+          "rating",
           "restricted",
           "titleEngish",
           "titleOriginal",
@@ -1735,6 +1736,11 @@
           },
           "imageFilename": {
             "type": "string",
+            "nullable": true
+          },
+          "rating": {
+            "type": "number",
+            "format": "float",
             "nullable": true
           },
           "updated": {

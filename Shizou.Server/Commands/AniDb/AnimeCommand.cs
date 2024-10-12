@@ -78,6 +78,7 @@ public class AnimeCommand : Command<AnimeArgs>
                 .FirstOrDefault(t => t.Type == "official" && t.Lang.StartsWith(originalLangPrefix, StringComparison.OrdinalIgnoreCase))
                 ?.Text,
             TitleEngish = animeResult.Titles.FirstOrDefault(t => t is { Type: "official", Lang: "en" })?.Text,
+            Rating = animeResult.Ratings?.Permanent?.Text ?? animeResult.Ratings?.Temporary?.Text,
             AniDbEpisodes = animeResult.Episodes.Select(e => new AniDbEpisode
             {
                 AniDbAnimeId = animeResult.Id,

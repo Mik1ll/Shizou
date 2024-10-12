@@ -36,7 +36,8 @@ public class SeededDatabaseTests
                     ImageFilename = null,
                     Updated = default,
                     TitleOriginal = null,
-                    TitleEngish = null
+                    TitleEngish = null,
+                    Rating = 9.99f
                 });
                 var file = context.AniDbFiles.Add(new AniDbNormalFile
                 {
