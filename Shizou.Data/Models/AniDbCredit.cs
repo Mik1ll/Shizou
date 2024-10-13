@@ -16,11 +16,9 @@ public class AniDbCredit
 
     public required int AniDbCreatorId { get; set; }
 
-    [JsonIgnore]
     public AniDbCreator AniDbCreator { get; set; } = default!;
 
     public int? AniDbCharacterId { get; set; }
 
-    [JsonIgnore]
     public AniDbCharacter? AniDbCharacter { get; set; }
 }
