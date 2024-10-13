@@ -25,6 +25,7 @@ public static class FilePaths
     public static readonly string IdentityDatabasePath = Path.Combine(ApplicationDataDir, "IdentityDB.sqlite3");
     public static readonly string CertificateDir = Path.Combine(ApplicationDataDir, "Certificate");
     public static readonly string AvDumpDir = Path.Combine(InstallDir, "AVDump3");
+    public static readonly string CreatorImageDir = Path.Combine(ImagesDir, "Creators");
 
     public static string DatabasePath(string username) => Path.Combine(ApplicationDataDir, "ShizouDB" +
                                                                                            (string.IsNullOrWhiteSpace(username)
@@ -33,6 +34,8 @@ public static class FilePaths
                                                                                            ".sqlite3");
 
     public static string AnimePosterPath(string imageFilename) => Path.Combine(AnimePostersDir, imageFilename);
+
+    public static string CreatorImagePath(string imageFilename) => Path.Combine(CreatorImageDir, imageFilename);
 
     private static string GetApplicationDataDir()
     {

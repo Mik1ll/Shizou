@@ -961,6 +961,39 @@
         }
       }
     },
+    "/api/Images/CreatorImages/{creatorId}": {
+      "get": {
+        "tags": [
+          "Images"
+        ],
+        "operationId": "ShizouHttpClient_ImagesGetCreatorImage",
+        "parameters": [
+          {
+            "name": "creatorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": { }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/Images/EpisodeThumbnails/{episodeId}": {
       "get": {
         "tags": [

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.EntityFrameworkCore;
 using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Server.Services;
@@ -39,7 +40,7 @@ public class Images : ControllerBase
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<PhysicalFileHttpResult, NotFound> GetAnimePoster(int animeId)
     {
-        var posterName = _context.AniDbAnimes.Where(a => a.Id == animeId).Select(a => a.ImageFilename).FirstOrDefault();
+        var posterName = _context.AniDbAnimes.AsNoTracking().Where(a => a.Id == animeId).Select(a => a.ImageFilename).FirstOrDefault();
         if (posterName is null || new FileInfo(FilePaths.AnimePosterPath(posterName)) is not { Exists: true } poster)
             return TypedResults.NotFound();
         _contentTypeProvider.TryGetContentType(posterName, out var mimeType);
@@ -55,5 +56,17 @@ public class Images : ControllerBase
             return TypedResults.NotFound();
         _contentTypeProvider.TryGetContentType(thumbnail.Name, out var mimeType);
         return TypedResults.PhysicalFile(thumbnail.FullName, mimeType, thumbnail.Name, thumbnail.LastWriteTimeUtc);
+    }
+
+    [HttpGet("CreatorImages/{creatorId:int}")]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    public Results<PhysicalFileHttpResult, NotFound> GetCreatorImage(int creatorId)
+    {
+        var posterName = _context.AniDbCreators.AsNoTracking().Where(a => a.Id == creatorId).Select(a => a.ImageFilename).FirstOrDefault();
+        if (posterName is null || new FileInfo(FilePaths.CreatorImagePath(posterName)) is not { Exists: true } poster)
+            return TypedResults.NotFound();
+        _contentTypeProvider.TryGetContentType(posterName, out var mimeType);
+        return TypedResults.PhysicalFile(poster.FullName, mimeType, poster.Name, poster.LastWriteTimeUtc);
     }
 }

@@ -46,7 +46,7 @@ public class ImageService
         using var context = _contextFactory.CreateDbContext();
         var filenames = context.AniDbAnimes.Where(a => a.ImageFilename != null).Select(a => a.ImageFilename!).ToList();
 
-        foreach (var (uri, name) in filenames.Select(p => (GetAnimePosterUri(imageServer, p), p)))
+        foreach (var (uri, name) in filenames.Select(p => (GetAniDbImageUri(imageServer, p), p)))
         {
             var path = FilePaths.AnimePosterPath(name);
             if (!File.Exists(path))
@@ -76,7 +76,7 @@ public class ImageService
         }
 
         var path = FilePaths.AnimePosterPath(filename);
-        var uri = GetAnimePosterUri(imageServer, filename);
+        var uri = GetAniDbImageUri(imageServer, filename);
         _commandService.Dispatch(new GetImageArgs(uri, path));
     }
 
@@ -96,6 +96,29 @@ public class ImageService
         return null;
     }
 
-    private string GetAnimePosterUri(string imageServer, string filename) =>
+    public void GetCreatorImage(int creatorId)
+    {
+        var imageServer = _optionsMonitor.CurrentValue.AniDb.ImageServerHost;
+        if (imageServer is null)
+        {
+            _logger.LogWarning("Image server is missing, aborting");
+            return;
+        }
+
+        using var context = _contextFactory.CreateDbContext();
+        var filename = context.AniDbCreators.Where(a => a.Id == creatorId).Select(a => a.ImageFilename).FirstOrDefault();
+        if (filename is null)
+        {
+            _logger.LogWarning("Creator image for id {CreatorId} does not exist, aborting", creatorId);
+            return;
+        }
+
+        var path = FilePaths.CreatorImagePath(filename);
+        var uri = GetAniDbImageUri(imageServer, filename);
+        _commandService.Dispatch(new GetImageArgs(uri, path));
+    }
+
+
+    private string GetAniDbImageUri(string imageServer, string filename) =>
         new UriBuilder("https", imageServer, 443, $"images/main/{filename}").Uri.AbsoluteUri;
 }
