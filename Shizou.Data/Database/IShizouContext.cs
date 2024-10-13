@@ -65,6 +65,15 @@ public interface IShizouContext : IDisposable
     /// <inheritdoc cref="DbSet{TEntity}" />
     IShizouDbSet<AnimeFilter> AnimeFilters { get; }
 
+    /// <inheritdoc cref="DbSet{TEntity}" />
+    IShizouDbSet<AniDbCreator> AniDbCreators { get; }
+
+    /// <inheritdoc cref="DbSet{TEntity}" />
+    IShizouDbSet<AniDbCharacter> AniDbCharacters { get; }
+
+    /// <inheritdoc cref="DbSet{TEntity}" />
+    IShizouDbSet<AniDbCredit> AniDbCredits { get; }
+
     #region BaseMembers
 
     /// <inheritdoc cref="DbContext.Database" />

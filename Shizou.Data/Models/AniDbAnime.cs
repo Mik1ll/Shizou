@@ -32,4 +32,7 @@ public class AniDbAnime
 
     [JsonIgnore]
     public List<MalAnime> MalAnimes { get; set; } = default!;
+
+    [JsonIgnore]
+    public List<AniDbCredit> AniDbCredits { get; set; } = default!;
 }

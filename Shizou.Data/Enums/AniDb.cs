@@ -254,3 +254,21 @@ public enum ResourceType
     Bangumi = 38,
     HiDive = 42
 }
+
+public enum CreatorType
+{
+    Unknown = 0,
+    Person = 1,
+    Company = 2,
+    Collaboration = 3,
+    Other = 4
+}
+
+public enum CharacterType
+{
+    Unknown = 0,
+    Character = 1,
+    Mecha = 2,
+    Organization = 3,
+    Vehicle = 4
+}
