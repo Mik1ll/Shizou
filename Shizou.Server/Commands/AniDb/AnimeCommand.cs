@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -173,8 +174,84 @@ public class AnimeCommand : Command<AnimeArgs>
 
         UpdateRelatedAnime(animeResult);
 
+        UpdateCredits(animeResult);
+
         _collectionViewService.Update();
         Completed = true;
+    }
+
+    private void UpdateCredits(AnimeResult animeResult)
+    {
+        _context.AniDbCredits.Where(c => c.AniDbAnimeId == animeResult.Id).ExecuteDelete();
+
+        var addedCreators = new HashSet<int>();
+        var getImageForCreatorIds = new HashSet<int>();
+        var creditId = 0;
+        foreach (var creatorResult in animeResult.Creators)
+        {
+            if (!addedCreators.Contains(creatorResult.Id) && !_context.AniDbCreators.Any(cr => cr.Id == creatorResult.Id))
+            {
+                _context.AniDbCreators.Add(new AniDbCreator()
+                {
+                    Id = creatorResult.Id,
+                    Name = creatorResult.Text,
+                    Type = CreatorType.Unknown,
+                    ImageFilename = null
+                });
+                addedCreators.Add(creatorResult.Id);
+            }
+
+            _context.AniDbCredits.Add(new AniDbCredit()
+            {
+                Id = ++creditId,
+                AniDbAnimeId = animeResult.Id,
+                Role = creatorResult.Type,
+                AniDbCreatorId = creatorResult.Id
+            });
+        }
+
+        foreach (var character in animeResult.Characters)
+        {
+            if (!_context.AniDbCharacters.Any(ch => ch.Id == character.Id))
+                _context.AniDbCharacters.Add(new AniDbCharacter()
+                {
+                    Id = character.Id,
+                    Name = character.Name,
+                    Type = (CharacterType)character.Charactertype.Id,
+                    ImageFilename = character.Picture
+                });
+
+            foreach (var seiyuu in character.Seiyuu)
+            {
+                if (!addedCreators.Contains(seiyuu.Id) && !_context.AniDbCreators.Any(cr => cr.Id == seiyuu.Id))
+                {
+                    _context.AniDbCreators.Add(new AniDbCreator()
+                    {
+                        Id = seiyuu.Id,
+                        Name = seiyuu.Text,
+                        Type = CreatorType.Person,
+                        ImageFilename = seiyuu.Picture
+                    });
+                    addedCreators.Add(seiyuu.Id);
+                }
+
+                if (!string.IsNullOrWhiteSpace(seiyuu.Picture) && !File.Exists(FilePaths.CreatorImagePath(seiyuu.Picture)))
+                    getImageForCreatorIds.Add(seiyuu.Id);
+
+                _context.AniDbCredits.Add(new AniDbCredit()
+                {
+                    Id = ++creditId,
+                    AniDbAnimeId = animeResult.Id,
+                    Role = character.Type,
+                    AniDbCreatorId = seiyuu.Id,
+                    AniDbCharacterId = character.Id
+                });
+            }
+        }
+
+        _context.SaveChanges();
+        foreach (var cid in getImageForCreatorIds)
+            _imageService.GetCreatorImage(cid);
     }
 
     private void UpdateRelatedAnime(AnimeResult animeResult)
