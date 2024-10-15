@@ -219,6 +219,7 @@ public static class InitializationExtensions
             .AddTransient<GetAnimeByEpisodeIdCommand>()
             .AddTransient<GetAnimeTitlesCommand>()
             .AddTransient<AvDumpCommand>()
+            .AddTransient<CreatorCommand>()
             .AddSingleton<CommandService>()
             .AddHostedService<CommandService>(p => p.GetRequiredService<CommandService>())
             .AddTransient<ImportService>()
@@ -265,6 +266,7 @@ public static class InitializationExtensions
             .AddTransient<IMyListEntryRequest, MyListEntryRequest>()
             .AddTransient<IHttpAnimeRequest, HttpAnimeRequest>()
             .AddTransient<IMyListRequest, MyListRequest>()
+            .AddTransient<ICreatorRequest, CreatorRequest>()
             .AddTransient<ImageRequest>()
             .AddHttpClient("gzip")
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip });

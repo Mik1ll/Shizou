@@ -187,6 +187,7 @@ public class AnimeCommand : Command<AnimeArgs>
         var addedCreators = new HashSet<int>();
         var getImageForCreatorIds = new HashSet<int>();
         var creditId = 0;
+        var needMoreInfoOnCreatorArgs = new HashSet<CreatorArgs>();
         foreach (var creatorResult in animeResult.Creators)
         {
             if (!addedCreators.Contains(creatorResult.Id) && !_context.AniDbCreators.Any(cr => cr.Id == creatorResult.Id))
@@ -199,6 +200,7 @@ public class AnimeCommand : Command<AnimeArgs>
                     ImageFilename = null
                 });
                 addedCreators.Add(creatorResult.Id);
+                needMoreInfoOnCreatorArgs.Add(new CreatorArgs(creatorResult.Id));
             }
 
             _context.AniDbCredits.Add(new AniDbCredit()
@@ -252,6 +254,7 @@ public class AnimeCommand : Command<AnimeArgs>
         _context.SaveChanges();
         foreach (var cid in getImageForCreatorIds)
             _imageService.GetCreatorImage(cid);
+        _commandService.DispatchRange(needMoreInfoOnCreatorArgs);
     }
 
     private void UpdateRelatedAnime(AnimeResult animeResult)
