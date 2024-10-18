@@ -105,17 +105,16 @@ public partial class Collection
 
     private void FilterSeasonYear()
     {
-        if (_anime is null || (Year is null && SeasonEnum is AnimeSeason.Season))
+        if (_anime is null || Year is null)
             return;
 
-        var thisYear = DateTimeOffset.UtcNow.Year;
         var (startMonth, endMonth, startYear, endYear) = SeasonEnum switch
         {
             AnimeSeason.Season => ((int?)null, (int?)null, Year, Year + 1),
-            AnimeSeason.Winter => (12, 3, (Year ?? thisYear) - 1, Year ?? thisYear),
-            AnimeSeason.Spring => (3, 6, Year ?? thisYear, Year ?? thisYear),
-            AnimeSeason.Summer => (6, 9, Year ?? thisYear, Year ?? thisYear),
-            AnimeSeason.Fall => (9, 12, Year ?? thisYear, Year ?? thisYear),
+            AnimeSeason.Winter => (12, 3, Year - 1, Year),
+            AnimeSeason.Spring => (3, 6, Year, Year),
+            AnimeSeason.Summer => (6, 9, Year, Year),
+            AnimeSeason.Fall => (9, 12, Year, Year),
             _ => throw new ArgumentOutOfRangeException()
         };
         var crit = new AndAllCriterion([
@@ -183,7 +182,11 @@ public partial class Collection
     private void OnSeasonSelect(ChangeEventArgs e)
     {
         Enum.TryParse<AnimeSeason>((string?)e.Value, out var season);
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Season), (int)season));
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameters(new Dictionary<string, object?>()
+        {
+            { nameof(Season), (int)season },
+            { nameof(Year), Year ?? DateTimeOffset.UtcNow.Year }
+        }));
     }
 
     private void OnAnimeTypeSelect(ChangeEventArgs e)
@@ -199,6 +202,8 @@ public partial class Collection
 
     private void OnYearChanged()
     {
+        if (Year <= 1900)
+            Year = DateTimeOffset.UtcNow.Year;
         NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Year), Year));
     }
 
