@@ -2,16 +2,16 @@
 @using Shizou.Data.Enums
 @using Shizou.Data.Extensions
 
-<FilterOffcanvas @ref="@(_filterOffcanvas)" ReloadCollection="@Load"></FilterOffcanvas>
+<FilterOffcanvas @ref="@(_filterOffcanvas)" ReloadCollection="@LoadAsync"></FilterOffcanvas>
 <PageTitle>Collection</PageTitle>
 <main class="container-fluid">
     <div class="row justify-content-center mb-2">
         <div class="col-auto m-1">
-            <LiveSearchBox GetResults="@GetSearchResultsAsync" OnResultsRetrieved="@SetSearchResults" ShowSelect="false" PlaceholderText="Search Anime..."></LiveSearchBox>
+            <LiveSearchBox @ref="@_searchBox" GetResults="@GetSearchResultsAsync" OnResultsRetrieved="@SetSearchResults" ShowSelect="false" PlaceholderText="Search Anime..."></LiveSearchBox>
         </div>
         <div class="col-auto m-1">
             <div class="input-group">
-                <select class="form-select" @onchange="@OnSortSelect">
+                <select class="form-select" @onchange="@OnSortSelect" disabled="@(!string.IsNullOrWhiteSpace(_searchBox?.Query))">
                     @foreach (var sort in Enum.GetValues<AnimeSort>())
                     {
                         <option value="@sort" selected="@(SortEnum == sort)">@(sort.ToString().UpperCaseSpaced())</option>

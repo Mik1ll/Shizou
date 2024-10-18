@@ -8,8 +8,9 @@ namespace Shizou.Blazor.Components.Shared;
 public partial class LiveSearchBox
 {
     private List<(int, string)> _results = new();
-    private string? _query;
     private Timer _searchTimer = default!;
+
+    public string? Query { get; set; }
 
     [Inject]
     private ToastService ToastService { get; set; } = default!;
@@ -49,7 +50,7 @@ public partial class LiveSearchBox
     private async void OnSearchTimerElapsed(object? o, ElapsedEventArgs elapsedEventArgs)
 #pragma warning restore VSTHRD100
     {
-        if (string.IsNullOrWhiteSpace(_query))
+        if (string.IsNullOrWhiteSpace(Query))
         {
             _results.Clear();
             await InvokeAsync(StateHasChanged);
@@ -57,7 +58,7 @@ public partial class LiveSearchBox
             return;
         }
 
-        var res = await GetResults(_query);
+        var res = await GetResults(Query);
         if (res is null)
         {
             ToastService.ShowError("Search failed", "Search was unable to retrieve results");
@@ -80,14 +81,14 @@ public partial class LiveSearchBox
     {
         var selected = int.Parse(((string[])e.Value!).Single());
         await UpdateSelectedAsync(selected);
-        _query = _results.First(r => r.Item1 == selected).Item2.ToString();
+        Query = _results.First(r => r.Item1 == selected).Item2.ToString();
         _results.Clear();
     }
 
     private async Task OnInputChangedAsync(ChangeEventArgs e)
     {
         await UpdateSelectedAsync(null);
-        _query = (string?)e.Value;
+        Query = (string?)e.Value;
         _searchTimer.Stop();
         _searchTimer.Start();
     }

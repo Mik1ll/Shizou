@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Shizou.Blazor.Components.Pages.Collection.Components;
+using Shizou.Blazor.Components.Shared;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.FilterCriteria;
@@ -43,6 +44,7 @@ public partial class Collection
     private AnimeSort SortEnum => (AnimeSort)Sort;
     private AnimeSeason SeasonEnum => (AnimeSeason)Season;
     private AnimeType AnimeTypeEnum => (AnimeType)AnimeType;
+    private LiveSearchBox? _searchBox;
 
     [Inject]
     private IAnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
@@ -77,12 +79,12 @@ public partial class Collection
     [SupplyParameterFromQuery]
     public int AnimeType { get; set; }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        Load();
+        await LoadAsync();
     }
 
-    private void Load()
+    private async Task LoadAsync()
     {
         using var context = ContextFactory.CreateDbContext();
         _filters = context.AnimeFilters.AsNoTracking().ToList();
@@ -97,6 +99,8 @@ public partial class Collection
         SortAnime();
         _anime = _anime.Where(a => AnimeType == 0 || a.AnimeType == AnimeTypeEnum).ToList();
         _aids = _anime?.Select(a => a.Id).ToHashSet();
+        if (!string.IsNullOrWhiteSpace(_searchBox?.Query))
+            SetSearchResults(await GetSearchResultsAsync(_searchBox.Query));
     }
 
     private void FilterSeasonYear()

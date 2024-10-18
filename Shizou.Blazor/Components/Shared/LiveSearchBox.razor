@@ -1,5 +1,5 @@
 ﻿<div>
-    <input type="search" disabled="@Disabled" class="form-control" id="queryInput" placeholder="@PlaceholderText" @bind="@_query" @oninput="@OnInputChangedAsync">
+    <input type="search" disabled="@Disabled" class="form-control" id="queryInput" placeholder="@PlaceholderText" @bind="@Query" @oninput="@OnInputChangedAsync">
     @if (ShowSelect)
     {
         <select size="@(Math.Min(_results.Count, 15))" multiple
