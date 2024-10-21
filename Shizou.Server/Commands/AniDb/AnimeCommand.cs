@@ -310,6 +310,7 @@ public class AnimeCommand : Command<AnimeArgs>
         await _animeRequest.ProcessAsync().ConfigureAwait(false);
         if (_animeRequest.AnimeResult is not null)
         {
+            Directory.CreateDirectory(FilePaths.HttpCacheDir);
             var sw = new StreamWriter(FilePaths.HttpCachePath(CommandArgs.AnimeId));
             await using var _ = sw.ConfigureAwait(false);
             await sw.WriteAsync(_animeRequest.ResponseText).ConfigureAwait(false);
