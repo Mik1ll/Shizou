@@ -32,13 +32,13 @@ RUN curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-7.0-${TARGETARCH}-
 
 WORKDIR /src
 COPY NuGet.Config Shizou.sln ./
-COPY RHashWrapper/RHashWrapper.csproj RHashWrapper/
+COPY RHashWrapper RHashWrapper/
+RUN dotnet pack RHashWrapper/RHashWrapper.csproj -p:GeneratePackageOnBuild=false # Required MSBuild property due to bug https://github.com/dotnet/sdk/issues/10335
 COPY Shizou.Data/Shizou.Data.csproj Shizou.Data/
 COPY Shizou.Server/Shizou.Server.csproj Shizou.Server/
 COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/libman.json Shizou.Blazor/
 RUN /dotnet-tools/libman restore >/dev/null
 RUN dotnet restore Shizou.Blazor/Shizou.Blazor.csproj -a $TARGETARCH
-COPY RHashWrapper RHashWrapper/
 COPY Shizou.Data Shizou.Data/
 COPY Shizou.Server Shizou.Server/
 COPY Shizou.Blazor Shizou.Blazor/
