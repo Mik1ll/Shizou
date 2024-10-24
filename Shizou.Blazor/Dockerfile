@@ -33,16 +33,19 @@ RUN curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-7.0-${TARGETARCH}-
 WORKDIR /src
 COPY NuGet.Config Shizou.sln ./
 COPY RHashWrapper RHashWrapper/
-RUN dotnet pack RHashWrapper/RHashWrapper.csproj -p:GeneratePackageOnBuild=false # Required MSBuild property due to bug https://github.com/dotnet/sdk/issues/10335
+# Required MSBuild property due to bug https://github.com/dotnet/sdk/issues/10335
+RUN dotnet pack RHashWrapper/RHashWrapper.csproj -p:GeneratePackageOnBuild=false
 COPY Shizou.Data/Shizou.Data.csproj Shizou.Data/
 COPY Shizou.Server/Shizou.Server.csproj Shizou.Server/
 COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/libman.json Shizou.Blazor/
+# Libman requires json in working directory
+WORKDIR Shizou.Blazor
 RUN /dotnet-tools/libman restore >/dev/null
-RUN dotnet restore Shizou.Blazor/Shizou.Blazor.csproj -a $TARGETARCH
-COPY Shizou.Data Shizou.Data/
-COPY Shizou.Server Shizou.Server/
-COPY Shizou.Blazor Shizou.Blazor/
-RUN dotnet publish Shizou.Blazor/Shizou.Blazor.csproj --no-restore -c Release -a $TARGETARCH --no-self-contained -o /app/publish
+RUN dotnet restore Shizou.Blazor.csproj -a $TARGETARCH
+COPY Shizou.Data ../Shizou.Data/
+COPY Shizou.Server ../Shizou.Server/
+COPY Shizou.Blazor ../Shizou.Blazor/
+RUN dotnet publish Shizou.Blazor.csproj --no-restore -c Release -a $TARGETARCH --no-self-contained -o /app/publish
 
 FROM base AS final
 WORKDIR /app
