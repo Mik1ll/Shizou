@@ -32,7 +32,7 @@ EOF
 
 RUN <<EOF
 case ${TARGETARCH} in
-  amd64) ffmpeg_md5='0181ece1c6688111310d2d3b21912713' ;;
+  amd64) ffmpeg_md5='7fa72b652e19bf84c9461e332ea1cdf3' ;;
   arm64) ffmpeg_md5='807afe21601db0a73e426121c7d636ea' ;;
   *) echo 'Architecture not supported' ; exit 1 ;;
 esac
