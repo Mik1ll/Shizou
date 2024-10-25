@@ -59,6 +59,6 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /src/ffmpeg/ffprobe /src/ffmpeg/ffmpeg ./
 COPY --from=publish --link /AVDump3 AVDump3/
-COPY --from=publish --link /src/dotnet-runtime-6/shared /usr/share/dotnet/shared/
+COPY --from=publish --link /dotnet-runtime-6/shared /usr/share/dotnet/shared/
 COPY --from=publish /app/publish ./
 ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
