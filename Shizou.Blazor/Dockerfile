@@ -9,10 +9,10 @@ ARG TARGETARCH
 
 RUN dotnet tool install Microsoft.Web.LibraryManager.Cli --tool-path /dotnet-tools
 
-RUN apt-get -q -y update && apt-get -q -y install jq moreutils busybox xz-utils
+RUN apt-get -q -y update && apt-get -q -y install xz-utils unzip
 
 ADD --link --checksum=sha256:6689420d7073c57d9faf19764e2a92f53c84d3ea66be402fd75e5419e2f0b38f https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip /AVDump3.zip
-ADD --link /AVDump3.zip /AVDump3/
+RUN unzip AVDump3.zip -d AVDump3
 
 WORKDIR /src/dotnet-runtime-6
 RUN <<EOF
