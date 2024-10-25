@@ -11,8 +11,8 @@ RUN dotnet tool install Microsoft.Web.LibraryManager.Cli --tool-path /dotnet-too
 
 RUN apt-get -q -y update && apt-get -q -y install jq moreutils busybox xz-utils
 
-WORKDIR /src/AVDump3
-RUN curl -sL https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip | busybox unzip -oq -
+ADD --link --checksum=sha256:6689420D7073C57D9FAF19764E2A92F53C84D3EA66BE402FD75E5419E2F0B38F https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip /download/avdump3.zip
+ADD --link /download/AVDump3.zip /AVDump3/
 
 WORKDIR /src/dotnet-runtime-6
 RUN <<EOF
@@ -50,7 +50,7 @@ RUN dotnet publish Shizou.Blazor.csproj --no-restore -c Release -a $TARGETARCH -
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /src/ffmpeg/ffprobe /src/ffmpeg/ffmpeg ./
-COPY --from=publish /src/AVDump3 AVDump3/
+COPY --from=publish --link /AVDump3 AVDump3/
 COPY --from=publish /src/dotnet-runtime-6 /usr/share/dotnet/
 COPY --from=publish /app/publish ./
 ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
