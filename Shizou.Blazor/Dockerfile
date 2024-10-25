@@ -9,22 +9,30 @@ ARG TARGETARCH
 
 RUN dotnet tool install Microsoft.Web.LibraryManager.Cli --tool-path /dotnet-tools
 
-RUN apt-get -q -y update && apt-get -q -y install xz-utils unzip
+RUN apt-get update && apt-get install -y --no-install-recommends xz-utils unzip
 
 ADD --link --checksum=sha256:6689420d7073c57d9faf19764e2a92f53c84d3ea66be402fd75e5419e2f0b38f https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip /AVDump3.zip
 RUN unzip AVDump3.zip -d AVDump3
 
-WORKDIR /src/dotnet-runtime-6
 RUN <<EOF
+# Release list here https://github.com/dotnet/core/blob/main/release-notes/6.0/releases.json
 case ${TARGETARCH} in
-  amd64) curl -sL https://download.visualstudio.microsoft.com/download/pr/a80ab89d-9f64-47b9-bba5-907a4cdaf457/c5714a6e605ef86293a5145d8ea72f39/dotnet-runtime-6.0.30-linux-x64.tar.gz | tar -xz ./shared
+  amd64)
+    dotnet_url='https://download.visualstudio.microsoft.com/download/pr/79e3d66e-14b8-4c20-9816-37c0c0964c8c/98ed84be388dfa1a7db279e9beefbee8/dotnet-runtime-6.0.35-linux-x64.tar.gz'
+    dotnet_sha512='d8d10d600fb664336949576f8ec0534dbffd573f754b9e741f20812221fafcac5f509a7e1ab44e9e63fc31a7b5dbcb19e4ec1930ffd29312212dc7454977090e'
     ;;
-  arm64) curl -sL https://download.visualstudio.microsoft.com/download/pr/27a21bdd-cad5-4f5a-b7a3-86942632a745/3d7aba7c0cfe0c28342a8f83b65e72b9/dotnet-runtime-6.0.30-linux-arm64.tar.gz | tar -xz ./shared    
+  arm64)
+    dotnet_url='https://download.visualstudio.microsoft.com/download/pr/8f344652-6b7e-4136-b6ca-c1a46d998835/e00bad479ac747a8ddc90e7d006aaa52/dotnet-runtime-6.0.35-linux-arm64.tar.gz'
+    dotnet_sha512='945e24f9c2d677e65fddaa06cafe8d518ee599ce98883b60fd9d734320fa2f3e1ccbfb46ea26ee925e319fb5430c2e18d64269fdae96030169c4b6d3d811ea77'
     ;;
-  *) echo Architecture not supported
+  *) echo 'Architecture not supported'
     exit 1
     ;;
 esac
+curl -fSL -o dotnet.tar.gz $dotnet_url \
+&& echo "$dotnet_sha512 dotnet.tar.gz" | sha512sum -c - \
+&& mkdir /dotnet-runtime-6 \
+&& tar -xzf dotnet.tar.gz -C /dotnet-runtime-6
 EOF
 
 WORKDIR /src/ffmpeg
@@ -51,6 +59,6 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /src/ffmpeg/ffprobe /src/ffmpeg/ffmpeg ./
 COPY --from=publish --link /AVDump3 AVDump3/
-COPY --from=publish /src/dotnet-runtime-6 /usr/share/dotnet/
+COPY --from=publish --link /src/dotnet-runtime-6/shared /usr/share/dotnet/shared/
 COPY --from=publish /app/publish ./
 ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
