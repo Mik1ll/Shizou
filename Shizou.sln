@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Blazor", "Shizou.Bla
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.Tests", "Shizou.Tests\Shizou.Tests.csproj", "{55E2CB60-505D-4639-9620-39767AF09E15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.MpvDiscordPresence", "Shizou.MpvDiscordPresence\Shizou.MpvDiscordPresence.csproj", "{77B54C85-B697-4C39-B962-70C2A69E21AF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RHashWrapper", "RHashWrapper\RHashWrapper.csproj", "{D1DB5EB5-6C5C-4B46-9D79-D9B51C459023}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shizou.WebApi", "Shizou.WebApi\Shizou.WebApi.csproj", "{9FED2506-EB6E-4B95-A965-7A9529990701}"
@@ -43,10 +41,6 @@ Global
 		{55E2CB60-505D-4639-9620-39767AF09E15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55E2CB60-505D-4639-9620-39767AF09E15}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55E2CB60-505D-4639-9620-39767AF09E15}.Release|Any CPU.Build.0 = Release|Any CPU
-		{77B54C85-B697-4C39-B962-70C2A69E21AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{77B54C85-B697-4C39-B962-70C2A69E21AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{77B54C85-B697-4C39-B962-70C2A69E21AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{77B54C85-B697-4C39-B962-70C2A69E21AF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D1DB5EB5-6C5C-4B46-9D79-D9B51C459023}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D1DB5EB5-6C5C-4B46-9D79-D9B51C459023}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1DB5EB5-6C5C-4B46-9D79-D9B51C459023}.Release|Any CPU.ActiveCfg = Release|Any CPU
