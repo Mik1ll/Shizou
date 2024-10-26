@@ -18,7 +18,6 @@ using Microsoft.Extensions.Logging;
 using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
-using Shizou.Server.Options;
 using Shizou.Server.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -127,8 +126,9 @@ public class FileServer : ControllerBase
             values["epNo"] = ep.EpString;
             values["epCount"] = epCount;
             values["animeId"] = animeId;
+            values["restricted"] = ep.AniDbAnime.Restricted;
             values[IdentityConstants.ApplicationScheme] = HttpContext.Request.Cookies[IdentityConstants.ApplicationScheme];
-            values["appId"] = ShizouOptions.Shizou;
+            values["appId"] = "07a58b50-5109-5aa3-abbc-782fed0df04f";
             var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
                 nameof(FileServer), values) ?? throw new ArgumentException();
             return fileUri;
