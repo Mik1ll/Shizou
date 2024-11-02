@@ -143,7 +143,14 @@ public sealed class AniDbUdpState : IDisposable
         var req = _authRequestFactory();
         _logger.LogInformation("Attempting to log into AniDB");
         req.SetParameters();
-        await req.ProcessAsync().ConfigureAwait(false);
+        try
+        {
+            await req.ProcessAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("An exception occured when logging into AniDB: {Exception}", ex);
+        }
     }
 
     /// <exception cref="AniDbUdpRequestException"></exception>
@@ -153,7 +160,14 @@ public sealed class AniDbUdpState : IDisposable
             return;
         var req = _logoutRequestFactory();
         req.SetParameters();
-        await req.ProcessAsync().ConfigureAwait(false);
+        try
+        {
+            await req.ProcessAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("An exception occured when logging out of AniDB: {Exception}", ex);
+        }
     }
 
     public async Task SetupNatAsync()
