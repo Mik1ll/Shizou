@@ -1,4 +1,4 @@
-name: publish-http-client.yml
+name: Publish HttpClient Nuget Package
 on:
   push:
     tags:
