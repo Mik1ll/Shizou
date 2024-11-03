@@ -24,4 +24,4 @@ jobs:
         && version=$(grep -Eo '[0-9]+\.[0-9]+\.[0-9]+[0-9A-Za-z.-]*' <<< "$GITHUB_REF_NAME" | head -1)
         && dotnet pack ./Shizou.HttpClient/Shizou.HttpClient.csproj -c Release "-p:Version=${version}" "-p:Authors=${{ github.repository_owner }}"
         "-p:RepositoryUrl=${{ github.repositoryUrl }}" "-p:PackageProjectUrl=${{ github.server_url }}/${{ github.repository }}"
-        && dotnet nuget push "bin/Release/Shizou.HttpClient.${version}.nupkg" --source github
+        && dotnet nuget push "bin/Release/Shizou.HttpClient/Shizou.HttpClient.${version}.nupkg" --source github
