@@ -23,7 +23,7 @@ jobs:
           --name "github.com/$GITHUB_REPOSITORY_OWNER" "https://nuget.pkg.github.com/$GITHUB_REPOSITORY_OWNER/index.json"
     - name: Package
       run: |
-        version=$(grep -Eqo '[0-9]+\.[0-9]+\.[0-9]+[0-9A-Za-z.-]*' <<< "$GITHUB_REF_NAME") &&
+        version=$(grep -Eo '[0-9]+\.[0-9]+\.[0-9]+[0-9A-Za-z.-]*$' <<< "$GITHUB_REF_NAME") &&
         dotnet pack Shizou.HttpClient/Shizou.HttpClient.csproj -c Release "-p:Version=${version}" "-p:Authors=$GITHUB_REPOSITORY_OWNER" \
           "-p:RepositoryUrl=${{ github.repositoryUrl }}" "-p:PackageProjectUrl=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
     - name: Push
