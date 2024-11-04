@@ -44,14 +44,11 @@ EOF
 
 WORKDIR /src
 COPY NuGet.Config Shizou.sln ./
-COPY RHashWrapper RHashWrapper/
-# Required MSBuild property due to bug https://github.com/dotnet/sdk/issues/10335
-RUN dotnet pack RHashWrapper/RHashWrapper.csproj -p:GeneratePackageOnBuild=false
 COPY Shizou.Data/Shizou.Data.csproj Shizou.Data/
 COPY Shizou.Server/Shizou.Server.csproj Shizou.Server/
 COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/libman.json Shizou.Blazor/
 # Libman requires json in working directory
-WORKDIR Shizou.Blazor
+WORKDIR /src/Shizou.Blazor
 RUN /dotnet-tools/libman restore >/dev/null
 RUN dotnet restore Shizou.Blazor.csproj -a $TARGETARCH
 COPY Shizou.Data ../Shizou.Data/

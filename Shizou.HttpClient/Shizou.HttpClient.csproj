@@ -4,6 +4,9 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>12</LangVersion>
+        <Title>Shizou HttpClient</Title>
+        <Description>A generated HTTP Client for consuming the Shizou API.</Description>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="NSwag.ApiDescription.Client" Version="14.1.0">

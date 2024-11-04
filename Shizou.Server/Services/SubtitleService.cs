@@ -5,9 +5,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using RHashWrapper;
 using Shizou.Data;
 using Shizou.Data.Database;
+using Shizou.Server.RHash;
 
 namespace Shizou.Server.Services;
 
