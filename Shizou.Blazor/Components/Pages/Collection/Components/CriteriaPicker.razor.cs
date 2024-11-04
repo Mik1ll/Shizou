@@ -12,6 +12,7 @@ public partial class CriteriaPicker
     {
         { nameof(AirDateCriterion), typeof(AirDateCriterion) },
         { nameof(UnwatchedFilesCriterion), typeof(UnwatchedFilesCriterion) },
+        { nameof(WatchedFilesCriterion), typeof(WatchedFilesCriterion) },
         { nameof(EpisodeWithoutFilesCriterion), typeof(EpisodeWithoutFilesCriterion) },
         { nameof(AnimeTypeCriterion), typeof(AnimeTypeCriterion) },
         { nameof(GenericFilesCriterion), typeof(GenericFilesCriterion) },
@@ -42,6 +43,7 @@ public partial class CriteriaPicker
         {
             { } t when t == typeof(AirDateCriterion) => new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.Before),
             { } t when t == typeof(UnwatchedFilesCriterion) => new UnwatchedFilesCriterion(false),
+            { } t when t == typeof(WatchedFilesCriterion) => new WatchedFilesCriterion(false),
             { } t when t == typeof(EpisodeWithoutFilesCriterion) => new EpisodeWithoutFilesCriterion(false),
             { } t when t == typeof(AnimeTypeCriterion) => new AnimeTypeCriterion(false, AnimeType.TvSeries),
             { } t when t == typeof(GenericFilesCriterion) => new GenericFilesCriterion(false),
