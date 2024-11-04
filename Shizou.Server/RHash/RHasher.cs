@@ -1,7 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace RHashWrapper;
+namespace Shizou.Server.RHash;
 
 public class RHasher
 {
@@ -105,18 +106,12 @@ public class RHasher
 
         static Bindings()
         {
-            // NativeLibrary.SetDllImportResolver(typeof(RHasher).Assembly, (name, assembly, path) =>
-            // {
-            //     var libHandle = nint.Zero;
-            //     if (name == LibRHash && !NativeLibrary.TryLoad(LibRHash, assembly, path, out libHandle))
-            //         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSArchitecture == Architecture.X64)
-            //             NativeLibrary.TryLoad($"./runtimes/win-x64/native/{LibRHash}", assembly, path, out libHandle);
-            //         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && RuntimeInformation.OSArchitecture == Architecture.X64)
-            //             NativeLibrary.TryLoad($"./runtimes/linux-x64/native/{LibRHash}", assembly, path, out libHandle);
-            //         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && RuntimeInformation.OSArchitecture == Architecture.Arm64)
-            //             NativeLibrary.TryLoad($"./runtimes/linux-arm64/native/{LibRHash}", assembly, path, out libHandle);
-            //     return libHandle;
-            // });
+            NativeLibrary.SetDllImportResolver(typeof(Bindings).Assembly, (name, assembly, path) =>
+            {
+                if (!NativeLibrary.TryLoad(name, assembly, path, out var libHandle))
+                    NativeLibrary.TryLoad($"runtimes/{RuntimeInformation.RuntimeIdentifier}/native/{name}", assembly, path, out libHandle);
+                return libHandle;
+            });
             rhash_library_init();
         }
     }

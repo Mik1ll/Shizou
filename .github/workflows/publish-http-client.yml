@@ -21,7 +21,6 @@ jobs:
         dotnet nuget remove source "github.com/${{ github.repository_owner }}"
         ; dotnet nuget add source --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text 
         --name "github.com/${{ github.repository_owner }}" "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-        && dotnet pack RHashWrapper/RHashWrapper.csproj -p:GeneratePackageOnBuild=false
         && version=$(grep -Eo '[0-9]+\.[0-9]+\.[0-9]+[0-9A-Za-z.-]*' <<< "$GITHUB_REF_NAME" | head -1)
         && dotnet pack ./Shizou.HttpClient/Shizou.HttpClient.csproj -c Release "-p:Version=${version}" "-p:Authors=${{ github.repository_owner }}"
         "-p:RepositoryUrl=${{ github.repositoryUrl }}" "-p:PackageProjectUrl=${{ github.server_url }}/${{ github.repository }}"

@@ -1,6 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
-namespace RHashWrapper;
+namespace Shizou.Server.RHash;
 
 [Flags]
 public enum HashIds : uint

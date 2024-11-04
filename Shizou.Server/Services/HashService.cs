@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using RHashWrapper;
+using Shizou.Server.RHash;
 
 namespace Shizou.Server.Services;
 

@@ -7,6 +7,9 @@
         <fileSet type="globPattern" pattern="openapi.json" />
       </list>
     </option>
+    <XML>
+      <option name="XML_SPACE_INSIDE_EMPTY_TAG" value="true" />
+    </XML>
     <yaml>
       <option name="INDENT_SEQUENCE_VALUE" value="false" />
     </yaml>

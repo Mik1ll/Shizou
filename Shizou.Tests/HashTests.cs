@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
-using RHashWrapper;
 using Shizou.Data;
+using Shizou.Server.RHash;
 using Shizou.Server.Services;
 
 namespace Shizou.Tests;
