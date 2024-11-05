@@ -26,7 +26,7 @@
         <div class="col-auto m-1">
             <div class="input-group">
                 <select class="form-select" @onchange="@OnSeasonSelect">
-                    <option value="" selected="@(SeasonEnum is null)">Season</option>
+                    <option value="">Season</option>
                     @foreach (var season in Enum.GetValues<AnimeSeason>())
                     {
                         <option value="@season" selected="@(SeasonEnum == season)">@(season.ToString())</option>
