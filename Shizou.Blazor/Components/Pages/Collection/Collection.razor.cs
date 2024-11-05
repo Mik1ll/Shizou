@@ -30,7 +30,7 @@ public partial class Collection
     private HashSet<int>? _aids;
     private AnimeSort SortEnum => (AnimeSort)Sort;
     private AnimeSeason? SeasonEnum => (AnimeSeason?)Season;
-    private AnimeType AnimeTypeEnum => (AnimeType)AnimeType;
+    private AnimeType? AnimeTypeEnum => (AnimeType?)AnimeType;
     private LiveSearchBox? _searchBox;
 
     [Inject]
@@ -64,7 +64,7 @@ public partial class Collection
 
     [Parameter]
     [SupplyParameterFromQuery]
-    public int AnimeType { get; set; }
+    public int? AnimeType { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -80,9 +80,10 @@ public partial class Collection
         if (_filter is not null)
             queryable = queryable.Where(_filter.Criteria.Criterion);
         FilterSeasonYear(ref queryable);
+        if (AnimeTypeEnum is not null)
+            queryable = queryable.Where(a => a.AnimeType == AnimeTypeEnum);
         SortAnime(ref queryable);
         _anime = queryable.ToList();
-        _anime = _anime.Where(a => AnimeType == 0 || a.AnimeType == AnimeTypeEnum).ToList();
         _aids = _anime?.Select(a => a.Id).ToHashSet();
         if (!string.IsNullOrWhiteSpace(_searchBox?.Query))
             SetSearchResults(await GetSearchResultsAsync(_searchBox.Query));
@@ -150,17 +151,13 @@ public partial class Collection
     private void OnSeasonSelect(ChangeEventArgs e)
     {
         var season = Enum.TryParse<AnimeSeason>((string?)e.Value, out var outSeason) ? (AnimeSeason?)outSeason : null;
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameters(new Dictionary<string, object?>()
-        {
-            { nameof(Season), (int?)season },
-            { nameof(Year), Year ?? DateTimeOffset.UtcNow.Year }
-        }));
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Season), (int?)season));
     }
 
     private void OnAnimeTypeSelect(ChangeEventArgs e)
     {
-        Enum.TryParse<AnimeType>((string?)e.Value, out var animeType);
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(AnimeType), (int)animeType));
+        var animeType = Enum.TryParse<AnimeType>((string?)e.Value, out var outAnimeType) ? (AnimeType?)outAnimeType : null;
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(AnimeType), (int?)animeType));
     }
 
     private void OnSortDirectionChanged()
