@@ -27,7 +27,6 @@ public partial class Collection
     private List<AnimeFilter> _filters = default!;
     private AnimeFilter? _filter;
     private FilterOffcanvas _filterOffcanvas = default!;
-    private Dictionary<int, int>? _animeLatestLocalFileId;
     private HashSet<int>? _aids;
     private int? _oldSeason;
     private int? _oldYear;
@@ -120,20 +119,13 @@ public partial class Collection
                 sorted = _anime.OrderBy(a => a.TitleTranscription);
                 break;
             case AnimeSort.RecentFiles:
-                if (_animeLatestLocalFileId is null)
-                {
-                    using var context = ContextFactory.CreateDbContext();
-                    var recentlyAddedQuery = from a in context.AniDbAnimes.AsNoTracking()
-                        let recentRegular = a.AniDbEpisodes.SelectMany(ep => ep.AniDbFiles.SelectMany(f => f.LocalFiles).Select(f => f.Id)).DefaultIfEmpty()
-                            .Max()
-                        select new { Aid = a.Id, RecentLocalId = recentRegular };
-                    _animeLatestLocalFileId = recentlyAddedQuery.ToDictionary(a => a.Aid, a => a.RecentLocalId);
-                }
-
-                sorted = from a in _anime
-                    orderby _animeLatestLocalFileId.GetValueOrDefault(a.Id, 0) descending
-                    select a;
+            {
+                using var context = ContextFactory.CreateDbContext();
+                sorted = context.AniDbAnimes.AsNoTracking().OrderByDescending(a =>
+                    a.AniDbEpisodes.SelectMany(e => e.AniDbFiles.SelectMany(f => f.LocalFiles.Select(lf => lf.Id)))
+                        .DefaultIfEmpty().Max()).ToList();
                 break;
+            }
             default:
                 throw new ArgumentOutOfRangeException();
         }
