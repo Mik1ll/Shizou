@@ -1,6 +1,7 @@
 ﻿@page "/Collection"
 @using Shizou.Data.Enums
 @using Shizou.Data.Extensions
+@using Shizou.Data.FilterCriteria
 
 <FilterOffcanvas @ref="@(_filterOffcanvas)" ReloadCollection="@LoadAsync"></FilterOffcanvas>
 <PageTitle>Collection</PageTitle>
@@ -25,6 +26,7 @@
         <div class="col-auto m-1">
             <div class="input-group">
                 <select class="form-select" @onchange="@OnSeasonSelect">
+                    <option value="">Season</option>
                     @foreach (var season in Enum.GetValues<AnimeSeason>())
                     {
                         <option value="@season" selected="@(SeasonEnum == season)">@(season.ToString())</option>

@@ -72,6 +72,14 @@
                                                    @bind-Selected="@rGroup.GroupId">
                                     </LiveSearchBox>
                                     break;
+                                case SeasonCriterion season:
+                                    <InputSelect class="form-select w-auto d-inline-block" @bind-Value="@(season.Season)">
+                                        @foreach (var type in Enum.GetValues<AnimeSeason>())
+                                        {
+                                            <option value="@type" selected="@(season.Season == type)">@(type.ToString().UpperCaseSpaced())</option>
+                                        }
+                                    </InputSelect>
+                                    break;
                             }
                         </EditForm>
                     }

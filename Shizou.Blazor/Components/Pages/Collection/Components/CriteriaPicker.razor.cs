@@ -12,10 +12,12 @@ public partial class CriteriaPicker
     {
         { nameof(AirDateCriterion), typeof(AirDateCriterion) },
         { nameof(UnwatchedFilesCriterion), typeof(UnwatchedFilesCriterion) },
+        { nameof(WatchedFilesCriterion), typeof(WatchedFilesCriterion) },
         { nameof(EpisodeWithoutFilesCriterion), typeof(EpisodeWithoutFilesCriterion) },
         { nameof(AnimeTypeCriterion), typeof(AnimeTypeCriterion) },
         { nameof(GenericFilesCriterion), typeof(GenericFilesCriterion) },
-        { nameof(ReleaseGroupCriterion), typeof(ReleaseGroupCriterion) }
+        { nameof(ReleaseGroupCriterion), typeof(ReleaseGroupCriterion) },
+        { nameof(SeasonCriterion), typeof(SeasonCriterion) }
     };
 
     private List<AniDbGroup>? _anidbGroups;
@@ -42,10 +44,12 @@ public partial class CriteriaPicker
         {
             { } t when t == typeof(AirDateCriterion) => new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.Before),
             { } t when t == typeof(UnwatchedFilesCriterion) => new UnwatchedFilesCriterion(false),
+            { } t when t == typeof(WatchedFilesCriterion) => new WatchedFilesCriterion(false),
             { } t when t == typeof(EpisodeWithoutFilesCriterion) => new EpisodeWithoutFilesCriterion(false),
             { } t when t == typeof(AnimeTypeCriterion) => new AnimeTypeCriterion(false, AnimeType.TvSeries),
             { } t when t == typeof(GenericFilesCriterion) => new GenericFilesCriterion(false),
             { } t when t == typeof(ReleaseGroupCriterion) => new ReleaseGroupCriterion(false, 0),
+            { } t when t == typeof(SeasonCriterion) => new SeasonCriterion(false, Data.FilterCriteria.AnimeSeason.Winter),
             _ => throw new ArgumentOutOfRangeException()
         };
         if (and?.Criteria.Count > index)
