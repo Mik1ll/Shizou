@@ -5,7 +5,7 @@ namespace Shizou.Data.FilterCriteria;
 
 public enum AnimeSeason
 {
-    Winter,
+    Winter = 1,
     Spring,
     Summer,
     Fall

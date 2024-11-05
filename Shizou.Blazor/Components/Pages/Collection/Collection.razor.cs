@@ -19,15 +19,6 @@ public enum AnimeSort
     RecentFiles = 3
 }
 
-public enum AnimeSeason
-{
-    Season,
-    Winter,
-    Spring,
-    Summer,
-    Fall
-}
-
 // ReSharper disable once ClassNeverInstantiated.Global
 public partial class Collection
 {
@@ -38,11 +29,11 @@ public partial class Collection
     private FilterOffcanvas _filterOffcanvas = default!;
     private Dictionary<int, int>? _animeLatestLocalFileId;
     private HashSet<int>? _aids;
-    private int _oldSeason;
+    private int? _oldSeason;
     private int? _oldYear;
     private int _oldAnimeType;
     private AnimeSort SortEnum => (AnimeSort)Sort;
-    private AnimeSeason SeasonEnum => (AnimeSeason)Season;
+    private AnimeSeason? SeasonEnum => (AnimeSeason?)Season;
     private AnimeType AnimeTypeEnum => (AnimeType)AnimeType;
     private LiveSearchBox? _searchBox;
 
@@ -69,7 +60,7 @@ public partial class Collection
 
     [Parameter]
     [SupplyParameterFromQuery]
-    public int Season { get; set; }
+    public int? Season { get; set; }
 
     [Parameter]
     [SupplyParameterFromQuery]
@@ -105,22 +96,10 @@ public partial class Collection
 
     private void FilterSeasonYear()
     {
-        if (_anime is null || Year is null)
+        if (_anime is null || Year is null || SeasonEnum is null)
             return;
 
-        var (startMonth, endMonth, startYear, endYear) = SeasonEnum switch
-        {
-            AnimeSeason.Season => ((int?)null, (int?)null, Year, Year + 1),
-            AnimeSeason.Winter => (12, 3, Year - 1, Year),
-            AnimeSeason.Spring => (3, 6, Year, Year),
-            AnimeSeason.Summer => (6, 9, Year, Year),
-            AnimeSeason.Fall => (9, 12, Year, Year),
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        var crit = new AndAllCriterion([
-            new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.OnOrAfter, startYear, startMonth, startMonth is null ? null : 1),
-            new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.Before, endYear, endMonth, endMonth is null ? null : 1)
-        ]);
+        var crit = new SeasonCriterion(false, SeasonEnum.Value);
         _anime = _anime.Where(crit.Criterion.Compile()).ToList();
     }
 
@@ -181,10 +160,10 @@ public partial class Collection
 
     private void OnSeasonSelect(ChangeEventArgs e)
     {
-        Enum.TryParse<AnimeSeason>((string?)e.Value, out var season);
+        var season = Enum.TryParse<AnimeSeason>((string?)e.Value, out var outSeason) ? (AnimeSeason?)outSeason : null;
         NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameters(new Dictionary<string, object?>()
         {
-            { nameof(Season), (int)season },
+            { nameof(Season), (int?)season },
             { nameof(Year), Year ?? DateTimeOffset.UtcNow.Year }
         }));
     }
