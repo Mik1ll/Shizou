@@ -28,9 +28,6 @@ public partial class Collection
     private AnimeFilter? _filter;
     private FilterOffcanvas _filterOffcanvas = default!;
     private HashSet<int>? _aids;
-    private int? _oldSeason;
-    private int? _oldYear;
-    private int _oldAnimeType;
     private AnimeSort SortEnum => (AnimeSort)Sort;
     private AnimeSeason? SeasonEnum => (AnimeSeason?)Season;
     private AnimeType AnimeTypeEnum => (AnimeType)AnimeType;
@@ -78,59 +75,59 @@ public partial class Collection
     {
         using var context = ContextFactory.CreateDbContext();
         _filters = context.AnimeFilters.AsNoTracking().ToList();
-        var newFilter = _filters.FirstOrDefault(f => f.Id == FilterId);
-        if (_anime is null || newFilter?.Criteria != _filter?.Criteria || Year != _oldYear || Season != _oldSeason || AnimeType != _oldAnimeType)
-            _anime = context.AniDbAnimes.AsNoTracking().HasLocalFiles().Where(newFilter?.Criteria.Criterion ?? (_ => true)).ToList();
-        _filter = newFilter;
-        _oldYear = Year;
-        _oldSeason = Season;
-        _oldAnimeType = AnimeType;
-        FilterSeasonYear();
-        SortAnime();
+        _filter = _filters.FirstOrDefault(f => f.Id == FilterId);
+        var queryable = context.AniDbAnimes.AsNoTracking().HasLocalFiles();
+        if (_filter is not null)
+            queryable = queryable.Where(_filter.Criteria.Criterion);
+        FilterSeasonYear(ref queryable);
+        SortAnime(ref queryable);
+        _anime = queryable.ToList();
         _anime = _anime.Where(a => AnimeType == 0 || a.AnimeType == AnimeTypeEnum).ToList();
         _aids = _anime?.Select(a => a.Id).ToHashSet();
         if (!string.IsNullOrWhiteSpace(_searchBox?.Query))
             SetSearchResults(await GetSearchResultsAsync(_searchBox.Query));
     }
 
-    private void FilterSeasonYear()
+    private void FilterSeasonYear(ref IQueryable<AniDbAnime> queryable)
     {
-        if (_anime is null || Year is null || SeasonEnum is null)
+        if (Year is null && SeasonEnum is null)
             return;
-
-        var crit = new SeasonCriterion(false, SeasonEnum.Value);
-        _anime = _anime.Where(crit.Criterion.Compile()).ToList();
+        var criteria = new List<TermCriterion>();
+        if (Year is not null)
+            criteria.AddRange([
+                new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.OnOrAfter, Year),
+                new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.Before, Year + 1)
+            ]);
+        if (SeasonEnum is not null)
+            criteria.Add(new SeasonCriterion(false, SeasonEnum.Value));
+        queryable = queryable.Where(new AndAllCriterion(criteria).Criterion);
     }
 
-    private void SortAnime()
+    private void SortAnime(ref IQueryable<AniDbAnime> queryable)
     {
-        if (_anime is null)
-            return;
-        IEnumerable<AniDbAnime> sorted;
         switch (SortEnum)
         {
             case AnimeSort.AnimeId:
-                sorted = _anime.OrderBy(a => a.Id);
+                queryable = queryable.OrderBy(a => a.Id);
                 break;
             case AnimeSort.AirDate:
-                sorted = _anime.OrderBy(a => a.AirDate);
+                queryable = queryable.OrderBy(a => a.AirDate);
                 break;
             case AnimeSort.Alphabetical:
-                sorted = _anime.OrderBy(a => a.TitleTranscription);
+                queryable = queryable.OrderBy(a => a.TitleTranscription);
                 break;
             case AnimeSort.RecentFiles:
             {
-                using var context = ContextFactory.CreateDbContext();
-                sorted = context.AniDbAnimes.AsNoTracking().OrderByDescending(a =>
+                queryable = queryable.OrderByDescending(a =>
                     a.AniDbEpisodes.SelectMany(e => e.AniDbFiles.SelectMany(f => f.LocalFiles.Select(lf => lf.Id)))
-                        .DefaultIfEmpty().Max()).ToList();
+                        .DefaultIfEmpty().Max());
                 break;
             }
             default:
                 throw new ArgumentOutOfRangeException();
         }
 
-        _anime = (Descending ? sorted.Reverse() : sorted).ToList();
+        queryable = Descending ? queryable.Reverse() : queryable;
     }
 
     private Task<List<(int, string)>?> GetSearchResultsAsync(string query) => AnimeTitleSearchService.SearchAsync(query, _aids);
