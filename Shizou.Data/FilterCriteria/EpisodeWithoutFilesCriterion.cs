@@ -6,6 +6,11 @@ namespace Shizou.Data.FilterCriteria;
 
 public record EpisodeWithoutFilesCriterion(bool Negated) : TermCriterion(Negated)
 {
+    // ReSharper disable once UnusedMember.Global
+    public EpisodeWithoutFilesCriterion() : this(false)
+    {
+    }
+
     protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
     {
         return anime => anime.AniDbEpisodes.Where(e => e.EpisodeType == EpisodeType.Episode)

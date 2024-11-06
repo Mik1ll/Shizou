@@ -5,6 +5,11 @@ namespace Shizou.Data.FilterCriteria;
 
 public record ReleaseGroupCriterion(bool Negated, int? GroupId) : TermCriterion(Negated)
 {
+    // ReSharper disable once UnusedMember.Global
+    public ReleaseGroupCriterion() : this(false, null)
+    {
+    }
+
     public int? GroupId { get; set; } = GroupId;
 
     protected override Expression<Func<AniDbAnime, bool>> MakeTerm()

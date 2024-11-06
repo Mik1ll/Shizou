@@ -6,6 +6,11 @@ namespace Shizou.Data.FilterCriteria;
 
 public record UnwatchedFilesCriterion(bool Negated) : TermCriterion(Negated)
 {
+    // ReSharper disable once UnusedMember.Global
+    public UnwatchedFilesCriterion() : this(false)
+    {
+    }
+
     protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
     {
         return anime => anime.AniDbEpisodes.Any(e =>

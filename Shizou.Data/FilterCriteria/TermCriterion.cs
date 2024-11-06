@@ -3,6 +3,10 @@ using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
+/// <summary>
+/// Inheritors must have a parameterless constructor
+/// </summary>
+/// <param name="Negated"></param>
 public abstract record TermCriterion(bool Negated) : AnimeCriterion
 {
     public bool Negated { get; set; } = Negated;

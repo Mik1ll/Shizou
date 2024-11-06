@@ -13,6 +13,11 @@ public enum AnimeSeason
 
 public record SeasonCriterion(bool Negated, AnimeSeason Season) : TermCriterion(Negated)
 {
+    // ReSharper disable once UnusedMember.Global
+    public SeasonCriterion() : this(false, AnimeSeason.Winter)
+    {
+    }
+
     public AnimeSeason Season { get; set; } = Season;
 
     protected override Expression<Func<AniDbAnime, bool>> MakeTerm()

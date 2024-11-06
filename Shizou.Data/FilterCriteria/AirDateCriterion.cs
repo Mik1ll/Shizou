@@ -22,6 +22,11 @@ public record AirDateCriterion(bool Negated, AirDateTermType AirDateTermType, Ai
         int? Day = null)
     : TermCriterion(Negated)
 {
+    // ReSharper disable once UnusedMember.Global
+    public AirDateCriterion() : this(false, AirDateTermType.AirDate, AirDateTermRange.Before)
+    {
+    }
+    
     public AirDateTermType AirDateTermType { get; set; } = AirDateTermType;
     public AirDateTermRange AirDateTermRange { get; set; } = AirDateTermRange;
 
