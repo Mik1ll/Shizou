@@ -52,7 +52,11 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PasswordModel"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PasswordModel"
+                  }
+                ]
               }
             }
           }
@@ -501,17 +505,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMyListArgs"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdateMyListArgs"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMyListArgs"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdateMyListArgs"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMyListArgs"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdateMyListArgs"
+                  }
+                ]
               }
             }
           }
@@ -766,7 +782,11 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FileWatchedState"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/FileWatchedState"
+                  }
+                ]
               }
             }
           }
@@ -802,7 +822,11 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FileWatchedState"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/FileWatchedState"
+                  }
+                ]
               }
             }
           }
@@ -1104,7 +1128,11 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ImportFolder"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ImportFolder"
+                  }
+                ]
               }
             }
           }
@@ -1140,7 +1168,11 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ImportFolder"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ImportFolder"
+                  }
+                ]
               }
             }
           }
@@ -1457,17 +1489,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ShizouOptions"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ShizouOptions"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ShizouOptions"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ShizouOptions"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ShizouOptions"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ShizouOptions"
+                  }
+                ]
               }
             }
           }
@@ -1945,7 +1989,11 @@
             "format": "int32"
           },
           "aniDbCreator": {
-            "$ref": "#/components/schemas/AniDbCreator"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AniDbCreator"
+              }
+            ]
           },
           "aniDbCharacterId": {
             "type": "integer",
@@ -1953,7 +2001,12 @@
             "nullable": true
           },
           "aniDbCharacter": {
-            "$ref": "#/components/schemas/AniDbCharacter"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AniDbCharacter"
+              }
+            ],
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -2124,7 +2177,12 @@
             "nullable": true
           },
           "video": {
-            "$ref": "#/components/schemas/AniDbVideo"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AniDbVideo"
+              }
+            ],
+            "nullable": true
           },
           "audio": {
             "type": "array",
@@ -2175,14 +2233,22 @@
             "format": "int32"
           },
           "myList": {
-            "$ref": "#/components/schemas/MyListOptions"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MyListOptions"
+              }
+            ]
           },
           "fetchRelationDepth": {
             "type": "integer",
             "format": "int32"
           },
           "avDump": {
-            "$ref": "#/components/schemas/AvDumpOptions"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AvDumpOptions"
+              }
+            ]
           }
         },
         "additionalProperties": false
@@ -2274,7 +2340,13 @@
             "readOnly": true
           },
           "commandArgs": {
-            "$ref": "#/components/schemas/CommandArgs"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CommandArgs"
+              }
+            ],
+            "nullable": true,
+            "readOnly": true
           }
         },
         "additionalProperties": false
@@ -2316,7 +2388,11 @@
             "type": "string"
           },
           "commandArgs": {
-            "$ref": "#/components/schemas/CommandArgs"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CommandArgs"
+              }
+            ]
           }
         },
         "additionalProperties": false
@@ -2334,7 +2410,11 @@
             "format": "int32"
           },
           "aniDbFile": {
-            "$ref": "#/components/schemas/AniDbFile"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AniDbFile"
+              }
+            ]
           },
           "watched": {
             "type": "boolean"
@@ -2547,16 +2627,32 @@
         "type": "object",
         "properties": {
           "import": {
-            "$ref": "#/components/schemas/ImportOptions"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ImportOptions"
+              }
+            ]
           },
           "aniDb": {
-            "$ref": "#/components/schemas/AniDbOptions"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AniDbOptions"
+              }
+            ]
           },
           "myAnimeList": {
-            "$ref": "#/components/schemas/MyAnimeListOptions"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MyAnimeListOptions"
+              }
+            ]
           },
           "collectionView": {
-            "$ref": "#/components/schemas/CollectionViewOptions"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CollectionViewOptions"
+              }
+            ]
           }
         },
         "additionalProperties": false
