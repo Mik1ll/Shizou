@@ -46,7 +46,7 @@ public class Command : ControllerBase
     [HttpPut("GenericUdpRequest")]
     [Produces("text/plain")]
     [Consumes("application/json")]
-    public async Task<string?> GenericUdpRequest(string command, Dictionary<string, string> args)
+    public async Task<string> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
         _genericRequest.SetParameters(command, args);
         var resp = await _genericRequest.ProcessAsync().ConfigureAwait(false);
