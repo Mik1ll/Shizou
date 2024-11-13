@@ -30,7 +30,6 @@ public record SeasonCriterion(bool Negated, AnimeSeason Season) : TermCriterion(
             AnimeSeason.Fall => 10,
             _ => throw new ArgumentOutOfRangeException()
         };
-        return anime => anime.AirDate != null && string.Compare(anime.AirDate.Substring(5), $"{startMonth:d2}") >= 0 &&
-                        string.Compare(anime.AirDate.Substring(5), $"{startMonth + 3:d2}") < 0;
+        return anime => anime.AirDate != null && anime.AirDate.Value.Month >= startMonth && anime.AirDate.Value.Month < startMonth + 3;
     }
 }

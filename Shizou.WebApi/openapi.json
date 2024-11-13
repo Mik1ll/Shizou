@@ -1792,10 +1792,12 @@
           },
           "airDate": {
             "type": "string",
+            "format": "date",
             "nullable": true
           },
           "endDate": {
             "type": "string",
+            "format": "date",
             "nullable": true
           },
           "description": {

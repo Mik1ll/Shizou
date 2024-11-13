@@ -4,6 +4,11 @@ using Shizou.Data.Enums;
 
 namespace Shizou.Data.Models;
 
+public struct NullableDate
+{
+    public int? Year, Month, Day;
+}
+
 public class AniDbAnime
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -14,8 +19,8 @@ public class AniDbAnime
     public required string? TitleEngish { get; set; }
     public required AnimeType AnimeType { get; set; }
     public required int? EpisodeCount { get; set; }
-    public required string? AirDate { get; set; }
-    public required string? EndDate { get; set; }
+    public required DateOnly? AirDate { get; set; }
+    public required DateOnly? EndDate { get; set; }
     public required string? Description { get; set; }
     public required bool Restricted { get; set; }
     public required string? ImageFilename { get; set; }
