@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -118,10 +117,9 @@ public class AnimeCommand : Command<AnimeArgs>
                 Number = EpisodeTypeExtensions.ParseEpString(e.Epno.Text)
                     .number,
                 EpisodeType = e.Epno.Type,
-                AirDate = string.IsNullOrEmpty(e.Airdate)
+                AirDate = string.IsNullOrWhiteSpace(e.Airdate)
                     ? null
-                    : DateTime.Parse(e.Airdate,
-                        styles: DateTimeStyles.AssumeUniversal),
+                    : DateOnly.Parse(e.Airdate),
                 Summary = e.Summary,
                 Updated = DateTime.UtcNow,
                 TitleEnglish = e.Title.First(t => t.Lang == "en")

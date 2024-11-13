@@ -15,7 +15,7 @@ public class AniDbEpisode
     public required int Number { get; set; }
     public required EpisodeType EpisodeType { get; set; }
     public required int? DurationMinutes { get; set; }
-    public required DateTime? AirDate { get; set; }
+    public required DateOnly? AirDate { get; set; }
 
     public required string? Summary { get; set; }
 
