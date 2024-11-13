@@ -17,8 +17,8 @@
         <ProjectReference Include="..\Shizou.Server\Shizou.Server.csproj" />
     </ItemGroup>
 
-    <Target Name="CreateSwaggerJson" AfterTargets="Build" Condition="$(Configuration)=='Debug'">
-        <Exec Command="dotnet swagger tofile --output openapi.json $(OutputPath)$(AssemblyName).dll v1" WorkingDirectory="$(ProjectDir)"/>
+    <Target Name="CreateSwaggerJson" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+        <Exec Command="dotnet swagger tofile --output openapi.json $(OutputPath)$(AssemblyName).dll v1" WorkingDirectory="$(ProjectDir)" />
     </Target>
 
 </Project>
