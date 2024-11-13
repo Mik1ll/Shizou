@@ -18,15 +18,20 @@ public enum AirDateTermType
     EndDate = 2
 }
 
-public record AirDateCriterion(bool Negated, AirDateTermType AirDateTermType, AirDateTermRange AirDateTermRange, int? Year = null, int? Month = null,
-        int? Day = null)
+public record AirDateCriterion(
+    bool Negated,
+    AirDateTermType AirDateTermType,
+    AirDateTermRange AirDateTermRange,
+    int? Year = null,
+    int? Month = null,
+    int? Day = null)
     : TermCriterion(Negated)
 {
     // ReSharper disable once UnusedMember.Global
     public AirDateCriterion() : this(false, AirDateTermType.AirDate, AirDateTermRange.Before)
     {
     }
-    
+
     public AirDateTermType AirDateTermType { get; set; } = AirDateTermType;
     public AirDateTermRange AirDateTermRange { get; set; } = AirDateTermRange;
 
@@ -34,26 +39,30 @@ public record AirDateCriterion(bool Negated, AirDateTermType AirDateTermType, Ai
     public int? Year { get; set; } = Year;
 
     public int? Month { get; set; } = Month;
+    private int? HasMonth => Month.HasValue ? Day : null;
+
+    [Compare(nameof(HasMonth))]
     public int? Day { get; set; } = Day;
 
     [SuppressMessage("ReSharper", "StringCompareIsCultureSpecific.1")]
     protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
     {
-        if (Year is null && Month is not null)
-            throw new ArgumentException("Cannot specify month without year");
-        if (Month is null && Day is not null)
-            throw new ArgumentException("Cannot specify day without month");
-        var date = $"{Year:d4}";
-        if (Month is not null)
-            date += $"-{Month:d2}";
-        if (Day is not null)
-            date += $"-{Day:d2}";
+        DateOnly? date = null;
+        if (AirDateTermRange is not AirDateTermRange.Missing)
+        {
+            if (Year is null)
+                throw new ArgumentException("Year is required");
+            if (Month is null && Day is not null)
+                throw new ArgumentException("Cannot specify day without month");
+            date = new DateOnly(Year.Value, Month ?? 1, Day ?? 1);
+        }
+
         return (AirDateTermRange, AirDateTermType) switch
         {
-            (AirDateTermRange.OnOrAfter, AirDateTermType.AirDate) => anime => anime.AirDate != null && string.Compare(anime.AirDate, date) >= 0,
-            (AirDateTermRange.OnOrAfter, AirDateTermType.EndDate) => anime => anime.EndDate != null && string.Compare(anime.EndDate, date) >= 0,
-            (AirDateTermRange.Before, AirDateTermType.AirDate) => anime => anime.AirDate != null && string.Compare(anime.AirDate, date) < 0,
-            (AirDateTermRange.Before, AirDateTermType.EndDate) => anime => anime.EndDate != null && string.Compare(anime.EndDate, date) < 0,
+            (AirDateTermRange.OnOrAfter, AirDateTermType.AirDate) => anime => anime.AirDate != null && anime.AirDate >= date,
+            (AirDateTermRange.OnOrAfter, AirDateTermType.EndDate) => anime => anime.EndDate != null && anime.EndDate >= date,
+            (AirDateTermRange.Before, AirDateTermType.AirDate) => anime => anime.AirDate != null && anime.AirDate < date,
+            (AirDateTermRange.Before, AirDateTermType.EndDate) => anime => anime.EndDate != null && anime.EndDate < date,
             (AirDateTermRange.Missing, AirDateTermType.AirDate) => anime => anime.AirDate == null,
             (AirDateTermRange.Missing, AirDateTermType.EndDate) => anime => anime.EndDate == null,
             _ => throw new ArgumentOutOfRangeException()

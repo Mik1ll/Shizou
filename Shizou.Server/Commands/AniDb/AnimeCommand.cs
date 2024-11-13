@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -81,8 +80,25 @@ public class AnimeCommand : Command<AnimeArgs>
             Id = animeResult.Id,
             Description = animeResult.Description,
             Restricted = animeResult.Restricted,
-            AirDate = animeResult.Startdate,
-            EndDate = animeResult.Enddate,
+            AirDate = string.IsNullOrWhiteSpace(animeResult.Startdate)
+                ? null
+                : DateOnly.Parse(animeResult.Startdate switch
+                {
+                    { Length: 7 } => animeResult.Startdate + "-01",
+                    { Length: 4 } => animeResult.Startdate + "-01-01",
+                    { Length: 10 } => animeResult.Startdate,
+                    _ => throw new InvalidOperationException($"Could not parse start date, unexpected length: {animeResult.Startdate.Length}")
+                }),
+            EndDate = string.IsNullOrWhiteSpace(animeResult.Enddate)
+                ? null
+                : DateOnly.Parse(animeResult.Enddate switch
+                {
+                    { Length: 7 } => animeResult.Enddate +
+                                     $"-{DateTime.DaysInMonth(int.Parse(animeResult.Enddate[..4]), int.Parse(animeResult.Enddate[5..7]))}",
+                    { Length: 4 } => animeResult.Enddate + $"-12-{DateTime.DaysInMonth(int.Parse(animeResult.Enddate[..4]), 12)}",
+                    { Length: 10 } => animeResult.Enddate,
+                    _ => throw new InvalidOperationException($"Could not parse end date, unexpected length: {animeResult.Enddate.Length}")
+                }),
             AnimeType = animeResult.Type,
             EpisodeCount = animeResult.Episodecount == 0 ? null : animeResult.Episodecount,
             ImageFilename = animeResult.Picture,
@@ -101,10 +117,9 @@ public class AnimeCommand : Command<AnimeArgs>
                 Number = EpisodeTypeExtensions.ParseEpString(e.Epno.Text)
                     .number,
                 EpisodeType = e.Epno.Type,
-                AirDate = string.IsNullOrEmpty(e.Airdate)
+                AirDate = string.IsNullOrWhiteSpace(e.Airdate)
                     ? null
-                    : DateTime.Parse(e.Airdate,
-                        styles: DateTimeStyles.AssumeUniversal),
+                    : DateOnly.Parse(e.Airdate),
                 Summary = e.Summary,
                 Updated = DateTime.UtcNow,
                 TitleEnglish = e.Title.First(t => t.Lang == "en")

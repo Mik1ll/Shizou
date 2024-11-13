@@ -43,18 +43,6 @@ public class Command : ControllerBase
         _commandService.Dispatch(new SyncMyListArgs());
     }
 
-    [HttpPut("GenericUdpRequest")]
-    [Produces("text/plain")]
-    [Consumes("application/json")]
-    public async Task<string?> GenericUdpRequest(string command, Dictionary<string, string> args)
-    {
-        _genericRequest.SetParameters(command, args);
-        var resp = await _genericRequest.ProcessAsync().ConfigureAwait(false);
-        if (resp is not null)
-            return resp.ResponseCodeText + "\n" + resp.ResponseText;
-        return string.Empty;
-    }
-
     [HttpPut("PingAniDb")]
     public async Task PingAniDb()
     {

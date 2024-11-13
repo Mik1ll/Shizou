@@ -29,7 +29,7 @@ public class SeededDatabaseTests
                     TitleTranscription = "blah",
                     AnimeType = AnimeType.TvSeries,
                     EpisodeCount = 12,
-                    AirDate = "2022-02-15",
+                    AirDate = DateOnly.Parse("2022-02-15"),
                     EndDate = null,
                     Description = "testdescription",
                     Restricted = false,

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shizou.Data.Database;
 
@@ -10,9 +11,11 @@ using Shizou.Data.Database;
 namespace Shizou.Data.Migrations
 {
     [DbContext(typeof(ShizouContext))]
-    partial class ShizouContextModelSnapshot : ModelSnapshot
+    [Migration("20241113100143_AirDateDateOnly")]
+    partial class AirDateDateOnly
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
@@ -158,7 +161,7 @@ namespace Shizou.Data.Migrations
                     b.Property<int>("Id")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateOnly?>("AirDate")
+                    b.Property<DateTime?>("AirDate")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("AniDbAnimeId")
