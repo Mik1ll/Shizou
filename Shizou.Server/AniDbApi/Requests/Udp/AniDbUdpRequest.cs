@@ -127,7 +127,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
     private async Task PrepareRequestAsync()
     {
         Logger.LogTrace("Preparing {Command} request", Command);
-        if (!new[] { "PING", "ENCRYPT", "AUTH", "VERSION" }.Contains(Command))
+        if (!new[] { "PING", "ENCODING", "ENCRYPT", "AUTH", "VERSION" }.Contains(Command))
         {
             await AniDbUdpState.LoginAsync().ConfigureAwait(false);
 
