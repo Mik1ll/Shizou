@@ -91,8 +91,6 @@ public sealed class AniDbUdpState : IDisposable
     public UdpClient UdpClient { get; }
     public string? SessionKey { get; set; }
 
-    public bool LoggedIn { get; set; }
-
     public bool Banned
     {
         get => _banned;
@@ -134,7 +132,7 @@ public sealed class AniDbUdpState : IDisposable
     /// <exception cref="AniDbUdpRequestException"></exception>
     public async Task LoginAsync()
     {
-        if (LoggedIn)
+        if (!string.IsNullOrWhiteSpace(SessionKey))
         {
             ResetLogoutTimer();
             return;
@@ -156,7 +154,7 @@ public sealed class AniDbUdpState : IDisposable
     /// <exception cref="AniDbUdpRequestException"></exception>
     public async Task LogoutAsync()
     {
-        if (!LoggedIn)
+        if (string.IsNullOrWhiteSpace(SessionKey))
             return;
         var req = _logoutRequestFactory();
         req.SetParameters();

@@ -56,18 +56,17 @@ public class AuthRequest : AniDbUdpRequest<UdpResponse>, IAuthRequest
                     opts.SaveToFile();
                 }
 
-                AniDbUdpState.LoggedIn = true;
                 AniDbUdpState.ResetLogoutTimer();
                 Logger.LogInformation("Logged into AniDB");
                 break;
             case AniDbResponseCode.LoginFailed:
-                AniDbUdpState.LoggedIn = false;
+                AniDbUdpState.SessionKey = null;
                 throw new AniDbUdpRequestException("Login failed, change credentials", responseCode);
             case AniDbResponseCode.ClientOutdated:
-                AniDbUdpState.LoggedIn = false;
+                AniDbUdpState.SessionKey = null;
                 throw new AniDbUdpRequestException("Login failed, client outdated", responseCode);
             case AniDbResponseCode.ClientBanned:
-                AniDbUdpState.LoggedIn = false;
+                AniDbUdpState.SessionKey = null;
                 throw new AniDbUdpRequestException("Login failed, client banned", responseCode);
         }
 

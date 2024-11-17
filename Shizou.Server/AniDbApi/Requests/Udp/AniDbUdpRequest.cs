@@ -131,10 +131,9 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         {
             await AniDbUdpState.LoginAsync().ConfigureAwait(false);
 
-            if (!string.IsNullOrWhiteSpace(AniDbUdpState.SessionKey))
-                Args["s"] = AniDbUdpState.SessionKey;
-            else
+            if (string.IsNullOrWhiteSpace(AniDbUdpState.SessionKey))
                 throw new AniDbUdpRequestException("Session key was not found");
+            Args["s"] = AniDbUdpState.SessionKey;
         }
 
         _requestText = Command;
@@ -215,7 +214,6 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
             case AniDbResponseCode.Banned:
                 AniDbUdpState.Banned = true;
                 AniDbUdpState.BanReason = responseText;
-                AniDbUdpState.LoggedIn = false;
                 AniDbUdpState.SessionKey = null;
                 AniDbUdpState.ResetBannedTimer();
                 Logger.LogWarning("Banned: {BanReason}, waiting {Hours}hr {Minutes}min ({UnbanTime})", AniDbUdpState.BanReason, AniDbUdpState.BanPeriod.Hours,
@@ -223,12 +221,10 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
                 throw new AniDbUdpRequestException($"Udp banned, waiting until {DateTimeOffset.Now + AniDbUdpState.BanPeriod}", responseCode);
             case AniDbResponseCode.InvalidSession:
                 Logger.LogWarning("Invalid session, reauth");
-                AniDbUdpState.LoggedIn = false;
                 AniDbUdpState.SessionKey = null;
                 return true;
             case AniDbResponseCode.LoginFirst:
                 Logger.LogWarning("Not logged in, reauth");
-                AniDbUdpState.LoggedIn = false;
                 AniDbUdpState.SessionKey = null;
                 return true;
             case AniDbResponseCode.AccessDenied:
