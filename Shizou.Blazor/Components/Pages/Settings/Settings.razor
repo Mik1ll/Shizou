@@ -4,7 +4,7 @@
 
 <PageTitle>Settings</PageTitle>
 
-<main class="container-md">
+<main class="container-sm">
     <EditForm Model="@_options" OnValidSubmit="@SaveAsync">
         <div class="mb-2">
             <label class="form-label">
@@ -91,10 +91,8 @@
             </label>
         </div>
         <div class="mb-2">
-            <label class="form-label">
-                Scan File Extensions (space delimited)
-                <InputTextArea class="form-control" @bind-Value="@FileExtensionWrapper"></InputTextArea>
-            </label>
+            <label class="form-label" for="scanFileExtensions">Scan File Extensions (space delimited)</label>
+            <InputTextArea id="scanFileExtensions" class="form-control" @bind-Value="@_options.Import.ScanFileExtensions"></InputTextArea>
         </div>
         <button type="submit" class="btn btn-success">Save</button>
     </EditForm>

@@ -47,10 +47,9 @@ public static class InitializationExtensions
         if (!File.Exists(FilePaths.OptionsPath))
             new ShizouOptions().SaveToFile();
         ShizouOptions.GenerateSchema();
-        builder.Configuration
-            .AddJsonFile(FilePaths.OptionsPath, false, true);
+        builder.Configuration.AddJsonFile(FilePaths.OptionsPath, false, true);
         builder.Services.AddOptions<ShizouOptions>()
-            .Bind(builder.Configuration.GetSection(ShizouOptions.Shizou))
+            .BindConfiguration(ShizouOptions.Shizou)
             .ValidateDataAnnotations()
             .ValidateOnStart();
         var certDir = new DirectoryInfo(FilePaths.CertificateDir);

@@ -12,12 +12,6 @@ public partial class Settings
 
     private string _externalPlayerScheme = LocalStorageKeys.ExternalPlayerSchemeDefault;
 
-    private string FileExtensionWrapper
-    {
-        get => string.Join(" ", _options.Import.FileExtensions);
-        set => _options.Import.FileExtensions = value.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToArray();
-    }
-
     [Inject]
     private IOptionsSnapshot<ShizouOptions> OptionsSnapShot { get; set; } = default!;
 

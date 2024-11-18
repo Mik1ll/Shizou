@@ -87,16 +87,13 @@ public class FormatAttribute : Attribute, JsonSchema.IAttributeHandler<FormatAtt
 public class ImportOptions
 {
     [JsonSchema.Description("The file extensions to scan, other files will be ignored")]
-    public string[] FileExtensions { get; set; } =
-    [
+    public string ScanFileExtensions { get; set; } =
         // Video
-        "mov", "mkv", "avi", "mp4", "wmv", "mpg", "mpeg", "m4v", "webm", "flv", "f4v", "ts", "m2ts", "mts", "vob", "ogm", "asf", "mk3d", "ogv", "qt", "rm",
-        "rmvb", "swf",
+        "mov mkv avi mp4 wmv mpg mpeg m4v webm flv f4v ts m2ts mts vob ogm asf mk3d ogv qt rm rmvb swf\n" +
         // Subtitle
-        "srt", "ass", "ssa", "sub", "sbv", "vtt", "ttxt", "fsb", "idx", "js", "lrc", "mks", "pjs", "rt", "s2k", "smi", "sup", "tts", "txt", "xss", "zeg", "tmp",
+        "srt ass ssa sub sbv vtt ttxt fsb idx js lrc mks pjs rt s2k smi sup tts txt xss zeg tmp\n" +
         // Audio
-        "ac3", "m4a", "mp3", "flac", "mka", "ogg", "aac", "dts", "dtshd", "mlp", "ra", "thd", "wav", "wma"
-    ];
+        "ac3 m4a mp3 flac mka ogg aac dts dtshd mlp ra thd wav wma";
 
     [JsonSchema.Description("The path to ffmpeg, used for extracting episode thumbnails")]
     [JsonSchema.Nullable(true)]

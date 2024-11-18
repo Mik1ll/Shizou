@@ -60,7 +60,7 @@ public class ImportService
             return;
         }
 
-        var extensions = _optionsMonitor.CurrentValue.Import.FileExtensions.Select(ext => ext.TrimStart('.')).ToArray();
+        var extensions = _optionsMonitor.CurrentValue.Import.ScanFileExtensions.Split().Select(ext => ext.TrimStart('.')).ToArray();
         var dbFiles = context.LocalFiles.Include(lf => lf.ImportFolder)
             .Where(lf => lf.ImportFolder != null)
             .ToDictionary(lf => Path.Combine(lf.ImportFolder!.Path, lf.PathTail));
