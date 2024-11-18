@@ -125,5 +125,8 @@ public enum AniDbResponseCode
     NoSuchMessageAck = 381,
     NoSuchNotifyAck = 382,
     NoSuchNotifyEntry = 392,
-    NoSuchMessageEntry = 393
+    NoSuchMessageEntry = 393,
+
+    // User
+    User = 295
 }

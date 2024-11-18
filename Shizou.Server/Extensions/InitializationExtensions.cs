@@ -268,6 +268,7 @@ public static class InitializationExtensions
             .AddTransient<IMyListRequest, MyListRequest>()
             .AddTransient<ICreatorRequest, CreatorRequest>()
             .AddTransient<ImageRequest>()
+            .AddTransient<IUserRequest, UserRequest>()
             .AddHttpClient("gzip")
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip });
         return services;
