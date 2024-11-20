@@ -2418,11 +2418,8 @@
       "ImportOptions": {
         "type": "object",
         "properties": {
-          "fileExtensions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "scanFileExtensions": {
+            "type": "string"
           },
           "ffmpegPath": {
             "type": "string",
