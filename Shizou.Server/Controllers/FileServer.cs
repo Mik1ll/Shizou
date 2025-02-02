@@ -68,10 +68,9 @@ public class FileServer : ControllerBase
         var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
         if (!fileInfo.Exists)
             return TypedResults.NotFound();
-        if (!_contentTypeProvider.TryGetContentType(fileInfo.Name, out var mimeType))
-            mimeType = "application/octet-stream";
         var fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 19, FileOptions.Asynchronous);
-        return TypedResults.File(fileStream, mimeType, fileInfo.Name, enableRangeProcessing: true);
+        // Return octet stream so browser doesn't change the extension of the file download
+        return TypedResults.File(fileStream, "application/octet-stream", fileInfo.Name, enableRangeProcessing: true);
     }
 
     [HttpGet("{ed2K}/Playlist")]
