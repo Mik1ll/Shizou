@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Dynamic;
+using System.Text.Json;
 using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
@@ -8,6 +9,7 @@ using Shizou.Blazor.Services;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
+using Shizou.Server.Controllers;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Components.Pages.Anime.Components;
@@ -16,6 +18,7 @@ public partial class FileCard
 {
     private FileWatchedState _watchedState = default!;
     private string _externalPlaybackUrl = default!;
+    private string _fileDownloadUrl = default!;
     private bool _fileExists;
     private bool _schemeHandlerInstalled;
 
@@ -36,6 +39,12 @@ public partial class FileCard
 
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+    [Inject]
+    private LinkGenerator LinkGenerator { get; set; } = default!;
 
     [CascadingParameter]
     public IModalService ModalService { get; set; } = default!;
@@ -62,6 +71,11 @@ public partial class FileCard
         _schemeHandlerInstalled = res is { ValueKind: JsonValueKind.String } && res.GetString() == "true";
 
         _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(LocalFile.Ed2k, true);
+        var baseUri = new Uri(NavigationManager.BaseUri);
+        IDictionary<string, object?> values = new ExpandoObject();
+        values["ed2K"] = LocalFile.Ed2k;
+        _fileDownloadUrl = LinkGenerator.GetUriByAction(nameof(FileServer.Get), nameof(FileServer), values, baseUri.Scheme, new(baseUri.Host),
+            new(baseUri.AbsolutePath)) ?? throw new ArgumentException("Failed to generate file download uri");
     }
 
     private void CheckFileExists() =>

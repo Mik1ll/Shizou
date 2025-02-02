@@ -17,10 +17,15 @@
                         }
                         else
                         {
-                            <button type="button" class="btn btn-success mb-1" @onclick="@OpenSchemeHandlerDownloadModalAsync">
+                            <button class="btn btn-success mb-1" type="button" @onclick="@OpenSchemeHandlerDownloadModalAsync">
                                 <i class="bi bi-cast"></i>
                             </button>
                         }
+
+                        <a class="btn btn-success mb-1" type="button" href="@_fileDownloadUrl" target="_blank">
+
+                            <i class="bi bi-download"></i>
+                        </a>
                     }
                     else
                     {
