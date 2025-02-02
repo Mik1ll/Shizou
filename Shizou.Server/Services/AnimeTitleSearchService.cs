@@ -134,22 +134,30 @@ public class AnimeTitleSearchService : IAnimeTitleSearchService
         // Not using gzip client, didn't work. Maybe it requires a gzip content header in the response
         var client = _clientFactory.CreateClient(string.Empty);
         client.DefaultRequestHeaders.UserAgent.ParseAdd("Shizou");
-        using var response = await client.GetAsync("https://anidb.net/api/anime-titles.dat.gz").ConfigureAwait(false);
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            _logger.LogError("Anime titles request failed: {StatusCode} {StatusMessage}", response.StatusCode, response.ReasonPhrase);
+            using var response = await client.GetAsync("https://anidb.net/api/anime-titles.dat.gz").ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Anime titles request failed: {StatusCode} {StatusMessage}", response.StatusCode, response.ReasonPhrase);
+                return null;
+            }
+
+            var httpStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            await using var _ = httpStream.ConfigureAwait(false);
+            var decompStream = new GZipStream(httpStream, CompressionMode.Decompress);
+            await using var __ = decompStream.ConfigureAwait(false);
+            using var reader = new StreamReader(decompStream);
+            var data = await reader.ReadToEndAsync().ConfigureAwait(false);
+            Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.AnimeTitlesPath)!);
+            await File.WriteAllTextAsync(FilePaths.AnimeTitlesPath, data, Encoding.UTF8).ConfigureAwait(false);
+            return data;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError("Anime titles request failed: {Exception}", ex);
             return null;
         }
-
-        var httpStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-        await using var _ = httpStream.ConfigureAwait(false);
-        var decompStream = new GZipStream(httpStream, CompressionMode.Decompress);
-        await using var __ = decompStream.ConfigureAwait(false);
-        using var reader = new StreamReader(decompStream);
-        var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-        Directory.CreateDirectory(Path.GetDirectoryName(FilePaths.AnimeTitlesPath)!);
-        await File.WriteAllTextAsync(FilePaths.AnimeTitlesPath, data, Encoding.UTF8).ConfigureAwait(false);
-        return data;
     }
 
     /// <summary>
