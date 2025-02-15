@@ -54,23 +54,19 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status416RangeNotSatisfiable)]
     [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: "application/octet-stream")]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
-    public Results<FileStreamHttpResult, NotFound> Get(string ed2K)
+    public Results<PhysicalFileHttpResult, NotFound> Get(string ed2K)
     {
-        var localFile = _context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2K);
+        var localFile = _context.LocalFiles.Include(e => e.ImportFolder)
+            .Where(e => e.ImportFolder != null && e.Ed2k == ed2K)
+            .Select(lf => new { lf.ImportFolder!.Path, lf.PathTail })
+            .FirstOrDefault();
         if (localFile is null)
             return TypedResults.NotFound();
-        if (localFile.ImportFolder is null)
-        {
-            _logger.LogWarning("Tried to get local file with no import folder");
+        var filePath = Path.Combine(localFile.Path, localFile.PathTail);
+        if (!System.IO.File.Exists(filePath))
             return TypedResults.NotFound();
-        }
-
-        var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail)));
-        if (!fileInfo.Exists)
-            return TypedResults.NotFound();
-        var fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 19, FileOptions.Asynchronous);
         // Return octet stream so browser doesn't change the extension of the file download
-        return TypedResults.File(fileStream, "application/octet-stream", fileInfo.Name, enableRangeProcessing: true);
+        return TypedResults.PhysicalFile(filePath, "application/octet-stream", Path.GetFileName(filePath), enableRangeProcessing: true);
     }
 
     [HttpGet("{ed2K}/Playlist")]
