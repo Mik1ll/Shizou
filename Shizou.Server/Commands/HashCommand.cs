@@ -53,7 +53,7 @@ public class HashCommand : Command<HashArgs>
         }
         catch (IOException)
         {
-            _logger.LogInformation("File was not accessible, skipping");
+            _logger.LogInformation("File was not accessible or being used by another process, skipping");
             Completed = true;
             return;
         }
