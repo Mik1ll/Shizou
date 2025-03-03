@@ -24,21 +24,20 @@ public abstract class HttpRequest : IHttpRequest
         AniDbHttpState httpState,
         IHttpClientFactory httpClientFactory, HttpRateLimiter rateLimiter)
     {
-        var options = optionsSnapshot.Value;
+        ShizouOptionsSnapshot = optionsSnapshot.Value;
         _logger = logger;
         _httpState = httpState;
         _rateLimiter = rateLimiter;
         _httpClient = httpClientFactory.CreateClient("gzip");
-        _builder = new UriBuilder("http", options.AniDb.ServerHost, options.AniDb.HttpServerPort, "httpapi");
+        _builder = new UriBuilder("http", ShizouOptionsSnapshot.AniDb.ServerHost, ShizouOptionsSnapshot.AniDb.HttpServerPort, "httpapi");
         Args["client"] = "shizouhttp";
         Args["clientver"] = "1";
         Args["protover"] = "1";
-        Args["user"] = options.AniDb.Username;
-        Args["pass"] = options.AniDb.Password;
     }
 
     public string? ResponseText { get; private set; }
 
+    protected ShizouOptions ShizouOptionsSnapshot { get; }
     protected Dictionary<string, string?> Args { get; } = new();
     protected bool ParametersSet { get; set; }
 

@@ -27,6 +27,8 @@ public class MyListRequest : HttpRequest, IMyListRequest
 
     public void SetParameters()
     {
+        Args["user"] = ShizouOptionsSnapshot.AniDb.Username;
+        Args["pass"] = ShizouOptionsSnapshot.AniDb.Password;
         Args["request"] = "mylist";
         ParametersSet = true;
     }
