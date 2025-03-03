@@ -6,7 +6,7 @@
 
 <main class="container-sm">
     <EditForm Model="@_options" OnValidSubmit="@SaveAsync">
-        <div class="mb-2">
+        <div class="mb-2 row-cols-auto">
             <label class="form-label">
                 AniDB Username
                 <input class="form-control-plaintext" readonly value="@(_options.AniDb.Username)">
@@ -16,7 +16,7 @@
                 <InputText class="form-control" type="password" @bind-Value="@(_options.AniDb.Password)"></InputText>
             </label>
         </div>
-        <div class="mb-2">
+        <div class="mb-2 row-cols-auto">
             <label class="form-label">
                 AniDB API Host
                 <InputText class="form-control" @bind-Value="@(_options.AniDb.ServerHost)"></InputText>
@@ -26,7 +26,7 @@
                 <InputNumber class="form-control" @bind-Value="@(_options.AniDb.HttpServerPort)"></InputNumber>
             </label>
         </div>
-        <div class="mb-2">
+        <div class="mb-2 row-cols-auto">
             <label class="form-label">
                 AniDB UDP Client Port
                 <InputNumber class="form-control" @bind-Value="@(_options.AniDb.UdpClientPort)"></InputNumber>
@@ -36,7 +36,7 @@
                 <InputNumber class="form-control" @bind-Value="@(_options.AniDb.UdpServerPort)"></InputNumber>
             </label>
         </div>
-        <div class="mb-2">
+        <div class="mb-2 row-cols-auto">
             <label class="form-label">
                 AVDump UDP Key
                 <InputText class="form-control" @bind-Value="@(_options.AniDb.AvDump.UdpKey)"></InputText>
@@ -46,19 +46,19 @@
                 <InputNumber class="form-control" @bind-Value="@(_options.AniDb.AvDump.UdpClientPort)"></InputNumber>
             </label>
         </div>
-        <div class="mb-2">
+        <div class="mb-2 row-cols-auto">
             <label class="form-label">
                 Anime relation fetch depth
                 <InputNumber class="form-control" @bind-Value="@(_options.AniDb.FetchRelationDepth)"></InputNumber>
             </label>
         </div>
-        <div class="mb-2">
+        <div class="mb-2 row-cols-auto">
             <label class="form-label">
                 Disable MyList Sync
                 <InputCheckbox class="form-check-inline" @bind-Value="@(_options.AniDb.MyList.DisableSync)"></InputCheckbox>
             </label>
         </div>
-        <div class="mb-2">
+        <div class="mb-2 row-cols-auto">
             <label class="form-label me-3">
                 Present files state
                 <InputSelect class="form-select" @bind-Value="@(_options.AniDb.MyList.PresentFileState)">
@@ -78,31 +78,35 @@
                 </InputSelect>
             </label>
         </div>
-        <div class="mb-2">
+        <div class="mb-2 row-cols-auto">
             <label class="form-label">
                 MyAnimeList Client ID
                 <InputText class="form-control" @bind-Value="@(_options.MyAnimeList.ClientId)"></InputText>
             </label>
         </div>
-        <div class="mb-2">
+        <div class="mb-2 row-cols-auto">
             <label class="form-label">
                 External Player Scheme
                 <InputText class="form-control" @bind-Value="@_externalPlayerScheme"></InputText>
             </label>
         </div>
-        <div class="mb-2">
-            <label class="form-label" for="scanFileExtensions">Scan File Extensions (space delimited)</label>
-            <InputTextArea id="scanFileExtensions" class="form-control" @bind-Value="@_options.Import.ScanFileExtensions"></InputTextArea>
+        <div class="mb-2 row">
+            <div class="col-md-6">
+                <label class="form-label" for="scanFileExtensions">Scan File Extensions (space delimited)</label>
+                <InputTextArea id="scanFileExtensions" class="form-control" spellcheck="false"
+                               @bind-Value="@_options.Import.ScanFileExtensions"></InputTextArea>
+            </div>
         </div>
         <button type="submit" class="btn btn-success">Save</button>
     </EditForm>
-
-    <div class="card mt-3" style="width: 18rem">
-        <div class="card-header">External Links</div>
-        <div class="card-body">
-            <a class="btn btn-success" href="@(Constants.GithubProjectUrl)" target="_blank">Shizou</a>
-            <a class="btn btn-success" href="@(Constants.DiscordPresenceUrl)" target="_blank">Discord Anime Presence</a>
-            <a class="btn btn-success" href="@(Constants.SchemeHandlerUrl)" target="_blank">Scheme Handler</a>
+    <div class="row-cols-md-2">
+        <div class="card mt-3">
+            <div class="card-header">External Links</div>
+            <div class="card-body d-flex flex-wrap gap-1">
+                <a class="btn btn-success" href="@(Constants.GithubProjectUrl)" target="_blank">Shizou</a>
+                <a class="btn btn-success" href="@(Constants.DiscordPresenceUrl)" target="_blank">Discord Anime Presence</a>
+                <a class="btn btn-success" href="@(Constants.SchemeHandlerUrl)" target="_blank">Scheme Handler</a>
+            </div>
         </div>
     </div>
 </main>
