@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data.Database;
-using Shizou.Server.Extensions.Query;
 using Shizou.Server.Options;
 
 namespace Shizou.Server.Services;
@@ -42,12 +39,20 @@ public class SymbolicCollectionViewService
             return;
         }
 
-        var collectionDir = new DirectoryInfo(options.CollectionView.Path);
-        Directory.CreateDirectory(collectionDir.FullName);
+        var (pathComparer, pathComparison) = OperatingSystem.IsWindows() || OperatingSystem.IsMacOS()
+            ? (StringComparer.OrdinalIgnoreCase, StringComparison.OrdinalIgnoreCase)
+            : (StringComparer.Ordinal, StringComparison.Ordinal);
+
+        var collectionDir = Directory.CreateDirectory(options.CollectionView.Path);
+        var eLinks = collectionDir.EnumerateFiles("*", SearchOption.AllDirectories).ToDictionary(f => f.FullName, pathComparer);
+        foreach (var file in eLinks.Values)
+            if (file.LinkTarget is null)
+            {
+                _logger.LogError("Non-symbolic link found inside the collection view: \"{FilePath}\", cancelling update", file.FullName);
+                return;
+            }
 
         using var context = _contextFactory.CreateDbContext();
-        var anime = context.AniDbAnimes.HasLocalFiles().Select(a => new { a.Id, Title = a.TitleTranscription, a.AnimeType, a.EpisodeCount })
-            .ToDictionary(a => a.Id, a => a);
 
         var localFiles = context.LocalFiles.Where(lf => lf.ImportFolderId != null && lf.AniDbFileId != null).Select(lf => new
         {
@@ -55,55 +60,50 @@ public class SymbolicCollectionViewService
             lf.ImportFolder!.Path,
             lf.PathTail,
             lf.Crc,
-            Episodes = lf.AniDbFile!.AniDbEpisodes.Select(ep => new
+            Animes = lf.AniDbFile!.AniDbEpisodes.Select(ep => new
             {
-                ep.Id,
-                ep.TitleEnglish,
                 ep.AniDbAnimeId,
-                ep.EpisodeType,
-                ep.Number
-            }).ToList()
+                ep.AniDbAnime.TitleTranscription,
+            }).ToList(),
         }).ToList();
 
-        List<(string Target, string Path)> linkPaths = localFiles.SelectMany(f => f.Episodes.Select(ep => ep.AniDbAnimeId).Distinct().Select(aid =>
+
+        var linkPaths = localFiles.SelectMany(f => f.Animes.DistinctBy(a => a.AniDbAnimeId).Select(a =>
+        {
+            var title = InvalidCharRegex.Replace(a.TitleTranscription, "_");
+            var link = Path.Combine(collectionDir.FullName, $"{title} [anidb-{a.AniDbAnimeId}]",
+                $"{title} [anidb-{f.AniDbFileId}] [{f.Crc}]{Path.GetExtension(f.PathTail)}");
+            var linkTarget = Path.Combine(f.Path, f.PathTail);
+            return (linkTarget, link);
+        })).Where(lp => File.Exists(lp.linkTarget));
+
+        foreach (var lp in linkPaths)
+        {
+            var linkExists = eLinks.Remove(lp.link, out var fi);
+            if (linkExists && !string.Equals(fi!.LinkTarget, lp.linkTarget, pathComparison))
             {
-                var destination = Path.Combine(options.CollectionView.Path, $"{InvalidCharRegex.Replace(anime[aid].Title, "_")} [anidb-{aid}]");
+                fi.Delete();
+                linkExists = false;
+            }
 
-                destination = Path.Combine(destination,
-                    $"{InvalidCharRegex.Replace(anime[aid].Title, "_")} [anidb-{f.AniDbFileId}] [{f.Crc}]{Path.GetExtension(f.PathTail)}");
-                return (Path.GetFullPath(Path.Combine(f.Path, f.PathTail)), target: destination);
-            }))
-            .ToList();
+            if (!linkExists)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(lp.link)!);
+                File.CreateSymbolicLink(lp.link, lp.linkTarget);
+            }
+        }
 
-        var pathsHashSet = linkPaths.Select(p => p.Path).ToHashSet(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? StringComparer.InvariantCultureIgnoreCase
-            : StringComparer.InvariantCulture);
-
-        var toDelete = collectionDir.EnumerateFiles("*", SearchOption.AllDirectories)
-            .Where(f => f.LinkTarget != null && (!pathsHashSet.Contains(f.FullName) || !File.Exists(f.LinkTarget)))
-            .ToList();
-
-        foreach (var file in toDelete)
-            file.Delete();
+        foreach (var l in eLinks.Values)
+            if (l.LinkTarget is not null)
+                l.Delete();
 
         RemoveEmptyDirs(collectionDir);
-
-        var toCreate = linkPaths.Where(file => File.Exists(file.Target) && !File.Exists(file.Path)).ToList();
-
-        foreach (var file in toCreate)
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(file.Path)!);
-            File.CreateSymbolicLink(file.Path, file.Target);
-        }
     }
 
     private void RemoveEmptyDirs(DirectoryInfo dirInfo)
     {
-        foreach (var dir in dirInfo.EnumerateDirectories())
-        {
-            RemoveEmptyDirs(dir);
-            if (!dir.EnumerateFileSystemInfos().Any())
-                dir.Delete(false);
-        }
+        foreach (var dir in Directory.EnumerateDirectories(dirInfo.FullName, "*", SearchOption.AllDirectories).OrderByDescending(f => f.Length))
+            if (!Directory.EnumerateFileSystemEntries(dir).Any())
+                Directory.Delete(dir);
     }
 }

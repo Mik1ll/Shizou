@@ -26,6 +26,7 @@ public static class FilePaths
     public static readonly string CertificateDir = Path.Combine(ApplicationDataDir, "Certificate");
     public static readonly string AvDumpDir = Path.Combine(InstallDir, "AVDump3");
     public static readonly string CreatorImageDir = Path.Combine(ImagesDir, "Creators");
+    public static readonly string DefaultCollectionViewDir = Path.Combine(ApplicationDataDir, "CollectionView");
 
     public static string DatabasePath(string username) => Path.Combine(ApplicationDataDir, "ShizouDB" +
                                                                                            (string.IsNullOrWhiteSpace(username)
