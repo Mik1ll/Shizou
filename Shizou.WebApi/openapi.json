@@ -340,6 +340,46 @@
         }
       }
     },
+    "/api/AniDbEpisodes/ByAniDbAnimeId/{id}": {
+      "get": {
+        "tags": [
+          "AniDbEpisodes"
+        ],
+        "operationId": "ShizouHttpClient_AniDbEpisodesByAniDbAnimeId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AniDbEpisode"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/AniDbFiles": {
       "get": {
         "tags": [
@@ -2276,8 +2316,7 @@
             "type": "boolean"
           },
           "path": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
