@@ -237,6 +237,142 @@
         }
       }
     },
+    "/api/AniDbEpisodeFileXrefs": {
+      "get": {
+        "tags": [
+          "AniDbEpisodeFileXrefs"
+        ],
+        "operationId": "ShizouHttpClient_AniDbEpisodeFileXrefsGet",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbEpisodeFileXrefs/ByEpisodeId/{id}": {
+      "get": {
+        "tags": [
+          "AniDbEpisodeFileXrefs"
+        ],
+        "operationId": "ShizouHttpClient_AniDbEpisodeFileXrefsByEpisodeId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AniDbEpisodeFileXref"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbEpisodeFileXrefs/ByAniDbFileId/{id}": {
+      "get": {
+        "tags": [
+          "AniDbEpisodeFileXrefs"
+        ],
+        "operationId": "ShizouHttpClient_AniDbEpisodeFileXrefsByAniDbFileId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AniDbEpisodeFileXref"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbEpisodeFileXrefs/ByAniDbAnimeId/{id}": {
+      "get": {
+        "tags": [
+          "AniDbEpisodeFileXrefs"
+        ],
+        "operationId": "ShizouHttpClient_AniDbEpisodeFileXrefsByAniDbAnimeId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AniDbEpisodeFileXref"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/AniDbEpisodes": {
       "get": {
         "tags": [
@@ -394,7 +530,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/AniDbNormalFile"
+                    "$ref": "#/components/schemas/AniDbFile"
                   }
                 }
               }
@@ -429,7 +565,47 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AniDbNormalFile"
+                  "$ref": "#/components/schemas/AniDbFile"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbFiles/ByAniDbAnimeId/{id}": {
+      "get": {
+        "tags": [
+          "AniDbFiles"
+        ],
+        "operationId": "ShizouHttpClient_AniDbFilesByAniDbAnimeId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AniDbFile"
+                  }
                 }
               }
             }
@@ -493,6 +669,109 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbNormalFiles": {
+      "get": {
+        "tags": [
+          "AniDbNormalFiles"
+        ],
+        "operationId": "ShizouHttpClient_AniDbNormalFilesGet",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AniDbNormalFile"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbNormalFiles/{id}": {
+      "get": {
+        "tags": [
+          "AniDbNormalFiles"
+        ],
+        "operationId": "ShizouHttpClient_AniDbNormalFilesGet",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AniDbNormalFile"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/AniDbNormalFiles/ByAniDbAnimeId/{id}": {
+      "get": {
+        "tags": [
+          "AniDbNormalFiles"
+        ],
+        "operationId": "ShizouHttpClient_AniDbNormalFilesByAniDbAnimeId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AniDbNormalFile"
+                  }
+                }
+              }
+            }
           },
           "404": {
             "description": "Not Found"
@@ -2078,6 +2357,24 @@
             "readOnly": true
           },
           "aniDbAnimeId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AniDbEpisodeFileXref": {
+        "required": [
+          "aniDbEpisodeId",
+          "aniDbFileId"
+        ],
+        "type": "object",
+        "properties": {
+          "aniDbEpisodeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aniDbFileId": {
             "type": "integer",
             "format": "int32"
           }

@@ -71,6 +71,7 @@ public class SymbolicCollectionViewService
         var linkPaths = localFiles.SelectMany(f => f.Episodes.DistinctBy(e => e.AniDbAnimeId).Select(e =>
         {
             var title = InvalidCharRegex.Replace(e.AnimeTitle, "_");
+            // var tag = "[anidb-" + string.Join(',', f.Episodes.Where(e2 => e2.AniDbAnimeId == e.AniDbAnimeId).Select(e2 => e2.Id)) + "]";
             var link = Path.Combine(collectionDir.FullName, $"{title} [anidb-{e.AniDbAnimeId}]",
                 $"{title} [anidb-{f.AniDbFileId}] [{f.Crc}]{Path.GetExtension(f.PathTail)}");
             var linkTarget = Path.Combine(f.Path, f.PathTail);
