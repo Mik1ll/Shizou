@@ -60,18 +60,18 @@ public class SymbolicCollectionViewService
             lf.ImportFolder!.Path,
             lf.PathTail,
             lf.Crc,
-            Animes = lf.AniDbFile!.AniDbEpisodes.Select(ep => new
+            Episodes = lf.AniDbFile!.AniDbEpisodes.Select(ep => new
             {
+                ep.Id,
                 ep.AniDbAnimeId,
-                ep.AniDbAnime.TitleTranscription,
+                AnimeTitle = ep.AniDbAnime.TitleTranscription,
             }).ToList(),
         }).ToList();
 
-
-        var linkPaths = localFiles.SelectMany(f => f.Animes.DistinctBy(a => a.AniDbAnimeId).Select(a =>
+        var linkPaths = localFiles.SelectMany(f => f.Episodes.DistinctBy(e => e.AniDbAnimeId).Select(e =>
         {
-            var title = InvalidCharRegex.Replace(a.TitleTranscription, "_");
-            var link = Path.Combine(collectionDir.FullName, $"{title} [anidb-{a.AniDbAnimeId}]",
+            var title = InvalidCharRegex.Replace(e.AnimeTitle, "_");
+            var link = Path.Combine(collectionDir.FullName, $"{title} [anidb-{e.AniDbAnimeId}]",
                 $"{title} [anidb-{f.AniDbFileId}] [{f.Crc}]{Path.GetExtension(f.PathTail)}");
             var linkTarget = Path.Combine(f.Path, f.PathTail);
             return (linkTarget, link);
