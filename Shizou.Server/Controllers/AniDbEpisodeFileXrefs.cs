@@ -26,37 +26,32 @@ public class AniDbEpisodeFileXrefs : ControllerBase
 
     [HttpGet]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [Produces("application/json")]
     public Ok<List<AniDbEpisodeFileXref>> Get() => TypedResults.Ok(_dbSet.AsNoTracking().ToList());
 
-    [HttpGet("[action]/{id}")]
+    [HttpGet("[action]/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbEpisodeFileXref>))]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [Produces("application/json")]
-    public Results<Ok<List<AniDbEpisodeFileXref>>, NotFound> ByEpisodeId(int id)
+    public Results<Ok<List<AniDbEpisodeFileXref>>, NotFound> ByEpisodeId([FromRoute] int id)
     {
         if (!_context.AniDbEpisodes.Any(e => e.Id == id))
             return TypedResults.NotFound();
         return TypedResults.Ok(_dbSet.AsNoTracking().Where(xref => xref.AniDbEpisodeId == id).ToList());
     }
 
-    [HttpGet("[action]/{id}")]
+    [HttpGet("[action]/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbEpisodeFileXref>))]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [Produces("application/json")]
-    public Results<Ok<List<AniDbEpisodeFileXref>>, NotFound> ByAniDbFileId(int id)
+    public Results<Ok<List<AniDbEpisodeFileXref>>, NotFound> ByAniDbFileId([FromRoute] int id)
     {
         if (!_context.AniDbFiles.Any(e => e.Id == id))
             return TypedResults.NotFound();
         return TypedResults.Ok(_dbSet.AsNoTracking().Where(xref => xref.AniDbFileId == id).ToList());
     }
 
-
-    [HttpGet("[action]/{id}")]
+    [HttpGet("[action]/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbEpisodeFileXref>))]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [Produces("application/json")]
-    public Results<Ok<List<AniDbEpisodeFileXref>>, NotFound> ByAniDbAnimeId(int id)
+    public Results<Ok<List<AniDbEpisodeFileXref>>, NotFound> ByAniDbAnimeId([FromRoute] int id)
     {
         if (!_context.AniDbAnimes.Any(e => e.Id == id))
             return TypedResults.NotFound();

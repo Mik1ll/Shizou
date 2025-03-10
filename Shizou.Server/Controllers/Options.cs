@@ -24,8 +24,7 @@ public class Options : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [SwaggerResponse(StatusCodes.Status200OK)]
-    [Produces("application/json")]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(ShizouOptions))]
     public Ok<ShizouOptions> Get()
     {
         return TypedResults.Ok(_options);

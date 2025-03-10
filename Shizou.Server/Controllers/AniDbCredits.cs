@@ -19,16 +19,17 @@ public class AniDbCredits : ControllerBase
 
     public AniDbCredits(IShizouContext context) => _context = context;
 
-    [HttpGet("[action]/{id}")]
+    [HttpGet("[action]/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbCredit>))]
-    [Produces("application/json")]
-    public Ok<List<AniDbCredit>> ByAniDbAnimeId(int id)
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    public Results<Ok<List<AniDbCredit>>, NotFound> ByAniDbAnimeId([FromRoute] int id)
     {
-        var result = _context.AniDbCredits.AsNoTracking()
+        if (!_context.AniDbAnimes.Any(a => a.Id == id))
+            return TypedResults.NotFound();
+
+        return TypedResults.Ok(_context.AniDbCredits.AsNoTracking()
             .Include(c => c.AniDbCreator)
             .Include(c => c.AniDbCharacter)
-            .Where(c => c.AniDbAnimeId == id).ToList();
-
-        return TypedResults.Ok(result);
+            .Where(c => c.AniDbAnimeId == id).ToList());
     }
 }

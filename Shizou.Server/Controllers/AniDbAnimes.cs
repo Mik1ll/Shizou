@@ -22,9 +22,8 @@ public class AniDbAnimes : EntityGetController<AniDbAnime>
     ) : base(context, anime => anime.Id) =>
         _animeTitleSearchService = animeTitleSearchService;
 
-
     [HttpGet("[action]")]
-    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<int>), contentTypes: "application/json")]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<int>))]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public async Task<Results<Ok<List<int>>, NotFound>> GetAnimeSearch([FromQuery] string query)
     {

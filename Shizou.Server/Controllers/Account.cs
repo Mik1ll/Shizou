@@ -14,7 +14,6 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-[Consumes("application/json")]
 public class Account : ControllerBase
 {
     private readonly SignInManager<IdentityUser> _signInManager;
@@ -42,8 +41,8 @@ public class Account : ControllerBase
     [HttpPost("SetPassword")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", "string", "Sets the Identity cookie")]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails), contentTypes: "application/json")]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, type: typeof(ProblemDetails), contentTypes: "application/json")]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails))]
+    [SwaggerResponse(StatusCodes.Status500InternalServerError, type: typeof(ProblemDetails))]
     [AllowAnonymous]
     public async Task<Results<Ok, ProblemHttpResult>> ChangePassword([FromBody] PasswordModel passwordModel)
     {

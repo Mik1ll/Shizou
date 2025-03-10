@@ -19,11 +19,10 @@ public class AniDbEpisodes : EntityGetController<AniDbEpisode>
     {
     }
 
-    [HttpGet("[action]/{id}")]
+    [HttpGet("[action]/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbEpisode>))]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [Produces("application/json")]
-    public Results<Ok<List<AniDbEpisode>>, NotFound> ByAniDbFileId(int id)
+    public Results<Ok<List<AniDbEpisode>>, NotFound> ByAniDbFileId([FromRoute] int id)
     {
         if (!Context.AniDbFiles.Any(f => f.Id == id))
             return TypedResults.NotFound();
@@ -31,11 +30,10 @@ public class AniDbEpisodes : EntityGetController<AniDbEpisode>
         return TypedResults.Ok(result);
     }
 
-    [HttpGet("[action]/{id}")]
+    [HttpGet("[action]/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbEpisode>))]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [Produces("application/json")]
-    public Results<Ok<List<AniDbEpisode>>, NotFound> ByAniDbAnimeId(int id)
+    public Results<Ok<List<AniDbEpisode>>, NotFound> ByAniDbAnimeId([FromRoute] int id)
     {
         if (!Context.AniDbAnimes.Any(a => a.Id == id))
             return TypedResults.NotFound();

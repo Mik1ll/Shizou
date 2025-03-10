@@ -23,9 +23,9 @@ public class LocalFiles : EntityGetController<LocalFile>
         _commandService = commandService;
     }
 
-    [HttpPut("ProcessFile/{id}")]
+    [HttpPut("ProcessFile/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public Ok ProcessFile(int id)
+    public Ok ProcessFile([FromRoute] int id)
     {
         _commandService.Dispatch(new ProcessArgs(id, IdTypeLocalOrFile.LocalId));
         return TypedResults.Ok();

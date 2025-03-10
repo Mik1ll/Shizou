@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -36,9 +37,9 @@ public class Images : ControllerBase
     }
 
     [HttpGet("AnimePosters/{animeId:int}")]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: MediaTypeNames.Application.Octet)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    public Results<PhysicalFileHttpResult, NotFound> GetAnimePoster(int animeId)
+    public Results<PhysicalFileHttpResult, NotFound> GetAnimePoster([FromRoute] int animeId)
     {
         var posterName = _context.AniDbAnimes.AsNoTracking().Where(a => a.Id == animeId).Select(a => a.ImageFilename).FirstOrDefault();
         if (posterName is null || new FileInfo(FilePaths.AnimePosterPath(posterName)) is not { Exists: true } poster)
@@ -48,9 +49,9 @@ public class Images : ControllerBase
     }
 
     [HttpGet("EpisodeThumbnails/{episodeId:int}")]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: MediaTypeNames.Application.Octet)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    public Results<PhysicalFileHttpResult, NotFound> GetEpisodeThumbnail(int episodeId)
+    public Results<PhysicalFileHttpResult, NotFound> GetEpisodeThumbnail([FromRoute] int episodeId)
     {
         if (_imageService.GetEpisodeThumbnail(episodeId) is not { Exists: true } thumbnail)
             return TypedResults.NotFound();
@@ -59,9 +60,9 @@ public class Images : ControllerBase
     }
 
     [HttpGet("CreatorImages/{creatorId:int}")]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: MediaTypeNames.Application.Octet)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    public Results<PhysicalFileHttpResult, NotFound> GetCreatorImage(int creatorId)
+    public Results<PhysicalFileHttpResult, NotFound> GetCreatorImage([FromRoute] int creatorId)
     {
         var posterName = _context.AniDbCreators.AsNoTracking().Where(a => a.Id == creatorId).Select(a => a.ImageFilename).FirstOrDefault();
         if (posterName is null || new FileInfo(FilePaths.CreatorImagePath(posterName)) is not { Exists: true } poster)

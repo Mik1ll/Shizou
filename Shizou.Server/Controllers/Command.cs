@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Shizou.Data;
 using Shizou.Data.CommandInputArgs;
@@ -15,38 +15,39 @@ namespace Shizou.Server.Controllers;
 public class Command : ControllerBase
 {
     private readonly CommandService _commandService;
-    private readonly IGenericRequest _genericRequest;
     private readonly IPingRequest _pingRequest;
 
     public Command(
         CommandService commandService,
-        IGenericRequest genericRequest,
         IPingRequest pingRequest
     )
     {
         _commandService = commandService;
-        _genericRequest = genericRequest;
         _pingRequest = pingRequest;
     }
 
-    [HttpPut("UpdateMyList")]
+    [HttpPut("[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public void UpdateMyList(UpdateMyListArgs commandArgs)
+    public Ok UpdateMyList([FromBody] UpdateMyListArgs commandArgs)
     {
         _commandService.Dispatch(commandArgs);
+        return TypedResults.Ok();
     }
 
-    [HttpPut("SyncMyList")]
+    [HttpPut("[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public void SyncMyList()
+    public Ok SyncMyList()
     {
         _commandService.Dispatch(new SyncMyListArgs());
+        return TypedResults.Ok();
     }
 
-    [HttpPut("PingAniDb")]
-    public async Task PingAniDb()
+    [HttpPut("[action]")]
+    [SwaggerResponse(StatusCodes.Status200OK)]
+    public async Task<Ok> PingAniDb()
     {
         _pingRequest.SetParameters();
         await _pingRequest.ProcessAsync().ConfigureAwait(false);
+        return TypedResults.Ok();
     }
 }

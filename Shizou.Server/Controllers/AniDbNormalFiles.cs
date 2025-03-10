@@ -19,11 +19,10 @@ public class AniDbNormalFiles : EntityGetController<AniDbNormalFile>
     {
     }
 
-    [HttpGet("[action]/{id}")]
+    [HttpGet("[action]/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbNormalFile>))]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [Produces("application/json")]
-    public Results<Ok<List<AniDbNormalFile>>, NotFound> ByAniDbAnimeId(int id)
+    public Results<Ok<List<AniDbNormalFile>>, NotFound> ByAniDbAnimeId([FromRoute] int id)
     {
         if (!Context.AniDbAnimes.Any(a => a.Id == id))
             return TypedResults.NotFound();

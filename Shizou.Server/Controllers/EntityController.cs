@@ -21,8 +21,6 @@ public abstract class EntityController<TEntity> : EntityGetController<TEntity> w
     [SwaggerResponse(StatusCodes.Status201Created)]
     [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails))]
     [SwaggerResponse(StatusCodes.Status409Conflict)]
-    [Produces("application/json")]
-    [Consumes("application/json")]
     public ActionResult<TEntity> Post([FromBody] TEntity entity)
     {
         // TODO: Test adding already existing record
@@ -43,11 +41,9 @@ public abstract class EntityController<TEntity> : EntityGetController<TEntity> w
     }
 
     [HttpPut]
-    [SwaggerResponse(StatusCodes.Status204NoContent, "Entity updated")]
+    [SwaggerResponse(StatusCodes.Status204NoContent)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails))]
-    [Consumes("application/json")]
-    [Produces("application/json")]
     public Results<NoContent, NotFound, BadRequest<ProblemDetails>> Put([FromBody] TEntity entity)
     {
         var id = Selector.Compile()(entity);
@@ -69,10 +65,10 @@ public abstract class EntityController<TEntity> : EntityGetController<TEntity> w
         return TypedResults.NoContent();
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     [SwaggerResponse(StatusCodes.Status204NoContent, "Entity deleted")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails), contentTypes: "application/json")]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails))]
     public Results<NoContent, NotFound, BadRequest<ProblemDetails>> Delete(int id)
     {
         var entity = DbSet.FirstOrDefault(KeyEqualsExpression(id));

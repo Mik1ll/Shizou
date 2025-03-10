@@ -24,27 +24,20 @@ public class AniDbFiles : EntityGetController<AniDbFile>
         _watchStateService = watchStateService;
     }
 
-    [HttpPut("{fileId}/MarkWatched")]
+    [HttpPut("{id:int}/MarkWatched")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    public Results<Ok, NotFound> MarkWatched(int fileId)
-    {
-        return _watchStateService.MarkFile(fileId, true) ? TypedResults.Ok() : TypedResults.NotFound();
-    }
+    public Results<Ok, NotFound> MarkWatched([FromRoute] int id) => _watchStateService.MarkFile(id, true) ? TypedResults.Ok() : TypedResults.NotFound();
 
-    [HttpPut("{fileId}/MarkUnwatched")]
+    [HttpPut("{id:int}/MarkUnwatched")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    public Results<Ok, NotFound> MarkUnwatched(int fileId)
-    {
-        return _watchStateService.MarkFile(fileId, false) ? TypedResults.Ok() : TypedResults.NotFound();
-    }
+    public Results<Ok, NotFound> MarkUnwatched([FromRoute] int id) => _watchStateService.MarkFile(id, false) ? TypedResults.Ok() : TypedResults.NotFound();
 
-    [HttpGet("[action]/{id}")]
+    [HttpGet("[action]/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbFile>))]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [Produces("application/json")]
-    public Results<Ok<List<AniDbFile>>, NotFound> ByAniDbAnimeId(int id)
+    public Results<Ok<List<AniDbFile>>, NotFound> ByAniDbAnimeId([FromRoute] int id)
     {
         if (!Context.AniDbAnimes.Any(a => a.Id == id))
             return TypedResults.NotFound();

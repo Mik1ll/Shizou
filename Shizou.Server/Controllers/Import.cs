@@ -22,7 +22,7 @@ public class Import : ControllerBase
     ///     Start import
     /// </summary>
     /// <returns></returns>
-    [HttpPut("start")]
+    [HttpPut("[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     public Ok StartImport()
     {
@@ -33,13 +33,13 @@ public class Import : ControllerBase
     /// <summary>
     ///     Scan an import folder
     /// </summary>
-    /// <param name="folderId"></param>
+    /// <param name="id"></param>
     /// <returns></returns>
-    [HttpPut("scan/{folderId}")]
+    [HttpPut("[action]/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public Ok ScanFolder(int folderId)
+    public Ok ScanFolder([FromRoute] int id)
     {
-        _importService.ScanImportFolder(folderId);
+        _importService.ScanImportFolder(id);
         return TypedResults.Ok();
     }
 }

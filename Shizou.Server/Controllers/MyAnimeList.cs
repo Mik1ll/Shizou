@@ -22,9 +22,9 @@ public class MyAnimeList : ControllerBase
         _myAnimeListService = myAnimeListService;
     }
 
-    [HttpGet("Authenticate")]
+    [HttpGet("[action]")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(string), contentTypes: "application/json")]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(string))]
     public Results<Ok<string>, BadRequest> Authenticate()
     {
         var url = _myAnimeListService.GetAuthenticationUrl(HttpContext);
@@ -33,11 +33,11 @@ public class MyAnimeList : ControllerBase
         return TypedResults.Ok(url);
     }
 
-    [HttpGet("GetToken")]
+    [HttpGet("[action]")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    public async Task<Results<Ok, BadRequest, Conflict>> GetToken(string code, string? state)
+    public async Task<Results<Ok, BadRequest, Conflict>> GetToken([FromQuery] string code, [FromQuery] string? state)
     {
         if (string.IsNullOrWhiteSpace(state))
         {

@@ -25,17 +25,15 @@ public abstract class EntityGetController<TEntity> : ControllerBase where TEntit
 
     [HttpGet]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [Produces("application/json")]
     public ActionResult<List<TEntity>> Get()
     {
         return Ok(DbSet.AsNoTracking().ToList());
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [Produces("application/json")]
-    public ActionResult<TEntity> Get(int id)
+    public ActionResult<TEntity> Get([FromRoute] int id)
     {
         var exp = KeyEqualsExpression(id);
         var result = DbSet.AsNoTracking().SingleOrDefault(exp);

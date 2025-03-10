@@ -3,10 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -276,6 +278,16 @@ public static class InitializationExtensions
     public static IServiceCollection AddShizouApiServices(this IServiceCollection services)
     {
         services.AddControllers(opts => opts.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true)
+            .AddMvcOptions(opt =>
+            {
+                var jsonInputFormatter = opt.InputFormatters.OfType<SystemTextJsonInputFormatter>().First();
+                jsonInputFormatter.SupportedMediaTypes.Clear();
+                jsonInputFormatter.SupportedMediaTypes.Add(MediaTypeNames.Application.Json);
+                var jsonOutputFormatter = opt.OutputFormatters.OfType<SystemTextJsonOutputFormatter>().First();
+                jsonOutputFormatter.SupportedMediaTypes.Clear();
+                jsonOutputFormatter.SupportedMediaTypes.Add(MediaTypeNames.Application.Json);
+                opt.OutputFormatters.RemoveType<StringOutputFormatter>();
+            })
             .AddJsonOptions(opt => opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter())).Services
             .AddSwaggerGen(opt =>
             {

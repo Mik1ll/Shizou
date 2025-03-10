@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
@@ -30,18 +30,13 @@ public class FileServer : ControllerBase
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> FontLocks = new();
     private readonly IShizouContext _context;
     private readonly SubtitleService _subtitleService;
-    private readonly ILogger<FileServer> _logger;
     private readonly LinkGenerator _linkGenerator;
-    private readonly IContentTypeProvider _contentTypeProvider;
 
-    public FileServer(ILogger<FileServer> logger, IShizouContext context, SubtitleService subtitleService, LinkGenerator linkGenerator,
-        IContentTypeProvider contentTypeProvider)
+    public FileServer(IShizouContext context, SubtitleService subtitleService, LinkGenerator linkGenerator)
     {
-        _logger = logger;
         _context = context;
         _subtitleService = subtitleService;
         _linkGenerator = linkGenerator;
-        _contentTypeProvider = contentTypeProvider;
     }
 
     /// <summary>
@@ -52,9 +47,9 @@ public class FileServer : ControllerBase
     [HttpGet("{ed2K}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status416RangeNotSatisfiable)]
-    [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: "application/octet-stream")]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/octet-stream")]
-    public Results<PhysicalFileHttpResult, NotFound> Get(string ed2K)
+    [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: MediaTypeNames.Application.Octet)]
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: MediaTypeNames.Application.Octet)]
+    public Results<PhysicalFileHttpResult, NotFound> Get([FromRoute] string ed2K)
     {
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder)
             .Where(e => e.ImportFolder != null && e.Ed2k == ed2K)
@@ -66,13 +61,13 @@ public class FileServer : ControllerBase
         if (!System.IO.File.Exists(filePath))
             return TypedResults.NotFound();
         // Return octet stream so browser doesn't change the extension of the file download
-        return TypedResults.PhysicalFile(filePath, "application/octet-stream", Path.GetFileName(filePath), enableRangeProcessing: true);
+        return TypedResults.PhysicalFile(filePath, MediaTypeNames.Application.Octet, Path.GetFileName(filePath), enableRangeProcessing: true);
     }
 
     [HttpGet("{ed2K}/Playlist")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/x-mpegURL")]
-    public Results<FileContentHttpResult, NotFound> GetPlaylist(string ed2K, [FromQuery] bool? single)
+    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/x-mpegurl")]
+    public Results<FileContentHttpResult, NotFound> GetPlaylist([FromRoute] string ed2K, [FromQuery] bool? single)
     {
         var m3U8 = "#EXTM3U\n";
 
@@ -108,8 +103,7 @@ public class FileServer : ControllerBase
                 break;
         }
 
-        _contentTypeProvider.TryGetContentType(".m3u", out var mimeType);
-        return TypedResults.File(Encoding.UTF8.GetBytes(m3U8), mimeType, $"{ed2K}.m3u8");
+        return TypedResults.File(Encoding.UTF8.GetBytes(m3U8), "application/x-mpegurl", $"{ed2K}.m3u8");
 
         string GetFileUri(LocalFile lf, AniDbEpisode ep)
         {
@@ -139,7 +133,7 @@ public class FileServer : ControllerBase
     [HttpGet("{ed2K}/Subtitles/{index:int}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "text/x-ssa")]
-    public Results<PhysicalFileHttpResult, NotFound> GetSubtitle(string ed2K, int index)
+    public Results<PhysicalFileHttpResult, NotFound> GetSubtitle([FromRoute] string ed2K, [FromRoute] int index)
     {
         var fileInfo = new FileInfo(FilePaths.ExtraFileData.SubPath(ed2K, index));
         if (!fileInfo.Exists)
@@ -147,7 +141,6 @@ public class FileServer : ControllerBase
 
         return TypedResults.PhysicalFile(fileInfo.FullName, "text/x-ssa", fileInfo.Name);
     }
-
 
     /// <summary>
     ///     Get embedded font of local file
@@ -158,13 +151,13 @@ public class FileServer : ControllerBase
     [HttpGet("{ed2k}/Fonts/{fontName}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK, contentTypes: ["font/ttf", "font/otf"])]
-    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont(string ed2K, string fontName)
+    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont([FromRoute] string ed2K, [FromRoute] string fontName)
     {
         if (!SubtitleService.ValidFontFormats.Any(f => fontName.EndsWith(f, StringComparison.OrdinalIgnoreCase)))
             return TypedResults.NotFound();
+        var fontPath = await SubtitleService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
         var fontLock = FontLocks.GetOrAdd(ed2K, new SemaphoreSlim(1));
         await fontLock.WaitAsync().ConfigureAwait(false);
-        var fontPath = await SubtitleService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
         try
         {
             if (!System.IO.File.Exists(fontPath))
