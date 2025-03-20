@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.0.4",
   "info": {
     "title": "Shizou.WebApi",
     "version": "1.0"
@@ -1794,14 +1794,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "enum": [
-                "General",
-                "AniDbUdp",
-                "AniDbHttp",
-                "Hash",
-                "Image"
-              ],
-              "type": "string"
+              "$ref": "#/components/schemas/QueueType"
             }
           }
         ],
@@ -1830,14 +1823,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "enum": [
-                "General",
-                "AniDbUdp",
-                "AniDbHttp",
-                "Hash",
-                "Image"
-              ],
-              "type": "string"
+              "$ref": "#/components/schemas/QueueType"
             }
           }
         ],
@@ -1866,14 +1852,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "enum": [
-                "General",
-                "AniDbUdp",
-                "AniDbHttp",
-                "Hash",
-                "Image"
-              ],
-              "type": "string"
+              "$ref": "#/components/schemas/QueueType"
             }
           }
         ],
@@ -1912,14 +1891,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "enum": [
-                "General",
-                "AniDbUdp",
-                "AniDbHttp",
-                "Hash",
-                "Image"
-              ],
-              "type": "string"
+              "$ref": "#/components/schemas/QueueType"
             }
           }
         ],
@@ -1958,14 +1930,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "enum": [
-                "General",
-                "AniDbUdp",
-                "AniDbHttp",
-                "Hash",
-                "Image"
-              ],
-              "type": "string"
+              "$ref": "#/components/schemas/QueueType"
             }
           }
         ],
@@ -2001,14 +1966,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "enum": [
-                "General",
-                "AniDbUdp",
-                "AniDbHttp",
-                "Hash",
-                "Image"
-              ],
-              "type": "string"
+              "$ref": "#/components/schemas/QueueType"
             }
           }
         ],
@@ -2073,17 +2031,7 @@
             "nullable": true
           },
           "animeType": {
-            "enum": [
-              "Unknown",
-              "Movie",
-              "Ova",
-              "TvSeries",
-              "TvSpecial",
-              "Web",
-              "Other",
-              "MusicVideo"
-            ],
-            "type": "string"
+            "$ref": "#/components/schemas/AnimeType"
           },
           "episodeCount": {
             "type": "integer",
@@ -2172,14 +2120,7 @@
             "type": "string"
           },
           "type": {
-            "enum": [
-              "Unknown",
-              "Character",
-              "Mecha",
-              "Organization",
-              "Vehicle"
-            ],
-            "type": "string"
+            "$ref": "#/components/schemas/CharacterType"
           },
           "imageFilename": {
             "type": "string",
@@ -2202,14 +2143,7 @@
             "format": "int32"
           },
           "type": {
-            "enum": [
-              "Unknown",
-              "Person",
-              "Company",
-              "Collaboration",
-              "Other"
-            ],
-            "type": "string"
+            "$ref": "#/components/schemas/CreatorType"
           },
           "name": {
             "type": "string"
@@ -2305,15 +2239,7 @@
             "format": "int32"
           },
           "episodeType": {
-            "enum": [
-              "Episode",
-              "Special",
-              "Credits",
-              "Trailer",
-              "Parody",
-              "Other"
-            ],
-            "type": "string"
+            "$ref": "#/components/schemas/EpisodeType"
           },
           "durationMinutes": {
             "type": "integer",
@@ -2573,6 +2499,40 @@
         },
         "additionalProperties": false
       },
+      "AnimeType": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "type": "integer",
+        "format": "int32",
+        "x-enumNames": [
+          "Unknown",
+          "Movie",
+          "Ova",
+          "TvSeries",
+          "TvSpecial",
+          "Web",
+          "Other",
+          "MusicVideo"
+        ],
+        "x-enumDescriptions": [
+          "Unknown",
+          "Movie",
+          "Ova",
+          "TvSeries",
+          "TvSpecial",
+          "Web",
+          "Other",
+          "MusicVideo"
+        ]
+      },
       "AvDumpOptions": {
         "type": "object",
         "properties": {
@@ -2586,6 +2546,31 @@
           }
         },
         "additionalProperties": false
+      },
+      "CharacterType": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "type": "integer",
+        "format": "int32",
+        "x-enumNames": [
+          "Unknown",
+          "Character",
+          "Mecha",
+          "Organization",
+          "Vehicle"
+        ],
+        "x-enumDescriptions": [
+          "Unknown",
+          "Character",
+          "Mecha",
+          "Organization",
+          "Vehicle"
+        ]
       },
       "CollectionViewOptions": {
         "type": "object",
@@ -2626,6 +2611,31 @@
         },
         "additionalProperties": false
       },
+      "CommandPriority": {
+        "enum": [
+          0,
+          1,
+          20,
+          50,
+          80
+        ],
+        "type": "integer",
+        "format": "int32",
+        "x-enumNames": [
+          "Invalid",
+          "Urgent",
+          "High",
+          "Normal",
+          "Low"
+        ],
+        "x-enumDescriptions": [
+          "Invalid",
+          "Urgent",
+          "High",
+          "Normal",
+          "Low"
+        ]
+      },
       "CommandRequest": {
         "required": [
           "commandArgs",
@@ -2640,24 +2650,10 @@
             "format": "int32"
           },
           "priority": {
-            "enum": [
-              "Invalid",
-              "Urgent",
-              "High",
-              "Normal",
-              "Low"
-            ],
-            "type": "string"
+            "$ref": "#/components/schemas/CommandPriority"
           },
           "queueType": {
-            "enum": [
-              "General",
-              "AniDbUdp",
-              "AniDbHttp",
-              "Hash",
-              "Image"
-            ],
-            "type": "string"
+            "$ref": "#/components/schemas/QueueType"
           },
           "commandId": {
             "type": "string"
@@ -2671,6 +2667,59 @@
           }
         },
         "additionalProperties": false
+      },
+      "CreatorType": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "type": "integer",
+        "format": "int32",
+        "x-enumNames": [
+          "Unknown",
+          "Person",
+          "Company",
+          "Collaboration",
+          "Other"
+        ],
+        "x-enumDescriptions": [
+          "Unknown",
+          "Person",
+          "Company",
+          "Collaboration",
+          "Other"
+        ]
+      },
+      "EpisodeType": {
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "type": "integer",
+        "format": "int32",
+        "x-enumNames": [
+          "Episode",
+          "Special",
+          "Credits",
+          "Trailer",
+          "Parody",
+          "Other"
+        ],
+        "x-enumDescriptions": [
+          "Episode",
+          "Special",
+          "Credits",
+          "Trailer",
+          "Parody",
+          "Other"
+        ]
       },
       "FileWatchedState": {
         "required": [
@@ -2821,27 +2870,38 @@
             "type": "boolean"
           },
           "absentFileState": {
-            "enum": [
-              "Unknown",
-              "Internal",
-              "External",
-              "Deleted",
-              "Remote"
-            ],
-            "type": "string"
+            "$ref": "#/components/schemas/MyListState"
           },
           "presentFileState": {
-            "enum": [
-              "Unknown",
-              "Internal",
-              "External",
-              "Deleted",
-              "Remote"
-            ],
-            "type": "string"
+            "$ref": "#/components/schemas/MyListState"
           }
         },
         "additionalProperties": false
+      },
+      "MyListState": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "type": "integer",
+        "format": "int32",
+        "x-enumNames": [
+          "Unknown",
+          "Internal",
+          "External",
+          "Deleted",
+          "Remote"
+        ],
+        "x-enumDescriptions": [
+          "Unknown",
+          "Internal",
+          "External",
+          "Deleted",
+          "Remote"
+        ]
       },
       "PasswordModel": {
         "type": "object",
@@ -2895,6 +2955,31 @@
         },
         "additionalProperties": { }
       },
+      "QueueType": {
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "type": "integer",
+        "format": "int32",
+        "x-enumNames": [
+          "General",
+          "AniDbUdp",
+          "AniDbHttp",
+          "Hash",
+          "Image"
+        ],
+        "x-enumDescriptions": [
+          "General",
+          "AniDbUdp",
+          "AniDbHttp",
+          "Hash",
+          "Image"
+        ]
+      },
       "ShizouOptions": {
         "type": "object",
         "properties": {
@@ -2937,14 +3022,7 @@
             "format": "int32"
           },
           "myListState": {
-            "enum": [
-              "Unknown",
-              "Internal",
-              "External",
-              "Deleted",
-              "Remote"
-            ],
-            "type": "string"
+            "$ref": "#/components/schemas/MyListState"
           },
           "watched": {
             "type": "boolean",

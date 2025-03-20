@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
+using Scalar.AspNetCore;
 using Serilog;
 using Shizou.Blazor.Components;
 using Shizou.Blazor.Services;
@@ -85,9 +86,9 @@ try
         app.UseHsts();
     }
 
-
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwagger(opt => { opt.RouteTemplate = "/openapi/{documentName}.json"; });
+    app.MapScalarApiReference();
+    app.UseSwaggerUI(opt => { opt.SwaggerEndpoint("/openapi/v1.json", "V1"); });
 
     app.UseSerilogRequestLogging();
 
@@ -106,7 +107,7 @@ try
     app.UseSecurityHeaders();
 
     app.MapControllers().RequireAuthorization();
-    
+
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
