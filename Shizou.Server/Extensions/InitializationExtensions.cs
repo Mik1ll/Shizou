@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -287,6 +288,7 @@ public static class InitializationExtensions
                 jsonOutputFormatter.SupportedMediaTypes.Add(MediaTypeNames.Application.Json);
                 opt.OutputFormatters.RemoveType<StringOutputFormatter>();
             })
+            .AddJsonOptions(opt => opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
             .Services
             .AddSwaggerGen(opt =>
             {

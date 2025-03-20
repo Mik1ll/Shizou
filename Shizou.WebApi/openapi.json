@@ -2501,18 +2501,6 @@
       },
       "AnimeType": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
           "Unknown",
           "Movie",
           "Ova",
@@ -2522,16 +2510,7 @@
           "Other",
           "MusicVideo"
         ],
-        "x-enumDescriptions": [
-          "Unknown",
-          "Movie",
-          "Ova",
-          "TvSeries",
-          "TvSpecial",
-          "Web",
-          "Other",
-          "MusicVideo"
-        ]
+        "type": "string"
       },
       "AvDumpOptions": {
         "type": "object",
@@ -2549,28 +2528,13 @@
       },
       "CharacterType": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
           "Unknown",
           "Character",
           "Mecha",
           "Organization",
           "Vehicle"
         ],
-        "x-enumDescriptions": [
-          "Unknown",
-          "Character",
-          "Mecha",
-          "Organization",
-          "Vehicle"
-        ]
+        "type": "string"
       },
       "CollectionViewOptions": {
         "type": "object",
@@ -2613,28 +2577,13 @@
       },
       "CommandPriority": {
         "enum": [
-          0,
-          1,
-          20,
-          50,
-          80
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
           "Invalid",
           "Urgent",
           "High",
           "Normal",
           "Low"
         ],
-        "x-enumDescriptions": [
-          "Invalid",
-          "Urgent",
-          "High",
-          "Normal",
-          "Low"
-        ]
+        "type": "string"
       },
       "CommandRequest": {
         "required": [
@@ -2670,41 +2619,16 @@
       },
       "CreatorType": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
           "Unknown",
           "Person",
           "Company",
           "Collaboration",
           "Other"
         ],
-        "x-enumDescriptions": [
-          "Unknown",
-          "Person",
-          "Company",
-          "Collaboration",
-          "Other"
-        ]
+        "type": "string"
       },
       "EpisodeType": {
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
           "Episode",
           "Special",
           "Credits",
@@ -2712,14 +2636,7 @@
           "Parody",
           "Other"
         ],
-        "x-enumDescriptions": [
-          "Episode",
-          "Special",
-          "Credits",
-          "Trailer",
-          "Parody",
-          "Other"
-        ]
+        "type": "string"
       },
       "FileWatchedState": {
         "required": [
@@ -2880,28 +2797,13 @@
       },
       "MyListState": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
           "Unknown",
           "Internal",
           "External",
           "Deleted",
           "Remote"
         ],
-        "x-enumDescriptions": [
-          "Unknown",
-          "Internal",
-          "External",
-          "Deleted",
-          "Remote"
-        ]
+        "type": "string"
       },
       "PasswordModel": {
         "type": "object",
@@ -2957,28 +2859,13 @@
       },
       "QueueType": {
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ],
-        "type": "integer",
-        "format": "int32",
-        "x-enumNames": [
           "General",
           "AniDbUdp",
           "AniDbHttp",
           "Hash",
           "Image"
         ],
-        "x-enumDescriptions": [
-          "General",
-          "AniDbUdp",
-          "AniDbHttp",
-          "Hash",
-          "Image"
-        ]
+        "type": "string"
       },
       "ShizouOptions": {
         "type": "object",
