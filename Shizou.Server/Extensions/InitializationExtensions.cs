@@ -292,7 +292,6 @@ public static class InitializationExtensions
             .Services
             .AddSwaggerGen(opt =>
             {
-                opt.SchemaGeneratorOptions.UseInlineDefinitionsForEnums = true;
                 opt.SchemaGeneratorOptions.SupportNonNullableReferenceTypes = true;
                 opt.SchemaGeneratorOptions.UseAllOfToExtendReferenceSchemas = true; // Fix nullable reference types not appearing as nullable
                 opt.CustomOperationIds(e => $"ShizouHttpClient_{e.ActionDescriptor.RouteValues["controller"]}{e.ActionDescriptor.RouteValues["action"]}");
@@ -307,7 +306,6 @@ public static class InitializationExtensions
                 // });
                 opt.OperationFilter<SecurityOperationFilter>();
                 opt.OperationFilter<AddResponseHeadersFilter>();
-                opt.SchemaFilter<EnumValuesFilter>();
             })
             .AddTransient<IContentTypeProvider, FileExtensionContentTypeProvider>();
         return services;

@@ -1794,7 +1794,11 @@
             "in": "path",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/QueueType"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/QueueType"
+                }
+              ]
             }
           }
         ],
@@ -1823,7 +1827,11 @@
             "in": "path",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/QueueType"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/QueueType"
+                }
+              ]
             }
           }
         ],
@@ -1852,7 +1860,11 @@
             "in": "path",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/QueueType"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/QueueType"
+                }
+              ]
             }
           }
         ],
@@ -1891,7 +1903,11 @@
             "in": "path",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/QueueType"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/QueueType"
+                }
+              ]
             }
           }
         ],
@@ -1930,7 +1946,11 @@
             "in": "path",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/QueueType"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/QueueType"
+                }
+              ]
             }
           }
         ],
@@ -1966,7 +1986,11 @@
             "in": "path",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/QueueType"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/QueueType"
+                }
+              ]
             }
           }
         ],
@@ -2031,7 +2055,11 @@
             "nullable": true
           },
           "animeType": {
-            "$ref": "#/components/schemas/AnimeType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AnimeType"
+              }
+            ]
           },
           "episodeCount": {
             "type": "integer",
@@ -2120,7 +2148,11 @@
             "type": "string"
           },
           "type": {
-            "$ref": "#/components/schemas/CharacterType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CharacterType"
+              }
+            ]
           },
           "imageFilename": {
             "type": "string",
@@ -2143,7 +2175,11 @@
             "format": "int32"
           },
           "type": {
-            "$ref": "#/components/schemas/CreatorType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreatorType"
+              }
+            ]
           },
           "name": {
             "type": "string"
@@ -2239,7 +2275,11 @@
             "format": "int32"
           },
           "episodeType": {
-            "$ref": "#/components/schemas/EpisodeType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EpisodeType"
+              }
+            ]
           },
           "durationMinutes": {
             "type": "integer",
@@ -2599,10 +2639,18 @@
             "format": "int32"
           },
           "priority": {
-            "$ref": "#/components/schemas/CommandPriority"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CommandPriority"
+              }
+            ]
           },
           "queueType": {
-            "$ref": "#/components/schemas/QueueType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/QueueType"
+              }
+            ]
           },
           "commandId": {
             "type": "string"
@@ -2787,10 +2835,18 @@
             "type": "boolean"
           },
           "absentFileState": {
-            "$ref": "#/components/schemas/MyListState"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MyListState"
+              }
+            ]
           },
           "presentFileState": {
-            "$ref": "#/components/schemas/MyListState"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MyListState"
+              }
+            ]
           }
         },
         "additionalProperties": false
@@ -2909,7 +2965,11 @@
             "format": "int32"
           },
           "myListState": {
-            "$ref": "#/components/schemas/MyListState"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MyListState"
+              }
+            ]
           },
           "watched": {
             "type": "boolean",
