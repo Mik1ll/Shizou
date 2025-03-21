@@ -290,6 +290,7 @@ public static class InitializationExtensions
             })
             .AddJsonOptions(opt => opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
             .Services
+            .ConfigureHttpJsonOptions(opt => opt.SerializerOptions.Converters.Add(new JsonStringEnumConverter()))
             .AddSwaggerGen(opt =>
             {
                 opt.SchemaGeneratorOptions.SupportNonNullableReferenceTypes = true;
