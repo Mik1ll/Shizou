@@ -194,79 +194,122 @@ public class AnimeCommand : Command<AnimeArgs>
 
     private void UpdateCredits(AnimeResult animeResult)
     {
+        // Just delete all credits for anime and recreate
         _context.AniDbCredits.Where(c => c.AniDbAnimeId == animeResult.Id).ExecuteDelete();
 
-        var addedCreators = new HashSet<int>();
-        var getImageForCreatorIds = new HashSet<int>();
+        var creatorsToUpdate = new Dictionary<int, AniDbCreator>();
+        var charactersToUpdate = new Dictionary<int, AniDbCharacter>();
+        var creditsToAdd = new List<AniDbCredit>();
         var creditId = 0;
-        var needMoreInfoOnCreatorArgs = new HashSet<CreatorArgs>();
-        foreach (var creatorResult in animeResult.Creators)
-        {
-            if (!addedCreators.Contains(creatorResult.Id) && !_context.AniDbCreators.Any(cr => cr.Id == creatorResult.Id))
-            {
-                _context.AniDbCreators.Add(new AniDbCreator()
-                {
-                    Id = creatorResult.Id,
-                    Name = creatorResult.Text,
-                    Type = CreatorType.Unknown,
-                    ImageFilename = null
-                });
-                addedCreators.Add(creatorResult.Id);
-                needMoreInfoOnCreatorArgs.Add(new CreatorArgs(creatorResult.Id));
-            }
-
-            _context.AniDbCredits.Add(new AniDbCredit()
-            {
-                Id = ++creditId,
-                AniDbAnimeId = animeResult.Id,
-                Role = creatorResult.Type,
-                AniDbCreatorId = creatorResult.Id
-            });
-        }
 
         foreach (var character in animeResult.Characters)
         {
-            if (!_context.AniDbCharacters.Any(ch => ch.Id == character.Id))
-                _context.AniDbCharacters.Add(new AniDbCharacter()
+            if (!charactersToUpdate.ContainsKey(character.Id))
+                charactersToUpdate[character.Id] = new AniDbCharacter()
                 {
                     Id = character.Id,
                     Name = character.Name,
                     Type = (CharacterType)character.Charactertype.Id,
-                    ImageFilename = character.Picture
-                });
+                    ImageFilename = character.Picture,
+                };
 
             foreach (var seiyuu in character.Seiyuu)
             {
-                if (!addedCreators.Contains(seiyuu.Id) && !_context.AniDbCreators.Any(cr => cr.Id == seiyuu.Id))
+                if (!creatorsToUpdate.ContainsKey(seiyuu.Id))
                 {
-                    _context.AniDbCreators.Add(new AniDbCreator()
+                    creatorsToUpdate[seiyuu.Id] = new AniDbCreator()
                     {
                         Id = seiyuu.Id,
                         Name = seiyuu.Text,
                         Type = CreatorType.Person,
-                        ImageFilename = seiyuu.Picture
-                    });
-                    addedCreators.Add(seiyuu.Id);
+                        ImageFilename = seiyuu.Picture,
+                    };
                 }
 
-                if (!string.IsNullOrWhiteSpace(seiyuu.Picture) && !File.Exists(FilePaths.CreatorImagePath(seiyuu.Picture)))
-                    getImageForCreatorIds.Add(seiyuu.Id);
-
-                _context.AniDbCredits.Add(new AniDbCredit()
+                creditsToAdd.Add(new AniDbCredit()
                 {
                     Id = ++creditId,
                     AniDbAnimeId = animeResult.Id,
                     Role = character.Type,
                     AniDbCreatorId = seiyuu.Id,
-                    AniDbCharacterId = character.Id
+                    AniDbCharacterId = character.Id,
                 });
             }
         }
 
+        foreach (var creatorResult in animeResult.Creators)
+        {
+            if (!creatorsToUpdate.ContainsKey(creatorResult.Id))
+                creatorsToUpdate[creatorResult.Id] = new AniDbCreator()
+                {
+                    Id = creatorResult.Id,
+                    Name = creatorResult.Text,
+                    Type = CreatorType.Unknown,
+                    ImageFilename = null,
+                };
+
+            creditsToAdd.Add(new AniDbCredit()
+            {
+                Id = ++creditId,
+                AniDbAnimeId = animeResult.Id,
+                Role = creatorResult.Type,
+                AniDbCreatorId = creatorResult.Id,
+            });
+        }
+
+        // Ensure creators and characters are updated before credits
+        UpdateCreators(creatorsToUpdate);
+        UpdateCharacters(charactersToUpdate);
+
+        _context.AniDbCredits.AddRange(creditsToAdd);
         _context.SaveChanges();
+    }
+
+    private void UpdateCharacters(Dictionary<int, AniDbCharacter> characters)
+    {
+        var characterIds = characters.Keys.ToArray();
+        var eCharacters = _context.AniDbCharacters.Where(ch => characterIds.Contains(ch.Id)).ToDictionary(ch => ch.Id);
+        foreach (var character in characters.Values)
+            if (eCharacters.TryGetValue(character.Id, out var eCharacter))
+                _context.Entry(eCharacter).CurrentValues.SetValues(character);
+            else
+                _context.AniDbCharacters.Add(character);
+        _context.SaveChanges();
+    }
+
+    private void UpdateCreators(Dictionary<int, AniDbCreator> creators)
+    {
+        var creatorIds = creators.Keys.ToArray();
+        var eCreators = _context.AniDbCreators.Where(c => creatorIds.Contains(c.Id)).ToDictionary(c => c.Id);
+        var getImageForCreatorIds = new HashSet<int>();
+        var needMoreInfoOnCreatorIds = new HashSet<int>();
+        foreach (var creator in creators.Values)
+        {
+            if (eCreators.TryGetValue(creator.Id, out var eCreator))
+            {
+                eCreator.Name = creator.Name;
+                if (creator.Type is not CreatorType.Unknown)
+                    eCreator.Type = creator.Type;
+                if (!string.IsNullOrWhiteSpace(creator.ImageFilename))
+                    eCreator.ImageFilename = creator.ImageFilename;
+            }
+            else
+            {
+                _context.AniDbCreators.Add(creator);
+            }
+
+            if (eCreator?.Type is CreatorType.Unknown || creator.Type is CreatorType.Unknown)
+                needMoreInfoOnCreatorIds.Add(creator.Id);
+            // If we queue a get creator command, we will retrieve the image if it doesn't exist, so no need to do it now
+            else if (!string.IsNullOrWhiteSpace(creator.ImageFilename) && !File.Exists(FilePaths.CreatorImagePath(creator.ImageFilename)))
+                getImageForCreatorIds.Add(creator.Id);
+        }
+
+        _context.SaveChanges();
+
         foreach (var cid in getImageForCreatorIds)
             _imageService.GetCreatorImage(cid);
-        _commandService.DispatchRange(needMoreInfoOnCreatorArgs);
+        _commandService.DispatchRange(needMoreInfoOnCreatorIds.Select(id => new CreatorArgs(id)));
     }
 
     private void UpdateRelatedAnime(AnimeResult animeResult)

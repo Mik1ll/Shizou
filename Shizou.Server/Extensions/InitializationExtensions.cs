@@ -163,7 +163,7 @@ public static class InitializationExtensions
                         DataSource = FilePaths.DatabasePath(username),
                         ForeignKeys = true,
                         Cache = SqliteCacheMode.Private,
-                        Pooling = false
+                        Pooling = false,
                     }.ConnectionString)
                     .EnableSensitiveDataLogging();
             })
