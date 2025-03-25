@@ -221,6 +221,7 @@ public static class InitializationExtensions
             .AddTransient<GetAnimeTitlesCommand>()
             .AddTransient<AvDumpCommand>()
             .AddTransient<CreatorCommand>()
+            .AddTransient<UpdateSymbolicCollectionCommand>()
             .AddSingleton<CommandService>()
             .AddHostedService<CommandService>(p => p.GetRequiredService<CommandService>())
             .AddTransient<ImportService>()

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Shizou.Data.CommandInputArgs;
 using Shizou.Server.AniDbApi;
 
 namespace Shizou.Server.Services;
@@ -27,8 +28,8 @@ public sealed class StartupService : BackgroundService
         await udpState.SetupNatAsync().ConfigureAwait(false);
         var animeTitleSearchService = _serviceProvider.GetRequiredService<IAnimeTitleSearchService>();
         animeTitleSearchService.ScheduleNextUpdate();
-        var collectionViewService = _serviceProvider.GetRequiredService<SymbolicCollectionViewService>();
-        collectionViewService.Update();
+        var commandService = _serviceProvider.GetRequiredService<CommandService>();
+        commandService.Dispatch(new UpdateSymbolicCollectionArgs());
         
         log.LogInformation("Startup service finished");
     }

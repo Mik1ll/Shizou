@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -45,12 +46,17 @@ public class SymbolicCollectionViewService
 
         var collectionDir = Directory.CreateDirectory(options.CollectionView.Path);
         var eLinks = collectionDir.EnumerateFiles("*", SearchOption.AllDirectories).ToDictionary(f => f.FullName, pathComparer);
+        var eDirs = new HashSet<string>(pathComparer);
         foreach (var file in eLinks.Values)
+        {
             if (file.LinkTarget is null)
             {
                 _logger.LogError("Non-symbolic link found inside the collection view: \"{FilePath}\", cancelling update", file.FullName);
                 return;
             }
+
+            eDirs.Add(file.DirectoryName!);
+        }
 
         using var context = _contextFactory.CreateDbContext();
 
@@ -71,7 +77,6 @@ public class SymbolicCollectionViewService
         var linkPaths = localFiles.SelectMany(f => f.Episodes.DistinctBy(e => e.AniDbAnimeId).Select(e =>
         {
             var title = InvalidCharRegex.Replace(e.AnimeTitle, "_");
-            // var tag = "[anidb-" + string.Join(',', f.Episodes.Where(e2 => e2.AniDbAnimeId == e.AniDbAnimeId).Select(e2 => e2.Id)) + "]";
             var link = Path.Combine(collectionDir.FullName, $"{title} [anidb-{e.AniDbAnimeId}]",
                 $"{title} [anidb-{f.AniDbFileId}] [{f.Crc}]{Path.GetExtension(f.PathTail)}");
             var linkTarget = Path.Combine(f.Path, f.PathTail);
@@ -89,8 +94,16 @@ public class SymbolicCollectionViewService
 
             if (!linkExists)
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(lp.link)!);
-                File.CreateSymbolicLink(lp.link, lp.linkTarget);
+                if (Path.GetDirectoryName(lp.link) is { } dir && !eDirs.Contains(dir))
+                    Directory.CreateDirectory(dir);
+                try
+                {
+                    File.CreateSymbolicLink(lp.link, lp.linkTarget);
+                }
+                catch (IOException ex)
+                {
+                    _logger.LogError(ex, "Failed to create symbolic link for \"{Link}\" to \"{LinkTarget}\"", lp.link, lp.linkTarget);
+                }
             }
         }
 
