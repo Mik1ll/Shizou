@@ -31,8 +31,14 @@ public partial class UpNext
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = default!;
 
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
+
+    [CascadingParameter(Name = "IdentityCookie")]
+    private string IdentityCookie { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
@@ -48,9 +54,9 @@ public partial class UpNext
 
         var res = await JsRuntime.InvokeAsync<JsonElement>("window.localStorage.getItem", LocalStorageKeys.SchemeHandlerInstalled);
         _schemeHandlerInstalled = res is { ValueKind: JsonValueKind.String } && res.GetString() == "true";
-
+        var baseUri = new Uri(NavigationManager.BaseUri);
         if (_localFile is not null)
-            _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(_localFile.Ed2k, false);
+            _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(_localFile.Ed2k, false, baseUri, IdentityCookie);
     }
 
     private void Update()

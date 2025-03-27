@@ -22,10 +22,10 @@ public partial class Actions
     private ToastService ToastService { get; set; } = default!;
 
     [Inject]
-    private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
+    private AnimeService AnimeService { get; set; } = default!;
 
     [Inject]
-    private AnimeService AnimeService { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     [CascadingParameter]
     private IModalService ModalService { get; set; } = default!;
@@ -63,7 +63,7 @@ public partial class Actions
     private async Task OpenMalAuthAsync()
     {
         var url = ServiceProvider.GetRequiredService<MyAnimeListService>()
-            .GetAuthenticationUrl(HttpContextAccessor.HttpContext ?? throw new ArgumentNullException());
+            .GetAuthenticationUrl(new Uri(NavigationManager.BaseUri));
         if (url is not null)
             await JsRuntime.InvokeVoidAsync("open", url, "_blank");
     }
@@ -78,10 +78,10 @@ public partial class Actions
         var res = await ModalService.Show<FilePickerModal>("", new ModalParameters
         {
             { nameof(FilePickerModal.FilePickerType), FilePickerType.File },
-            { nameof(FilePickerModal.InitialPath), FilePaths.MyListBackupDir }
+            { nameof(FilePickerModal.InitialPath), FilePaths.MyListBackupDir },
         }).Result;
         if (res is { Confirmed: true, Data: string path })
-            ServiceProvider.GetRequiredService<CommandService>().Dispatch(new RestoreMyListBackupArgs(Path: path));
+            ServiceProvider.GetRequiredService<CommandService>().Dispatch(new RestoreMyListBackupArgs(path));
     }
 
     private void DisplayToast()

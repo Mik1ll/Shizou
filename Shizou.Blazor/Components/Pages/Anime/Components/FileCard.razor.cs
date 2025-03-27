@@ -3,6 +3,7 @@ using System.Text.Json;
 using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.JSInterop;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
@@ -49,6 +50,9 @@ public partial class FileCard
     [CascadingParameter]
     public IModalService ModalService { get; set; } = default!;
 
+    [CascadingParameter(Name = "IdentityCookie")]
+    public string IdentityCookie { get; set; } = default!;
+
     [Parameter]
     [EditorRequired]
     public LocalFile LocalFile { get; set; } = default!;
@@ -70,12 +74,13 @@ public partial class FileCard
         var res = await JsRuntime.InvokeAsync<JsonElement>("window.localStorage.getItem", LocalStorageKeys.SchemeHandlerInstalled);
         _schemeHandlerInstalled = res is { ValueKind: JsonValueKind.String } && res.GetString() == "true";
 
-        _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(LocalFile.Ed2k, true);
         var baseUri = new Uri(NavigationManager.BaseUri);
+        _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(LocalFile.Ed2k, true, baseUri, IdentityCookie);
         IDictionary<string, object?> values = new ExpandoObject();
         values["ed2K"] = LocalFile.Ed2k;
-        _fileDownloadUrl = LinkGenerator.GetUriByAction(nameof(FileServer.Get), nameof(FileServer), values, baseUri.Scheme, new(baseUri.Host),
-            new(baseUri.AbsolutePath)) ?? throw new ArgumentException("Failed to generate file download uri");
+        values[IdentityConstants.ApplicationScheme] = IdentityCookie;
+        _fileDownloadUrl = LinkGenerator.GetUriByAction(nameof(FileServer.Get), nameof(FileServer), values, baseUri.Scheme, new HostString(baseUri.Authority),
+            new PathString(baseUri.AbsolutePath)) ?? throw new ArgumentException("Failed to generate file download uri");
     }
 
     private void CheckFileExists() =>

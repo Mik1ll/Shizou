@@ -1,4 +1,5 @@
-﻿@inject IHostEnvironment Env
+﻿@using Microsoft.AspNetCore.Identity
+@inject IHostEnvironment Env
 <!DOCTYPE html>
 <html lang="en">
 <!--suppress HtmlRequiredTitleElement -->
@@ -30,7 +31,7 @@
     <HeadOutlet @rendermode="@RenderModeForPage"/>
 </head>
 <body class="invisible">
-<Routes @rendermode="@RenderModeForPage"/>
+<Routes @rendermode="@RenderModeForPage" IdentityCookie="@(HttpContext.Request.Cookies[IdentityConstants.ApplicationScheme])"/>
 
 <div id="blazor-error-ui" class="offcanvas offcanvas-bottom bg-danger" style="display:none;transform:none;visibility:visible;height:unset;z-index:5000">
     <div class="d-flex flex-row p-3">

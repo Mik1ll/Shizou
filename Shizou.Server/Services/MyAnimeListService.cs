@@ -116,7 +116,7 @@ public class MyAnimeListService
         }
     }
 
-    public string? GetAuthenticationUrl(HttpContext context)
+    public string? GetAuthenticationUrl(Uri baseUri)
     {
         var options = _optionsMonitor.CurrentValue.MyAnimeList;
         if (string.IsNullOrWhiteSpace(options.ClientId))
@@ -127,7 +127,9 @@ public class MyAnimeListService
 
         var codeChallengeAndVerifier = GetCodeVerifier();
         var state = Guid.NewGuid().ToString();
-        var redirectUri = _linkGenerator.GetUriByAction(context, nameof(MyAnimeList.GetToken), nameof(MyAnimeList)) ?? throw new ArgumentNullException();
+        var redirectUri = _linkGenerator.GetUriByAction(nameof(MyAnimeList.GetToken), nameof(MyAnimeList), null,
+                              baseUri.Scheme, new HostString(baseUri.Authority), new PathString(baseUri.AbsolutePath)) ??
+                          throw new ArgumentException("Could not generate MAL GetToken uri");
 
         AuthFlows[state] = (codeChallengeAndVerifier, redirectUri);
 

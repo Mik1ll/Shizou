@@ -8,19 +8,17 @@ namespace Shizou.Blazor.Services;
 
 public class ExternalPlaybackService
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly LinkGenerator _linkGenerator;
     private readonly IJSRuntime _jsRuntime;
     private string? _extPlayerScheme;
 
-    public ExternalPlaybackService(IHttpContextAccessor httpContextAccessor, LinkGenerator linkGenerator, IJSRuntime jsRuntime)
+    public ExternalPlaybackService(LinkGenerator linkGenerator, IJSRuntime jsRuntime)
     {
-        _httpContextAccessor = httpContextAccessor;
         _linkGenerator = linkGenerator;
         _jsRuntime = jsRuntime;
     }
 
-    public async Task<string> GetExternalPlaylistUriAsync(string ed2K, bool single)
+    public async Task<string> GetExternalPlaylistUriAsync(string ed2K, bool single, Uri baseUri, string identityCookie)
     {
         if (_extPlayerScheme is null)
         {
@@ -30,13 +28,13 @@ public class ExternalPlaybackService
                 : LocalStorageKeys.ExternalPlayerSchemeDefault;
         }
 
-        var identityCookie = _httpContextAccessor.HttpContext!.Request.Cookies[IdentityConstants.ApplicationScheme];
         IDictionary<string, object?> values = new ExpandoObject();
         values["ed2K"] = ed2K;
         values["single"] = single;
         values[IdentityConstants.ApplicationScheme] = identityCookie;
-        var fileUri = _linkGenerator.GetUriByAction(_httpContextAccessor.HttpContext ?? throw new ArgumentNullException(), nameof(FileServer.GetPlaylist),
-            nameof(FileServer), values) ?? throw new ArgumentException();
+        var fileUri = _linkGenerator.GetUriByAction(nameof(FileServer.GetPlaylist), nameof(FileServer), values,
+                          baseUri.Scheme, new HostString(baseUri.Authority), new PathString(baseUri.AbsolutePath)) ??
+                      throw new ArgumentException("Failed to generate playlist uri");
         fileUri = Uri.EscapeDataString(fileUri);
         return $"{_extPlayerScheme}{fileUri}";
     }
