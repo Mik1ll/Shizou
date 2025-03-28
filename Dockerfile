@@ -1,7 +1,8 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-chiseled AS base
-EXPOSE 80
-EXPOSE 443
-USER 0:0
+EXPOSE 8080
+EXPOSE 8443
+# Should be 1654
+USER $APP_UID
 LABEL org.opencontainers.image.source=https://github.com/Mik1ll/Shizou
 
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS publish
