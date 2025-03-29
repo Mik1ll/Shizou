@@ -88,11 +88,13 @@ public static class InitializationExtensions
         return builder;
     }
 
-    public static WebApplicationBuilder AddShizouLogging(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddShizouLogging(this WebApplicationBuilder builder, string outputTemplate)
     {
+        var ringBufferLogService = new RingBufferLogService(outputTemplate);
+        builder.Services.AddSingleton(ringBufferLogService);
         builder.Host.UseSerilog((ctx, cfg) => cfg
             .ReadFrom.Configuration(ctx.Configuration)
-            .ConfigureSerilog());
+            .ConfigureSerilog(outputTemplate, ringBufferLogService));
         return builder;
     }
 
@@ -141,14 +143,15 @@ public static class InitializationExtensions
         return app;
     }
 
-    public static LoggerConfiguration ConfigureSerilog(this LoggerConfiguration cfg)
+    public static LoggerConfiguration ConfigureSerilog(this LoggerConfiguration cfg, string outputTemplate, RingBufferLogService? ringBufferLogService = null)
     {
-        var logTemplate = "{Timestamp:HH:mm:ss} {Level:u3} | {SourceContext} {Message:lj}{NewLine:1}{Exception:1}";
+        if (ringBufferLogService is not null)
+            cfg.WriteTo.RingBuffer(ringBufferLogService);
+
         return cfg
-            .WriteTo.Console(outputTemplate: logTemplate)
-            .WriteTo.File(Path.Combine(FilePaths.LogsDir, ".log"), outputTemplate: logTemplate, rollingInterval: RollingInterval.Day)
+            .WriteTo.Console(outputTemplate: outputTemplate)
+            .WriteTo.File(Path.Combine(FilePaths.LogsDir, ".log"), outputTemplate: outputTemplate, rollingInterval: RollingInterval.Day)
             .WriteTo.Seq("http://localhost:5341")
-            .WriteTo.CircularBuffer(logTemplate)
             .Enrich.FromLogContext()
             .Enrich.WithThreadId()
             .Enrich.WithThreadName()

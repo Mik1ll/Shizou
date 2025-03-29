@@ -3,7 +3,7 @@
 
 <main class="container-md">
     <div class="bg-body-tertiary p-3 rounded-2">
-        @foreach (var logEvent in _bufferSink.Snapshot())
+        @foreach (var logEvent in RingBufferLogService.Snapshot())
         {
             <p @key="@logEvent">@(GetText(logEvent))</p>
         }

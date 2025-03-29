@@ -12,7 +12,7 @@ using Shizou.Data;
 using Shizou.Server.Extensions;
 
 Log.Logger = new LoggerConfiguration()
-    .ConfigureSerilog()
+    .ConfigureSerilog(Constants.LogTemplate)
     .CreateBootstrapLogger();
 
 Directory.CreateDirectory(FilePaths.ApplicationDataDir);
@@ -62,7 +62,7 @@ try
     });
 
     builder.AddShizouOptions()
-        .AddShizouLogging()
+        .AddShizouLogging(Constants.LogTemplate)
         .AddWorkerServices();
 
     builder.Services

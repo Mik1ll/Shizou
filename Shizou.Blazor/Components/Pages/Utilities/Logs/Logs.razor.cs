@@ -1,20 +1,22 @@
-﻿using Serilog.Events;
-using Shizou.Server.SerilogSinks;
+﻿using Microsoft.AspNetCore.Components;
+using Serilog.Events;
+using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Components.Pages.Utilities.Logs;
 
 public partial class Logs : IDisposable
 {
-    private readonly CircularBufferSink _bufferSink = CircularBufferSink.Instance.Value;
+    [Inject]
+    private RingBufferLogService RingBufferLogService { get; set; } = null!;
 
     protected override void OnInitialized()
     {
-        _bufferSink.OnChange += OnChange;
+        RingBufferLogService.OnChange += OnChange;
     }
 
     public void Dispose()
     {
-        _bufferSink.OnChange -= OnChange;
+        RingBufferLogService.OnChange -= OnChange;
     }
 
     private void OnChange(object? o, EventArgs logEventArgs) => InvokeAsync(StateHasChanged);
@@ -22,7 +24,7 @@ public partial class Logs : IDisposable
     private string GetText(LogEvent logEvent)
     {
         var output = new StringWriter();
-        _bufferSink.TextFormatter.Format(logEvent, output);
+        RingBufferLogService.TextFormatter.Format(logEvent, output);
         return output.ToString();
     }
 }
