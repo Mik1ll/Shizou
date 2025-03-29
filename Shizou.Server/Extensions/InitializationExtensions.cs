@@ -90,7 +90,7 @@ public static class InitializationExtensions
 
     public static WebApplicationBuilder AddShizouLogging(this WebApplicationBuilder builder, string outputTemplate)
     {
-        var ringBufferLogService = new RingBufferLogService(outputTemplate);
+        var ringBufferLogService = new RingBufferLogService("{SourceContext} {Message:lj}{NewLine:1}{Exception:1}");
         builder.Services.AddSingleton(ringBufferLogService);
         builder.Host.UseSerilog((ctx, cfg) => cfg
             .ReadFrom.Configuration(ctx.Configuration)

@@ -36,4 +36,9 @@ public class RingBufferLogService : ILogEventSink
 
         OnChange?.Invoke(this, EventArgs.Empty);
     }
+
+    public void Clear()
+    {
+        _logEvents.Clear();
+    }
 }

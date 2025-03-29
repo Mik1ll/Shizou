@@ -1,0 +1,39 @@
+﻿@page "/Log"
+<PageTitle>Logs</PageTitle>
+
+<main class="container-md">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Log</h4>
+            <div>
+                <button class="btn btn-sm btn-outline-danger" @onclick="ClearLogs">
+                    <i class="bi bi-trash"></i> Clear
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="overflow-auto p-3" style="height: 80vh;">
+                @{
+                    var snapshot = RingBufferLogService.Snapshot();
+                    if (!snapshot.Any())
+                    {
+                        <div class="text-center text-muted py-4">
+                            <em>No logs to display</em>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var logEvent in snapshot)
+                        {
+                            <div @key="logEvent" class="border-bottom pt-1 pb-1">
+                                <span class="text-secondary">@logEvent.Timestamp.ToString("HH:mm:ss") <span
+                                        class="badge @GetLogLevelClass(logEvent)">@logEvent.Level</span></span>
+                                <div class="text-wrap text-break font-monospace">@GetText(logEvent)</div>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</main>
