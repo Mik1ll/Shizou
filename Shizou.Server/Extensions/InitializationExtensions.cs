@@ -31,6 +31,7 @@ using Shizou.Server.CommandProcessors;
 using Shizou.Server.Commands;
 using Shizou.Server.Commands.AniDb;
 using Shizou.Server.Options;
+using Shizou.Server.SerilogSinks;
 using Shizou.Server.Services;
 using Shizou.Server.SwaggerFilters;
 using Swashbuckle.AspNetCore.Filters;
@@ -147,6 +148,7 @@ public static class InitializationExtensions
             .WriteTo.Console(outputTemplate: logTemplate)
             .WriteTo.File(Path.Combine(FilePaths.LogsDir, ".log"), outputTemplate: logTemplate, rollingInterval: RollingInterval.Day)
             .WriteTo.Seq("http://localhost:5341")
+            .WriteTo.CircularBuffer(logTemplate)
             .Enrich.FromLogContext()
             .Enrich.WithThreadId()
             .Enrich.WithThreadName()
