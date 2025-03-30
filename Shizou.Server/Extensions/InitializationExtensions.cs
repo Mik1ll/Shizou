@@ -100,6 +100,11 @@ public static class InitializationExtensions
 
     public static IApplicationBuilder UseSecurityHeaders(this IApplicationBuilder builder)
     {
+        var unsafeHashes = new[]
+        {
+            "sha384-J8fyuDYRJQ/DLIz1yYa83BJSzp5WNYFpTbRbcorHQQWtVrtqO1Hn68CnUyuSKgAf", // Missing image event handler in AnimeCard
+        };
+
         builder.Use(async (context, next) =>
         {
             context.Response.Headers.Append("X-Frame-Options", "DENY");
@@ -107,14 +112,16 @@ public static class InitializationExtensions
             {
                 context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
                 context.Response.Headers.Append("X-XSS-Protection", "0");
-                context.Response.Headers.Append("Content-Security-Policy", "base-uri 'self';" +
-                                                                           "default-src 'self';" +
-                                                                           "img-src data: https: blob:;" +
-                                                                           "object-src 'none';" +
-                                                                           "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval';" +
-                                                                           "style-src 'self' 'unsafe-inline';" +
-                                                                           "font-src 'self' data:;" +
-                                                                           "upgrade-insecure-requests");
+                context.Response.Headers.Append("Content-Security-Policy",
+                    "base-uri 'self';" +
+                    "default-src 'self';" +
+                    "img-src data: https: blob:;" +
+                    "object-src 'none';" +
+                    $"script-src 'self' 'unsafe-hashes' {string.Join(' ', unsafeHashes.Select(uh => $"'{uh}'"))};" +
+                    "style-src 'self' 'unsafe-inline';" +
+                    "font-src 'self' data:;" +
+                    "connect-src 'self' http: ws: wss:;" +
+                    "upgrade-insecure-requests;");
             }
             else
             {
