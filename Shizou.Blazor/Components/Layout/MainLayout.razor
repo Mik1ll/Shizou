@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject IHostEnvironment HostEnvironment
 
 <PageTitle>Shizou</PageTitle>
 <CascadingBlazoredModal UseCustomLayout="true" AnimationType="@(ModalAnimationType.None)">
@@ -6,3 +7,16 @@
     @Body
 </CascadingBlazoredModal>
 <ToastContainer/>
+
+<div id="blazor-error-ui" class="text-bg-danger" data-nosnippet>
+    @if (HostEnvironment.IsDevelopment())
+    {
+        <span>An unhandled exception has occurred. See browser dev tools for details.</span>
+    }
+    else
+    {
+        <span>An error has occurred. This app may no longer respond until reloaded.</span>
+    }
+    <a href="" class="reload ms-2">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>

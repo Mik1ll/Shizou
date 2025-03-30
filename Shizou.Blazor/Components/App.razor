@@ -1,5 +1,4 @@
 ﻿@using Microsoft.AspNetCore.Identity
-@inject IHostEnvironment Env
 <!DOCTYPE html>
 <html lang="en">
 <!--suppress HtmlRequiredTitleElement -->
@@ -32,27 +31,6 @@
 </head>
 <body class="invisible">
 <Routes @rendermode="@RenderModeForPage" IdentityCookie="@(HttpContext.Request.Cookies[IdentityConstants.ApplicationScheme])"/>
-
-<div id="blazor-error-ui" class="offcanvas offcanvas-bottom bg-danger" style="display:none;transform:none;visibility:visible;height:unset;z-index:5000">
-    <div class="d-flex flex-row p-3">
-        <div class="flex-grow-1">
-            @if (Env.IsDevelopment())
-            {
-                <text>
-                    An unhandled exception has occurred. See browser dev tools for details.
-                </text>
-            }
-            else
-            {
-                <text>
-                    An error has occurred. This app may no longer respond until reloaded.
-                </text>
-            }
-            <a href="javascript:window.location.href='/'">Reload</a>
-        </div>
-        <button type="button" class="btn btn-close"></button>
-    </div>
-</div>
 
 @* ReSharper disable Html.PathError *@
 <script src="_framework/blazor.web.js"></script>
