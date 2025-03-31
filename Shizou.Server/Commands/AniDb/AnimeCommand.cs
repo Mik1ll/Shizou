@@ -103,7 +103,7 @@ public class AnimeCommand : Command<AnimeArgs>
             TitleOriginal = animeResult.Titles
                 .FirstOrDefault(t => t.Type == "official" && t.Lang.StartsWith(originalLangPrefix, StringComparison.OrdinalIgnoreCase))
                 ?.Text.Replace('`', '\''),
-            TitleEngish = animeResult.Titles.FirstOrDefault(t => t is { Type: "official", Lang: "en" })?.Text.Replace('`', '\''),
+            TitleEnglish = animeResult.Titles.FirstOrDefault(t => t is { Type: "official", Lang: "en" })?.Text.Replace('`', '\''),
             Rating = animeResult.Ratings?.Permanent?.Text ?? animeResult.Ratings?.Temporary?.Text,
             Tags = filteredTags,
             AniDbEpisodes = animeResult.Episodes.Select(e => new AniDbEpisode

@@ -36,7 +36,7 @@ public class SeededDatabaseTests
                     ImageFilename = null,
                     Updated = default,
                     TitleOriginal = null,
-                    TitleEngish = null,
+                    TitleEnglish = null,
                     Rating = 9.99f,
                     Tags = ["Fantasy"]
                 });

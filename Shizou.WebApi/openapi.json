@@ -2032,7 +2032,7 @@
           "rating",
           "restricted",
           "tags",
-          "titleEngish",
+          "titleEnglish",
           "titleOriginal",
           "titleTranscription",
           "updated"
@@ -2050,7 +2050,7 @@
             "type": "string",
             "nullable": true
           },
-          "titleEngish": {
+          "titleEnglish": {
             "type": "string",
             "nullable": true
           },
