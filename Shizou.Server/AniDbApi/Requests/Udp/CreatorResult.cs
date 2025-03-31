@@ -9,8 +9,8 @@ public record CreatorResult
     {
         var dataArr = responseText.Split('|');
         CreatorId = int.Parse(dataArr[0]);
-        CreatorNameKanji = string.IsNullOrWhiteSpace(dataArr[1]) ? null : dataArr[1];
-        CreatorNameTranscription = string.IsNullOrWhiteSpace(dataArr[2]) ? null : dataArr[2];
+        CreatorNameKanji = string.IsNullOrWhiteSpace(dataArr[1]) ? null : dataArr[1].Replace('`', '\'');
+        CreatorNameTranscription = string.IsNullOrWhiteSpace(dataArr[2]) ? null : dataArr[2].Replace('`', '\'');
         CreatorType = Enum.Parse<CreatorType>(dataArr[3]);
         PictureFilename = string.IsNullOrWhiteSpace(dataArr[4]) ? null : dataArr[4];
         UrlEnglish = string.IsNullOrWhiteSpace(dataArr[5]) ? null : dataArr[5];

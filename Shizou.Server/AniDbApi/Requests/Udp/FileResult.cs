@@ -66,14 +66,14 @@ public sealed record FileResult
             MyListFileState = Enum.Parse<MyListFileState>(dataArr[++dataIdx]);
             MyListViewed = dataArr[++dataIdx] != "0";
             MyListViewDate = dataArr[++dataIdx] != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[dataIdx])) : null;
-            MyListStorage = dataArr[++dataIdx].NullIfWhitespace();
-            MyListSource = dataArr[++dataIdx].NullIfWhitespace();
-            MyListOther = dataArr[++dataIdx].NullIfWhitespace();
+            MyListStorage = dataArr[++dataIdx].Replace('`', '\'').NullIfWhitespace();
+            MyListSource = dataArr[++dataIdx].Replace('`', '\'').NullIfWhitespace();
+            MyListOther = dataArr[++dataIdx].Replace('`', '\'').NullIfWhitespace();
         }
 
-        GroupName = dataArr[++dataIdx].NullIfWhitespace();
+        GroupName = dataArr[++dataIdx].Replace('`', '\'').NullIfWhitespace();
         // There is one group with an empty short name https://anidb.net/group/13019
-        GroupNameShort = dataArr[++dataIdx];
+        GroupNameShort = dataArr[++dataIdx].Replace('`', '\'');
     }
 
     [JsonConstructor]

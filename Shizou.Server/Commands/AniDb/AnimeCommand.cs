@@ -71,11 +71,11 @@ public class AnimeCommand : Command<AnimeArgs>
             if (tags[pTagId].Id is 2611 or 2607 or 2606)
                 return true;
             return false;
-        }).Select(t => t.Name).ToList();
+        }).Select(t => t.Name.Replace('`', '\'')).ToList();
         var newAniDbAnime = new AniDbAnime
         {
             Id = animeResult.Id,
-            Description = animeResult.Description,
+            Description = animeResult.Description?.Replace('`', '\''),
             Restricted = animeResult.Restricted,
             AirDate = string.IsNullOrWhiteSpace(animeResult.Startdate)
                 ? null
@@ -99,11 +99,11 @@ public class AnimeCommand : Command<AnimeArgs>
             AnimeType = animeResult.Type,
             EpisodeCount = animeResult.Episodecount == 0 ? null : animeResult.Episodecount,
             ImageFilename = animeResult.Picture,
-            TitleTranscription = mainTitle.Text,
+            TitleTranscription = mainTitle.Text.Replace('`', '\''),
             TitleOriginal = animeResult.Titles
                 .FirstOrDefault(t => t.Type == "official" && t.Lang.StartsWith(originalLangPrefix, StringComparison.OrdinalIgnoreCase))
-                ?.Text,
-            TitleEngish = animeResult.Titles.FirstOrDefault(t => t is { Type: "official", Lang: "en" })?.Text,
+                ?.Text.Replace('`', '\''),
+            TitleEngish = animeResult.Titles.FirstOrDefault(t => t is { Type: "official", Lang: "en" })?.Text.Replace('`', '\''),
             Rating = animeResult.Ratings?.Permanent?.Text ?? animeResult.Ratings?.Temporary?.Text,
             Tags = filteredTags,
             AniDbEpisodes = animeResult.Episodes.Select(e => new AniDbEpisode
@@ -117,16 +117,16 @@ public class AnimeCommand : Command<AnimeArgs>
                 AirDate = string.IsNullOrWhiteSpace(e.Airdate)
                     ? null
                     : DateOnly.Parse(e.Airdate),
-                Summary = e.Summary,
+                Summary = e.Summary?.Replace('`', '\''),
                 Updated = DateTime.UtcNow,
                 TitleEnglish = e.Title.First(t => t.Lang == "en")
-                    .Text,
+                    .Text.Replace('`', '\''),
                 TitleTranscription = e.Title.FirstOrDefault(t => t.Lang.StartsWith("x-") && t.Lang == mainTitle.Lang)
-                    ?.Text,
+                    ?.Text.Replace('`', '\''),
                 TitleOriginal = e.Title.FirstOrDefault(t => t.Lang.StartsWith(originalLangPrefix, StringComparison.OrdinalIgnoreCase))
-                    ?.Text,
+                    ?.Text.Replace('`', '\''),
             }).ToList(),
-            Updated = DateTime.UtcNow
+            Updated = DateTime.UtcNow,
         };
         return newAniDbAnime;
     }
@@ -208,7 +208,7 @@ public class AnimeCommand : Command<AnimeArgs>
                 charactersToUpdate[character.Id] = new AniDbCharacter()
                 {
                     Id = character.Id,
-                    Name = character.Name,
+                    Name = character.Name.Replace('`', '\''),
                     Type = (CharacterType)character.Charactertype.Id,
                     ImageFilename = character.Picture,
                 };
@@ -220,7 +220,7 @@ public class AnimeCommand : Command<AnimeArgs>
                     creatorsToUpdate[seiyuu.Id] = new AniDbCreator()
                     {
                         Id = seiyuu.Id,
-                        Name = seiyuu.Text,
+                        Name = seiyuu.Text.Replace('`', '\''),
                         Type = CreatorType.Person,
                         ImageFilename = seiyuu.Picture,
                     };
@@ -243,7 +243,7 @@ public class AnimeCommand : Command<AnimeArgs>
                 creatorsToUpdate[creatorResult.Id] = new AniDbCreator()
                 {
                     Id = creatorResult.Id,
-                    Name = creatorResult.Text,
+                    Name = creatorResult.Text.Replace('`', '\''),
                     Type = CreatorType.Unknown,
                     ImageFilename = null,
                 };

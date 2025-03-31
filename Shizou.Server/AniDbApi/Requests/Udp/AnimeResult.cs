@@ -19,7 +19,6 @@ public sealed record AnimeResult
                 if (string.IsNullOrWhiteSpace(data))
                     continue;
 
-                // TODO: Test switch cases
                 switch (value)
                 {
                     case AMaskAnime.AnimeId:
@@ -42,22 +41,22 @@ public sealed record AnimeResult
                             data.Split('\'').Select(Enum.Parse<RelatedAnimeType>).ToList();
                         break;
                     case AMaskAnime.TitleRomaji:
-                        TitleRomaji = data;
+                        TitleRomaji = data.Replace('`', '\'');
                         break;
                     case AMaskAnime.TitleKanji:
-                        TitleKanji = data;
+                        TitleKanji = data.Replace('`', '\'');
                         break;
                     case AMaskAnime.TitleEnglish:
-                        TitleEnglish = data;
+                        TitleEnglish = data.Replace('`', '\'');
                         break;
                     case AMaskAnime.TitlesOther:
-                        TitlesOther = data.Split('\'').ToList();
+                        TitlesOther = data.Split('\'').Select(t => t.Replace('`', '\'')).ToList();
                         break;
                     case AMaskAnime.TitlesShort:
-                        TitlesShort = data.Split('\'').ToList();
+                        TitlesShort = data.Split('\'').Select(t => t.Replace('`', '\'')).ToList();
                         break;
                     case AMaskAnime.TitlesSynonym:
-                        TitlesSynonym = data.Split('\'').ToList();
+                        TitlesSynonym = data.Split('\'').Select(t => t.Replace('`', '\'')).ToList();
                         break;
                     case AMaskAnime.TotalEpisodes:
                         TotalEpisodes = int.Parse(data);
@@ -114,7 +113,7 @@ public sealed record AnimeResult
                         AnimeNfoId = data;
                         break;
                     case AMaskAnime.TagNames:
-                        TagNames = data.Split(',').ToList();
+                        TagNames = data.Split(',').Select(t => t.Replace('`', '\'')).ToList();
                         break;
                     case AMaskAnime.TagIds:
                         TagIds = data.Split(',').Select(int.Parse).ToList();

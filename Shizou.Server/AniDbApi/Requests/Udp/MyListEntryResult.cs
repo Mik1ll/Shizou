@@ -14,9 +14,9 @@ public record MyListEntryResult(int MyListId, int FileId, int EpisodeId, int Ani
         DateTimeOffset.FromUnixTimeSeconds(long.Parse(data[5])),
         Enum.Parse<MyListState>(data[6]),
         data[7] != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(data[7])) : null,
-        data[8],
-        data[9],
-        data[10],
+        data[8].Replace('`', '\''),
+        data[9].Replace('`', '\''),
+        data[10].Replace('`', '\''),
         Enum.Parse<MyListFileState>(data[11]))
     {
     }

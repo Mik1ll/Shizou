@@ -14,9 +14,9 @@ public sealed record EpisodeResult
         Rating = int.Parse(dataArr[3]);
         Votes = int.Parse(dataArr[4]);
         (EpisodeNumber, Type) = EpisodeTypeExtensions.ParseEpString(dataArr[5]);
-        TitleEnglish = dataArr[6];
-        TitleRomaji = dataArr[7];
-        TitleKanji = dataArr[8];
+        TitleEnglish = dataArr[6].Replace('`', '\'');
+        TitleRomaji = dataArr[7].Replace('`', '\'');
+        TitleKanji = dataArr[8].Replace('`', '\'');
         AiredDate = dataArr[9] != "0" ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(dataArr[9])) : null;
     }
 
