@@ -1,0 +1,64 @@
+﻿<Modal class="modal-lg">
+    <div class="modal-header">
+        <h5 class="modal-title">Queue Status</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <!-- Queue 1 -->
+        @foreach (var processor in Processors.OrderBy(p => p.QueueType))
+        {
+            <div class="card mb-2">
+                <div class="card-body p-2">
+                    <div class="row align-items-center">
+                        @if (_prevExpanded[processor])
+                        {
+                            <div class="mt-2 pt-2 border-top">
+                                @foreach (var c in processor.CommandHistory.SkipLast(1).TakeLast(3))
+                                {
+                                    <p class="mb-2 text-truncate">@c</p>
+                                }
+                            </div>
+                        }
+                        <div class="col-3">
+                            <h6 class="mb-0">@(processor.DisplayName)</h6>
+                            <span class="badge bg-primary">@(processor.CommandsInQueue) items</span>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-0 text-truncate">
+                                @(processor.CurrentCommand?.CommandId ?? (processor.Paused && !string.IsNullOrWhiteSpace(processor.PauseReason)
+                                    ? $"Paused: {processor.PauseReason}"
+                                    : ""))
+                            </p>
+                        </div>
+                        <div class="col-3 text-end">
+                            <button class="btn btn-sm btn-link" @onclick="@(() => _prevExpanded[processor] = !_prevExpanded[processor])">
+                                <i class="bi bi-clock-history"></i>
+                            </button>
+                            <button class="btn btn-sm btn-link" @onclick="@(() => _nextExpanded[processor] = !_nextExpanded[processor])">
+                                <i class="bi bi-clock"></i>
+                            </button>
+                            <button class="btn btn-sm btn-link" @onclick="@(() => TogglePause(processor))">
+                                <i class="bi @(processor.Paused ? "bi-play-fill" : "bi-pause-fill")"></i>
+                            </button>
+                            <button class="btn btn-sm btn-link text-danger" @onclick="@(processor.ClearQueue)">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        @if (_nextExpanded[processor])
+                        {
+                            <div class="mt-2 pt-2 border-top">
+                                @foreach (var c in processor.NextThreeCommands)
+                                {
+                                    <p class="mb-2 text-truncate">@c</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    </div>
+</Modal>
