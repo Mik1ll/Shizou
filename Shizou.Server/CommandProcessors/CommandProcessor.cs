@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -16,7 +16,6 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 using Shizou.Server.Commands;
-using Shizou.Server.Extensions;
 using Shizou.Server.Extensions.Query;
 
 namespace Shizou.Server.CommandProcessors;
@@ -32,11 +31,11 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     private readonly IShizouContextFactory _contextFactory;
     private readonly IServiceScopeFactory _scopeFactory;
-    private int _commandsInQueue;
     private ICommand<CommandArgs>? _currentCommand;
     private bool _paused = true;
     private int _pollStep;
     private CancellationTokenSource? _wakeupTokenSource;
+    private CommandRequest? _currentCommandRequest;
 
     protected CommandProcessor(ILogger<CommandProcessor> logger,
         QueueType queueType,
@@ -50,7 +49,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-
 
     public abstract string DisplayName { get; }
 
@@ -86,17 +84,24 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         private set => SetField(ref _currentCommand, value);
     }
 
-    public int CommandsInQueue
-    {
-        get => _commandsInQueue;
-        private set => SetField(ref _commandsInQueue, value);
-    }
+    public int CommandsInQueue => CommandQueue.Count;
 
-    public Queue<string> LastThreeCommands { get; } = new(3);
+    public List<string> CommandHistory { get; private set; } = new();
+
+    public List<string> NextThreeCommands
+    {
+        get
+        {
+            lock (((ICollection)CommandQueue).SyncRoot)
+            {
+                return CommandQueue.Where(c => c.Value != _currentCommandRequest).Take(3).Select(c => c.Value.CommandId).ToList();
+            }
+        }
+    }
 
     protected ILogger<CommandProcessor> Logger { get; }
 
-    private CommandRequest? CurrentCommandRequest { get; set; }
+    private SortedList<(CommandPriority Priority, int Id), CommandRequest> CommandQueue { get; } = new();
 
     private int PollInterval => (int)(BasePollInterval * Math.Pow((double)MaxPollInterval / BasePollInterval, (float)PollStep / MaxPollSteps));
 
@@ -109,6 +114,8 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     private int BasePollInterval => 1000;
     private int MaxPollSteps => 4;
     private int MaxPollInterval => 10000;
+
+    private static (CommandPriority Priority, int Id) GetQueueKey(CommandRequest cmdRequest) => (cmdRequest.Priority, cmdRequest.Id);
 
     public void Pause(string? pauseReason = null)
     {
@@ -136,7 +143,12 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
             context.CommandRequests.Add(cmdRequest);
             context.SaveChanges();
-            CommandsInQueue++;
+            lock (((ICollection)CommandQueue).SyncRoot)
+            {
+                CommandQueue.Add(GetQueueKey(cmdRequest), cmdRequest);
+            }
+
+            OnPropertyChanged(nameof(CommandsInQueue));
             Logger.LogInformation("Command {CommandId} queued", cmdRequest.CommandId);
         }
 
@@ -148,29 +160,39 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     {
         using var context = _contextFactory.CreateDbContext();
         context.CommandRequests.ByQueue(QueueType).ExecuteDelete();
-        CommandsInQueue = 0;
-        CurrentCommandRequest = null;
+        lock (((ICollection)CommandQueue).SyncRoot)
+        {
+            CommandQueue.Clear();
+        }
+
+        _currentCommandRequest = null;
+        OnPropertyChanged(nameof(CommandsInQueue));
         Logger.LogInformation("{QueueType} queue cleared", Enum.GetName(QueueType));
     }
 
     public List<CommandRequest> GetQueuedCommands()
     {
-        using var context = _contextFactory.CreateDbContext();
-        return context.CommandRequests.ByQueueOrdered(QueueType).AsNoTracking().ToList();
+        lock (((ICollection)CommandQueue).SyncRoot)
+        {
+            return CommandQueue.Values.ToList();
+        }
     }
 
     protected virtual Task OnShutdownAsync() => Task.CompletedTask;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        using (var initContext = _contextFactory.CreateDbContext())
+        {
+            foreach (var cmd in initContext.CommandRequests.AsNoTracking().ByQueueOrdered(QueueType).ToList())
+                lock (((ICollection)CommandQueue).SyncRoot)
+                {
+                    CommandQueue.Add(GetQueueKey(cmd), cmd);
+                }
+        }
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var context = _contextFactory.CreateDbContext();
-            using (SerilogExtensions.SuppressLogging("Microsoft.EntityFrameworkCore.Database.Command"))
-            {
-                UpdateCommandsInQueue(context);
-            }
-
             if (Paused || CommandsInQueue == 0)
             {
                 CurrentCommand = null;
@@ -197,19 +219,18 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 continue;
             }
 
-            CurrentCommandRequest = context.CommandRequests.Next(QueueType);
-            if (CurrentCommandRequest is null)
+            _currentCommandRequest = CommandQueue.FirstOrDefault().Value;
+            if (_currentCommandRequest is null)
                 continue;
             PollStep = 0;
+            CommandHistory.Add(_currentCommandRequest.CommandId);
+            CommandHistory = CommandHistory.TakeLast(100).ToList();
             using var scope = _scopeFactory.CreateScope();
-            var args = CurrentCommandRequest.CommandArgs;
+            var args = _currentCommandRequest.CommandArgs;
             CurrentCommand = ((ICommand<CommandArgs>)scope.ServiceProvider.GetRequiredService(ArgsToCommandType[args.GetType()])).SetParameters(args);
             try
             {
                 Logger.LogDebug("Processing command: {CommandId}", CurrentCommand.CommandId);
-                LastThreeCommands.Enqueue(CurrentCommand.CommandId);
-                while (LastThreeCommands.Count > 3)
-                    LastThreeCommands.Dequeue();
                 await CurrentCommand.ProcessAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -225,7 +246,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             else
             {
                 Logger.LogWarning("Not deleting uncompleted command request: {CommandId}", CurrentCommand.CommandId);
-                if (LastThreeCommands.Count >= 3 && LastThreeCommands.Distinct().Count() == 1)
+                if (CommandHistory.Count >= 3 && CommandHistory.TakeLast(3).Distinct().Count() == 1)
                 {
                     Pause($"Failed to complete command: {CurrentCommand.CommandId} after three attempts");
                     Logger.LogWarning("Queue paused after failing to complete command three times: {CommandId}", CurrentCommand.CommandId);
@@ -240,10 +261,16 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     private void DeleteCurrentCommandRequest()
     {
         using var context = _contextFactory.CreateDbContext();
-        if (CurrentCommandRequest is not null)
+        if (_currentCommandRequest is not null)
         {
-            CommandsInQueue -= context.CommandRequests.Where(cr => cr.Id == CurrentCommandRequest.Id).ExecuteDelete();
-            Logger.LogDebug("Deleted command request: {CommandId}", CurrentCommandRequest.CommandId);
+            context.CommandRequests.Where(cr => cr.Id == _currentCommandRequest.Id).ExecuteDelete();
+            lock (((ICollection)CommandQueue).SyncRoot)
+            {
+                CommandQueue.Remove(GetQueueKey(_currentCommandRequest));
+            }
+
+            OnPropertyChanged(nameof(CommandsInQueue));
+            Logger.LogDebug("Deleted command request: {CommandId}", _currentCommandRequest.CommandId);
         }
         else
         {
@@ -261,12 +288,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         {
             _wakeupTokenSource = null;
         }
-    }
-
-    [SuppressMessage("ReSharper.DPA", "DPA0006: Large number of DB commands", MessageId = "count: 2000")]
-    private void UpdateCommandsInQueue(IShizouContext context)
-    {
-        CommandsInQueue = context.CommandRequests.ByQueue(QueueType).Count();
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
