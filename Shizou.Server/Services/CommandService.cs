@@ -31,25 +31,18 @@ public class CommandService : BackgroundService
         _processors = processors.ToList();
     }
 
-    /// <summary>
-    ///     Queues a command given the corresponding arguments
-    /// </summary>
-    /// <param name="commandArgs">Argument object corresponding the the desired command</param>
-    /// <typeparam name="TArgs">The type of the argument object, must be <see cref="CommandArgs" /> or derived</typeparam>
-    public void Dispatch<TArgs>(TArgs commandArgs)
-        where TArgs : CommandArgs
+    /// <inheritdoc cref="Dispatch{TArgs}(IEnumerable{TArgs})"/>
+    public void Dispatch<TArgs>(params TArgs[] commandArgs) where TArgs : CommandArgs
     {
-        var processor = _processors.Single(cp => cp.QueueType == commandArgs.QueueType);
-        processor.QueueCommand(commandArgs.CommandRequest);
+        Dispatch((IEnumerable<TArgs>)commandArgs);
     }
 
     /// <summary>
-    ///     Queues a batch of commands given the corresponding arguments
+    ///     Queues commands given the corresponding arguments
     /// </summary>
     /// <param name="commandArgs">The argument objects corresponding to the desired commands</param>
     /// <typeparam name="TArgs">The type of the argument objects, must be <see cref="CommandArgs" /> or derived</typeparam>
-    public void DispatchRange<TArgs>(IEnumerable<TArgs> commandArgs)
-        where TArgs : CommandArgs
+    public void Dispatch<TArgs>(IEnumerable<TArgs> commandArgs) where TArgs : CommandArgs
     {
         var grouped = commandArgs.Select(a => a.CommandRequest).GroupBy(a => a.QueueType);
         foreach (var group in grouped)
@@ -80,7 +73,7 @@ public class CommandService : BackgroundService
             Priority = cmdRequest.Priority,
             QueueType = cmdRequest.QueueType,
             CommandId = cmdRequest.CommandId,
-            CommandArgs = cmdRequest.CommandArgs
+            CommandArgs = cmdRequest.CommandArgs,
         };
         using var context = _contextFactory.CreateDbContext();
         using var trans = context.Database.BeginTransaction();
@@ -142,10 +135,10 @@ public class CommandService : BackgroundService
 
         if (scheduledCommands.Count == 0)
             return;
-        
+
         _logger.LogInformation("Dispatching {Count} scheduled commands", scheduledCommands.Count);
         var commandArgs = scheduledCommands.Select(sc => sc.CommandArgs).ToList();
-        DispatchRange(commandArgs);
+        Dispatch(commandArgs);
         foreach (var cmd in scheduledCommands)
             // Remove commands that do not have any runs left or a frequency set
             if (cmd.RunsLeft <= 1 || cmd.FrequencyMinutes is null)

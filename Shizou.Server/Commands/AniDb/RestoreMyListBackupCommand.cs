@@ -111,7 +111,7 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
 
         _context.SaveChanges();
 
-        _commandService.DispatchRange(toUpdate);
+        _commandService.Dispatch(toUpdate);
         Completed = true;
     }
 }

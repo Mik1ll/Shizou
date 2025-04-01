@@ -169,7 +169,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
 
         _context.SaveChanges();
 
-        _commandService.DispatchRange(animeToAdd.Select(aid => new AnimeArgs(aid)));
+        _commandService.Dispatch(animeToAdd.Select(aid => new AnimeArgs(aid)));
     }
 
     [SuppressMessage("ReSharper.DPA", "DPA0007: Large number of DB records", MessageId = "count: 2000")]
@@ -243,9 +243,9 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
 
         var combinedUpdates = CombineUpdates(myListItems, toUpdate);
 
-        _commandService.DispatchRange(toUpdate);
-        _commandService.DispatchRange(toProcess);
-        _commandService.DispatchRange(combinedUpdates);
+        _commandService.Dispatch(toUpdate);
+        _commandService.Dispatch(toProcess);
+        _commandService.Dispatch(combinedUpdates);
     }
 
     private async Task<MyListResult?> GetMyListAsync()

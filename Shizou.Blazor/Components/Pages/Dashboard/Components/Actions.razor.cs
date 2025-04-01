@@ -32,7 +32,7 @@ public partial class Actions
 
     private void DispatchNoop()
     {
-        ServiceProvider.GetRequiredService<CommandService>().DispatchRange(Enumerable.Range(1, 10).Select(n => new NoopArgs(n)));
+        ServiceProvider.GetRequiredService<CommandService>().Dispatch(Enumerable.Range(1, 10).Select(n => new NoopArgs(n)));
     }
 
     private void RunImport()

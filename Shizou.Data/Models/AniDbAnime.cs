@@ -4,11 +4,6 @@ using Shizou.Data.Enums;
 
 namespace Shizou.Data.Models;
 
-public struct NullableDate
-{
-    public int? Year, Month, Day;
-}
-
 public class AniDbAnime
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]

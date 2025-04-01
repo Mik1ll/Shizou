@@ -92,11 +92,11 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         private set => SetField(ref _commandsInQueue, value);
     }
 
+    public Queue<string> LastThreeCommands { get; } = new(3);
+
     protected ILogger<CommandProcessor> Logger { get; }
 
     private CommandRequest? CurrentCommandRequest { get; set; }
-
-    private Queue<string> LastThreeCommands { get; } = new(3);
 
     private int PollInterval => (int)(BasePollInterval * Math.Pow((double)MaxPollInterval / BasePollInterval, (float)PollStep / MaxPollSteps));
 
@@ -120,24 +120,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     {
         Paused = false;
         return !Paused;
-    }
-
-    public void QueueCommand(CommandRequest cmdRequest)
-    {
-        using var context = _contextFactory.CreateDbContext();
-        using var trans = context.Database.BeginTransaction();
-        if (context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
-        {
-            Logger.LogInformation("Command {CommandId} already queued", cmdRequest.CommandId);
-            return;
-        }
-
-        context.CommandRequests.Add(cmdRequest);
-        context.SaveChanges();
-        CommandsInQueue++;
-        trans.Commit();
-        Logger.LogInformation("Command {CommandId} queued", cmdRequest.CommandId);
-        WakeUp();
     }
 
     public void QueueCommands(IEnumerable<CommandRequest> cmdRequests)

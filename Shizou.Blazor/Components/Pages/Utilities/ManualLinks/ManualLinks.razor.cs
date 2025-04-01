@@ -44,14 +44,14 @@ public partial class ManualLinks
 
     private void ScanFiles(List<LocalFile> localFiles)
     {
-        CommandService.DispatchRange(localFiles.Select(lf => new ProcessArgs(lf.Id, IdTypeLocalOrFile.LocalId)));
+        CommandService.Dispatch(localFiles.Select(lf => new ProcessArgs(lf.Id, IdTypeLocalOrFile.LocalId)));
         ToastService.ShowInfo("Queued Process Commands", $"Queued Process command for {localFiles.Count} files");
     }
 
     private void HashFiles(List<LocalFile> localFiles)
     {
         var hashableFiles = localFiles.Where(lf => lf.ImportFolder is not null).ToList();
-        CommandService.DispatchRange(hashableFiles.Select(lf => new HashArgs(Path.Combine(lf.ImportFolder!.Path, lf.PathTail))));
+        CommandService.Dispatch(hashableFiles.Select(lf => new HashArgs(Path.Combine(lf.ImportFolder!.Path, lf.PathTail))));
         if (hashableFiles.Count > 0)
             ToastService.ShowInfo("Queued Hash Commands", $"Queued hash commands for {hashableFiles.Count} files");
         foreach (var lf in localFiles.Where(lf => lf.ImportFolder is null))
@@ -70,7 +70,7 @@ public partial class ManualLinks
 
     private void AvDumpFiles(List<LocalFile> localFiles)
     {
-        CommandService.DispatchRange(localFiles.Select(lf => new AvDumpArgs(lf.Id)));
+        CommandService.Dispatch(localFiles.Select(lf => new AvDumpArgs(lf.Id)));
         ToastService.ShowInfo("Queued AVDump Commands", $"Queued AVDump for {localFiles.Count} files");
     }
 

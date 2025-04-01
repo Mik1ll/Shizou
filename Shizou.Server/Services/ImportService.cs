@@ -71,7 +71,7 @@ public class ImportService
         }).Where(f => f.Length > 0 && extensions.Contains(f.Extension.TrimStart('.'), StringComparer.OrdinalIgnoreCase) &&
                       (!dbFiles.TryGetValue(f.FullName, out var lf) || (!lf.Ignored && (forceRescan || f.Length != lf.FileSize))));
 
-        _commandService.DispatchRange(filesToHash.Select(e => new HashArgs(e.FullName)));
+        _commandService.Dispatch(filesToHash.Select(e => new HashArgs(e.FullName)));
     }
 
     /// <summary>

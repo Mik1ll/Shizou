@@ -309,7 +309,7 @@ public class AnimeCommand : Command<AnimeArgs>
 
         foreach (var cid in getImageForCreatorIds)
             _imageService.GetCreatorImage(cid);
-        _commandService.DispatchRange(needMoreInfoOnCreatorIds.Select(id => new CreatorArgs(id)));
+        _commandService.Dispatch(needMoreInfoOnCreatorIds.Select(id => new CreatorArgs(id)));
     }
 
     private void UpdateRelatedAnime(AnimeResult animeResult)
@@ -330,7 +330,7 @@ public class AnimeCommand : Command<AnimeArgs>
         {
             var missingAnime = _context.AniDbAnimeRelations.Where(r => r.AnimeId == animeResult.Id && !_context.AniDbAnimes.Any(a => a.Id == r.ToAnimeId))
                 .Select(r => r.ToAnimeId).ToList();
-            _commandService.DispatchRange(missingAnime.Select(aid => new AnimeArgs(aid, fetchDepth - 1)));
+            _commandService.Dispatch(missingAnime.Select(aid => new AnimeArgs(aid, fetchDepth - 1)));
         }
     }
 
