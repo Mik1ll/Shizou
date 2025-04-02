@@ -13,7 +13,7 @@
                         @if (_prevExpanded[processor])
                         {
                             <div class="mt-2 pt-2 border-top">
-                                @foreach (var c in processor.CommandHistory.SkipLast(1).TakeLast(3))
+                                @foreach (var c in processor.CommandHistory.SkipLast(processor.CurrentCommand is null ? 0 : 1).TakeLast(3))
                                 {
                                     <p class="mb-2 text-truncate">@c</p>
                                 }
