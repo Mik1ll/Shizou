@@ -21,23 +21,9 @@ public class AniDbUdpProcessor : CommandProcessor
 
     public override string DisplayName { get; } = "AniDB UDP";
 
-    public override bool Paused
-    {
-        get => _aniDbUdpState.Banned || base.Paused;
-        protected set
-        {
-            if (!value && _aniDbUdpState.Banned)
-                Logger.LogWarning("Can't unpause, UDP banned");
-            else
-                base.Paused = value;
-        }
-    }
+    public override bool Paused => _aniDbUdpState.Banned || base.Paused;
 
-    public override string? PauseReason
-    {
-        get => _aniDbUdpState is { Banned: true, BanReason: not null } ? _aniDbUdpState.BanReason : base.PauseReason;
-        protected set => base.PauseReason = value;
-    }
+    public override string? PauseReason => _aniDbUdpState.Banned ? $"UDP banned with Reason: {_aniDbUdpState.BanReason ?? "<empty>"}" : base.PauseReason;
 
     protected override async Task OnShutdownAsync()
     {

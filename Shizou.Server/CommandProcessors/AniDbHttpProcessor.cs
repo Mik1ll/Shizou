@@ -19,21 +19,7 @@ public class AniDbHttpProcessor : CommandProcessor
 
     public override string DisplayName { get; } = "AniDB HTTP";
 
-    public override bool Paused
-    {
-        get => _httpState.Banned || base.Paused;
-        protected set
-        {
-            if (!value && _httpState.Banned)
-                Logger.LogWarning("Can't unpause, HTTP banned");
-            else
-                base.Paused = value;
-        }
-    }
+    public override bool Paused => _httpState.Banned || base.Paused;
 
-    public override string? PauseReason
-    {
-        get => _httpState.Banned ? "HTTP banned" : base.PauseReason;
-        protected set => base.PauseReason = value;
-    }
+    public override string? PauseReason => _httpState.Banned ? "HTTP banned" : base.PauseReason;
 }

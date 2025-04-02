@@ -31,6 +31,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     private readonly IShizouContextFactory _contextFactory;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<CommandProcessor> _logger;
     private ICommand<CommandArgs>? _currentCommand;
     private bool _paused = true;
     private int _pollStep;
@@ -42,7 +43,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         IShizouContextFactory contextFactory,
         IServiceScopeFactory scopeFactory)
     {
-        Logger = logger;
+        _logger = logger;
         _contextFactory = contextFactory;
         _scopeFactory = scopeFactory;
         QueueType = queueType;
@@ -55,26 +56,14 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     public virtual bool Paused
     {
         get => _paused;
-        protected set
+        private set
         {
             SetField(ref _paused, value);
-            if (value)
-            {
-                if (PauseReason is null)
-                    Logger.LogInformation("Processor paused");
-                else
-                    Logger.LogInformation("Processor paused with reason: {PauseReason}", PauseReason);
-            }
-            else
-            {
-                PauseReason = null;
-                Logger.LogInformation("Processor unpaused");
-                WakeUp();
-            }
+            WakeUp();
         }
     }
 
-    public virtual string? PauseReason { get; protected set; }
+    public virtual string? PauseReason { get; private set; }
 
     public QueueType QueueType { get; }
 
@@ -99,8 +88,6 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         }
     }
 
-    protected ILogger<CommandProcessor> Logger { get; }
-
     private SortedList<(CommandPriority Priority, int Id), CommandRequest> CommandQueue { get; } = new();
 
     private int PollInterval => (int)(BasePollInterval * Math.Pow((double)MaxPollInterval / BasePollInterval, (float)PollStep / MaxPollSteps));
@@ -121,11 +108,20 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
     {
         PauseReason = pauseReason;
         Paused = true;
+        if (PauseReason is null)
+            _logger.LogInformation("Processor paused");
+        else
+            _logger.LogInformation("Processor paused with reason: {PauseReason}", PauseReason);
     }
 
     public bool Unpause()
     {
+        PauseReason = null;
         Paused = false;
+        if (Paused)
+            _logger.LogWarning("Processor failed to unpause with reason: {PauseReason}", PauseReason);
+        else
+            _logger.LogInformation("Processor unpaused");
         return !Paused;
     }
 
@@ -137,7 +133,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
         {
             if (context.CommandRequests.Any(cr => cr.CommandId == cmdRequest.CommandId))
             {
-                Logger.LogInformation("Command {CommandId} already queued", cmdRequest.CommandId);
+                _logger.LogInformation("Command {CommandId} already queued", cmdRequest.CommandId);
                 continue;
             }
 
@@ -148,7 +144,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 CommandQueue.Add(GetQueueKey(cmdRequest), cmdRequest);
             }
 
-            Logger.LogInformation("Command {CommandId} queued", cmdRequest.CommandId);
+            _logger.LogInformation("Command {CommandId} queued", cmdRequest.CommandId);
         }
 
         trans.Commit();
@@ -167,7 +163,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
         _currentCommandRequest = null;
         OnPropertyChanged(nameof(CommandsInQueue));
-        Logger.LogInformation("{QueueType} queue cleared", Enum.GetName(QueueType));
+        _logger.LogInformation("{QueueType} queue cleared", Enum.GetName(QueueType));
     }
 
     public List<CommandRequest> GetQueuedCommands()
@@ -206,7 +202,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 {
                     if (stoppingToken.IsCancellationRequested)
                         continue;
-                    Logger.LogDebug("Processor woken up from pause/inactive state");
+                    _logger.LogDebug("Processor woken up from pause/inactive state");
                 }
                 finally
                 {
@@ -230,13 +226,13 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             CurrentCommand = ((ICommand<CommandArgs>)scope.ServiceProvider.GetRequiredService(ArgsToCommandType[args.GetType()])).SetParameters(args);
             try
             {
-                Logger.LogDebug("Processing command: {CommandId}", CurrentCommand.CommandId);
+                _logger.LogDebug("Processing command: {CommandId}", CurrentCommand.CommandId);
                 await CurrentCommand.ProcessAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 Pause(ex.Message);
-                Logger.LogError(ex, "Error while processing command: {ExMessage}", ex.Message);
+                _logger.LogError(ex, "Error while processing command: {ExMessage}", ex.Message);
             }
 
             if (CurrentCommand.Completed)
@@ -245,16 +241,16 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             }
             else
             {
-                Logger.LogWarning("Not deleting uncompleted command request: {CommandId}", CurrentCommand.CommandId);
+                _logger.LogWarning("Not deleting uncompleted command request: {CommandId}", CurrentCommand.CommandId);
                 if (CommandHistory.Count >= 3 && CommandHistory.TakeLast(3).Distinct().Count() == 1)
                 {
                     Pause($"Failed to complete command: {CurrentCommand.CommandId} after three attempts");
-                    Logger.LogWarning("Queue paused after failing to complete command three times: {CommandId}", CurrentCommand.CommandId);
+                    _logger.LogWarning("Queue paused after failing to complete command three times: {CommandId}", CurrentCommand.CommandId);
                 }
             }
         }
 
-        Logger.LogDebug("Processor shutting down");
+        _logger.LogDebug("Processor shutting down");
         await OnShutdownAsync().ConfigureAwait(false);
     }
 
@@ -270,11 +266,11 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
             }
 
             OnPropertyChanged(nameof(CommandsInQueue));
-            Logger.LogDebug("Deleted command request: {CommandId}", _currentCommandRequest.CommandId);
+            _logger.LogDebug("Deleted command request: {CommandId}", _currentCommandRequest.CommandId);
         }
         else
         {
-            Logger.LogDebug("Not deleting command request, already deleted");
+            _logger.LogDebug("Not deleting command request, already deleted");
         }
     }
 
