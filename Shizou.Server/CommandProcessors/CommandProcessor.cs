@@ -86,7 +86,7 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
 
     public int CommandsInQueue => CommandQueue.Count;
 
-    public List<string> CommandHistory { get; private set; } = new();
+    public List<string> CommandHistory { get; private set; } = [];
 
     public List<string> NextThreeCommands
     {
@@ -148,11 +148,11 @@ public abstract class CommandProcessor : BackgroundService, INotifyPropertyChang
                 CommandQueue.Add(GetQueueKey(cmdRequest), cmdRequest);
             }
 
-            OnPropertyChanged(nameof(CommandsInQueue));
             Logger.LogInformation("Command {CommandId} queued", cmdRequest.CommandId);
         }
 
         trans.Commit();
+        OnPropertyChanged(nameof(CommandsInQueue));
         WakeUp();
     }
 
