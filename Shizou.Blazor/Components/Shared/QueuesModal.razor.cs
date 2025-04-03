@@ -7,6 +7,7 @@ namespace Shizou.Blazor.Components.Shared;
 
 public partial class QueuesModal : ComponentBase, IDisposable
 {
+    private Modal _modal = null!;
     private readonly Dictionary<CommandProcessor, bool> _nextExpanded = new();
 
     private readonly Dictionary<CommandProcessor, bool> _prevExpanded = new();
@@ -43,11 +44,6 @@ public partial class QueuesModal : ComponentBase, IDisposable
         foreach (var p in Processors) p.Unpause();
     }
 
-    private void ClearAll()
-    {
-        foreach (var p in Processors) p.ClearQueue();
-    }
-
     private void TogglePause(CommandProcessor processor)
     {
         if (processor.Paused)
@@ -56,10 +52,22 @@ public partial class QueuesModal : ComponentBase, IDisposable
             processor.Pause();
     }
 
+    private async Task CancelAsync()
+    {
+        await _modal.CancelAsync();
+    }
+
 #pragma warning disable VSTHRD100
     private async void OnCommandChanged(object? sender, PropertyChangedEventArgs e)
 #pragma warning restore VSTHRD100
     {
-        await InvokeAsync(StateHasChanged);
+        try
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
     }
 }

@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.ComponentModel;
+using Blazored.Modal.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
+using Shizou.Blazor.Components.Shared;
+using Shizou.Server.CommandProcessors;
 
 namespace Shizou.Blazor.Components.Layout;
 
@@ -11,21 +15,36 @@ public partial class NavMenu : IDisposable
     private string _theme = "auto";
     private Dictionary<string, string> _themeIconClasses = new() { { "light", "bi-sun-fill" }, { "dark", "bi-moon-stars-fill" }, { "auto", "bi-circle-half" } };
     private IJSObjectReference? _themeModule;
+    private string _currentUrl = null!;
 
     private string? NavMenuCssClass => _collapsed ? null : "show";
-    private string _currentUrl = default!;
 
     [Inject]
-    private IJSRuntime JsRuntime { get; set; } = default!;
+    private IJSRuntime JsRuntime { get; set; } = null!;
 
     [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = null!;
+
+    [Inject]
+    private IModalService ModalService { get; set; } = null!;
+
+    [Inject]
+    private IEnumerable<CommandProcessor> Processors { get; set; } = null!;
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+        foreach (var processor in Processors)
+            processor.PropertyChanged -= OnCommandChanged;
+    }
 
 
     protected override void OnInitialized()
     {
         _currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
+        foreach (var processor in Processors)
+            processor.PropertyChanged += OnCommandChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -35,6 +54,20 @@ public partial class NavMenu : IDisposable
             _themeModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/theme.js");
             _theme = await _themeModule.InvokeAsync<string>("getStoredTheme");
             StateHasChanged();
+        }
+    }
+
+#pragma warning disable VSTHRD100
+    private async void OnCommandChanged(object? sender, PropertyChangedEventArgs e)
+#pragma warning restore VSTHRD100
+    {
+        try
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception)
+        {
+            // ignored
         }
     }
 
@@ -56,8 +89,8 @@ public partial class NavMenu : IDisposable
         StateHasChanged();
     }
 
-    public void Dispose()
+    private async Task OpenQueueAsync()
     {
-        NavigationManager.LocationChanged -= OnLocationChanged;
+        await ModalService.Show<QueuesModal>().Result;
     }
 }

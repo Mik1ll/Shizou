@@ -1,9 +1,15 @@
 ﻿<nav class="navbar navbar-expand-md bg-secondary mb-3 sticky-top" style="z-index: 1021">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">Shizou</a>
-        <button type="button" title="Navigation menu" class="navbar-toggler" @onclick="@ToggleCollapse">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div>
+            <button type="button" class="btn badge rounded-pill bg-danger me-2 d-md-none" @onclick="@OpenQueueAsync">
+                <i class="bi bi-list-task"></i>
+                @(Processors.Sum(p => p.CommandsInQueue))
+            </button>
+            <button type="button" title="Navigation menu" class="navbar-toggler" @onclick="@ToggleCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
         <div class="navbar-collapse collapse @NavMenuCssClass mt-2 mt-md-0" @onclick="@ToggleCollapse">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
@@ -44,6 +50,10 @@
                     </NavLink>
                 </li>
             </ul>
+            <button type="button" class="btn badge rounded-pill bg-danger me-2 d-none d-md-inline-block" @onclick="@OpenQueueAsync">
+                <i class="bi bi-list-task"></i>
+                @(Processors.Sum(p => p.CommandsInQueue))
+            </button>
             <ul class="navbar-nav">
                 <li class="nav-item">
                     <button type="button" class="nav-link" @onclick="@ToggleDarkModeAsync">

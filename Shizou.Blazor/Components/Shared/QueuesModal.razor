@@ -1,7 +1,6 @@
-﻿<Modal class="modal-lg">
+﻿<Modal @ref="@_modal" class="modal-lg">
     <div class="modal-header">
         <h5 class="modal-title">Queue Status</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <div class="modal-body">
         <!-- Queue 1 -->
@@ -11,14 +10,16 @@
                 <div class="card-header d-flex justify-content-between">
                     <h6 class="card-title mb-0 align-self-center">@(processor.DisplayName)</h6>
                     <div class="ms-2">
-                        <span class="badge bg-primary">@(processor.CommandsInQueue)</span>
-                        <button class="btn btn-sm btn-link p-0 me-1" @onclick="@(() => _prevExpanded[processor] = !_prevExpanded[processor])">
+                        <span class="badge bg-primary me-1">@(processor.CommandsInQueue)</span>
+                        <button class="btn btn-sm btn-link text-@(_prevExpanded[processor] ? "secondary" : "primary") p-0 me-1"
+                                @onclick="@(() => _prevExpanded[processor] = !_prevExpanded[processor])">
                             <i class="bi bi-clock-history"></i>
                         </button>
-                        <button class="btn btn-sm btn-link p-0 me-1" @onclick="@(() => _nextExpanded[processor] = !_nextExpanded[processor])">
+                        <button class="btn btn-sm btn-link text-@(_nextExpanded[processor] ? "secondary" : "primary") p-0 me-1"
+                                @onclick="@(() => _nextExpanded[processor] = !_nextExpanded[processor])">
                             <i class="bi bi-clock"></i>
                         </button>
-                        <button class="btn btn-sm btn-link p-0 me-1" @onclick="@(() => TogglePause(processor))">
+                        <button class="btn btn-sm btn-link text-primary p-0 me-1" @onclick="@(() => TogglePause(processor))">
                             <i class="bi @(processor.Paused ? "bi-play-circle" : "bi-pause-circle")"></i>
                         </button>
                         <button class="btn btn-sm btn-link text-danger p-0" @onclick="@(processor.ClearQueue)">
@@ -51,6 +52,8 @@
         }
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-outline-warning" @onclick="@PauseAll">Pause All</button>
+        <button type="button" class="btn btn-outline-success" @onclick="@UnpauseAll">Unpause All</button>
+        <button type="button" class="btn btn-outline-secondary" @onclick="@CancelAsync">Dismiss</button>
     </div>
 </Modal>
