@@ -1,5 +1,4 @@
 ﻿using System.Dynamic;
-using System.Text.Json;
 using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
@@ -17,45 +16,45 @@ namespace Shizou.Blazor.Components.Pages.Anime.Components;
 
 public partial class FileCard
 {
-    private FileWatchedState _watchedState = default!;
-    private string _externalPlaybackUrl = default!;
-    private string _fileDownloadUrl = default!;
+    private FileWatchedState _watchedState = null!;
+    private string _externalPlaybackUrl = null!;
+    private string _fileDownloadUrl = null!;
     private bool _fileExists;
     private bool _schemeHandlerInstalled;
 
     [Inject]
-    private WatchStateService WatchStateService { get; set; } = default!;
+    private WatchStateService WatchStateService { get; set; } = null!;
 
     [Inject]
-    private ExternalPlaybackService ExternalPlaybackService { get; set; } = default!;
+    private ExternalPlaybackService ExternalPlaybackService { get; set; } = null!;
 
     [Inject]
-    private CommandService CommandService { get; set; } = default!;
+    private CommandService CommandService { get; set; } = null!;
 
     [Inject]
-    private ImportService ImportService { get; set; } = default!;
+    private ImportService ImportService { get; set; } = null!;
 
     [Inject]
-    private ManualLinkService ManualLinkService { get; set; } = default!;
+    private ManualLinkService ManualLinkService { get; set; } = null!;
 
     [Inject]
-    private IJSRuntime JsRuntime { get; set; } = default!;
+    private IJSRuntime JsRuntime { get; set; } = null!;
 
     [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     [Inject]
-    private LinkGenerator LinkGenerator { get; set; } = default!;
+    private LinkGenerator LinkGenerator { get; set; } = null!;
 
     [CascadingParameter]
-    public IModalService ModalService { get; set; } = default!;
+    public IModalService ModalService { get; set; } = null!;
 
     [CascadingParameter(Name = "IdentityCookie")]
-    public string IdentityCookie { get; set; } = default!;
+    public string IdentityCookie { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
-    public LocalFile LocalFile { get; set; } = default!;
+    public LocalFile LocalFile { get; set; } = null!;
 
     [Parameter]
     public EventCallback OnChanged { get; set; }
@@ -71,8 +70,7 @@ public partial class FileCard
             throw new ArgumentException("Must have either AniDb file or Manual Link");
         _watchedState = LocalFile.AniDbFile.FileWatchedState;
 
-        var res = await JsRuntime.InvokeAsync<JsonElement>("window.localStorage.getItem", LocalStorageKeys.SchemeHandlerInstalled);
-        _schemeHandlerInstalled = res is { ValueKind: JsonValueKind.String } && res.GetString() == "true";
+        _schemeHandlerInstalled = (await BrowserSettings.GetSettingsAsync(JsRuntime)).ExternalPlayerInstalled;
 
         var baseUri = new Uri(NavigationManager.BaseUri);
         _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(LocalFile.Ed2k, true, baseUri, IdentityCookie);
@@ -116,7 +114,6 @@ public partial class FileCard
     private async Task OpenSchemeHandlerDownloadModalAsync()
     {
         await ModalService.Show<SchemeHandlerDownloadModal>().Result;
-        var res = await JsRuntime.InvokeAsync<JsonElement>("window.localStorage.getItem", LocalStorageKeys.SchemeHandlerInstalled);
-        _schemeHandlerInstalled = res is { ValueKind: JsonValueKind.String } && res.GetString() == "true";
+        _schemeHandlerInstalled = (await BrowserSettings.GetSettingsAsync(JsRuntime)).ExternalPlayerInstalled;
     }
 }

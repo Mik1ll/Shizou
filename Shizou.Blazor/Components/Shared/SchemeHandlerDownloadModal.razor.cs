@@ -5,14 +5,16 @@ namespace Shizou.Blazor.Components.Shared;
 
 public partial class SchemeHandlerDownloadModal : ComponentBase
 {
-    private Modal _modal = default!;
+    private Modal _modal = null!;
 
     [Inject]
-    private IJSRuntime JsRuntime { get; set; } = default!;
+    private IJSRuntime JsRuntime { get; set; } = null!;
 
     private async Task InstalledAsync()
     {
-        await JsRuntime.InvokeVoidAsync("window.localStorage.setItem", LocalStorageKeys.SchemeHandlerInstalled, true);
+        var settings = await BrowserSettings.GetSettingsAsync(JsRuntime);
+        settings.ExternalPlayerInstalled = true;
+        await settings.SaveSettingsAsync(JsRuntime);
         await _modal.CloseAsync();
     }
 

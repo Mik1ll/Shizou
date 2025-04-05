@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Blazored.Modal;
+﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -16,33 +15,33 @@ public partial class UpNext
     private AniDbEpisode? _episode;
     private LocalFile? _localFile;
     private FileWatchedState? _watchedState;
-    private string _externalPlaybackUrl = default!;
+    private string _externalPlaybackUrl = null!;
     private bool _schemeHandlerInstalled;
 
     [Inject]
-    private WatchStateService WatchStateService { get; set; } = default!;
+    private WatchStateService WatchStateService { get; set; } = null!;
 
     [Inject]
-    private LinkGenerator LinkGenerator { get; set; } = default!;
+    private LinkGenerator LinkGenerator { get; set; } = null!;
 
     [Inject]
-    private ExternalPlaybackService ExternalPlaybackService { get; set; } = default!;
+    private ExternalPlaybackService ExternalPlaybackService { get; set; } = null!;
 
     [Inject]
-    private IJSRuntime JsRuntime { get; set; } = default!;
+    private IJSRuntime JsRuntime { get; set; } = null!;
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
     [CascadingParameter]
-    private IModalService ModalService { get; set; } = default!;
+    private IModalService ModalService { get; set; } = null!;
 
     [CascadingParameter(Name = "IdentityCookie")]
     private string IdentityCookie { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
-    public AniDbAnime AniDbAnime { get; set; } = default!;
+    public AniDbAnime AniDbAnime { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
@@ -52,8 +51,7 @@ public partial class UpNext
     {
         Update();
 
-        var res = await JsRuntime.InvokeAsync<JsonElement>("window.localStorage.getItem", LocalStorageKeys.SchemeHandlerInstalled);
-        _schemeHandlerInstalled = res is { ValueKind: JsonValueKind.String } && res.GetString() == "true";
+        _schemeHandlerInstalled = (await BrowserSettings.GetSettingsAsync(JsRuntime)).ExternalPlayerInstalled;
         var baseUri = new Uri(NavigationManager.BaseUri);
         if (_localFile is not null)
             _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(_localFile.Ed2k, false, baseUri, IdentityCookie);
@@ -89,7 +87,6 @@ public partial class UpNext
     private async Task OpenSchemeHandlerDownloadModalAsync()
     {
         await ModalService.Show<SchemeHandlerDownloadModal>().Result;
-        var res = await JsRuntime.InvokeAsync<JsonElement>("window.localStorage.getItem", LocalStorageKeys.SchemeHandlerInstalled);
-        _schemeHandlerInstalled = res is { ValueKind: JsonValueKind.String } && res.GetString() == "true";
+        _schemeHandlerInstalled = (await BrowserSettings.GetSettingsAsync(JsRuntime)).ExternalPlayerInstalled;
     }
 }
