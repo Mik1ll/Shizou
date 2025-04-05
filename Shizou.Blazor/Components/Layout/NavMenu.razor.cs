@@ -93,4 +93,9 @@ public partial class NavMenu : IDisposable
     {
         await ModalService.Show<QueuesModal>().Result;
     }
+
+    private string GetQueueBadgeColor()
+    {
+        return !Processors.Any(p => p.Paused) ? "primary" : Processors.All(p => p.Paused) ? "danger" : "warning";
+    }
 }
