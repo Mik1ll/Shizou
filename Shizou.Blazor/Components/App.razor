@@ -8,7 +8,6 @@
     <base href="/"/>
 
     <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="lib/open-iconic/font/css/open-iconic-bootstrap.min.css"/>
     <link rel="stylesheet" href="lib/bootstrap-icons/font/bootstrap-icons.min.css"/>
     <link rel="stylesheet" href="lib/video.js/video-js.min.css"/>
     <link rel="stylesheet" href="css/site.css"/>
@@ -42,7 +41,7 @@
 @code {
 
     [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private HttpContext HttpContext { get; set; } = null!;
 
     private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Account")
         ? null

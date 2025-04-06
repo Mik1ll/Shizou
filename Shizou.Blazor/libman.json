@@ -1,24 +1,10 @@
 {
-  "version": "1.0",
+  "version": "3.0",
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "bootstrap@5.3.2",
-      "destination": "wwwroot/lib/bootstrap",
-      "files": [
-        "js/bootstrap.bundle.min.js",
-        "js/bootstrap.bundle.min.js.map",
-        "css/bootstrap.min.css",
-        "css/bootstrap.min.css.map"
-      ]
-    },
-    {
       "library": "bootstrap-icons@1.11.1",
       "destination": "wwwroot/lib/bootstrap-icons"
-    },
-    {
-      "library": "open-iconic@1.1.1",
-      "destination": "wwwroot/lib/open-iconic"
     },
     {
       "library": "video.js@8.6.1",
@@ -28,6 +14,16 @@
       "provider": "jsdelivr",
       "library": "jassub@1.7.15",
       "destination": "wwwroot/lib/jassub"
+    },
+    {
+      "library": "bootstrap@5.3.3",
+      "destination": "wwwroot/lib/bootstrap",
+      "files": [
+        "css/bootstrap.css",
+        "css/bootstrap.css.map",
+        "css/bootstrap.min.css",
+        "css/bootstrap.min.css.map"
+      ]
     }
   ]
 }
