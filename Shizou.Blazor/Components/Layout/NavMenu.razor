@@ -2,9 +2,13 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="#">Shizou</a>
         <div>
-            <button type="button" class="btn badge rounded-pill bg-danger me-2 d-md-none" @onclick="@OpenQueueAsync">
-                <i class="bi bi-list-task"></i>
-                @(Processors.Sum(p => p.CommandsInQueue))
+            <button type="button"
+                    class="btn badge text-bg-@GetQueueBadgeColor() me-2 d-lg-none"
+                    @onclick="@OpenQueueAsync">
+                <h6 class="mb-0">
+                    <i class="bi bi-list-task"></i>
+                    @(Processors.Sum(p => p.CommandsInQueue))
+                </h6>
             </button>
             <button type="button" title="Navigation menu" class="navbar-toggler" @onclick="@ToggleCollapse">
                 <span class="navbar-toggler-icon"></span>
@@ -51,7 +55,7 @@
                 </li>
             </ul>
             <button type="button"
-                    class="btn badge text-bg-@GetQueueBadgeColor() me-2 d-none d-md-inline-block"
+                    class="btn badge text-bg-@GetQueueBadgeColor() me-2 d-none d-lg-inline-block"
                     @onclick="@OpenQueueAsync">
                 <h6 class="mb-0">
                     <i class="bi bi-list-task"></i>
