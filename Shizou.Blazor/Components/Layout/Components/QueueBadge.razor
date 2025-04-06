@@ -1,0 +1,8 @@
+﻿<button type="button"
+        class="btn badge text-bg-@(GetQueueBadgeColor()) @_extraClasses"
+        @onclick="@OpenQueueAsync">
+    <h6 class="mb-0">
+        <i class="bi bi-list-task"></i>
+        @(Processors.Sum(p => p.CommandsInQueue))
+    </h6>
+</button>

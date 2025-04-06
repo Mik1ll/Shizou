@@ -53,9 +53,8 @@ public partial class Modal
 
     protected override void OnParametersSet()
     {
-        object? addClasses = null;
-        AdditionalAttributes?.Remove("class", out addClasses);
-        _extraClasses = addClasses as string ?? string.Empty;
+        if (AdditionalAttributes is not null && AdditionalAttributes.Remove("class", out var addClasses))
+            _extraClasses = addClasses as string ?? string.Empty;
     }
 
     protected override void OnAfterRender(bool firstRender)
