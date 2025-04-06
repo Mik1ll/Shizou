@@ -19,7 +19,7 @@ public partial class Log : IDisposable
         RingBufferLogService.OnChange -= OnChange;
     }
 
-    private void OnChange(object? o, EventArgs logEventArgs) => InvokeAsync(StateHasChanged);
+    private void OnChange(object? o, EventArgs logEventArgs) => _ = InvokeAsync(StateHasChanged);
 
     private string GetText(LogEvent logEvent)
     {

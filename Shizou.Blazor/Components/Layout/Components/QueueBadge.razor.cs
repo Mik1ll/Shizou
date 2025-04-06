@@ -48,17 +48,5 @@ public partial class QueueBadge : ComponentBase, IDisposable
     }
 
 
-#pragma warning disable VSTHRD100
-    private async void OnCommandChanged(object? sender, PropertyChangedEventArgs e)
-#pragma warning restore VSTHRD100
-    {
-        try
-        {
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception)
-        {
-            // ignored
-        }
-    }
+    private void OnCommandChanged(object? sender, PropertyChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
 }
