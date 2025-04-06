@@ -58,6 +58,7 @@ public partial class NavMenu : IDisposable
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         _currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        _collapsed = true;
         StateHasChanged();
     }
 }
