@@ -8,8 +8,6 @@ LABEL org.opencontainers.image.source=https://github.com/Mik1ll/Shizou
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS publish
 ARG TARGETARCH
 
-RUN dotnet tool install Microsoft.Web.LibraryManager.Cli --tool-path /dotnet-tools
-
 RUN apt-get update && apt-get install -y --no-install-recommends xz-utils unzip
 
 ADD --link --checksum=sha256:6689420d7073c57d9faf19764e2a92f53c84d3ea66be402fd75e5419e2f0b38f https://cdn.anidb.net/client/avdump3/avdump3_8293_stable.zip /AVDump3.zip
@@ -42,6 +40,10 @@ RUN case ${TARGETARCH} in \
     && tar -oxJf ffmpeg.tar.xz --strip-components=1 -C /ffmpeg "ffmpeg-7.0.2-${TARGETARCH}-static/ffprobe" "ffmpeg-7.0.2-${TARGETARCH}-static/ffmpeg" \
     && rm ffmpeg.tar.xz
 
+WORKDIR /src/Shizou.Blazor
+COPY Shizou.Blazor/.config/dotnet-tools.json .config/
+RUN dotnet tool restore
+
 WORKDIR /src
 COPY NuGet.Config Shizou.sln ./
 COPY Shizou.Data/Shizou.Data.csproj Shizou.Data/
@@ -49,8 +51,8 @@ COPY Shizou.Server/Shizou.Server.csproj Shizou.Server/
 COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/libman.json Shizou.Blazor/
 # Libman requires json in working directory
 WORKDIR /src/Shizou.Blazor
-RUN /dotnet-tools/libman restore >/dev/null
-RUN dotnet restore Shizou.Blazor.csproj -a $TARGETARCH
+RUN dotnet libman restore >/dev/null \
+    && dotnet restore Shizou.Blazor.csproj -a $TARGETARCH
 COPY Shizou.Data ../Shizou.Data/
 COPY Shizou.Server ../Shizou.Server/
 COPY Shizou.Blazor ../Shizou.Blazor/
@@ -60,6 +62,6 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish --link /ffmpeg ./
 COPY --from=publish --link /AVDump3 AVDump3/
-COPY --from=publish --link /dotnet-runtime-6/shared /usr/share/dotnet/shared/
+COPY --from=publish --link /dotnet-runtime-6 /usr/share/dotnet/
 COPY --from=publish --link /app/publish ./
 ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
