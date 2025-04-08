@@ -383,15 +383,14 @@ public class AnimeCommand : Command<AnimeArgs>
         var xrefs = animeResult.Resources.Where(r => (ResourceType)r.Type == ResourceType.Mal)
             .SelectMany(r => r.ExternalEntities.SelectMany(e => e.Identifiers)
                 .Select(id => new MalAniDbXref { AniDbAnimeId = CommandArgs.AnimeId, MalAnimeId = int.Parse(id) })).ToList();
-        var eMalIds = _context.MalAnimes.Select(a => a.Id).ToHashSet();
-        foreach (var xref in xrefs.ExceptBy(eMalIds, x => x.MalAnimeId))
+        foreach (var xref in xrefs)
             await _myAnimeListService.GetAnimeAsync(xref.MalAnimeId).ConfigureAwait(false);
-        eMalIds = _context.MalAnimes.Select(a => a.Id).ToHashSet();
+        var xrefMalIds = xrefs.Select(a => a.MalAnimeId).ToArray();
+        var eMalIds = _context.MalAnimes.Where(a => xrefMalIds.Contains(a.Id)).Select(a => a.Id).ToHashSet();
         var eXrefs = _context.MalAniDbXrefs.Where(xref => xref.AniDbAnimeId == CommandArgs.AnimeId).ToList();
         _context.RemoveRange(eXrefs.ExceptBy(xrefs.Select(x => x.MalAnimeId), x => x.MalAnimeId));
         _context.AddRange(xrefs.ExceptBy(eXrefs.Select(x => x.MalAnimeId), x => x.MalAnimeId)
             .Where(x => eMalIds.Contains(x.MalAnimeId)));
-
 
         _context.SaveChanges();
     }
