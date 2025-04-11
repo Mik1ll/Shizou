@@ -47,8 +47,8 @@ public class FileServer : ControllerBase
     [HttpGet("{ed2K}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status416RangeNotSatisfiable)]
-    [SwaggerResponse(StatusCodes.Status206PartialContent, contentTypes: MediaTypeNames.Application.Octet)]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: MediaTypeNames.Application.Octet)]
+    [SwaggerResponse(StatusCodes.Status206PartialContent, null, typeof(Stream), MediaTypeNames.Application.Octet)]
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), MediaTypeNames.Application.Octet)]
     public Results<PhysicalFileHttpResult, NotFound> Get([FromRoute] string ed2K)
     {
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder)
@@ -66,7 +66,7 @@ public class FileServer : ControllerBase
 
     [HttpGet("{ed2K}/Playlist")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "application/x-mpegurl")]
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), "application/x-mpegurl")]
     public Results<FileContentHttpResult, NotFound> GetPlaylist([FromRoute] string ed2K, [FromQuery] bool? single)
     {
         var m3U8 = "#EXTM3U\n";
@@ -132,7 +132,7 @@ public class FileServer : ControllerBase
     /// <returns></returns>
     [HttpGet("{ed2K}/Subtitles/{index:int}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: "text/x-ssa")]
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), "text/x-ssa")]
     public Results<PhysicalFileHttpResult, NotFound> GetSubtitle([FromRoute] string ed2K, [FromRoute] int index)
     {
         var fileInfo = new FileInfo(FilePaths.ExtraFileData.SubPath(ed2K, index));
@@ -150,7 +150,7 @@ public class FileServer : ControllerBase
     /// <returns></returns>
     [HttpGet("{ed2k}/Fonts/{fontName}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: ["font/ttf", "font/otf"])]
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), "font/ttf", "font/otf")]
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont([FromRoute] string ed2K, [FromRoute] string fontName)
     {
         if (!SubtitleService.ValidFontFormats.Any(f => fontName.EndsWith(f, StringComparison.OrdinalIgnoreCase)))

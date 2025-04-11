@@ -872,13 +872,23 @@
           "206": {
             "description": "Partial Content",
             "content": {
-              "application/octet-stream": { }
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
             }
           },
           "200": {
             "description": "OK",
             "content": {
-              "application/octet-stream": { }
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
             }
           },
           "401": {
@@ -917,7 +927,12 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/x-mpegurl": { }
+              "application/x-mpegurl": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
             }
           },
           "401": {
@@ -957,8 +972,18 @@
           "200": {
             "description": "OK",
             "content": {
-              "font/ttf": { },
-              "font/otf": { }
+              "font/ttf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "font/otf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
             }
           },
           "401": {
@@ -999,7 +1024,12 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/x-ssa": { }
+              "text/x-ssa": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
             }
           },
           "401": {
@@ -1233,7 +1263,24 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/octet-stream": { }
+              "image/gif": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
             }
           },
           "404": {
@@ -1266,7 +1313,24 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/octet-stream": { }
+              "image/gif": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
             }
           },
           "404": {
@@ -1299,7 +1363,12 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/octet-stream": { }
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
             }
           },
           "404": {

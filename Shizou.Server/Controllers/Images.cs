@@ -37,7 +37,7 @@ public class Images : ControllerBase
     }
 
     [HttpGet("AnimePosters/{animeId:int}")]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: MediaTypeNames.Application.Octet)]
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), MediaTypeNames.Image.Gif, MediaTypeNames.Image.Png, MediaTypeNames.Image.Jpeg)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<PhysicalFileHttpResult, NotFound> GetAnimePoster([FromRoute] int animeId)
     {
@@ -49,7 +49,7 @@ public class Images : ControllerBase
     }
 
     [HttpGet("EpisodeThumbnails/{episodeId:int}")]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: MediaTypeNames.Application.Octet)]
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), MediaTypeNames.Image.Webp)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<PhysicalFileHttpResult, NotFound> GetEpisodeThumbnail([FromRoute] int episodeId)
     {
@@ -60,7 +60,7 @@ public class Images : ControllerBase
     }
 
     [HttpGet("CreatorImages/{creatorId:int}")]
-    [SwaggerResponse(StatusCodes.Status200OK, contentTypes: MediaTypeNames.Application.Octet)]
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), MediaTypeNames.Image.Gif, MediaTypeNames.Image.Png, MediaTypeNames.Image.Jpeg)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<PhysicalFileHttpResult, NotFound> GetCreatorImage([FromRoute] int creatorId)
     {
