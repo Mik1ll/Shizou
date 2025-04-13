@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Net.Mime;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
@@ -21,19 +22,16 @@ public partial class VideoModal
     private IJSObjectReference? _player;
 
     [Inject]
-    private IJSRuntime JsRuntime { get; set; } = default!;
+    private IJSRuntime JsRuntime { get; set; } = null!;
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = null!;
 
     [Inject]
-    private LinkGenerator LinkGenerator { get; set; } = default!;
+    private LinkGenerator LinkGenerator { get; set; } = null!;
 
     [Inject]
-    private FfmpegService FfmpegService { get; set; } = default!;
-
-    [Inject]
-    private IContentTypeProvider ContentTypeProvider { get; set; } = default!;
+    private FfmpegService FfmpegService { get; set; } = null!;
 
     [Parameter]
     public int LocalFileId { get; set; }
@@ -48,10 +46,14 @@ public partial class VideoModal
     {
         using var context = ContextFactory.CreateDbContext();
         _localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == LocalFileId);
-        _localFileMimeType = null;
         if (_localFile is not null)
-            ContentTypeProvider.TryGetContentType(_localFile.PathTail, out _localFileMimeType);
-        _localFileMimeType ??= "video/mp4";
+        {
+            if (!new FileExtensionContentTypeProvider().TryGetContentType(_localFile.PathTail, out _localFileMimeType))
+                _localFileMimeType = MediaTypeNames.Application.Octet;
+            if (Path.GetExtension(_localFile.PathTail) == ".mkv") // Lie so browser will try to interpret mkv as webm for web player
+                _localFileMimeType = "video/webm";
+        }
+
         await GetStreamUrlsAsync();
         _loadPlayer = true;
     }
