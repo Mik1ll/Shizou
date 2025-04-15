@@ -1,9 +1,9 @@
 ﻿@using Shizou.Data.Extensions
-<div class="card anime-card" role="button" @onclick="@GoToAnime">
+<a href="Collection/@AnimeId" class="card anime-card">
     <img alt="" loading="lazy" class="card-img object-fit-cover h-100" src="@_posterPath" onerror="this.onerror=null;this.src='images/missing_poster.png';">
     <div class="card-img-overlay d-flex p-0 align-items-end">
-        <div class="p-2 text-center text-white bg-black bg-opacity-50 w-100 overflow-hidden" style="text-shadow: 2px -1px 2px #000">
+        <div class="p-2 text-center text-white bg-black bg-opacity-75 w-100 overflow-hidden">
             @(Title.TruncateWithSuffix(45, "…"))
         </div>
     </div>
-</div>
+</a>
