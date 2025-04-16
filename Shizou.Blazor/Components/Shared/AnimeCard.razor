@@ -1,9 +1,5 @@
-﻿@using Shizou.Data.Extensions
-<a href="Collection/@AnimeId" class="card anime-card">
-    <img alt="" loading="lazy" class="card-img object-fit-cover h-100" src="@_posterPath" onerror="this.onerror=null;this.src='images/missing_poster.png';">
-    <div class="card-img-overlay d-flex p-0 align-items-end">
-        <div class="p-2 text-center text-white bg-black bg-opacity-75 w-100 overflow-hidden">
-            @(Title.TruncateWithSuffix(45, "…"))
-        </div>
-    </div>
+﻿<a href="Collection/@AnimeId" class="anime-card card text-decoration-none text-reset border-0">
+    <img alt="@Title" loading="lazy" class="card-img-top rounded object-fit-cover" src="@_posterPath"
+         onerror="this.onerror=null;this.src='images/missing_poster.png';">
+    <div class="p-2 pb-0 text-truncate">@Title</div>
 </a>
