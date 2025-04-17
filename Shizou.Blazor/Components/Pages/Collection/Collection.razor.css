@@ -1,5 +1,8 @@
 ﻿::deep .anime-card {
-    width: calc(100% / 2 - .5rem + .5rem / 2);
+    --gap-size: 1rem;
+    --cards-per-row: 2;
+    --card-width: calc(100% / var(--cards-per-row) - var(--gap-size) + var(--gap-size) / var(--cards-per-row));
+    width: var(--card-width);
 }
 
 ::deep .anime-card > img {
@@ -8,30 +11,35 @@
 
 @media (min-width: 576px) {
     ::deep .anime-card {
-        width: calc(100% / 3 - .5rem + .5rem / 3);
+        --cards-per-row: 3;
+        width: var(--card-width);
     }
 }
 
 @media (min-width: 768px) {
     ::deep .anime-card {
-        width: calc(100% / 4 - .5rem + .5rem / 4);
+        --cards-per-row: 4;
+        width: var(--card-width);
     }
 }
 
 @media (min-width: 992px) {
     ::deep .anime-card {
-        width: calc(100% / 5 - .5rem + .5rem / 5);
+        --cards-per-row: 5;
+        width: var(--card-width);
     }
 }
 
 @media (min-width: 1200px) {
     ::deep .anime-card {
-        width: calc(100% / 7 - .5rem + .5rem / 7);
+        --cards-per-row: 7;
+        width: var(--card-width);
     }
 }
 
 @media (min-width: 1400px) {
     ::deep .anime-card {
-        width: calc(100% / 10 - .5rem + .5rem / 10);
+        --cards-per-row: 10;
+        width: var(--card-width);
     }
 }

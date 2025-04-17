@@ -3,7 +3,7 @@
 @using Shizou.Data.Extensions
 @using Shizou.Data.FilterCriteria
 
-<main class="container-fluid"> @* Must have single top level element for ::deep css isolation *@
+<main class="container-fluid mb-3"> @* Must have single top level element for ::deep css isolation *@
     <FilterOffcanvas @ref="@(_filterOffcanvas)" ReloadCollection="@LoadAsync"></FilterOffcanvas>
     <PageTitle>Collection</PageTitle>
     <div class="row justify-content-center mb-2">
@@ -62,7 +62,7 @@
             </div>
         </div>
     </div>
-    <div class="d-flex flex-wrap align-content-start justify-content-start gap-2">
+    <div class="d-flex flex-wrap align-content-start justify-content-start column-gap-3">
         @foreach (var anime in _animeSearchResults ?? _anime ?? [])
         {
             <AnimeCard @key="@(anime.Id)" AnimeId="@(anime.Id)" Title="@(anime.TitleTranscription)"></AnimeCard>
