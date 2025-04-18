@@ -23,8 +23,8 @@ public enum AnimeSort
 // ReSharper disable once ClassNeverInstantiated.Global
 public partial class Collection
 {
-    private List<AniDbAnime>? _anime;
-    private List<AniDbAnime>? _animeSearchResults;
+    private List<AnimeQueryResult>? _anime;
+    private List<AnimeQueryResult>? _animeSearchResults;
     private List<AnimeFilter> _filters = null!;
     private AnimeFilter? _filter;
     private FilterOffcanvas _filterOffcanvas = null!;
@@ -87,7 +87,7 @@ public partial class Collection
         if (AnimeTypeEnum is not null)
             queryable = queryable.Where(a => a.AnimeType == AnimeTypeEnum);
         SortAnime(ref queryable);
-        _anime = queryable.ToList();
+        _anime = queryable.Select(a => new AnimeQueryResult(a.Id, a.TitleTranscription)).ToList();
         _aids = _anime?.Select(a => a.Id).ToHashSet();
         if (!string.IsNullOrWhiteSpace(_searchBox?.Query))
             SetSearchResults(await GetSearchResultsAsync(_searchBox.Query));
@@ -193,7 +193,9 @@ public partial class Collection
         await _filterOffcanvas.OpenNewAsync();
     }
 
-    private string GetPosterPath(AniDbAnime anime) =>
+    private string GetPosterPath(AnimeQueryResult anime) =>
         LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { animeId = anime.Id }) ??
         throw new ArgumentException("Could not generate anime poster path");
+
+    private record AnimeQueryResult(int Id, string TitleTranscription);
 }
