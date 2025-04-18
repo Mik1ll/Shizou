@@ -46,7 +46,8 @@ public partial class Anime
 
     protected override void OnParametersSet()
     {
-        _posterPath = LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { AnimeId }) ?? throw new ArgumentException();
+        _posterPath = LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { animeId = AnimeId }) ??
+                      throw new ArgumentException("Could not generate anime poster path");
         Load();
         _splitDescription = SplitRegex.Split(_anime?.Description ?? "");
         _descriptionTooLong = string.Join(string.Empty, _splitDescription.Where((_, i) => i % 3 == 0)).Length > _maxDescriptionLength;

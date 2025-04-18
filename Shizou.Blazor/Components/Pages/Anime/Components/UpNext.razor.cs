@@ -69,8 +69,8 @@ public partial class UpNext
     }
 
     private string GetEpisodeThumbnailPath() =>
-        LinkGenerator.GetPathByAction(nameof(Images.GetEpisodeThumbnail), nameof(Images), new { EpisodeId = _episode!.Id }) ??
-        throw new InvalidOperationException();
+        LinkGenerator.GetPathByAction(nameof(Images.GetEpisodeThumbnail), nameof(Images), new { episodeId = _episode!.Id }) ??
+        throw new ArgumentException("Could not generate episode thumbnail path");
 
     private void Mark(bool watched)
     {

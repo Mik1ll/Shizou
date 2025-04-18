@@ -6,6 +6,7 @@ using Shizou.Data.Database;
 using Shizou.Data.Enums;
 using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
+using Shizou.Server.Controllers;
 using Shizou.Server.Extensions.Query;
 using Shizou.Server.Services;
 
@@ -16,7 +17,7 @@ public enum AnimeSort
     AnimeId = 0,
     AirDate = 1,
     Alphabetical = 2,
-    RecentFiles = 3
+    RecentFiles = 3,
 }
 
 // ReSharper disable once ClassNeverInstantiated.Global
@@ -24,9 +25,9 @@ public partial class Collection
 {
     private List<AniDbAnime>? _anime;
     private List<AniDbAnime>? _animeSearchResults;
-    private List<AnimeFilter> _filters = default!;
+    private List<AnimeFilter> _filters = null!;
     private AnimeFilter? _filter;
-    private FilterOffcanvas _filterOffcanvas = default!;
+    private FilterOffcanvas _filterOffcanvas = null!;
     private HashSet<int>? _aids;
     private AnimeSort SortEnum => (AnimeSort)Sort;
     private AnimeSeason? SeasonEnum => (AnimeSeason?)Season;
@@ -34,13 +35,16 @@ public partial class Collection
     private LiveSearchBox? _searchBox;
 
     [Inject]
-    private IAnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
+    private IAnimeTitleSearchService AnimeTitleSearchService { get; set; } = null!;
 
     [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = null!;
+
+    [Inject]
+    private LinkGenerator LinkGenerator { get; set; } = null!;
 
     [Parameter]
     [SupplyParameterFromQuery]
@@ -144,20 +148,20 @@ public partial class Collection
 
     private void OnSortSelect(ChangeEventArgs e)
     {
-        Enum.TryParse<AnimeSort>((string?)e.Value, out var sort);
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Sort), (int)sort));
+        var sort = Enum.TryParse<AnimeSort>((string?)e.Value, out var outSort) ? (int?)outSort : null;
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Sort), sort));
     }
 
     private void OnSeasonSelect(ChangeEventArgs e)
     {
-        var season = Enum.TryParse<AnimeSeason>((string?)e.Value, out var outSeason) ? (AnimeSeason?)outSeason : null;
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Season), (int?)season));
+        var season = Enum.TryParse<AnimeSeason>((string?)e.Value, out var outSeason) ? (int?)outSeason : null;
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(Season), season));
     }
 
     private void OnAnimeTypeSelect(ChangeEventArgs e)
     {
-        var animeType = Enum.TryParse<AnimeType>((string?)e.Value, out var outAnimeType) ? (AnimeType?)outAnimeType : null;
-        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(AnimeType), (int?)animeType));
+        var animeType = Enum.TryParse<AnimeType>((string?)e.Value, out var outAnimeType) ? (int?)outAnimeType : null;
+        NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(AnimeType), animeType));
     }
 
     private void OnSortDirectionChanged()
@@ -174,7 +178,7 @@ public partial class Collection
 
     private void OnFilterSelect(ChangeEventArgs e)
     {
-        int.TryParse((string?)e.Value, out var filterId);
+        var filterId = int.TryParse((string?)e.Value, out var outFilterId) ? (int?)outFilterId : null;
         NavigationManager.NavigateTo(NavigationManager.GetUriWithQueryParameter(nameof(FilterId), filterId));
     }
 
@@ -188,4 +192,8 @@ public partial class Collection
     {
         await _filterOffcanvas.OpenNewAsync();
     }
+
+    private string GetPosterPath(AniDbAnime anime) =>
+        LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { animeId = anime.Id }) ??
+        throw new ArgumentException("Could not generate anime poster path");
 }

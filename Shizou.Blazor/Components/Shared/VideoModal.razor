@@ -1,9 +1,8 @@
-﻿@using Shizou.Server.Controllers
-<Modal OnCancel="@DisposeJavascriptAsync" class="modal-xl modal-fullscreen-lg-down">
+﻿<Modal OnCancel="@DisposeJavascriptAsync" class="modal-xl modal-fullscreen-lg-down">
     <div class="modal-body">
         <video id="@_videoId" class="h-100 w-100 object-fit-contain video-js" controls>
             @* ReSharper disable once RedundantAnonymousTypePropertyName *@
-            <source src="@(LinkGenerator.GetPathByAction(nameof(FileServer.Get), nameof(FileServer), new { ed2k = _localFile?.Ed2k }) ?? throw new ArgumentException())" type="@(_localFileMimeType)"/>
+            <source src="@GetVideoPath()" type="@(_localFileMimeType)"/>
             @foreach (var sub in _assSubs.AsEnumerable().Reverse())
             {
                 <track kind="subtitles" src="" srclang="@(sub.Lang)" label="@(sub.Title)"/>

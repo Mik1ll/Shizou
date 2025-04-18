@@ -1,45 +1,52 @@
-﻿::deep .anime-card {
+﻿.anime-card {
     --gap-size: 1rem;
     --cards-per-row: 2;
     --card-width: calc(100% / var(--cards-per-row) - var(--gap-size) + var(--gap-size) / var(--cards-per-row));
     width: var(--card-width);
 }
 
-::deep .anime-card > img {
+.anime-card > img {
     aspect-ratio: 2/3;
 }
 
 @media (min-width: 576px) {
-    ::deep .anime-card {
+    .anime-card {
         --cards-per-row: 3;
         width: var(--card-width);
     }
 }
 
 @media (min-width: 768px) {
-    ::deep .anime-card {
+    .anime-card {
         --cards-per-row: 4;
         width: var(--card-width);
     }
 }
 
 @media (min-width: 992px) {
-    ::deep .anime-card {
+    .anime-card {
         --cards-per-row: 5;
         width: var(--card-width);
     }
 }
 
 @media (min-width: 1200px) {
-    ::deep .anime-card {
+    .anime-card {
         --cards-per-row: 7;
         width: var(--card-width);
     }
 }
 
 @media (min-width: 1400px) {
-    ::deep .anime-card {
+    .anime-card {
         --cards-per-row: 10;
         width: var(--card-width);
     }
+}
+
+.title-line-clamp {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }

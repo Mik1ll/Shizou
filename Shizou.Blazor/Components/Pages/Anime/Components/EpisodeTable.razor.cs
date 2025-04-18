@@ -45,9 +45,8 @@ public partial class EpisodeTable
     }
 
 
-    private string GetEpisodeThumbnailPath(int episodeId)
-    {
-        return LinkGenerator.GetPathByAction(nameof(Images.GetEpisodeThumbnail), nameof(Images), new { EpisodeId = episodeId }) ??
-               throw new InvalidOperationException();
-    }
+    private string GetEpisodeThumbnailPath(int episodeId) =>
+        // ReSharper disable once RedundantAnonymousTypePropertyName
+        LinkGenerator.GetPathByAction(nameof(Images.GetEpisodeThumbnail), nameof(Images), new { episodeId = episodeId }) ??
+        throw new ArgumentException("Could not generate episode thumbnail path");
 }

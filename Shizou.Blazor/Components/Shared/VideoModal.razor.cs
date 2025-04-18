@@ -90,7 +90,8 @@ public partial class VideoModal
             if (SubtitleService.ValidSubFormats.Contains(stream.codec))
             {
                 var subUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetSubtitle), nameof(FileServer),
-                    new { _localFile.Ed2k, stream.index }) ?? throw new ArgumentException();
+                    // ReSharper disable once RedundantAnonymousTypePropertyName
+                    new { ed2k = _localFile.Ed2k, index = stream.index }) ?? throw new ArgumentException("Could not generate subtitle path");
                 _assSubs.Add((subUrl, stream.lang, stream.title));
             }
             else if (stream.filename is not null && (SubtitleService.ValidFontFormats.Contains(stream.codec) ||
@@ -98,8 +99,11 @@ public partial class VideoModal
                                                          stream.filename.EndsWith(f, StringComparison.OrdinalIgnoreCase))))
             {
                 var fontUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetFont), nameof(FileServer),
-                    new { _localFile.Ed2k, FontName = stream.filename }) ?? throw new ArgumentException();
+                    new { ed2k = _localFile.Ed2k, fontName = stream.filename }) ?? throw new ArgumentException("Could not generate font path");
                 _fontUrls.Add(fontUrl);
             }
     }
+
+    private string GetVideoPath() => LinkGenerator.GetPathByAction(nameof(FileServer.Get), nameof(FileServer), new { ed2k = _localFile?.Ed2k }) ??
+                                     throw new ArgumentException("Could not generate video file path");
 }

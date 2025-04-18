@@ -3,7 +3,7 @@
 @using Shizou.Data.Extensions
 @using Shizou.Data.FilterCriteria
 
-<main class="container-fluid mb-3"> @* Must have single top level element for ::deep css isolation *@
+<main class="container-fluid mb-3">
     <FilterOffcanvas @ref="@(_filterOffcanvas)" ReloadCollection="@LoadAsync"></FilterOffcanvas>
     <PageTitle>Collection</PageTitle>
     <div class="row justify-content-center mb-2">
@@ -65,7 +65,12 @@
     <div class="d-flex flex-wrap align-content-start justify-content-start column-gap-3">
         @foreach (var anime in _animeSearchResults ?? _anime ?? [])
         {
-            <AnimeCard @key="@(anime.Id)" AnimeId="@(anime.Id)" Title="@(anime.TitleTranscription)"></AnimeCard>
+            <a @key="@(anime.Id)" href="Collection/@(anime.Id)" class="anime-card card text-decoration-none text-reset border-0">
+                <img alt="@(anime.TitleTranscription)" loading="lazy" class="rounded object-fit-cover"
+                     src="@GetPosterPath(anime)"
+                     onerror="this.onerror=null;this.src='images/missing_poster.png';">
+                <div class="m-1 mb-2 text-center title-line-clamp">@(anime.TitleTranscription)</div>
+            </a>
         }
     </div>
 </main>
