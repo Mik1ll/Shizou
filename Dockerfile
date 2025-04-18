@@ -49,7 +49,7 @@ COPY Shizou.Blazor ../Shizou.Blazor/
 RUN dotnet publish Shizou.Blazor.csproj --no-restore -c Release -a $TARGETARCH --no-self-contained -o /app/publish
 
 WORKDIR /src/Shizou.HealthChecker
-RUN --mount=source=Shizou.HealthChecker,dst=/src/Shizou.HealthChecker \
+RUN --mount=source=Shizou.HealthChecker,dst=/src/Shizou.HealthChecker,rw \
     dotnet publish --no-restore -c Release -a $TARGETARCH --no-self-contained -o /app/publish
 
 FROM base AS final
