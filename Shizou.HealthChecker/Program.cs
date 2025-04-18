@@ -1,4 +1,8 @@
-﻿var httpClient = new HttpClient();
+﻿var handler = new HttpClientHandler
+{
+    ServerCertificateCustomValidationCallback = (message, _, _, _) => message.RequestUri is { IsLoopback: true },
+};
+var httpClient = new HttpClient(handler);
 httpClient.DefaultRequestHeaders.ConnectionClose = true;
 
 if (args.Length > 0 && Uri.TryCreate(args[0], UriKind.Absolute, out var uri))
