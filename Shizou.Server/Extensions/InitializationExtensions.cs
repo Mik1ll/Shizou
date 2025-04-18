@@ -213,6 +213,7 @@ public static class InitializationExtensions
                 opts.Cookie.Name = IdentityConstants.ApplicationScheme;
             })
             .AddAuthorization()
+            .AddHealthChecks().Services
             .AddScoped<IShizouContext, ShizouContext>(p => p.GetRequiredService<ShizouContext>())
             .AddSingleton<IShizouContextFactory, ShizouContextFactory>(p =>
                 new ShizouContextFactory(p.GetRequiredService<IDbContextFactory<ShizouContext>>()))

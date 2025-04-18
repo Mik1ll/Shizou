@@ -108,6 +108,8 @@ try
 
     app.MapControllers().RequireAuthorization();
 
+    app.MapHealthChecks("/healthz");
+
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 

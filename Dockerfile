@@ -48,10 +48,15 @@ COPY Shizou.Server ../Shizou.Server/
 COPY Shizou.Blazor ../Shizou.Blazor/
 RUN dotnet publish Shizou.Blazor.csproj --no-restore -c Release -a $TARGETARCH --no-self-contained -o /app/publish
 
+WORKDIR /src/Shizou.HealthChecker
+RUN --mount=source=Shizou.HealthChecker,dst=/src/Shizou.HealthChecker \
+    dotnet publish --no-restore -c Release -a $TARGETARCH --no-self-contained -o /app/publish
+
 FROM base AS final
 WORKDIR /app
 COPY --from=publish --link /ffmpeg ./
 COPY --from=publish --link /AVDump3 AVDump3/
 COPY --from=publish --link /dotnet-runtime-6 /usr/share/dotnet/
 COPY --from=publish --link /app/publish ./
-ENTRYPOINT ["dotnet", "Shizou.Blazor.dll"]
+HEALTHCHECK CMD ["dotnet", "/app/Shizou.HealthChecker.dll", "https://localhost:8443/healthz"]
+ENTRYPOINT ["dotnet", "/app/Shizou.Blazor.dll"]

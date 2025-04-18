@@ -74,6 +74,8 @@ try
 
     app.MapControllers().RequireAuthorization();
 
+    app.MapHealthChecks("/healthz");
+
     app.MigrateDatabase();
 
     app.Run();
