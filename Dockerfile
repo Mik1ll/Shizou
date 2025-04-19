@@ -33,7 +33,7 @@ RUN --mount=from=dl,dst=/dl mkdir /dotnet-runtime-6 /ffmpeg \
 
 WORKDIR /src/Shizou.HealthChecker
 RUN --mount=source=Shizou.HealthChecker,dst=/src/Shizou.HealthChecker,rw \
-    dotnet publish -c Release -a $TARGETARCH --no-self-contained -o /app/publish \
+    dotnet publish -c Release -a $TARGETARCH --no-self-contained -o /app/publish
 
 WORKDIR /src/Shizou.Blazor
 COPY Shizou.sln /src/
