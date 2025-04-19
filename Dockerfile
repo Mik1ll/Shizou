@@ -47,10 +47,10 @@ RUN --mount=source=NuGet.Config,dst=/src/NuGet.Config \
     --mount=source=Shizou.Server/Shizou.Server.csproj,dst=/src/Shizou.Server/Shizou.Server.csproj \
     --mount=source=Shizou.Blazor/Shizou.Blazor.csproj,dst=/src/Shizou.Blazor/Shizou.Blazor.csproj \
      dotnet restore -a $TARGETARCH
-RUN --mount=source=Shizou.Data,dst=/src/Shizou.Data,rw \
-    --mount=source=Shizou.Server,dst=/src/Shizou.Server,rw \
-    --mount=source=Shizou.Blazor,dst=/src/Shizou.Blazor,rw \
-    dotnet publish --no-restore -c Release -a $TARGETARCH --no-self-contained -o /app/publish
+COPY Shizou.Data /src/Shizou.Data
+COPY Shizou.Server /src/Shizou.Server
+COPY Shizou.Blazor /src/Shizou.Blazor
+RUN dotnet publish --no-restore -c Release -a $TARGETARCH --no-self-contained -o /app/publish
 
 FROM base AS final
 WORKDIR /app
