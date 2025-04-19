@@ -27,30 +27,29 @@ ARG TARGETARCH
 
 RUN apt-get update && apt-get install -y --no-install-recommends xz-utils unzip
 RUN --mount=from=dl,dst=/dl mkdir /dotnet-runtime-6 /ffmpeg \
-&& unzip /dl/AVDump3.zip -d /AVDump3 \
-&& tar -oxzf /dl/dotnet.tar.gz -C /dotnet-runtime-6 ./shared/Microsoft.NETCore.App \
-&& tar -oxJf /dl/ffmpeg.tar.xz --strip-components=1 --wildcards -C /ffmpeg "*/ffprobe" "*/ffmpeg"
-
-WORKDIR /src/Shizou.Blazor
-COPY Shizou.Blazor/.config/dotnet-tools.json .config/
-RUN dotnet tool restore
-
-WORKDIR /src
-COPY NuGet.Config Shizou.sln ./
-COPY Shizou.Data/Shizou.Data.csproj Shizou.Data/
-COPY Shizou.Server/Shizou.Server.csproj Shizou.Server/
-COPY Shizou.Blazor/Shizou.Blazor.csproj Shizou.Blazor/libman.json Shizou.Blazor/
-# Libman requires json in working directory
-WORKDIR /src/Shizou.Blazor
-RUN dotnet libman restore >/dev/null && dotnet restore Shizou.Blazor.csproj -a $TARGETARCH
-COPY Shizou.Data ../Shizou.Data/
-COPY Shizou.Server ../Shizou.Server/
-COPY Shizou.Blazor ../Shizou.Blazor/
-RUN dotnet publish Shizou.Blazor.csproj --no-restore -c Release -a $TARGETARCH --no-self-contained -o /app/publish
+    && unzip /dl/AVDump3.zip -d /AVDump3 \
+    && tar -oxzf /dl/dotnet.tar.gz -C /dotnet-runtime-6 ./shared/Microsoft.NETCore.App \
+    && tar -oxJf /dl/ffmpeg.tar.xz --strip-components=1 --wildcards -C /ffmpeg "*/ffprobe" "*/ffmpeg"
 
 WORKDIR /src/Shizou.HealthChecker
 RUN --mount=source=Shizou.HealthChecker,dst=/src/Shizou.HealthChecker,rw \
-    dotnet publish -c Release -a $TARGETARCH --no-self-contained -o /app/publish
+    dotnet publish -c Release -a $TARGETARCH --no-self-contained -o /app/publish \
+
+WORKDIR /src/Shizou.Blazor
+COPY Shizou.sln /src/
+RUN --mount=source=Shizou.Blazor/.config/dotnet-tools.json,dst=/src/Shizou.Blazor/.config/dotnet-tools.json \
+    dotnet tool restore
+RUN --mount=source=Shizou.Blazor/libman.json,dst=/src/Shizou.Blazor/libman.json \
+    dotnet libman restore
+RUN --mount=source=NuGet.Config,dst=/src/NuGet.Config \
+    --mount=source=Shizou.Data/Shizou.Data.csproj,dst=/src/Shizou.Data/Shizou.Data.csproj \
+    --mount=source=Shizou.Server/Shizou.Server.csproj,dst=/src/Shizou.Server/Shizou.Server.csproj \
+    --mount=source=Shizou.Blazor/Shizou.Blazor.csproj,dst=/src/Shizou.Blazor/Shizou.Blazor.csproj \
+     dotnet restore -a $TARGETARCH
+RUN --mount=source=Shizou.Data,dst=/src/Shizou.Data,rw \
+    --mount=source=Shizou.Server,dst=/src/Shizou.Server,rw \
+    --mount=source=Shizou.Blazor,dst=/src/Shizou.Blazor,rw \
+    dotnet publish --no-restore -c Release -a $TARGETARCH --no-self-contained -o /app/publish
 
 FROM base AS final
 WORKDIR /app
