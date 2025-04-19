@@ -39,7 +39,8 @@ WORKDIR /src/Shizou.Blazor
 COPY Shizou.sln /src/
 RUN --mount=source=Shizou.Blazor/.config/dotnet-tools.json,dst=/src/Shizou.Blazor/.config/dotnet-tools.json \
     dotnet tool restore
-RUN --mount=source=Shizou.Blazor/libman.json,dst=/src/Shizou.Blazor/libman.json \
+RUN --mount=source=Shizou.Blazor/.config/dotnet-tools.json,dst=/src/Shizou.Blazor/.config/dotnet-tools.json \
+    --mount=source=Shizou.Blazor/libman.json,dst=/src/Shizou.Blazor/libman.json \
     dotnet libman restore
 RUN --mount=source=NuGet.Config,dst=/src/NuGet.Config \
     --mount=source=Shizou.Data/Shizou.Data.csproj,dst=/src/Shizou.Data/Shizou.Data.csproj \
