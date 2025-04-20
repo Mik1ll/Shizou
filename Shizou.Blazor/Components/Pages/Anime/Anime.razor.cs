@@ -46,13 +46,17 @@ public partial class Anime
 
     protected override void OnParametersSet()
     {
-        _posterPath = LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { animeId = AnimeId }) ??
-                      throw new ArgumentException("Could not generate anime poster path");
+        _posterPath = GetPosterPath(AnimeId);
         Load();
         _splitDescription = SplitRegex.Split(_anime?.Description ?? "");
         _descriptionTooLong = string.Join(string.Empty, _splitDescription.Where((_, i) => i % 3 == 0)).Length > _maxDescriptionLength;
         _description = GenerateDescription();
     }
+
+    private string GetPosterPath(int animeId) =>
+        // ReSharper disable once RedundantAnonymousTypePropertyName
+        LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { animeId = animeId }) ??
+        throw new ArgumentException("Could not generate anime poster path");
 
     private RenderFragment GenerateDescription()
     {

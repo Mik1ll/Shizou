@@ -67,10 +67,9 @@
                         <div class="d-flex flex-wrap mt-2 column-gap-2">
                             @foreach (var (relationType, anime) in _relatedAnime!)
                             {
-                                <div @key="@(anime.Id)" class="text-center">
-                                    <AnimeCard Title="@(anime.TitleTranscription)" AnimeId="@(anime.Id)"></AnimeCard>
-                                    <span>@relationType.ToString()</span>
-                                </div>
+                                <AnimeCard @key="@(anime.Id)" AnimeId="@(anime.Id)" Title="@(anime.TitleTranscription)" PosterPath="@(GetPosterPath(anime.Id))">
+                                    <div class="text-center">@(relationType.ToString())</div>
+                                </AnimeCard>
                             }
                         </div>
                     </CollapsibleSection>
