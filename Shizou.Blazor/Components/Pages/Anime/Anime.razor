@@ -1,29 +1,23 @@
 ﻿@page "/Collection/{AnimeId:int}"
 @using Shizou.Data.Extensions
 
-<main class="container-xl">
+<main class="container-xl mb-3">
     @if (_anime is not null)
     {
         <PageTitle>@_anime.TitleTranscription</PageTitle>
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-12 mb-3 text-center text-md-end">
+        <div class="row justify-content-center g-0 mb-3">
+            <div class="col-lg-4 col-sm-5 col-12  text-center text-md-end">
                 <img alt="" src="@_posterPath" onerror="this.onerror=null;this.src='images/missing_poster.png';" class="rounded img-fluid">
             </div>
-            <div class="col-md-6 col-12 mb-3">
-                <div class="card w-100">
+            <div class="col-lg-8 col-sm-7 col-12">
+                <div class="card border-0 w-100">
                     <div class="card-body">
                         <h4 class="card-title">
                             @_anime.TitleTranscription <a class="bi bi-box-arrow-up-right" href="https://anidb.net/anime/@(_anime.Id)" target="_blank"></a>
                         </h4>
-                        <p class="card-text">
+                        <div class="card-text anime-description">
                             @_description
-                            @if (_descriptionTooLong)
-                            {
-                                <button type="button" class="btn btn-link shadow-none pt-0 pb-0" @onclick="@ToggleDescriptionExpand">
-                                    @(_expandDescription ? "Read Less" : "Read More")
-                                </button>
-                            }
-                        </p>
+                        </div>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">
                                 Aired: @(_anime.AirDate is null ? "??" : _anime.AirDate.Value.ToString("MMMM dd, yyyy"))
@@ -58,7 +52,7 @@
             </div>
 
             <div class="row justify-content-center">
-                <div class="mb-3 col-xl-6 col-lg-8 col-md-10 col-12">
+                <div class="col-12">
                     <UpNext AniDbAnime="@_anime" OnChanged="@Load"></UpNext>
                     <CollapsibleSection Header="Episodes" ShowDefault="true">
                         <EpisodeTable AniDbAnime="@_anime" OnChanged="@Load"></EpisodeTable>

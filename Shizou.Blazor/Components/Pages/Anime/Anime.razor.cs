@@ -5,7 +5,6 @@ using Shizou.Blazor.Services;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Database;
 using Shizou.Data.Enums;
-using Shizou.Data.Extensions;
 using Shizou.Data.Models;
 using Shizou.Server.Controllers;
 using Shizou.Server.Extensions.Query;
@@ -16,30 +15,27 @@ namespace Shizou.Blazor.Components.Pages.Anime;
 public partial class Anime
 {
     private static readonly Regex SplitRegex = new(@"(https?:\/\/\S*?) \[(.+?)\]", RegexOptions.Compiled);
-    private readonly int _maxDescriptionLength = 500;
 
     private AniDbAnime? _anime;
     private List<(RelatedAnimeType, AniDbAnime)>? _relatedAnime;
-    private string[] _splitDescription = default!;
-    private string _posterPath = default!;
+    private string[] _splitDescription = null!;
+    private string _posterPath = null!;
     private RenderFragment? _description;
-    private bool _expandDescription;
-    private bool _descriptionTooLong;
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = null!;
 
     [Inject]
-    private WatchStateService WatchStateService { get; set; } = default!;
+    private WatchStateService WatchStateService { get; set; } = null!;
 
     [Inject]
-    private LinkGenerator LinkGenerator { get; set; } = default!;
+    private LinkGenerator LinkGenerator { get; set; } = null!;
 
     [Inject]
-    private CommandService CommandService { get; set; } = default!;
+    private CommandService CommandService { get; set; } = null!;
 
     [Inject]
-    private ToastService ToastService { get; set; } = default!;
+    private ToastService ToastService { get; set; } = null!;
 
     [Parameter]
     public int AnimeId { get; set; }
@@ -49,7 +45,6 @@ public partial class Anime
         _posterPath = GetPosterPath(AnimeId);
         Load();
         _splitDescription = SplitRegex.Split(_anime?.Description ?? "");
-        _descriptionTooLong = string.Join(string.Empty, _splitDescription.Where((_, i) => i % 3 == 0)).Length > _maxDescriptionLength;
         _description = GenerateDescription();
     }
 
@@ -62,29 +57,17 @@ public partial class Anime
     {
         return b =>
         {
-            var count = 0;
             for (var i = 0; i < _splitDescription.Length; i++)
-                if (i % 3 == 0)
+                switch (i % 3)
                 {
-                    if (_expandDescription)
-                    {
+                    case 0:
                         b.AddContent(0, _splitDescription[i]);
-                    }
-                    else
-                    {
-                        b.AddContent(1, _splitDescription[i].TruncateWithSuffix(_maxDescriptionLength - count, "..."));
-                        if ((count += _splitDescription[i].Length) > _maxDescriptionLength)
-                            break;
-                    }
+                        break;
+                    case 1:
+                        b.AddMarkupContent(1, $"<a href=\"{_splitDescription[i]}\" target=\"_blank\"><span>{_splitDescription[i + 1]}</span></a>");
+                        break;
                 }
-                else if (i % 3 == 1)
-                    b.AddMarkupContent(2, $"<a href=\"{_splitDescription[i]}\" target=\"_blank\">{_splitDescription[i + 1]}</a>");
         };
-    }
-
-    private void ToggleDescriptionExpand()
-    {
-        _expandDescription = !_expandDescription;
     }
 
     private void Load()

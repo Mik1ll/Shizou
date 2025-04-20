@@ -34,3 +34,8 @@
         --cards-per-row: 5;
     }
 }
+
+.anime-description {
+    max-height: 5lh;
+    overflow: auto;
+}
