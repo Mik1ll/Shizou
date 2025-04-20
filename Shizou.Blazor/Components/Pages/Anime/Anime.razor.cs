@@ -14,13 +14,13 @@ namespace Shizou.Blazor.Components.Pages.Anime;
 
 public partial class Anime
 {
-    private static readonly Regex SplitRegex = new(@"(https?:\/\/\S*?) \[(.+?)\]", RegexOptions.Compiled);
+    [GeneratedRegex(@"(https?:\/\/\S*?) \[(.+?)\]")]
+    private static partial Regex LinkRegex();
 
     private AniDbAnime? _anime;
     private List<(RelatedAnimeType, AniDbAnime)>? _relatedAnime;
     private string[] _splitDescription = null!;
     private string _posterPath = null!;
-    private RenderFragment? _description;
 
     [Inject]
     private IShizouContextFactory ContextFactory { get; set; } = null!;
@@ -44,31 +44,13 @@ public partial class Anime
     {
         _posterPath = GetPosterPath(AnimeId);
         Load();
-        _splitDescription = SplitRegex.Split(_anime?.Description ?? "");
-        _description = GenerateDescription();
+        _splitDescription = LinkRegex().Split(_anime?.Description ?? "");
     }
 
     private string GetPosterPath(int animeId) =>
         // ReSharper disable once RedundantAnonymousTypePropertyName
         LinkGenerator.GetPathByAction(nameof(Images.GetAnimePoster), nameof(Images), new { animeId = animeId }) ??
         throw new ArgumentException("Could not generate anime poster path");
-
-    private RenderFragment GenerateDescription()
-    {
-        return b =>
-        {
-            for (var i = 0; i < _splitDescription.Length; i++)
-                switch (i % 3)
-                {
-                    case 0:
-                        b.AddContent(0, _splitDescription[i]);
-                        break;
-                    case 1:
-                        b.AddMarkupContent(1, $"<a href=\"{_splitDescription[i]}\" target=\"_blank\"><span>{_splitDescription[i + 1]}</span></a>");
-                        break;
-                }
-        };
-    }
 
     private void Load()
     {

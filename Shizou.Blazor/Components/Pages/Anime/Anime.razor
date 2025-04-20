@@ -16,7 +16,18 @@
                             @_anime.TitleTranscription <a class="bi bi-box-arrow-up-right" href="https://anidb.net/anime/@(_anime.Id)" target="_blank"></a>
                         </h4>
                         <div class="card-text anime-description">
-                            @_description
+                            @for (var i = 0; i < _splitDescription.Length; i++)
+                            {
+                                switch (i % 3)
+                                {
+                                    case 0:
+                                        <text>@(_splitDescription[i])</text>
+                                        break;
+                                    case 1:
+                                        <a href="@(_splitDescription[i])" target="_blank">@(_splitDescription[i + 1])</a>
+                                        break;
+                                }
+                            }
                         </div>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">
