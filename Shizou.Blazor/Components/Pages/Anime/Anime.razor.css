@@ -1,0 +1,36 @@
+﻿::deep .anime-card {
+    --gap-size: .5rem;
+    --cards-per-row: 3;
+    --card-width: calc(100% / var(--cards-per-row) - var(--gap-size) + var(--gap-size) / var(--cards-per-row));
+    width: var(--card-width);
+}
+
+@media (min-width: 576px) {
+    ::deep .anime-card {
+        --cards-per-row: 4;
+    }
+}
+
+@media (min-width: 768px) {
+    ::deep .anime-card {
+        --cards-per-row: 4;
+    }
+}
+
+@media (min-width: 992px) {
+    ::deep .anime-card {
+        --cards-per-row: 5;
+    }
+}
+
+@media (min-width: 1200px) {
+    ::deep .anime-card {
+        --cards-per-row: 5;
+    }
+}
+
+@media (min-width: 1400px) {
+    ::deep .anime-card {
+        --cards-per-row: 5;
+    }
+}

@@ -3,7 +3,7 @@
 @using Shizou.Data.Extensions
 @using Shizou.Data.FilterCriteria
 
-<main class="container-fluid mb-3">
+<main class="container-fluid mb-3"> @* Must have single root element for ::deep css selector to work *@
     <FilterOffcanvas @ref="@(_filterOffcanvas)" ReloadCollection="@LoadAsync"></FilterOffcanvas>
     <PageTitle>Collection</PageTitle>
     <div class="row justify-content-center mb-2">
