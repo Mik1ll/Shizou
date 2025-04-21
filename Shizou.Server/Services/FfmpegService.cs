@@ -94,27 +94,18 @@ public class FfmpegService
         var outputPath = FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k);
         if (Path.GetDirectoryName(outputPath) is { } parentPath)
             Directory.CreateDirectory(parentPath);
-        var fps = 5;
-        var height = 480;
-        var width = 854;
-        var offset = duration switch
-        {
-            >= 60 * 30 => 60,
-            _ => 20
-        };
-        if (offset > duration)
-            offset = 0;
+        var offset = Math.Min(duration * .50, Math.Max(Math.Min(duration * .20, 300), 40));
         using var process = NewFfmpegProcess([
             "-v", "quiet", "-y",
+            "-ss", offset.ToString("F3", CultureInfo.InvariantCulture),
             "-i", fileInfo.FullName,
-            "-ss", offset.ToString(CultureInfo.InvariantCulture),
             "-map", "0:V:0",
-            "-vf", $"fps={fps},thumbnail=50,scale=-2:{height},crop='min({width},iw)'",
+            "-vf", "fps=5,thumbnail=50,scale=-2:480,crop='min(854,iw)'",
             "-frames:v", "1",
             "-c:v", "libwebp",
             "-compression_level", "6",
             "-preset", "drawing",
-            outputPath
+            outputPath,
         ]);
         var t1 = DateTimeOffset.Now;
         process.Start();
