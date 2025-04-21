@@ -47,8 +47,8 @@ public class FileServer : ControllerBase
     [HttpGet("{ed2K}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status416RangeNotSatisfiable)]
-    [SwaggerResponse(StatusCodes.Status206PartialContent, null, typeof(Stream), "*/*")]
-    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), "*/*")]
+    [SwaggerResponse(StatusCodes.Status206PartialContent, null, typeof(Stream), MediaTypeNames.Application.Octet)]
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), MediaTypeNames.Application.Octet)]
     public Results<PhysicalFileHttpResult, NotFound> Get([FromRoute] string ed2K)
     {
         var localFile = _context.LocalFiles.Include(e => e.ImportFolder)
@@ -60,11 +60,7 @@ public class FileServer : ControllerBase
         var filePath = Path.Combine(localFile.Path, localFile.PathTail);
         if (!System.IO.File.Exists(filePath))
             return TypedResults.NotFound();
-        if (!new FileExtensionContentTypeProvider().TryGetContentType(localFile.PathTail, out var mimeType))
-            mimeType = MediaTypeNames.Application.Octet;
-        if (Path.GetExtension(localFile.PathTail) == ".mkv") // Lie so browser will try to interpret mkv as webm for web player
-            mimeType = "video/webm";
-        return TypedResults.PhysicalFile(filePath, mimeType, Path.GetFileName(filePath), enableRangeProcessing: true);
+        return TypedResults.PhysicalFile(filePath, MediaTypeNames.Application.Octet, Path.GetFileName(filePath), enableRangeProcessing: true);
     }
 
     [HttpGet("{ed2K}/Playlist")]
