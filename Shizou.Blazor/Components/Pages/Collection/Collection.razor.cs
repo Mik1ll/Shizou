@@ -14,10 +14,12 @@ namespace Shizou.Blazor.Components.Pages.Collection;
 
 public enum AnimeSort
 {
-    AnimeId = 0,
-    AirDate = 1,
-    Alphabetical = 2,
-    RecentFiles = 3,
+    RecentlyAdded = 0,
+    AnimeId,
+    Alphabetical,
+    AirDate,
+    EpisodeAirDate,
+    RecentlyWatched,
 }
 
 // ReSharper disable once ClassNeverInstantiated.Global
@@ -121,15 +123,27 @@ public partial class Collection
             case AnimeSort.Alphabetical:
                 queryable = queryable.OrderBy(a => a.TitleTranscription);
                 break;
-            case AnimeSort.RecentFiles:
-            {
+            case AnimeSort.RecentlyAdded:
                 queryable = queryable.OrderByDescending(a =>
                     a.AniDbEpisodes.SelectMany(e => e.AniDbFiles.SelectMany(f => f.LocalFiles.Select(lf => lf.Id)))
                         .DefaultIfEmpty().Max());
                 break;
-            }
+            case AnimeSort.RecentlyWatched:
+                queryable = queryable.OrderByDescending(a =>
+                    a.AniDbEpisodes.SelectMany(e =>
+                        e.AniDbFiles.Where(f => f.FileWatchedState.Watched).Select(f =>
+                            f.FileWatchedState.WatchedUpdated
+                        )
+                    ).DefaultIfEmpty().Max()
+                );
+                break;
+            case AnimeSort.EpisodeAirDate:
+                queryable = queryable.OrderByDescending(a =>
+                    a.AniDbEpisodes.Where(e => e.AniDbFiles.Any(f => f.LocalFiles.Count != 0)).Select(e => e.AirDate).DefaultIfEmpty().Max()
+                );
+                break;
             default:
-                throw new ArgumentOutOfRangeException();
+                throw new IndexOutOfRangeException(nameof(Sort));
         }
 
         queryable = Descending ? queryable.Reverse() : queryable;
