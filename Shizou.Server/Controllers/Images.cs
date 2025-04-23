@@ -43,8 +43,13 @@ public class Images : ControllerBase
     {
         var posterName = _context.AniDbAnimes.AsNoTracking().Where(a => a.Id == animeId).Select(a => a.ImageFilename).FirstOrDefault();
         if (posterName is null || new FileInfo(FilePaths.AnimePosterPath(posterName)) is not { Exists: true } poster)
-            return TypedResults.NotFound();
-        _contentTypeProvider.TryGetContentType(posterName, out var mimeType);
+        {
+            Response.Headers.CacheControl = "no-cache";
+            Response.StatusCode = StatusCodes.Status404NotFound;
+            poster = new FileInfo(FilePaths.MissingAnimePosterPath);
+        }
+
+        _contentTypeProvider.TryGetContentType(poster.Name, out var mimeType);
         return TypedResults.PhysicalFile(poster.FullName, mimeType, poster.Name, poster.LastWriteTimeUtc);
     }
 

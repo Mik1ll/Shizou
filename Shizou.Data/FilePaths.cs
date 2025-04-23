@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace Shizou.Data;
 
@@ -7,8 +6,9 @@ public static class FilePaths
 {
     public static readonly string ApplicationDataDir = GetApplicationDataDir();
 
-    public static readonly string InstallDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ??
-                                               throw new ArgumentException("Executing assembly location shouldn't be empty or root");
+    public static readonly string InstallDir = string.IsNullOrWhiteSpace(AppContext.BaseDirectory)
+        ? throw new ArgumentException("Install directory shouldn't be empty or null")
+        : AppContext.BaseDirectory;
 
     public static readonly string HttpCacheDir = Path.Combine(ApplicationDataDir, "HTTPAnime");
     public static string HttpCachePath(int animeId) => Path.Combine(HttpCacheDir, $"AnimeDoc_{animeId}.xml");
@@ -27,6 +27,8 @@ public static class FilePaths
     public static readonly string AvDumpDir = Path.Combine(InstallDir, "AVDump3");
     public static readonly string CreatorImageDir = Path.Combine(ImagesDir, "Creators");
     public static readonly string DefaultCollectionViewDir = Path.Combine(ApplicationDataDir, "CollectionView");
+    public static readonly string StaticFilesDir = Path.Combine(InstallDir, "StaticFiles");
+    public static readonly string MissingAnimePosterPath = Path.Combine(StaticFilesDir, "missing_poster.png");
 
     public static string DatabasePath(string username) => Path.Combine(ApplicationDataDir, "ShizouDB" +
                                                                                            (string.IsNullOrWhiteSpace(username)
