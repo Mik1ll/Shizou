@@ -16,20 +16,22 @@
                     @(importFolder.Name)
                 </td>
                 <td>
-                    @if (importFolder.ScanOnImport)
-                    {
-                        <i class="bi bi-save2"></i>
-                    }
-                </td>
-                <td>
-                    <button type="button" class="btn btn-link text-body p-0" @onclick="@(() => EditAsync(importFolder))">
-                        <i class="bi bi-pencil-square"></i>
-                    </button>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-link text-body p-0" @onclick="@(() => RemoveAsync(importFolder))">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    <div class="d-flex column-gap-2 justify-content-end">
+                        @if (importFolder.Watched)
+                        {
+                            <i class="bi bi-eye p-1"></i>
+                        }
+                        @if (importFolder.ScanOnImport)
+                        {
+                            <i class="bi bi-save2 p-1"></i>
+                        }
+                        <button type="button" class="btn btn-link text-body p-1 border-0" @onclick="@(() => EditAsync(importFolder))">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button type="button" class="btn btn-link text-body p-1 border-0" @onclick="@(() => RemoveAsync(importFolder))">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         }
