@@ -18,6 +18,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Serilog;
+using Serilog.Exceptions;
+using Serilog.Exceptions.Core;
+using Serilog.Exceptions.EntityFrameworkCore.Destructurers;
 using Shizou.Data;
 using Shizou.Data.Database;
 using Shizou.Server.AniDbApi;
@@ -162,6 +165,9 @@ public static class InitializationExtensions
             .Enrich.FromLogContext()
             .Enrich.WithThreadId()
             .Enrich.WithThreadName()
+            .Enrich.WithExceptionDetails(new DestructuringOptionsBuilder()
+                .WithDefaultDestructurers()
+                .WithDestructurers([new DbUpdateExceptionDestructurer()]))
             .Filter.ByExcluding(logEvent => logEvent.IsSuppressed());
     }
 
