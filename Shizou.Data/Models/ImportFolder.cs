@@ -21,6 +21,8 @@ public class ImportFolder
 
     public bool ScanOnImport { get; set; }
 
+    public bool Watched { get; set; }
+
     [JsonIgnore]
     public List<LocalFile> LocalFiles { get; set; } = null!;
 }

@@ -4,21 +4,25 @@ using Microsoft.AspNetCore.Components;
 using Shizou.Blazor.Extensions;
 using Shizou.Data.Database;
 using Shizou.Data.Models;
+using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Components.Shared;
 
 public partial class ImportFolderModal
 {
-    private Modal _modal = default!;
+    private Modal _modal = null!;
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = null!;
+
+    [Inject]
+    private FileSystemWatcherService FileSystemWatcherService { get; set; } = null!;
 
     [CascadingParameter]
-    private IModalService ModalService { get; set; } = default!;
+    private IModalService ModalService { get; set; } = null!;
 
     [Parameter]
-    public ImportFolder MyImportFolder { get; set; } = default!;
+    public ImportFolder MyImportFolder { get; set; } = null!;
 
     [Parameter]
     public bool IsDelete { get; set; }
@@ -56,6 +60,7 @@ public partial class ImportFolderModal
         }
 
         context.SaveChanges();
+        FileSystemWatcherService.UpdateWatchedFolders();
         await _modal.CloseAsync();
     }
 
@@ -69,6 +74,7 @@ public partial class ImportFolderModal
         context.ImportFolders.Remove(MyImportFolder);
 
         context.SaveChanges();
+        FileSystemWatcherService.UpdateWatchedFolders();
         await _modal.CloseAsync();
     }
 

@@ -2811,6 +2811,9 @@
           },
           "scanOnImport": {
             "type": "boolean"
+          },
+          "watched": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

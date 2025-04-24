@@ -51,7 +51,10 @@ public class ImportService
         using var context = _contextFactory.CreateDbContext();
         var importFolder = context.ImportFolders.Find(importFolderId);
         if (importFolder is null)
-            throw new InvalidOperationException($"Import folder id {importFolderId} not found");
+        {
+            _logger.LogError("Import folder id {ImportFolderId} not found", importFolderId);
+            return;
+        }
         _logger.LogInformation("Beginning scan on import folder \"{ImportFolderPath}\"", importFolder.Path);
         var dir = new DirectoryInfo(importFolder.Path);
         if (!dir.Exists)

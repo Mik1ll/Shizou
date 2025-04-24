@@ -248,7 +248,9 @@ public static class InitializationExtensions
             .AddTransient<ManualLinkService>()
             .AddTransient<AnimeService>()
             .AddTransient<AvDumpService>()
-            .AddTransient<SymbolicCollectionViewService>();
+            .AddTransient<SymbolicCollectionViewService>()
+            .AddSingleton<FileSystemWatcherService>()
+            ;
         return services;
     }
 

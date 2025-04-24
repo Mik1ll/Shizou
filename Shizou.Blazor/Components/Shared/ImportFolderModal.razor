@@ -26,7 +26,11 @@
                 </div>
                 <div class="mb-3 form-check">
                     <InputCheckbox class="form-check-input" id="scanOnImportInput" @bind-Value="@(MyImportFolder.ScanOnImport)"></InputCheckbox>
-                    <label class="form-check-label" for="scanOnImportInput">Scan on Import</label>
+                    <label class="form-check-label" for="scanOnImportInput">Scan on import</label>
+                </div>
+                <div class="mb-3 form-check">
+                    <InputCheckbox class="form-check-input" id="watchFiles" @bind-Value="@(MyImportFolder.Watched)"></InputCheckbox>
+                    <label class="form-check-label" for="watchFiles">Watch folder and scan on changes</label>
                 </div>
             </EditForm>
         </div>

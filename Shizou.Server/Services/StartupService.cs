@@ -30,6 +30,8 @@ public sealed class StartupService : BackgroundService
         animeTitleSearchService.ScheduleNextUpdate();
         var commandService = _serviceProvider.GetRequiredService<CommandService>();
         commandService.Dispatch(new UpdateSymbolicCollectionArgs());
+        var fileWatcherService = _serviceProvider.GetRequiredService<FileSystemWatcherService>();
+        fileWatcherService.UpdateWatchedFolders();
         
         log.LogInformation("Startup service finished");
     }
