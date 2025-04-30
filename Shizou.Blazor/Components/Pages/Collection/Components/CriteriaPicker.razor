@@ -19,9 +19,9 @@
                 <div class="border border-secondary p-2 mt-2 rounded">
                     <select class="form-select mb-1" @onchange="@(args => Update(or, and, idx, (string?)args.Value))">
                         <option value="" selected="@(term is null)">@(term is null ? "Pick a Term" : "Remove")</option>
-                        @foreach (var termType in TermTypes.Keys.Order())
+                        @foreach (var termType in TermFactories.Keys)
                         {
-                            <option value="@termType" selected="@(termType == term?.GetType().Name)">@(termType.TrimEnd("Criterion").UpperCaseSpaced())</option>
+                            <option value="@termType" selected="@(termType == term?.GetType().Name)">@(TermFactories[termType].Name)</option>
                         }
                     </select>
                     @if (and is not null && term is not null)

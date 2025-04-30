@@ -32,21 +32,17 @@ public class DatabaseTests : SeededDatabaseTests
     {
         using var context = GetContext();
 
-        var and1 = new AndAllCriterion(new List<TermCriterion>
-        {
-            new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.Before, 2000),
-            new AirDateCriterion(false, AirDateTermType.AirDate, Year: 2005, Month: 5, AirDateTermRange: AirDateTermRange.OnOrAfter)
-        });
+        var and1 = new AndAllCriterion([
+            new AirDateCriterion { AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.Before, Year = 2000 },
+            new AirDateCriterion { AirDateTermType = AirDateTermType.AirDate, Year = 2005, Month = 5, AirDateTermRange = AirDateTermRange.OnOrAfter },
+        ]);
 
-        var and2 = new AndAllCriterion(new List<TermCriterion>
-        {
-            new AirDateCriterion(true, AirDateTermType.AirDate, Year: 1995, AirDateTermRange: AirDateTermRange.Before),
-            new AirDateCriterion(true, AirDateTermType.AirDate, Year: 2005, Month: 12, AirDateTermRange: AirDateTermRange.OnOrAfter)
-        });
-        var orAny = new OrAnyCriterion(new List<AndAllCriterion>
-        {
-            and1, and2
-        });
+        var and2 = new AndAllCriterion([
+            new AirDateCriterion { Negated = true, AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.Before, Year = 1995 },
+            new AirDateCriterion
+                { Negated = true, AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.OnOrAfter, Year = 2005, Month = 12 },
+        ]);
+        var orAny = new OrAnyCriterion([and1, and2]);
         var res = context.AniDbAnimes.Where(orAny.Criterion);
 
         var serializationOpts = new JsonSerializerOptions { TypeInfoResolver = new PolymorphicJsonTypeResolver<TermCriterion>() };

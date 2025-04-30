@@ -6,10 +6,9 @@ namespace Shizou.Data.FilterCriteria;
 /// <summary>
 /// Inheritors must have a parameterless constructor
 /// </summary>
-/// <param name="Negated"></param>
-public abstract record TermCriterion(bool Negated) : AnimeCriterion
+public abstract record TermCriterion : AnimeCriterion
 {
-    public bool Negated { get; set; } = Negated;
+    public bool Negated { get; set; }
 
     protected abstract Expression<Func<AniDbAnime, bool>> MakeTerm();
 

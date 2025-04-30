@@ -1,17 +1,11 @@
 ﻿using System.Linq.Expressions;
-using JetBrains.Annotations;
 using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public record ReleaseGroupCriterion(bool Negated, int? GroupId) : TermCriterion(Negated)
+public record ReleaseGroupCriterion : TermCriterion
 {
-    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
-    public ReleaseGroupCriterion() : this(false, null)
-    {
-    }
-
-    public int? GroupId { get; set; } = GroupId;
+    public int? GroupId { get; set; }
 
     protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
     {

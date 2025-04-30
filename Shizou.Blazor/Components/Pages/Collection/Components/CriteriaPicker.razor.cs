@@ -7,14 +7,19 @@ namespace Shizou.Blazor.Components.Pages.Collection.Components;
 
 public partial class CriteriaPicker
 {
-    private static readonly Dictionary<string, Type> TermTypes = [];
-
-    static CriteriaPicker()
+    private static readonly Dictionary<string, (string Name, Func<TermCriterion> Factory)> TermFactories = new()
     {
-        var baseType = typeof(TermCriterion);
-        foreach (var type in baseType.Assembly.GetTypes().Where(t => t.IsSubclassOf(baseType)))
-            TermTypes.Add(type.Name, type);
-    }
+        { nameof(AirDateCriterion), ("Air Date", () => new AirDateCriterion()) },
+        { nameof(AnimeTypeCriterion), ("Anime Type", () => new AnimeTypeCriterion()) },
+        { nameof(EpisodeWithoutFilesCriterion), ("Has Episode Without Files", () => new EpisodeWithoutFilesCriterion()) },
+        { nameof(GenericFilesCriterion), ("Has Generic Files", () => new GenericFilesCriterion()) },
+        { nameof(RestrictedCriterion), ("Restricted", () => new RestrictedCriterion()) },
+        { nameof(ReleaseGroupCriterion), ("Release Group", () => new ReleaseGroupCriterion()) },
+        { nameof(SeasonCriterion), ("Season", () => new SeasonCriterion()) },
+        { nameof(TagCriterion), ("Tag", () => new TagCriterion()) },
+        { nameof(UnwatchedFilesCriterion), ("Unwatched Files", () => new UnwatchedFilesCriterion()) },
+        { nameof(WatchedFilesCriterion), ("Watched Files", () => new WatchedFilesCriterion()) },
+    };
 
     private List<AniDbGroup>? _anidbGroups;
 
@@ -36,8 +41,7 @@ public partial class CriteriaPicker
             return;
         }
 
-        var term = (TermCriterion)(Activator.CreateInstance(TermTypes[newTermType]) ??
-                                   throw new NullReferenceException($"CreateInstance returned null for term: {newTermType}"));
+        var term = TermFactories[newTermType].Factory();
         if (and?.Criteria.Count > index)
         {
             and.Criteria[index] = term;
@@ -76,10 +80,4 @@ public partial class CriteriaPicker
         using var context = ContextFactory.CreateDbContext();
         _anidbGroups = context.AniDbGroups.ToList();
     }
-
-    private void GetTags()
-    {
-        
-    }
-
 }

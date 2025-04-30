@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using JetBrains.Annotations;
 using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
@@ -12,14 +11,9 @@ public enum AnimeSeason
     Fall
 }
 
-public record SeasonCriterion(bool Negated, AnimeSeason Season) : TermCriterion(Negated)
+public record SeasonCriterion : TermCriterion
 {
-    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
-    public SeasonCriterion() : this(false, AnimeSeason.Winter)
-    {
-    }
-
-    public AnimeSeason Season { get; set; } = Season;
+    public AnimeSeason Season { get; set; } = AnimeSeason.Winter;
 
     protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
     {

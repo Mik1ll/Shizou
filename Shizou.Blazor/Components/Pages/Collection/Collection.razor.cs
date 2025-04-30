@@ -102,11 +102,11 @@ public partial class Collection
         var criteria = new List<TermCriterion>();
         if (Year is not null)
             criteria.AddRange([
-                new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.OnOrAfter, Year),
-                new AirDateCriterion(false, AirDateTermType.AirDate, AirDateTermRange.Before, Year + 1)
+                new AirDateCriterion { AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.OnOrAfter, Year = Year },
+                new AirDateCriterion { AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.Before, Year = Year + 1 },
             ]);
         if (SeasonEnum is not null)
-            criteria.Add(new SeasonCriterion(false, SeasonEnum.Value));
+            criteria.Add(new SeasonCriterion { Season = SeasonEnum.Value });
         queryable = queryable.Where(new AndAllCriterion(criteria).Criterion);
     }
 

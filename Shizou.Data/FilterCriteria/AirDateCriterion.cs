@@ -1,7 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
 using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
@@ -10,45 +8,33 @@ public enum AirDateTermRange
 {
     OnOrAfter = 1,
     Before = 2,
-    Missing = 3
+    Missing = 3,
 }
 
 public enum AirDateTermType
 {
     AirDate = 1,
-    EndDate = 2
+    EndDate = 2,
 }
 
-public record AirDateCriterion(
-    bool Negated,
-    AirDateTermType AirDateTermType,
-    AirDateTermRange AirDateTermRange,
-    int? Year = null,
-    int? Month = null,
-    int? Day = null)
-    : TermCriterion(Negated)
+public record AirDateCriterion : TermCriterion
 {
-    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
-    public AirDateCriterion() : this(false, AirDateTermType.AirDate, AirDateTermRange.Before)
-    {
-    }
-
-    public AirDateTermType AirDateTermType { get; set; } = AirDateTermType;
-    public AirDateTermRange AirDateTermRange { get; set; } = AirDateTermRange;
+    public AirDateTermType AirDateTermType { get; set; } = AirDateTermType.AirDate;
+    public AirDateTermRange AirDateTermRange { get; set; } = AirDateTermRange.Before;
 
     [Range(1900, 2100)]
-    public int? Year { get; set; } = Year;
+    public int? Year { get; set; }
 
-    public int? Month { get; set; } = Month;
+    public int? Month { get; set; }
     private int? HasMonth => Month.HasValue ? Day : null;
 
     [Compare(nameof(HasMonth))]
-    public int? Day { get; set; } = Day;
+    public int? Day { get; set; }
 
-    [SuppressMessage("ReSharper", "StringCompareIsCultureSpecific.1")]
     protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
     {
         DateOnly? date = null;
+        // ReSharper disable once InvertIf
         if (AirDateTermRange is not AirDateTermRange.Missing)
         {
             if (Year is null)
@@ -66,7 +52,7 @@ public record AirDateCriterion(
             (AirDateTermRange.Before, AirDateTermType.EndDate) => anime => anime.EndDate != null && anime.EndDate < date,
             (AirDateTermRange.Missing, AirDateTermType.AirDate) => anime => anime.AirDate == null,
             (AirDateTermRange.Missing, AirDateTermType.EndDate) => anime => anime.EndDate == null,
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(),
         };
     }
 }
