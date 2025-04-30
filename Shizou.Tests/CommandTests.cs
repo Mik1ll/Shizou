@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Shizou.Data.Database;
@@ -25,6 +26,7 @@ public class CommandTests
             .AddTransient<AnimeCommand>()
             .AddTransient<FfmpegService>()
             .AddDbContextFactory<ShizouContext>()
+            .AddTransient<LinkGenerator>(_ => Mock.Of<LinkGenerator>())
             .AddScoped<IShizouContext, ShizouContext>(p => p.GetRequiredService<ShizouContext>())
             .AddSingleton<IShizouContextFactory, ShizouContextFactory>(p =>
                 new ShizouContextFactory(p.GetRequiredService<IDbContextFactory<ShizouContext>>()))
