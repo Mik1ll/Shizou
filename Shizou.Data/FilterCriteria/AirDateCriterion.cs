@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using JetBrains.Annotations;
 using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
@@ -27,7 +28,7 @@ public record AirDateCriterion(
     int? Day = null)
     : TermCriterion(Negated)
 {
-    // ReSharper disable once UnusedMember.Global
+    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
     public AirDateCriterion() : this(false, AirDateTermType.AirDate, AirDateTermRange.Before)
     {
     }

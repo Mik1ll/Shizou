@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using JetBrains.Annotations;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
 
@@ -6,7 +7,7 @@ namespace Shizou.Data.FilterCriteria;
 
 public record EpisodeWithoutFilesCriterion(bool Negated) : TermCriterion(Negated)
 {
-    // ReSharper disable once UnusedMember.Global
+    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
     public EpisodeWithoutFilesCriterion() : this(false)
     {
     }

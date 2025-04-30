@@ -80,6 +80,9 @@
                                         }
                                     </InputSelect>
                                     break;
+                                case TagCriterion tag:
+                                    <InputText class="form-control" @bind-Value="@(tag.Tag)"></InputText>
+                                    break;
                             }
                         </EditForm>
                     }

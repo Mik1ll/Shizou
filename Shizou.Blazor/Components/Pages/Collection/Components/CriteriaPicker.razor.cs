@@ -19,11 +19,11 @@ public partial class CriteriaPicker
     private List<AniDbGroup>? _anidbGroups;
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
-    public AnimeFilter Filter { get; set; } = default!;
+    public AnimeFilter Filter { get; set; } = null!;
 
     private void Update(OrAnyCriterion or, AndAllCriterion? and, int index, string? newTermType)
     {
@@ -52,11 +52,6 @@ public partial class CriteriaPicker
         StateHasChanged();
     }
 
-    private void Replace(AndAllCriterion and, int index, TermCriterion newCriterion)
-    {
-        and.Criteria[index] = newCriterion;
-    }
-
     private string GetReleaseGroupPlaceholder(int? groupId)
     {
         GetAnidbGroups();
@@ -77,10 +72,14 @@ public partial class CriteriaPicker
 
     private void GetAnidbGroups()
     {
-        if (_anidbGroups is null)
-        {
-            using var context = ContextFactory.CreateDbContext();
-            _anidbGroups = context.AniDbGroups.ToList();
-        }
+        if (_anidbGroups is not null) return;
+        using var context = ContextFactory.CreateDbContext();
+        _anidbGroups = context.AniDbGroups.ToList();
     }
+
+    private void GetTags()
+    {
+        
+    }
+
 }

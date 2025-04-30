@@ -1,11 +1,12 @@
 ﻿using System.Linq.Expressions;
+using JetBrains.Annotations;
 using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
 public record ReleaseGroupCriterion(bool Negated, int? GroupId) : TermCriterion(Negated)
 {
-    // ReSharper disable once UnusedMember.Global
+    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
     public ReleaseGroupCriterion() : this(false, null)
     {
     }

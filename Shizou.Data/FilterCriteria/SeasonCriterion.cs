@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using JetBrains.Annotations;
 using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
@@ -13,7 +14,7 @@ public enum AnimeSeason
 
 public record SeasonCriterion(bool Negated, AnimeSeason Season) : TermCriterion(Negated)
 {
-    // ReSharper disable once UnusedMember.Global
+    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
     public SeasonCriterion() : this(false, AnimeSeason.Winter)
     {
     }

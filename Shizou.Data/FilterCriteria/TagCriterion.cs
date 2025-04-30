@@ -4,15 +4,17 @@ using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public record GenericFilesCriterion(bool Negated) : TermCriterion(Negated)
+public record TagCriterion(bool Negated, string Tag) : TermCriterion(Negated)
 {
     [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
-    public GenericFilesCriterion() : this(false)
+    public TagCriterion() : this(false, string.Empty)
     {
     }
 
+    public string Tag { get; set; } = Tag;
+
     protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
     {
-        return anime => anime.AniDbEpisodes.Any(e => e.AniDbFiles.OfType<AniDbGenericFile>().Any(f => f.LocalFiles.Any()));
+        return anime => anime.Tags.Contains(Tag);
     }
 }
