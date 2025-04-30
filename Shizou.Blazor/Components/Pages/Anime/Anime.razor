@@ -39,6 +39,7 @@
                             {
                                 <li class="list-group-item">Hentai</li>
                             }
+                            <li class="list-group-item">Tags: @(string.Join(", ", _anime.Tags))</li>
                             <li class="list-group-item">@(_anime.EpisodeCount) Episode@(_anime.EpisodeCount == 1 ? "" : "s")</li>
                             <li class="list-group-item d-flex gap-2">
                                 <button class="btn btn-outline-success" type="button" @onclick="@MarkAllWatched">
