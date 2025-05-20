@@ -1,12 +1,12 @@
 using Blazored.Modal;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 using Serilog;
 using Shizou.Blazor.Components;
+using Shizou.Blazor.Components.Pages.Account;
 using Shizou.Blazor.Services;
 using Shizou.Data;
 using Shizou.Server.Extensions;
@@ -47,6 +47,8 @@ try
     builder.Services.AddScoped<ToastService>();
     builder.Services.AddTransient<ExternalPlaybackService>();
     builder.Services.AddScoped<IdentityRedirectManager>();
+    builder.Services.AddScoped<IdentityUserAccessor>();
+    builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
     builder.Services.Configure<StaticFileOptions>(options =>
     {
@@ -113,13 +115,7 @@ try
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
-    app.MapGroup("/Account").MapPost("/Logout", async (
-        SignInManager<IdentityUser> signInManager,
-        [FromForm] string returnUrl) =>
-    {
-        await signInManager.SignOutAsync();
-        return TypedResults.LocalRedirect($"~/{returnUrl}");
-    });
+    app.MapAdditionalIdentityEndpoints();
 
     app.MigrateDatabase();
 

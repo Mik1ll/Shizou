@@ -36,7 +36,7 @@ public partial class ChangePassword : ComponentBase
 
         if (_adminUser is null)
         {
-            _adminUser = new IdentityUser { UserName = Constants.IdentityUsername };
+            _adminUser = new IdentityUser { UserName = Constants.IdentityUsername, EmailConfirmed = true };
             result = await SignInManager.UserManager.CreateAsync(_adminUser, Input.NewPassword);
         }
         else
