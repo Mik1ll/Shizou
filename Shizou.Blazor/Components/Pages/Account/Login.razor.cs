@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Identity;
-using Shizou.Blazor.Services;
 using Shizou.Data;
 
 namespace Shizou.Blazor.Components.Pages.Account;
@@ -11,6 +10,8 @@ namespace Shizou.Blazor.Components.Pages.Account;
 [AllowAnonymous]
 public partial class Login : ComponentBase
 {
+    private string? _errorMessage;
+    
     [SupplyParameterFromQuery]
     // ReSharper disable once UnusedAutoPropertyAccessor.Local
     private string? ReturnUrl { get; set; }

@@ -17,15 +17,18 @@ public partial class ChangePassword : ComponentBase
     private InputModel Input { get; set; } = new();
 
     [Inject]
-    private SignInManager<IdentityUser> SignInManager { get; set; } = default!;
+    private SignInManager<IdentityUser> SignInManager { get; set; } = null!;
 
     [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = null!;
+
+    [Inject]
+    private UserManager<IdentityUser> UserManager { get; set; } = null!;
 
 
     protected override void OnInitialized()
     {
-        _adminUser = SignInManager.UserManager.Users.SingleOrDefault();
+        _adminUser = SignInManager.UserManager.Users.SingleOrDefault(u => u.UserName == Constants.IdentityUsername);
     }
 
     private async Task ChangePasswordAsync(EditContext editContext)
@@ -36,7 +39,7 @@ public partial class ChangePassword : ComponentBase
 
         if (_adminUser is null)
         {
-            _adminUser = new IdentityUser { UserName = Constants.IdentityUsername, EmailConfirmed = true };
+            _adminUser = new IdentityUser { UserName = Constants.IdentityUsername };
             result = await SignInManager.UserManager.CreateAsync(_adminUser, Input.NewPassword);
         }
         else

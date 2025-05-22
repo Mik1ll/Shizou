@@ -5,6 +5,7 @@
 <PageTitle>Login</PageTitle>
 <h1>Login</h1>
 
+<StatusMessage Message="@_errorMessage"/>
 <EditForm Model="@Input" method="post" style="max-width: 30rem" OnValidSubmit="@LoginUserAsync" FormName="login">
     <DataAnnotationsValidator/>
     <ValidationSummary class="text-danger" role="alert"/>
@@ -16,4 +17,5 @@
         <button type="submit" class="w-100 btn btn-lg btn-primary mb-2">Log In</button>
     </div>
 </EditForm>
+<ExternalLoginPicker/>
 <a href="Account/ChangePassword">Change Password</a>

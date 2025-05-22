@@ -171,9 +171,9 @@ public static class InitializationExtensions
             .Filter.ByExcluding(logEvent => logEvent.IsSuppressed());
     }
 
-    public static IServiceCollection AddShizouServices(this IServiceCollection services)
+    public static IServiceCollection AddShizouServices(this WebApplicationBuilder builder)
     {
-        services.AddDbContextFactory<ShizouContext>((provider, opts) =>
+        builder.Services.AddDbContextFactory<ShizouContext>((provider, opts) =>
             {
                 var username = provider.GetService<IOptionsMonitor<ShizouOptions>>()?.CurrentValue.AniDb.Username ?? string.Empty;
                 opts.UseSqlite(new SqliteConnectionStringBuilder
@@ -188,7 +188,6 @@ public static class InitializationExtensions
             .AddDbContext<AuthContext>()
             .AddIdentity<IdentityUser, IdentityRole>(options =>
             {
-                options.SignIn.RequireConfirmedEmail = true;
                 options.Password.RequireDigit = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
@@ -257,7 +256,23 @@ public static class InitializationExtensions
             .AddTransient<SymbolicCollectionViewService>()
             .AddSingleton<FileSystemWatcherService>()
             ;
-        return services;
+        var clientid = builder.Configuration["Authentication:Microsoft:ClientId"];
+        var clientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"];
+        var tenantId = builder.Configuration["Authentication:Microsoft:TenantId"];
+        if (!string.IsNullOrWhiteSpace(clientid) && !string.IsNullOrWhiteSpace(clientSecret))
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = IdentityConstants.ApplicationScheme;
+                options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+            }).AddMicrosoftAccount(microsoftOptions =>
+            {
+                microsoftOptions.ClientId = clientid;
+                microsoftOptions.ClientSecret = clientSecret;
+                if (string.IsNullOrWhiteSpace(tenantId)) return;
+                microsoftOptions.AuthorizationEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize";
+                microsoftOptions.TokenEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
+            });
+        return builder.Services;
     }
 
     public static IServiceCollection AddShizouProcessors(this IServiceCollection services)

@@ -67,8 +67,7 @@ try
         .AddShizouLogging(Constants.LogTemplate)
         .AddWorkerServices();
 
-    builder.Services
-        .AddShizouServices()
+    builder.AddShizouServices()
         .AddShizouProcessors()
         .AddAniDbServices()
         .AddShizouApiServices();
