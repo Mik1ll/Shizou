@@ -15,6 +15,8 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
         MaxAge = TimeSpan.FromSeconds(5),
     };
 
+    private string CurrentPath => navigationManager.ToAbsoluteUri(navigationManager.Uri).GetLeftPart(UriPartial.Path);
+
     [DoesNotReturn]
     public void RedirectTo(string? uri)
     {
@@ -37,17 +39,15 @@ internal sealed class IdentityRedirectManager(NavigationManager navigationManage
         RedirectTo(newUri);
     }
 
-    private string CurrentPath => navigationManager.ToAbsoluteUri(navigationManager.Uri).GetLeftPart(UriPartial.Path);
-
-    [DoesNotReturn]
-    public void RedirectToCurrentPage() => RedirectTo(CurrentPath);
-
     [DoesNotReturn]
     public void RedirectToWithStatus(string uri, string message, HttpContext context)
     {
         context.Response.Cookies.Append(StatusCookieName, message, StatusCookieBuilder.Build(context));
         RedirectTo(uri);
     }
+
+    [DoesNotReturn]
+    public void RedirectToCurrentPage() => RedirectTo(CurrentPath);
 
     [DoesNotReturn]
     public void RedirectToCurrentPageWithStatus(string message, HttpContext context)
