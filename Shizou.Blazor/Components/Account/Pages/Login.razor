@@ -4,12 +4,13 @@
 <PageTitle>Login</PageTitle>
 <h1>Login</h1>
 
-<StatusMessage Message="@_errorMessage"/>
+<StatusMessage/>
 <EditForm Model="@Input" method="post" style="max-width: 30rem" OnValidSubmit="@LoginUserAsync" FormName="login">
     <DataAnnotationsValidator/>
     <ValidationSummary class="text-danger" role="alert"/>
     <div class="form-floating mb-2">
-        <InputText id="password" @bind-Value="@(Input.Password)" type="password" placeholder="Password" class="form-control" autocomplete="current-password" aria-required="true"></InputText>
+        <InputText id="password" @bind-Value="@(Input.Password)" type="password" placeholder="Password" class="form-control" autocomplete="current-password"
+                   aria-required="true"></InputText>
         <label for="password" class="form-label">Password</label>
     </div>
     <div>

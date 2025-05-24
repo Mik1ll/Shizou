@@ -1,5 +1,12 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="container pt-5">
-    @Body
+    @if (HttpContext is null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        @Body
+    }
 </div>
