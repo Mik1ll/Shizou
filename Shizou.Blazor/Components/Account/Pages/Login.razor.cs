@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Identity;
 using Shizou.Data;
 
-namespace Shizou.Blazor.Components.Pages.Account;
+namespace Shizou.Blazor.Components.Account.Pages;
 
 [AllowAnonymous]
 public partial class Login : ComponentBase

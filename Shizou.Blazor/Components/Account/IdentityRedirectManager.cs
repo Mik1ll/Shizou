@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 
-namespace Shizou.Blazor.Components.Pages.Account;
+namespace Shizou.Blazor.Components.Account;
 
 internal sealed class IdentityRedirectManager(NavigationManager navigationManager)
 {

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 using Serilog;
 using Shizou.Blazor.Components;
-using Shizou.Blazor.Components.Pages.Account;
+using Shizou.Blazor.Components.Account;
 using Shizou.Blazor.Services;
 using Shizou.Data;
 using Shizou.Server.Extensions;

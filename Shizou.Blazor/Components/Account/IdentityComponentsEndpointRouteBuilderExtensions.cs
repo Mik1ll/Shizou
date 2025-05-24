@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
-using Shizou.Blazor.Components.Pages.Account;
-using Shizou.Blazor.Components.Pages.Account.Manage;
+using Shizou.Blazor.Components.Account.Manage;
+using Shizou.Blazor.Components.Account.Pages;
 
 namespace Microsoft.AspNetCore.Routing;
 

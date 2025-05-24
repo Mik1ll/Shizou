@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Shizou.Blazor.Components.Pages.Account;
+namespace Shizou.Blazor.Components.Account;
 
 internal sealed class IdentityUserAccessor(UserManager<IdentityUser> userManager, IdentityRedirectManager redirectManager)
 {
