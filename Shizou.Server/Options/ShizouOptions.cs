@@ -34,6 +34,8 @@ public class ShizouOptions : IValidatableObject
     [JsonSchema.Description("Generate a directory of symbolic links to files in a structure recognized by Jellyfin")]
     public CollectionViewOptions CollectionView { get; set; } = new();
 
+    public ExternalLoginOptions ExternalLogin { get; set; } = new();
+
     public static void GenerateSchema()
     {
         var innerBuilder =
@@ -202,4 +204,25 @@ public class CollectionViewOptions
 
     [JsonSchema.Description("The full path of the target directory")]
     public string Path { get; set; } = FilePaths.DefaultCollectionViewDir;
+}
+
+public class ExternalLoginOptions
+{
+    [JsonSchema.Description("The application details for Microsoft external login")]
+    [JsonSchema.Nullable(true)]
+    public MicrosoftLoginOptions? Microsoft { get; set; }
+}
+
+// ReSharper disable once ClassNeverInstantiated.Global
+public class MicrosoftLoginOptions
+{
+    [JsonSchema.Description("The client id of the application")]
+    public string ClientId { get; set; } = string.Empty;
+
+    [JsonSchema.Description("The client secret of the application")]
+    public string ClientSecret { get; set; } = string.Empty;
+
+    [JsonSchema.Description("The tenant id of the application")]
+    [JsonSchema.Nullable(true)]
+    public string? TenantId { get; set; }
 }
