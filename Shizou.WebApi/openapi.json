@@ -2755,6 +2755,20 @@
         ],
         "type": "string"
       },
+      "ExternalLoginOptions": {
+        "type": "object",
+        "properties": {
+          "microsoft": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MicrosoftLoginOptions"
+              }
+            ],
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "FileWatchedState": {
         "required": [
           "aniDbFileId",
@@ -2886,6 +2900,22 @@
           "aniDbFileId": {
             "type": "integer",
             "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MicrosoftLoginOptions": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "clientSecret": {
+            "type": "string"
+          },
+          "tenantId": {
+            "type": "string",
             "nullable": true
           }
         },
@@ -3023,6 +3053,13 @@
             "allOf": [
               {
                 "$ref": "#/components/schemas/CollectionViewOptions"
+              }
+            ]
+          },
+          "externalLogin": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ExternalLoginOptions"
               }
             ]
           }

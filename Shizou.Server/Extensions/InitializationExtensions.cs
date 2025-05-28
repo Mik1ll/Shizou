@@ -256,9 +256,10 @@ public static class InitializationExtensions
             .AddTransient<SymbolicCollectionViewService>()
             .AddSingleton<FileSystemWatcherService>()
             ;
-        var clientid = builder.Configuration["Shizou:ExternalLogin:Microsoft:ClientId"];
-        var clientSecret = builder.Configuration["Shizou:ExternalLogin:Microsoft:ClientSecret"];
-        var tenantId = builder.Configuration["Shizou:ExternalLogin:Microsoft:TenantId"];
+        var config = builder.Configuration.GetSection(ShizouOptions.Shizou).Get<ShizouOptions>();
+        var clientid = config?.ExternalLogin.Microsoft?.ClientId;
+        var clientSecret = config?.ExternalLogin.Microsoft?.ClientSecret;
+        var tenantId = config?.ExternalLogin.Microsoft?.TenantId;
         if (!string.IsNullOrWhiteSpace(clientid) && !string.IsNullOrWhiteSpace(clientSecret))
             builder.Services.AddAuthentication(options =>
             {
