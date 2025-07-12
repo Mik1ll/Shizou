@@ -95,7 +95,7 @@
                         <ul class="list-group list-group-flush overflow-y-auto mt-2" style="max-height: 35vh">
                             @foreach (var localFile in _selectedFiles)
                             {
-                                <li class="list-group-item">
+                                <li @key="@localFile" class="list-group-item">
                                     @(localFile.Ed2KLink)
                                 </li>
                             }

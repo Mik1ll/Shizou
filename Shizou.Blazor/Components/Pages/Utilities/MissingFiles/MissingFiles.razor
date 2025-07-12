@@ -14,7 +14,7 @@
                 <tbody>
                 @foreach (var file in _localFiles.OrderByAlphaNumeric(lf => Path.Combine(lf.ImportFolder?.Path ?? "<MISSING IMPORT FLD>", lf.PathTail)))
                 {
-                    <tr>
+                    <tr @key="@(file.Id)">
                         <td>@(Path.Combine(file.ImportFolder?.Path ?? "<MISSING IMPORT FLD>", file.PathTail))</td>
                     </tr>
                 }

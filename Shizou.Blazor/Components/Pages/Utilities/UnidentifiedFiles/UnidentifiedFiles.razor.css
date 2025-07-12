@@ -1,3 +1,7 @@
 ﻿.ignored-file > td {
     background-color: rgba(255, 211, 81, 0.15);
 }
+
+.sticky-bottom {
+    z-index: unset;
+}
