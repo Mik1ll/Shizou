@@ -1737,6 +1737,33 @@
         }
       }
     },
+    "/api/Logs/CurrentFile": {
+      "get": {
+        "tags": [
+          "Logs"
+        ],
+        "operationId": "ShizouHttpClient_LogsGetCurrentFile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/MyAnimeList/GetToken": {
       "get": {
         "tags": [

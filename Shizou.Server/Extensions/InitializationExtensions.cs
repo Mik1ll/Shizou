@@ -94,10 +94,12 @@ public static class InitializationExtensions
     public static WebApplicationBuilder AddShizouLogging(this WebApplicationBuilder builder, string outputTemplate)
     {
         var ringBufferLogService = new RingBufferLogService("{SourceContext} {Message:lj}{NewLine:1}{Exception:1}");
+        var logFileService = new LogFileService();
         builder.Services.AddSingleton(ringBufferLogService);
+        builder.Services.AddSingleton(logFileService);
         builder.Host.UseSerilog((ctx, cfg) => cfg
             .ReadFrom.Configuration(ctx.Configuration)
-            .ConfigureSerilog(outputTemplate, ringBufferLogService));
+            .ConfigureSerilog(outputTemplate, ringBufferLogService, logFileService));
         return builder;
     }
 
@@ -153,14 +155,21 @@ public static class InitializationExtensions
         return app;
     }
 
-    public static LoggerConfiguration ConfigureSerilog(this LoggerConfiguration cfg, string outputTemplate, RingBufferLogService? ringBufferLogService = null)
+    public static LoggerConfiguration ConfigureSerilog(
+        this LoggerConfiguration cfg,
+        string outputTemplate,
+        RingBufferLogService? ringBufferLogService = null,
+        LogFileService? logFileService = null)
     {
         if (ringBufferLogService is not null)
             cfg.WriteTo.RingBuffer(ringBufferLogService);
 
         return cfg
             .WriteTo.Console(outputTemplate: outputTemplate)
-            .WriteTo.File(Path.Combine(FilePaths.LogsDir, ".log"), outputTemplate: outputTemplate, rollingInterval: RollingInterval.Day)
+            .WriteTo.File(Path.Combine(FilePaths.LogsDir, ".log"),
+                outputTemplate: outputTemplate,
+                rollingInterval: RollingInterval.Day,
+                hooks: logFileService?.FilePathHook)
             .WriteTo.Seq("http://localhost:5341")
             .Enrich.FromLogContext()
             .Enrich.WithThreadId()
