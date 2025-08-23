@@ -48,6 +48,7 @@ public sealed class AniDbUdpState : IDisposable
         ServerPort = options.AniDb.UdpServerPort;
         UdpClient = new UdpClient(new IPEndPoint(IPAddress.Any, options.AniDb.UdpClientPort));
         UdpClient.Client.ReceiveBufferSize = 1 << 15;
+        UdpClient.Client.DontFragment = true;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             UdpClient.AllowNatTraversal(true);
         _logger = logger;

@@ -20,15 +20,18 @@ public class UdpResponse
 {
     public string ResponseText { get; init; } = string.Empty;
     public AniDbResponseCode ResponseCode { get; init; }
+
+    // ReSharper disable once UnusedAutoPropertyAccessor.Global
     public string ResponseCodeText { get; init; } = string.Empty;
 }
 
-public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
+public abstract partial class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
     where TResponse : UdpResponse, new()
 {
     protected readonly AniDbUdpState AniDbUdpState;
     protected readonly ILogger<AniDbUdpRequest<TResponse>> Logger;
     private readonly UdpRateLimiter _rateLimiter;
+    private readonly string[] _anonymousCmds = ["PING", "ENCODING", "ENCRYPT", "AUTH", "VERSION", "USER"];
     private string? _requestText;
     private string? _tag;
 
@@ -41,7 +44,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
     }
 
     protected string Command { get; set; }
-    protected Dictionary<string, string> Args { get; } = new();
+    protected Dictionary<string, string> Args { get; } = [];
     protected bool ParametersSet { get; set; }
     protected Encoding Encoding { get; } = Encoding.UTF8;
 
@@ -55,15 +58,13 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         return null;
     }
 
-    protected virtual TResponse CreateResponse(string responseText, AniDbResponseCode responseCode, string responseCodeText)
-    {
-        return new TResponse
+    protected virtual TResponse CreateResponse(string responseText, AniDbResponseCode responseCode, string responseCodeText) =>
+        new()
         {
             ResponseText = responseText,
             ResponseCode = responseCode,
-            ResponseCodeText = responseCodeText
+            ResponseCodeText = responseCodeText,
         };
-    }
 
     private async Task<(string responseText, AniDbResponseCode responseCode, string responseCodeText)?> ProcessInnerAsync()
     {
@@ -79,19 +80,18 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         }
 
         var retry = HandleSharedErrors(response);
-        if (retry)
-        {
-            Logger.LogDebug("Error handled, retrying request");
-            await PrepareRequestAsync().ConfigureAwait(false);
-            using (await _rateLimiter.AcquireAsync().ConfigureAwait(false))
-            {
-                await SendRequestAsync().ConfigureAwait(false);
-                response = await ReceiveResponseAsync().ConfigureAwait(false);
-            }
+        if (!retry)
+            return response;
 
-            HandleSharedErrors(response);
+        Logger.LogDebug("Error handled, retrying request");
+        await PrepareRequestAsync().ConfigureAwait(false);
+        using (await _rateLimiter.AcquireAsync().ConfigureAwait(false))
+        {
+            await SendRequestAsync().ConfigureAwait(false);
+            response = await ReceiveResponseAsync().ConfigureAwait(false);
         }
 
+        HandleSharedErrors(response);
         return response;
     }
 
@@ -127,7 +127,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
     private async Task PrepareRequestAsync()
     {
         Logger.LogTrace("Preparing {Command} request", Command);
-        if (!new[] { "PING", "ENCODING", "ENCRYPT", "AUTH", "VERSION", "USER" }.Contains(Command))
+        if (!_anonymousCmds.Contains(Command))
         {
             await AniDbUdpState.LoginAsync().ConfigureAwait(false);
 
@@ -137,9 +137,8 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
         }
 
         _requestText = Command;
-        Args["tag"] = _tag = Path.GetRandomFileName()[..8];
-        _requestText += ' ' + string.Join('&',
-            Args.Select(kvp => $"{kvp.Key}={Regex.Replace(HttpUtility.HtmlEncode(kvp.Value), @"\r?\n|\r", "<br />")}"));
+        Args["tag"] = _tag = Guid.NewGuid().ToString("N")[..8];
+        _requestText += ' ' + string.Join('&', Args.Select(kvp => $"{kvp.Key}={NewLineRegex().Replace(HttpUtility.HtmlEncode(kvp.Value), "<br />")}"));
     }
 
 
@@ -159,31 +158,25 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
                 await using Stream memStream = receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0
                     ? new DeflateStream(new MemoryStream(receivedBytes, 4, receivedBytes.Length - 4), CompressionMode.Decompress)
                     : new MemoryStream(receivedBytes);
-                using var reader = new StreamReader(memStream, Encoding);
-#pragma warning disable VSTHRD103
-                // ReSharper disable MethodHasAsyncOverloadWithCancellation
-                var codeLine = reader.ReadLine();
-                var responseText = reader.ReadToEnd();
-                // ReSharper restore MethodHasAsyncOverloadWithCancellation
-#pragma warning restore VSTHRD103
-                if (string.IsNullOrWhiteSpace(codeLine) || codeLine.Length <= 2)
-                    throw new AniDbUdpRequestException("AniDB response is empty");
+                using var reader = new StreamReader(memStream, Encoding, false);
+                var codeLine = await reader.ReadLineAsync(CancellationToken.None).ConfigureAwait(false) ?? string.Empty;
+                var responseText = await reader.ReadToEndAsync(CancellationToken.None).ConfigureAwait(false);
                 Logger.LogDebug("Received UDP response:\n{CodeLine}\n{ResponseText}", codeLine, responseText);
+                if (!ReturnCodeRegex().IsMatch(codeLine))
+                {
+                    Logger.LogError("AniDB response was malformed:\n{CodeLine}\n{ResponseText}", codeLine, responseText);
+                    continue;
+                }
 
                 var responseTag = codeLine[..8];
                 var responseCode = (AniDbResponseCode)int.Parse(codeLine[9..12]);
                 var responseCodeText = string.Empty;
                 if (codeLine.Length >= 14)
                     responseCodeText = codeLine[13..];
-                if (responseTag != _tag)
-                {
-                    HandleSharedErrors((responseText, responseCode, responseCodeText));
-                    Logger.LogError("Tag {Tag} did not match returned tag {ReturnedTag}, retrying receive. Full text:\n{CodeLine}\n{ResponseText}", _tag,
-                        responseTag, codeLine, responseText);
-                    continue;
-                }
-
-                return (responseText, responseCode, responseCodeText);
+                if (responseTag == _tag)
+                    return (responseText, responseCode, responseCodeText);
+                HandleSharedErrors((responseText, responseCode, responseCodeText));
+                Logger.LogError("Tag {Tag} did not match returned response:\n{CodeLine}\n{ResponseText}", _tag, codeLine, responseText);
             }
         }
         catch (OperationCanceledException)
@@ -230,7 +223,7 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
             case AniDbResponseCode.AccessDenied:
                 Logger.LogError("Access denied");
                 throw new AniDbUdpRequestException("Access was denied", responseCode);
-            case AniDbResponseCode.InternalServerError or (> AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700):
+            case AniDbResponseCode.InternalServerError or > AniDbResponseCode.ServerBusy and < (AniDbResponseCode)700:
                 Logger.LogCritical("AniDB Server CRITICAL ERROR {ErrorCode} : {ErrorCodeStr}", responseCode, responseCodeText);
                 throw new AniDbUdpRequestException($"Critical error with server {responseCode} {responseCodeText}", responseCode);
             case AniDbResponseCode.UnknownCommand:
@@ -250,4 +243,10 @@ public abstract class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TResponse>
                 return false;
         }
     }
+
+    [GeneratedRegex(@"\r?\n|\r")]
+    private static partial Regex NewLineRegex();
+
+    [GeneratedRegex(@"[0-9a-f]{8} [0-9]{3}( .*)?")]
+    private static partial Regex ReturnCodeRegex();
 }
