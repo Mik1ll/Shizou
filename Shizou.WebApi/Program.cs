@@ -1,6 +1,7 @@
 using System.Reflection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using Serilog;
 using Shizou.Data;
@@ -54,7 +55,11 @@ try
 
     if (!app.Environment.IsDevelopment()) app.UseHsts();
 
-    app.UseSwagger(opt => { opt.RouteTemplate = "/openapi/{documentName}.json"; });
+    app.UseSwagger(opt =>
+    {
+        opt.RouteTemplate = "/openapi/{documentName}.json";
+        opt.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+    });
     app.MapScalarApiReference();
     app.UseSwaggerUI(opt => { opt.SwaggerEndpoint("/openapi/v1.json", "V1"); });
 

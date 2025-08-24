@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Net.Mime;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -16,14 +18,17 @@ public class Command : ControllerBase
 {
     private readonly CommandService _commandService;
     private readonly IPingRequest _pingRequest;
+    private readonly IGenericRequest _genericRequest;
 
     public Command(
         CommandService commandService,
-        IPingRequest pingRequest
+        IPingRequest pingRequest,
+        IGenericRequest genericRequest
     )
     {
         _commandService = commandService;
         _pingRequest = pingRequest;
+        _genericRequest = genericRequest;
     }
 
     [HttpPut("[action]")]
@@ -49,5 +54,16 @@ public class Command : ControllerBase
         _pingRequest.SetParameters();
         await _pingRequest.ProcessAsync().ConfigureAwait(false);
         return TypedResults.Ok();
+    }
+
+    [HttpPut("[action]")]
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(string), MediaTypeNames.Text.Plain)]
+    public async Task<string> GenericUdpRequest(string command, Dictionary<string, string> args)
+    {
+        _genericRequest.SetParameters(command, args);
+        var resp = await _genericRequest.ProcessAsync().ConfigureAwait(false);
+        if (resp is not null)
+            return resp.ResponseCodeText + "\n" + resp.ResponseText;
+        return string.Empty;
     }
 }

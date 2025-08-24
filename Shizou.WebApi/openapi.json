@@ -846,6 +846,50 @@
         }
       }
     },
+    "/api/Command/GenericUdpRequest": {
+      "put": {
+        "tags": [
+          "Command"
+        ],
+        "operationId": "ShizouHttpClient_CommandGenericUdpRequest",
+        "parameters": [
+          {
+            "name": "command",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/FileServer/{ed2K}": {
       "get": {
         "tags": [
