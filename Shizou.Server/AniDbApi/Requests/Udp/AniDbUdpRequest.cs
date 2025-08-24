@@ -154,25 +154,24 @@ public abstract partial class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TRes
                 using var cancelSource = new CancellationTokenSource(receiveTimeout);
                 var receivedBytes = (await AniDbUdpState.UdpClient.ReceiveAsync(cancelSource.Token).ConfigureAwait(false)).Buffer;
 
-                // Two null bytes and two bytes of Zlib header, seems to ignore trailer automatically
-                await using Stream memStream = receivedBytes.Length > 2 && receivedBytes[0] == 0 && receivedBytes[1] == 0
-                    ? new DeflateStream(new MemoryStream(receivedBytes, 4, receivedBytes.Length - 4), CompressionMode.Decompress)
+                // If starts with two null bytes then zlib compressed (deflate)
+                await using Stream memStream = receivedBytes is [0, 0, ..]
+                    ? new ZLibStream(new MemoryStream(receivedBytes, 2, receivedBytes.Length - 2), CompressionMode.Decompress)
                     : new MemoryStream(receivedBytes);
                 using var reader = new StreamReader(memStream, Encoding, false);
                 var codeLine = await reader.ReadLineAsync(CancellationToken.None).ConfigureAwait(false) ?? string.Empty;
                 var responseText = await reader.ReadToEndAsync(CancellationToken.None).ConfigureAwait(false);
                 Logger.LogDebug("Received UDP response:\n{CodeLine}\n{ResponseText}", codeLine, responseText);
-                if (!ReturnCodeRegex().IsMatch(codeLine))
+                var codeLineMatches = ReturnCodeRegex().Match(codeLine);
+                if (!codeLineMatches.Success)
                 {
                     Logger.LogError("AniDB response was malformed:\n{CodeLine}\n{ResponseText}", codeLine, responseText);
                     continue;
                 }
 
-                var responseTag = codeLine[..8];
-                var responseCode = (AniDbResponseCode)int.Parse(codeLine[9..12]);
-                var responseCodeText = string.Empty;
-                if (codeLine.Length >= 14)
-                    responseCodeText = codeLine[13..];
+                var responseTag = codeLineMatches.Groups["tag"].Value;
+                var responseCode = (AniDbResponseCode)int.Parse(codeLineMatches.Groups["code"].Value);
+                var responseCodeText = codeLineMatches.Groups["codetext"].Value;
                 if (responseTag == _tag)
                     return (responseText, responseCode, responseCodeText);
                 HandleSharedErrors((responseText, responseCode, responseCodeText));
@@ -247,6 +246,6 @@ public abstract partial class AniDbUdpRequest<TResponse> : IAniDbUdpRequest<TRes
     [GeneratedRegex(@"\r?\n|\r")]
     private static partial Regex NewLineRegex();
 
-    [GeneratedRegex(@"[0-9a-f]{8} [0-9]{3}( .*)?")]
+    [GeneratedRegex("(?<tag>[0-9a-f]{8}) (?<code>[0-9]{3})(?: (?<codetext>.*))?")]
     private static partial Regex ReturnCodeRegex();
 }
