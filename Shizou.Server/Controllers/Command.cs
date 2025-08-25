@@ -58,12 +58,13 @@ public class Command : ControllerBase
 
     [HttpPut("[action]")]
     [SwaggerResponse(StatusCodes.Status200OK, null, typeof(string), MediaTypeNames.Text.Plain)]
-    public async Task<string> GenericUdpRequest(string command, Dictionary<string, string> args)
+    [SwaggerResponse(StatusCodes.Status424FailedDependency, null, typeof(ProblemDetails))]
+    public async Task<Results<Ok<string>, ProblemHttpResult>> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
         _genericRequest.SetParameters(command, args);
         var resp = await _genericRequest.ProcessAsync().ConfigureAwait(false);
-        if (resp is not null)
-            return resp.ResponseCodeText + "\n" + resp.ResponseText;
-        return string.Empty;
+        if (resp is null)
+            return TypedResults.Problem("AniDB did not respond.", statusCode: StatusCodes.Status424FailedDependency);
+        return TypedResults.Ok(resp.ResponseCodeText + "\n" + resp.ResponseText);
     }
 }
