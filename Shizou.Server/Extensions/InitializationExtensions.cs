@@ -88,6 +88,8 @@ public static class InitializationExtensions
   If key is password protected, set env variable ASPNETCORE_Kestrel__Certificates__Default__Password");
         }
 
+        builder.Services.Configure<ForwardedHeadersOptions>(builder.Configuration.GetSection("ForwardedHeaders"));
+
         return builder;
     }
 
