@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -7,6 +8,7 @@ using System.Net.Mime;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.StaticFiles;
@@ -37,11 +39,13 @@ using Shizou.Server.Options;
 using Shizou.Server.SerilogSinks;
 using Shizou.Server.Services;
 using Shizou.Server.SwaggerFilters;
+using Shizou.Server.TypeConverters;
 using Swashbuckle.AspNetCore.Filters;
 using UdpAnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.AnimeRequest;
 using IUdpAnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.Interfaces.IAnimeRequest;
 using HttpAnimeRequest = Shizou.Server.AniDbApi.Requests.Http.AnimeRequest;
 using IHttpAnimeRequest = Shizou.Server.AniDbApi.Requests.Http.Interfaces.IAnimeRequest;
+using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 namespace Shizou.Server.Extensions;
 
@@ -88,7 +92,20 @@ public static class InitializationExtensions
   If key is password protected, set env variable ASPNETCORE_Kestrel__Certificates__Default__Password");
         }
 
-        builder.Services.Configure<ForwardedHeadersOptions>(builder.Configuration.GetSection("ForwardedHeaders"));
+        TypeDescriptor.AddAttributes(typeof(IPNetwork), new TypeConverterAttribute(typeof(IPNetworkTypeConverter)));
+        TypeDescriptor.AddAttributes(typeof(IPAddress), new TypeConverterAttribute(typeof(IPAddressTypeConverter)));
+
+        builder.Services.AddOptions<ForwardedHeadersOptions>()
+            .Configure(opts =>
+            {
+                if (!builder.Configuration.GetSection("ForwardedHeaders:ForwardedHeaders").Exists())
+                    opts.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                if (builder.Configuration.GetSection("ForwardedHeaders:KnownNetworks").Exists())
+                    opts.KnownNetworks.Clear();
+                if (builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Exists())
+                    opts.KnownProxies.Clear();
+            })
+            .Bind(builder.Configuration.GetSection("ForwardedHeaders"));
 
         return builder;
     }
