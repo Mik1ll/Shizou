@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Shizou.Server.TypeConverters;
 
-public class IPNetworkTypeConverter : TypeConverter
+public class IpNetworkTypeConverter : TypeConverter
 {
+    public static readonly TypeConverterAttribute DefaultAttribute = new(typeof(IpNetworkTypeConverter));
+
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) =>
         sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
 

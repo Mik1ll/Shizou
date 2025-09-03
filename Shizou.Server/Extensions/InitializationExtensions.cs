@@ -92,8 +92,10 @@ public static class InitializationExtensions
   If key is password protected, set env variable ASPNETCORE_Kestrel__Certificates__Default__Password");
         }
 
-        TypeDescriptor.AddAttributes(typeof(IPNetwork), new TypeConverterAttribute(typeof(IPNetworkTypeConverter)));
-        TypeDescriptor.AddAttributes(typeof(IPAddress), new TypeConverterAttribute(typeof(IPAddressTypeConverter)));
+        if (!TypeDescriptor.GetAttributes(typeof(IPNetwork)).Contains(IpNetworkTypeConverter.DefaultAttribute))
+            TypeDescriptor.AddAttributes(typeof(IPNetwork), IpNetworkTypeConverter.DefaultAttribute);
+        if (!TypeDescriptor.GetAttributes(typeof(IPAddress)).Contains(IpAddressTypeConverter.DefaultAttribute))
+            TypeDescriptor.AddAttributes(typeof(IPAddress), IpAddressTypeConverter.DefaultAttribute);
 
         builder.Services.AddOptions<ForwardedHeadersOptions>()
             .Configure(opts =>

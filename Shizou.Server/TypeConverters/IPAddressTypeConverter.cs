@@ -6,8 +6,10 @@ using System.Net;
 
 namespace Shizou.Server.TypeConverters;
 
-public class IPAddressTypeConverter : TypeConverter
+public class IpAddressTypeConverter : TypeConverter
 {
+    public static readonly TypeConverterAttribute DefaultAttribute = new(typeof(IpAddressTypeConverter));
+
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) =>
         sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
 
