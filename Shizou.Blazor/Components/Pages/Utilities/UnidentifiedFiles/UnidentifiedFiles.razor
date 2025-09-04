@@ -39,6 +39,11 @@
                     @if (_selectedFiles.Count > 0)
                     {
                         <div class="d-flex gap-1">
+                            @if (_selectedFiles.Count == 1)
+                            {
+                                <ExternalPlaybackButton class="btn-primary" Ed2K="@(_selectedFiles[0].Ed2k)" Single="true" Label="Play"/>
+                                <DownloadFileButton class="btn-primary" Ed2K="@(_selectedFiles[0].Ed2k)" Label="Download"/>
+                            }
                             <button type="button" class="btn btn-primary" @onclick="@(() => ScanFiles(_selectedFiles))">
                                 <i class="bi bi-search"></i> Scan
                             </button>
@@ -48,7 +53,7 @@
                             <button type="button" class="btn btn-primary" @onclick="@(() => AvDumpFiles(_selectedFiles))">
                                 <i class="bi bi-cloud-upload"></i> AVDump
                             </button>
-                            @if (_selectedFiles.All(lf => lf.Ignored == false))
+                            @if (_selectedFiles.All(lf => !lf.Ignored))
                             {
                                 <button type="button" class="btn btn-primary" @onclick="@(() => SetIgnored(_selectedFiles, true))">
                                     <i class="bi bi-slash-circle"></i> Ignore

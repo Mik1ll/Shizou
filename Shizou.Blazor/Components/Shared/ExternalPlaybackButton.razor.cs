@@ -7,7 +7,7 @@ using Shizou.Server.Controllers;
 
 namespace Shizou.Blazor.Components.Shared;
 
-public partial class ExternalPlaybackButton : ComponentBase
+public partial class ExternalPlaybackButton : ComponentWithExtraClasses
 {
     private bool _schemeHandlerInstalled;
     private string _externalPlaybackUri = string.Empty;
@@ -35,12 +35,16 @@ public partial class ExternalPlaybackButton : ComponentBase
     [EditorRequired]
     public bool Single { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    [Parameter]
+    public string Label { get; set; }
+
+    protected override async Task OnParametersSetAsync()
     {
         _schemeHandlerInstalled = (await BrowserSettings.GetSettingsAsync(JsRuntime)).ExternalPlayerInstalled;
         var baseUri = new Uri(NavigationManager.BaseUri);
 
         _externalPlaybackUri = await GetExternalPlaylistUriAsync(Ed2K, Single, baseUri, IdentityCookie);
+        await base.OnParametersSetAsync();
     }
 
     private async Task<string> GetExternalPlaylistUriAsync(string ed2K, bool single, Uri baseUri, string identityCookie)

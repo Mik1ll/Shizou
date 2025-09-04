@@ -1,13 +1,10 @@
-﻿using System.Dynamic;
-using Blazored.Modal;
+﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Identity;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
-using Shizou.Server.Controllers;
 using Shizou.Server.Services;
 
 namespace Shizou.Blazor.Components.Pages.Anime.Components;
@@ -15,7 +12,6 @@ namespace Shizou.Blazor.Components.Pages.Anime.Components;
 public partial class FileCard
 {
     private FileWatchedState _watchedState = null!;
-    private string _fileDownloadUrl = null!;
     private bool _fileExists;
 
     [Inject]
@@ -30,17 +26,8 @@ public partial class FileCard
     [Inject]
     private ManualLinkService ManualLinkService { get; set; } = null!;
 
-    [Inject]
-    private NavigationManager NavigationManager { get; set; } = null!;
-
-    [Inject]
-    private LinkGenerator LinkGenerator { get; set; } = null!;
-
     [CascadingParameter]
     public IModalService ModalService { get; set; } = null!;
-
-    [CascadingParameter(Name = "IdentityCookie")]
-    public string IdentityCookie { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
@@ -59,12 +46,6 @@ public partial class FileCard
         if (LocalFile.AniDbFile is null)
             throw new ArgumentException("Must have either AniDb file or Manual Link");
         _watchedState = LocalFile.AniDbFile.FileWatchedState;
-        var baseUri = new Uri(NavigationManager.BaseUri);
-        IDictionary<string, object?> values = new ExpandoObject();
-        values["ed2K"] = LocalFile.Ed2k;
-        values[IdentityConstants.ApplicationScheme] = IdentityCookie;
-        _fileDownloadUrl = LinkGenerator.GetUriByAction(nameof(FileServer.Get), nameof(FileServer), values, baseUri.Scheme, new HostString(baseUri.Authority),
-            new PathString(baseUri.AbsolutePath)) ?? throw new ArgumentException("Failed to generate file download uri");
     }
 
     private void CheckFileExists() =>

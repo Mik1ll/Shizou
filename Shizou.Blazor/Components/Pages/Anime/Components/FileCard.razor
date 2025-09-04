@@ -9,10 +9,8 @@
                         <button class="btn btn-success mb-1" type="button" @onclick="@OpenVideoAsync">
                             <i class="bi bi-play-fill"></i>
                         </button>
-                        <ExternalPlaybackButton Ed2K="@(LocalFile.Ed2k)" Single="true"/>
-                        <a class="btn btn-success mb-1" type="button" href="@_fileDownloadUrl" target="_blank">
-                            <i class="bi bi-download"></i>
-                        </a>
+                        <ExternalPlaybackButton class="btn-success mb-1" Ed2K="@(LocalFile.Ed2k)" Single="true"/>
+                        <DownloadFileButton class="btn-success mb-1" Ed2K="@(LocalFile.Ed2k)"/>
                     }
                     else
                     {

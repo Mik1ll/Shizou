@@ -22,7 +22,7 @@
                     <button class="btn btn-success mb-1" type="button" @onclick="@(() => OpenVideoAsync(_localFile.Id))">
                         <i class="bi bi-play-fill"></i>
                     </button>
-                    <ExternalPlaybackButton Ed2K="@(_localFile.Ed2k)" Single="false"/>
+                    <ExternalPlaybackButton class="btn-success mb-1" Ed2K="@(_localFile.Ed2k)" Single="false"/>
                 </div>
                 <button class="btn @(_watchedState.Watched ? "btn-outline-danger" : "btn-outline-success") me-2 mb-1" type="button"
                         @onclick:stopPropagation="true" @onclick="@(() => Mark(!_watchedState.Watched))">

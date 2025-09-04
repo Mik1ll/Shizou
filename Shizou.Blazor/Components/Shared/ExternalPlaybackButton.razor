@@ -1,12 +1,14 @@
-﻿@if (_schemeHandlerInstalled)
+﻿@inherits ComponentWithExtraClasses
+
+@if (_schemeHandlerInstalled)
 {
-    <a class="btn btn-success mb-1" type="button" href="@_externalPlaybackUri">
-        <i class="bi bi-cast"></i>
+    <a class="btn @ExtraClasses" type="button" href="@_externalPlaybackUri">
+        <i class="bi bi-cast"></i> @Label
     </a>
 }
 else
 {
-    <button class="btn btn-success mb-1" type="button" @onclick="@OpenSchemeHandlerDownloadModalAsync">
-        <i class="bi bi-cast"></i>
+    <button class="btn @ExtraClasses" type="button" @onclick="@OpenSchemeHandlerDownloadModalAsync">
+        <i class="bi bi-cast"></i> @Label
     </button>
 }
