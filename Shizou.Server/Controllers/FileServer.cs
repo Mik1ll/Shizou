@@ -51,7 +51,7 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), MediaTypeNames.Application.Octet)]
     public Results<PhysicalFileHttpResult, NotFound> Get([FromRoute] string ed2K)
     {
-        var localFile = _context.LocalFiles.Include(e => e.ImportFolder)
+        var localFile = _context.LocalFiles.AsNoTracking()
             .Where(e => e.ImportFolder != null && e.Ed2k == ed2K)
             .Select(lf => new { lf.ImportFolder!.Path, lf.PathTail })
             .FirstOrDefault();
@@ -70,22 +70,33 @@ public class FileServer : ControllerBase
     {
         var m3U8 = "#EXTM3U\n";
 
-        var animeId = _context.AniDbEpisodes.AsNoTracking()
-            .Where(ep => ep.AniDbFiles.Any(f => f.LocalFiles.Any(lf => lf.Ed2k == ed2K)))
-            .Select(ep => (int?)ep.AniDbAnimeId).FirstOrDefault();
-        if (animeId is null)
+        var localFile = _context.LocalFiles.AsNoTracking()
+            .Where(lf => lf.ImportFolder != null && lf.Ed2k == ed2K)
+            .Select(lf => new { AniDbAnimeId = (int?)lf.AniDbFile!.AniDbEpisodes.FirstOrDefault()!.AniDbAnimeId, lf.Ed2k, lf.ImportFolder!.Path, lf.PathTail })
+            .FirstOrDefault();
+        if (localFile is null)
             return TypedResults.NotFound();
-        List<AniDbEpisode> eps = (from e in _context.AniDbEpisodes
-                .Include(e => e.AniDbAnime)
-                .Include(e => e.AniDbFiles)
-                .ThenInclude(f => f.LocalFiles).AsNoTracking()
-            where e.AniDbAnimeId == animeId
-            orderby e.EpisodeType, e.Number
-            select e).ToList();
-        var localFile = eps.SelectMany(ep => ep.AniDbFiles.SelectMany(f => f.LocalFiles)).First(l => l.Ed2k == ed2K);
+
+        var animeId = localFile.AniDbAnimeId;
+        if (animeId is null)
+        {
+            var filePath = Path.Combine(localFile.Path, localFile.PathTail);
+            m3U8 += $"#EXTINF:-1,{Path.GetFileName(filePath)}\n";
+            m3U8 += $"{GetFileUri(localFile.Ed2k)}\n";
+            return TypedResults.File(Encoding.UTF8.GetBytes(m3U8), "application/x-mpegurl", $"{ed2K}.m3u8");
+        }
+
+        var eps = _context.AniDbEpisodes.AsNoTracking()
+            .Include(e => e.AniDbAnime)
+            .Include(e => e.AniDbFiles)
+            .ThenInclude(f => f.LocalFiles)
+            .Where(e => e.AniDbAnimeId == animeId)
+            .OrderBy(e => e.EpisodeType)
+            .ThenBy(e => e.Number).ToList();
         var episode = eps.First(ep => ep.AniDbFiles.Any(f => f.LocalFiles.Any(lf => lf.Ed2k == ed2K)));
-        var groupId = (localFile.AniDbFile as AniDbNormalFile)?.AniDbGroupId;
-        var epCount = episode.AniDbAnime.EpisodeCount;
+        var groupId = eps.SelectMany(ep => ep.AniDbFiles)
+            .OfType<AniDbNormalFile>()
+            .FirstOrDefault(f => f.LocalFiles.Any(lf => ed2K == lf.Ed2k))?.AniDbGroupId;
         var lastEpNo = episode.Number - 1;
         foreach (var loopEp in eps.SkipWhile(x => x != episode))
         {
@@ -95,8 +106,7 @@ public class FileServer : ControllerBase
             if (loopLocalFile is null)
                 break;
             m3U8 += $"#EXTINF:-1,{episode.AniDbAnime.TitleTranscription} - {loopEp.EpString}\n";
-            var fileUri = GetFileUri(loopLocalFile, loopEp);
-            m3U8 += $"{fileUri}\n";
+            m3U8 += $"{GetFileUri(loopLocalFile.Ed2k, loopEp)}\n";
             lastEpNo = loopEp.Number;
             if (single is true)
                 break;
@@ -104,19 +114,23 @@ public class FileServer : ControllerBase
 
         return TypedResults.File(Encoding.UTF8.GetBytes(m3U8), "application/x-mpegurl", $"{ed2K}.m3u8");
 
-        string GetFileUri(LocalFile lf, AniDbEpisode ep)
+        string GetFileUri(string fileEd2K, AniDbEpisode? ep = null)
         {
             IDictionary<string, object?> values = new ExpandoObject();
-            values["ed2K"] = lf.Ed2k;
-            values["posterFilename"] = ep.AniDbAnime.ImageFilename;
-            values["animeName"] = ep.AniDbAnime.TitleEnglish ?? ep.AniDbAnime.TitleTranscription;
-            values["episodeName"] = ep.TitleEnglish;
-            values["epNo"] = ep.EpString;
-            values["epCount"] = epCount;
-            values["animeId"] = animeId;
-            values["restricted"] = ep.AniDbAnime.Restricted;
+            values["ed2K"] = fileEd2K;
+            if (ep is not null)
+            {
+                values["posterFilename"] = ep.AniDbAnime.ImageFilename;
+                values["animeName"] = ep.AniDbAnime.TitleEnglish ?? ep.AniDbAnime.TitleTranscription;
+                values["episodeName"] = ep.TitleEnglish;
+                values["epNo"] = ep.EpString;
+                values["epCount"] = ep.AniDbAnime.EpisodeCount;
+                values["animeId"] = ep.AniDbAnimeId;
+                values["restricted"] = ep.AniDbAnime.Restricted;
+                values["appId"] = "07a58b50-5109-5aa3-abbc-782fed0df04f";
+            }
+
             values[IdentityConstants.ApplicationScheme] = HttpContext.Request.Cookies[IdentityConstants.ApplicationScheme];
-            values["appId"] = "07a58b50-5109-5aa3-abbc-782fed0df04f";
             var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
                 nameof(FileServer), values) ?? throw new ArgumentException("Could not generate file uri");
             return fileUri;
