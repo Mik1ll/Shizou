@@ -27,7 +27,7 @@ public partial class DownloadFileButton : ComponentWithExtraClasses
     public string Ed2K { get; set; } = null!;
 
     [Parameter]
-    public string Label { get; set; }
+    public string? Label { get; set; }
 
     protected override void OnParametersSet()
     {

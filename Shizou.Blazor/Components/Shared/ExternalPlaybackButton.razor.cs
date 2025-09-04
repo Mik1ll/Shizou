@@ -36,7 +36,7 @@ public partial class ExternalPlaybackButton : ComponentWithExtraClasses
     public bool Single { get; set; }
 
     [Parameter]
-    public string Label { get; set; }
+    public string? Label { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
