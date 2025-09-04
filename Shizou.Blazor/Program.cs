@@ -45,7 +45,6 @@ try
 
     builder.Services.AddBlazoredModal();
     builder.Services.AddScoped<ToastService>();
-    builder.Services.AddTransient<ExternalPlaybackService>();
     builder.Services.AddScoped<IdentityRedirectManager>();
     builder.Services.AddScoped<IdentityUserAccessor>();
     builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();

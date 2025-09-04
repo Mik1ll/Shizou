@@ -9,21 +9,8 @@
                         <button class="btn btn-success mb-1" type="button" @onclick="@OpenVideoAsync">
                             <i class="bi bi-play-fill"></i>
                         </button>
-                        @if (_schemeHandlerInstalled)
-                        {
-                            <a class="btn btn-success mb-1" type="button" href="@_externalPlaybackUrl">
-                                <i class="bi bi-cast"></i>
-                            </a>
-                        }
-                        else
-                        {
-                            <button class="btn btn-success mb-1" type="button" @onclick="@OpenSchemeHandlerDownloadModalAsync">
-                                <i class="bi bi-cast"></i>
-                            </button>
-                        }
-
+                        <ExternalPlaybackButton Ed2K="@(LocalFile.Ed2k)" Single="true"/>
                         <a class="btn btn-success mb-1" type="button" href="@_fileDownloadUrl" target="_blank">
-
                             <i class="bi bi-download"></i>
                         </a>
                     }

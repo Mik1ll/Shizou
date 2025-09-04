@@ -1,0 +1,12 @@
+﻿@if (_schemeHandlerInstalled)
+{
+    <a class="btn btn-success mb-1" type="button" href="@_externalPlaybackUri">
+        <i class="bi bi-cast"></i>
+    </a>
+}
+else
+{
+    <button class="btn btn-success mb-1" type="button" @onclick="@OpenSchemeHandlerDownloadModalAsync">
+        <i class="bi bi-cast"></i>
+    </button>
+}

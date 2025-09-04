@@ -3,9 +3,7 @@ using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.JSInterop;
 using Shizou.Blazor.Components.Shared;
-using Shizou.Blazor.Services;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.Enums;
 using Shizou.Data.Models;
@@ -17,16 +15,11 @@ namespace Shizou.Blazor.Components.Pages.Anime.Components;
 public partial class FileCard
 {
     private FileWatchedState _watchedState = null!;
-    private string _externalPlaybackUrl = null!;
     private string _fileDownloadUrl = null!;
     private bool _fileExists;
-    private bool _schemeHandlerInstalled;
 
     [Inject]
     private WatchStateService WatchStateService { get; set; } = null!;
-
-    [Inject]
-    private ExternalPlaybackService ExternalPlaybackService { get; set; } = null!;
 
     [Inject]
     private CommandService CommandService { get; set; } = null!;
@@ -36,9 +29,6 @@ public partial class FileCard
 
     [Inject]
     private ManualLinkService ManualLinkService { get; set; } = null!;
-
-    [Inject]
-    private IJSRuntime JsRuntime { get; set; } = null!;
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
@@ -64,16 +54,12 @@ public partial class FileCard
         CheckFileExists();
     }
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
         if (LocalFile.AniDbFile is null)
             throw new ArgumentException("Must have either AniDb file or Manual Link");
         _watchedState = LocalFile.AniDbFile.FileWatchedState;
-
-        _schemeHandlerInstalled = (await BrowserSettings.GetSettingsAsync(JsRuntime)).ExternalPlayerInstalled;
-
         var baseUri = new Uri(NavigationManager.BaseUri);
-        _externalPlaybackUrl = await ExternalPlaybackService.GetExternalPlaylistUriAsync(LocalFile.Ed2k, true, baseUri, IdentityCookie);
         IDictionary<string, object?> values = new ExpandoObject();
         values["ed2K"] = LocalFile.Ed2k;
         values[IdentityConstants.ApplicationScheme] = IdentityCookie;
@@ -110,10 +96,4 @@ public partial class FileCard
     private void Hash() => CommandService.Dispatch(new HashArgs(Path.Combine(LocalFile.ImportFolder!.Path, LocalFile.PathTail)));
 
     private void Scan() => CommandService.Dispatch(new ProcessArgs(LocalFile.Id, IdTypeLocalOrFile.LocalId));
-
-    private async Task OpenSchemeHandlerDownloadModalAsync()
-    {
-        await ModalService.Show<SchemeHandlerDownloadModal>().Result;
-        _schemeHandlerInstalled = (await BrowserSettings.GetSettingsAsync(JsRuntime)).ExternalPlayerInstalled;
-    }
 }
