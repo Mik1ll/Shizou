@@ -112,7 +112,7 @@ public class UpdateMyListByEpisodeCommand : Command<UpdateMyListByEpisodeArgs>
                     ManuallyLinkFile(entryResult);
                     if (addResponse.EntriesAffected == 0)
                         _commandService.Dispatch(new UpdateMyListArgs(entryResult.MyListId, CommandArgs.MyListState ?? entryResult.State, CommandArgs.Watched,
-                            CommandArgs.WatchedDate));
+                            CommandArgs.WatchedDate, entryResult.FileId));
                 }
                 else
                 {

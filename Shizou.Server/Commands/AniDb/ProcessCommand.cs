@@ -138,9 +138,9 @@ public class ProcessCommand : Command<ProcessArgs>
                     watchedState.WatchedUpdated));
             else if (watchedState.Watched != result.MyListViewed)
                 _commandService.Dispatch(new UpdateMyListArgs(watchedState.MyListId.Value, presentState,
-                    watchedState.Watched, watchedState.WatchedUpdated));
+                    watchedState.Watched, watchedState.WatchedUpdated, watchedState.AniDbFileId));
             else if (result.MyListState != presentState || result.MyListFileState != MyListFileState.Normal)
-                _commandService.Dispatch(new UpdateMyListArgs(watchedState.MyListId.Value, presentState, null, null));
+                _commandService.Dispatch(new UpdateMyListArgs(watchedState.MyListId.Value, presentState, null, null, watchedState.AniDbFileId));
         }
     }
 

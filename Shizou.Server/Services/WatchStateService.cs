@@ -42,7 +42,7 @@ public class WatchStateService
         var myListOptions = _optionsMonitor.CurrentValue.AniDb.MyList;
         var state = myListOptions.PresentFileState;
         if (fileWatchedState.MyListId is not null)
-            _commandService.Dispatch(new UpdateMyListArgs(fileWatchedState.MyListId.Value, state, watched, updatedTime));
+            _commandService.Dispatch(new UpdateMyListArgs(fileWatchedState.MyListId.Value, state, watched, updatedTime, fileWatchedState.AniDbFileId));
         else
             _commandService.Dispatch(new AddMyListArgs(fileId, state, watched, updatedTime));
         return true;

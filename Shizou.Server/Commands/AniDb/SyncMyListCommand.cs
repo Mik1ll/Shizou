@@ -201,7 +201,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
                     if (watchedState.WatchedUpdated is not null &&
                         DateOnly.FromDateTime(watchedState.WatchedUpdated.Value) >= item.Updated)
                     {
-                        toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, watchedState.Watched, watchedState.WatchedUpdated));
+                        toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, watchedState.Watched, watchedState.WatchedUpdated, watchedState.AniDbFileId));
                         updateQueued = true;
                     }
                     else
@@ -222,7 +222,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
             }
 
             if (!updateQueued && (item.State != expectedState || item.FileState != MyListFileState.Normal))
-                toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, null, null));
+                toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, null, null, item.Fid));
         }
 
         // Remove my list ids from states without corresponding mylist entry

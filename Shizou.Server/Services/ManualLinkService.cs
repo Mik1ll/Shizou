@@ -68,7 +68,7 @@ public class ManualLinkService
             Path.GetFileName(localFile.PathTail), aniDbEpisodeId);
         var watchedState = genericFile.FileWatchedState;
         if (watchedState.MyListId is not null)
-            _commandService.Dispatch(new UpdateMyListArgs(watchedState.MyListId.Value, options.PresentFileState, null, null));
+            _commandService.Dispatch(new UpdateMyListArgs(watchedState.MyListId.Value, options.PresentFileState, null, null, watchedState.AniDbFileId));
         else
             _commandService.Dispatch(new AddMyListArgs(watchedState.AniDbFileId, options.PresentFileState, null, null));
         return LinkResult.Yes;

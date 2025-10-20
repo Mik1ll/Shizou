@@ -106,7 +106,7 @@ public class RestoreMyListBackupCommand : Command<RestoreMyListBackupArgs>
             if (item is null)
                 toUpdate.Add(new AddMyListArgs(bitem.Fid, expectedState, watched, watchedDate));
             else if (item.Viewdate is not null != watched || item.State != expectedState)
-                toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, watched, watchedDate));
+                toUpdate.Add(new UpdateMyListArgs(item.Id, expectedState, watched, watchedDate, item.Fid));
         }
 
         _context.SaveChanges();
