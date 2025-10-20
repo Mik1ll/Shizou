@@ -78,7 +78,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
             var newStates = updateItems.Select(ui => new
             {
                 State = ui.u?.MyListState ?? ui.i.State, Watched = ui.u?.Watched ?? ui.i.Viewdate is not null,
-                WatchedDate = ui.u?.Watched is null ? ui.i.Viewdate : ui.u.WatchedDate
+                WatchedDate = ui.u?.Watched is null ? ui.i.Viewdate : ui.u.WatchedDate,
             }).ToList();
             var firstUpdate = updates.First();
             if (newStates.All(s => s.State == firstUpdate.MyListState) && updates.All(u => u.Watched is null))
@@ -132,14 +132,12 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
 
     private void RelationshipFixup(List<MyListItem> myListItems)
     {
+        var animeToAdd = new HashSet<int>();
         var eAnimeIds = _context.AniDbAnimes.Select(a => a.Id).ToHashSet();
         var eNormalFileIds = _context.AniDbNormalFiles.Select(f => f.Id).ToHashSet();
         var eEpIds = _context.AniDbEpisodes.Select(e => e.Id).ToHashSet();
-        var animeToAdd = new HashSet<int>();
-        var eRels = _context.AniDbEpisodeFileXrefs.AsNoTracking().ToList();
-        var eRelsLkup = eRels.ToLookup(xref => xref.AniDbFileId);
-        var eHangingRels = _context.HangingEpisodeFileXrefs.AsNoTracking().ToList();
-        var eHangingRelsLkup = eHangingRels.ToLookup(xref => xref.AniDbNormalFileId);
+        var eRelsLkup = _context.AniDbEpisodeFileXrefs.AsNoTracking().ToLookup(xref => xref.AniDbFileId);
+        var eHangingRelsLkup = _context.HangingEpisodeFileXrefs.AsNoTracking().ToLookup(xref => xref.AniDbNormalFileId);
 
         foreach (var item in myListItems.Where(i => eNormalFileIds.Contains(i.Fid)))
         {
@@ -153,18 +151,17 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
                     _context.AniDbEpisodeFileXrefs.Add(new AniDbEpisodeFileXref
                     {
                         AniDbEpisodeId = relEid,
-                        AniDbFileId = item.Fid
+                        AniDbFileId = item.Fid,
                     });
                 else
                     _context.HangingEpisodeFileXrefs.Add(new HangingEpisodeFileXref
                     {
                         AniDbEpisodeId = relEid,
-                        AniDbNormalFileId = item.Fid
+                        AniDbNormalFileId = item.Fid,
                     });
 
-            foreach (var aid in item.Aids)
-                if (!eAnimeIds.Contains(aid))
-                    animeToAdd.Add(aid);
+            foreach (var aid in item.Aids.Where(aid => !eAnimeIds.Contains(aid)))
+                animeToAdd.Add(aid);
         }
 
         _context.SaveChanges();
@@ -176,17 +173,11 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
     private void UpdateFileStates(List<MyListItem> myListItems)
     {
         // Get watched states for files and generic files, episode watch states without a file id excluded
-        var watchedStatesByFileId = _context.FileWatchedStates.Select(ws => new { FileId = ws.AniDbFileId, WatchedState = ws })
-            .ToDictionary(f => f.FileId, f => f.WatchedState);
+        var watchedStatesByFileId = _context.FileWatchedStates.ToDictionary(ws => ws.AniDbFileId);
 
         // Get file id and generic file ids for files with local files
         var fileIdsWithLocal = _context.AniDbFiles.Where(f => f.LocalFiles.Any()).Select(f => f.Id).ToHashSet();
-
-        var myListItemCountByEpisodeId = (from item in myListItems
-            from eid in item.Eids
-            group eid by eid
-            into g
-            select g).ToDictionary(g => g.Key, g => g.Count());
+        var myListItemCountByEpisodeId = myListItems.SelectMany(item => item.Eids).GroupBy(eid => eid).ToDictionary(g => g.Key, g => g.Count());
 
         // Get episode ids that do not have a generic file id
         var epIdsMissingGenericFile = (from ep in _context.AniDbEpisodes
@@ -265,7 +256,7 @@ public class SyncMyListCommand : Command<SyncMyListArgs>
             _context.Timers.Add(new Timer
             {
                 Type = TimerType.MyListRequest,
-                Expires = expires
+                Expires = expires,
             });
 
         _context.SaveChanges();
