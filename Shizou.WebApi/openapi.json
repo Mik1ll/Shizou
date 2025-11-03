@@ -3169,6 +3169,10 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "fileId": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
