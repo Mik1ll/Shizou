@@ -45,9 +45,11 @@ public partial class AvDumpService
         {
             var fileName = Path.GetFileName(localFile.PathTail);
             var asciiName = NonAsciiRegex().Replace(fileName, "_");
-            symlinkPath = Path.Combine(Path.GetTempPath(), "shizou", asciiName);
+            var tempDir = Path.Combine(Path.GetTempPath(), "shizou");
+            symlinkPath = Path.Combine(tempDir, asciiName);
             if (Path.Exists(symlinkPath))
                 File.Delete(symlinkPath);
+            Directory.CreateDirectory(tempDir);
             File.CreateSymbolicLink(symlinkPath, path);
         }
 
