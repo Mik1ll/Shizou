@@ -3,20 +3,25 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "bootstrap-icons@1.11.1",
-      "destination": "wwwroot/lib/bootstrap-icons"
+      "library": "bootstrap-icons@1.13.1",
+      "destination": "wwwroot/lib/bootstrap-icons",
+      "files": [
+        "font/fonts/bootstrap-icons.woff2",
+        "font/bootstrap-icons.css",
+        "font/bootstrap-icons.min.css"
+      ]
     },
     {
-      "library": "video.js@8.6.1",
+      "library": "video.js@8.23.4",
       "destination": "wwwroot/lib/video.js"
     },
     {
       "provider": "jsdelivr",
-      "library": "jassub@1.7.15",
+      "library": "jassub@1.8.6",
       "destination": "wwwroot/lib/jassub"
     },
     {
-      "library": "bootstrap@5.3.3",
+      "library": "bootstrap@5.3.8",
       "destination": "wwwroot/lib/bootstrap",
       "files": [
         "css/bootstrap.css",
