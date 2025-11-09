@@ -60,7 +60,7 @@ public class DatabaseTests : SeededDatabaseTests
         var file = context.AniDbNormalFiles.First();
         var audio = file.Audio;
         var subtitles = file.Subtitles;
-        Assert.IsFalse(audio.Count == 0);
-        Assert.IsFalse(subtitles.Count == 0);
+        Assert.IsNotEmpty(audio);
+        Assert.IsNotEmpty(subtitles);
     }
 }

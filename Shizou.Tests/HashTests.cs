@@ -47,7 +47,7 @@ public class HashTests
     [TestMethod]
     public void TestBadHashId()
     {
-        var ex = Assert.ThrowsException<ArgumentException>(() => new RHasher(HashIds.Md4).ToString(HashIds.Sha1 | HashIds.Crc32));
+        var ex = Assert.Throws<ArgumentException>(() => new RHasher(HashIds.Md4).ToString(HashIds.Sha1 | HashIds.Crc32));
         Assert.AreEqual("No hash id set or multiple hash ids set", ex.Message);
     }
 }

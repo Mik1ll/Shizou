@@ -40,7 +40,7 @@ public class ShizouOptions : IValidatableObject
     {
         var innerBuilder =
             JsonSchema.JsonSchemaBuilderExtensions.FromType<ShizouOptions>(new JsonSchemaBuilder(),
-                new JsonSchema.SchemaGeneratorConfiguration() { Optimize = false });
+                new JsonSchema.SchemaGeneratorConfiguration());
         var builder = new JsonSchemaBuilder()
             .Type(SchemaValueType.Object)
             .Properties((Shizou, innerBuilder.Build()));
