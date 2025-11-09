@@ -62,7 +62,7 @@ public partial class Actions
 
     private async Task OpenMalAuthAsync()
     {
-        var url = ServiceProvider.GetRequiredService<MyAnimeListService>()
+        var url = ServiceProvider.GetRequiredService<MyAnimeListService>().MalAuthorization
             .GetAuthenticationUrl(new Uri(NavigationManager.BaseUri));
         if (url is not null)
             await JsRuntime.InvokeVoidAsync("open", url, "_blank");

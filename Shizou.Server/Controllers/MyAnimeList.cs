@@ -30,7 +30,7 @@ public class MyAnimeList : ControllerBase
     {
         var baseUri = new UriBuilder(HttpContext.Request.Scheme, HttpContext.Request.Host.Host, HttpContext.Request.Host.Port ?? -1,
             HttpContext.Request.PathBase).Uri;
-        var url = _myAnimeListService.GetAuthenticationUrl(baseUri);
+        var url = _myAnimeListService.MalAuthorization.GetAuthenticationUrl(baseUri);
         if (url is null)
             return TypedResults.BadRequest();
         return TypedResults.Ok(url);
@@ -48,7 +48,7 @@ public class MyAnimeList : ControllerBase
             return TypedResults.BadRequest();
         }
 
-        if (!await _myAnimeListService.GetNewTokenAsync(code, state).ConfigureAwait(false))
+        if (!await _myAnimeListService.MalAuthorization.GetNewTokenAsync(code, state).ConfigureAwait(false))
             return TypedResults.Conflict();
         return TypedResults.Ok();
     }
