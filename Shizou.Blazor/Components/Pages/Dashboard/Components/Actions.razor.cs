@@ -60,12 +60,12 @@ public partial class Actions
         ServiceProvider.GetRequiredService<ImageService>().GetMissingAnimePosters();
     }
 
-    private async Task OpenMalAuthAsync()
+    private void OpenMalAuth()
     {
         var url = ServiceProvider.GetRequiredService<MyAnimeListService>().MalAuthorization
             .GetAuthenticationUrl(new Uri(NavigationManager.BaseUri));
         if (url is not null)
-            await JsRuntime.InvokeVoidAsync("open", url, "_blank");
+            NavigationManager.NavigateTo(url);
     }
 
     private async Task GetMalListAsync()

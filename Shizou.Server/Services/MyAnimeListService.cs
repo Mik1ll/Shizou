@@ -285,10 +285,10 @@ public class MyAnimeListService
         return dbAnime;
     }
 
-    public async Task GetAnimeAsync(int animeId)
+    public async Task<MalAnime?> GetAnimeAsync(int animeId)
     {
         if (await MalAuthorization.GetTokenRefreshIfRequiredAsync().ConfigureAwait(false) is not { } malToken)
-            return;
+            return null;
 
         var httpClient = _httpClientFactory.CreateClient();
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", malToken.AccessToken);
@@ -302,7 +302,7 @@ public class MyAnimeListService
         _logger.LogInformation("Getting MyAnimeList Anime: {AnimeId}", animeId);
         var result = await httpClient.GetAsync(url).ConfigureAwait(false);
         if (!MalAuthorization.HandleStatusCode(result))
-            return;
+            return null;
         try
         {
             using var doc = await JsonDocument.ParseAsync(await result.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false);
@@ -316,10 +316,12 @@ public class MyAnimeListService
             UpsertAnime(context, anime);
 
             context.SaveChanges();
+            return anime;
         }
         catch (JsonException ex)
         {
             _logger.LogError(ex, "Failed to parse json from get user list, aborting");
+            return null;
         }
     }
 

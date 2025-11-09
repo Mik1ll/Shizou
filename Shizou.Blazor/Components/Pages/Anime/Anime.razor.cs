@@ -37,6 +37,9 @@ public partial class Anime
     [Inject]
     private ToastService ToastService { get; set; } = null!;
 
+    [Inject]
+    private MyAnimeListService MyAnimeListService { get; set; } = null!;
+
     [Parameter]
     public int AnimeId { get; set; }
 
@@ -80,5 +83,12 @@ public partial class Anime
     {
         CommandService.Dispatch(new AnimeArgs(AnimeId));
         ToastService.ShowInfo("Info", "Anime queued for refresh, check again after completed");
+    }
+
+    private async Task RefreshMalAsync()
+    {
+        if (_anime is not null)
+            await Task.WhenAll(_anime.MalAnimes.Select(a => MyAnimeListService.GetAnimeAsync(a.Id)));
+        Load();
     }
 }
