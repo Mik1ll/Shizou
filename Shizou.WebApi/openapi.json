@@ -1882,6 +1882,33 @@
         }
       }
     },
+    "/api/MyAnimeList/UpdateAnime/{animeId}": {
+      "post": {
+        "tags": [
+          "MyAnimeList"
+        ],
+        "operationId": "ShizouHttpClient_MyAnimeListUpdateAnime",
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/Options": {
       "get": {
         "tags": [
