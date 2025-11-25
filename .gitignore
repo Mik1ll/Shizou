@@ -25,6 +25,7 @@
 **/.idea/**/dataSources.xml
 **/.idea/**/dataSources.local.xml
 **/.idea/**/sqlDataSources.xml
+**/.idea/**/db-forest-config.xml
 **/.idea/**/dynamic.xml
 # Rider auto-generates .iml files, and contentModel.xml
 **/.idea/**/*.iml

@@ -156,7 +156,7 @@ public class AnimeCommand : Command<AnimeArgs>
         {
             _context.Entry(eAniDbAnime).CurrentValues.SetValues(aniDbAnime);
             foreach (var ep in eAniDbAnime.AniDbEpisodes.ExceptBy(aniDbAnime.AniDbEpisodes.Select(ep => ep.Id), ep => ep.Id))
-                eAniDbAnime.AniDbEpisodes.Remove(ep);
+                _context.AniDbEpisodes.Remove(ep);
         }
 
         foreach (var ep in aniDbAnime.AniDbEpisodes)
