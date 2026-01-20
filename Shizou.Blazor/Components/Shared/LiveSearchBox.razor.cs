@@ -8,16 +8,16 @@ namespace Shizou.Blazor.Components.Shared;
 public partial class LiveSearchBox
 {
     private List<(int, string)> _results = new();
-    private Timer _searchTimer = default!;
+    private Timer _searchTimer = null!;
 
     public string? Query { get; set; }
 
     [Inject]
-    private ToastService ToastService { get; set; } = default!;
+    private ToastService ToastService { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
-    public Func<string, Task<List<(int, string)>?>> GetResults { get; set; } = default!;
+    public Func<string, Task<List<(int, string)>?>> GetResults { get; set; } = null!;
 
     [Parameter]
     public int? Selected { get; set; }

@@ -43,10 +43,12 @@ public class DatabaseTests : SeededDatabaseTests
                 { Negated = true, AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.OnOrAfter, Year = 2005, Month = 12 },
         ]);
         var orAny = new OrAnyCriterion([and1, and2]);
-        var res = context.AniDbAnimes.Where(orAny.Criterion);
+        // ReSharper disable once UnusedVariable
+        var res = context.AniDbAnimes.Where(orAny.Criterion).ToList();
 
         var serializationOpts = new JsonSerializerOptions { TypeInfoResolver = new PolymorphicJsonTypeResolver<TermCriterion>() };
         var serialized = JsonSerializer.Serialize(orAny, serializationOpts);
+        // ReSharper disable once UnusedVariable
         var deserialized = JsonSerializer.Deserialize<OrAnyCriterion>(serialized, serializationOpts);
 
         context.AnimeFilters.Add(new AnimeFilter { Name = "Test Filter", Criteria = orAny });

@@ -41,7 +41,7 @@ public partial class Offcanvas
     public EventCallback OnClose { get; set; }
 
     [Parameter]
-    public RenderFragment ChildContent { get; set; } = default!;
+    public RenderFragment ChildContent { get; set; } = null!;
 
     public async Task ToggleAsync()
     {

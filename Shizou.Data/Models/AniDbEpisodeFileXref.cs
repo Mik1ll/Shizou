@@ -9,10 +9,10 @@ public class AniDbEpisodeFileXref
     public required int AniDbEpisodeId { get; set; }
 
     [JsonIgnore]
-    public AniDbEpisode AniDbEpisode { get; set; } = default!;
+    public AniDbEpisode AniDbEpisode { get; set; } = null!;
 
     public required int AniDbFileId { get; set; }
 
     [JsonIgnore]
-    public AniDbFile AniDbFile { get; set; } = default!;
+    public AniDbFile AniDbFile { get; set; } = null!;
 }

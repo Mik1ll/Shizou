@@ -8,7 +8,7 @@ public partial class ToastContainer
     private readonly List<ToastItem> _toasts = new();
 
     [Inject]
-    private ToastService ToastService { get; set; } = default!;
+    private ToastService ToastService { get; set; } = null!;
 
     public void RemoveToast(ToastItem toast)
     {

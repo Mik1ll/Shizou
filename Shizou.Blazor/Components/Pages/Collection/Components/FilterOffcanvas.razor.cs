@@ -9,18 +9,18 @@ namespace Shizou.Blazor.Components.Pages.Collection.Components;
 
 public partial class FilterOffcanvas
 {
-    private Offcanvas _offcanvas = default!;
-    private AnimeFilter? _filter = default!;
+    private Offcanvas _offcanvas = null!;
+    private AnimeFilter? _filter;
     private bool _editing;
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = null!;
 
     [Inject]
-    private ToastService ToastService { get; set; } = default!;
+    private ToastService ToastService { get; set; } = null!;
 
     [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]

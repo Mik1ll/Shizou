@@ -8,11 +8,11 @@ public partial class CollapsibleSection
 
     [Parameter]
     [EditorRequired]
-    public RenderFragment ChildContent { get; set; } = default!;
+    public RenderFragment ChildContent { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
-    public string Header { get; set; } = default!;
+    public string Header { get; set; } = null!;
 
     [Parameter]
     public bool ShowDefault { get; set; }

@@ -9,14 +9,14 @@ namespace Shizou.Blazor.Components.Pages.Anime.Components;
 public partial class MyAnimeListItem
 {
     [Inject]
-    private MyAnimeListService MyAnimeListService { get; set; } = default!;
+    private MyAnimeListService MyAnimeListService { get; set; } = null!;
 
     [Inject]
-    private ToastService ToastService { get; set; } = default!;
+    private ToastService ToastService { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
-    public MalAnime MalAnime { get; set; } = default!;
+    public MalAnime MalAnime { get; set; } = null!;
 
 
     private async Task UpdateStatusAsync()

@@ -8,13 +8,13 @@ namespace Shizou.Blazor.Components.Pages.Utilities.MissingFiles;
 
 public partial class MissingFiles
 {
-    private List<LocalFile> _localFiles = default!;
+    private List<LocalFile> _localFiles = null!;
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = null!;
 
     [Inject]
-    private ImportService ImportService { get; set; } = default!;
+    private ImportService ImportService { get; set; } = null!;
 
     protected override void OnInitialized()
     {

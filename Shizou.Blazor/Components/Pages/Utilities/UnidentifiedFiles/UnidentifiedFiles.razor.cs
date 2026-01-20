@@ -19,19 +19,19 @@ public partial class UnidentifiedFiles
     private bool _includeIgnored;
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = null!;
 
     [Inject]
-    private CommandService CommandService { get; set; } = default!;
+    private CommandService CommandService { get; set; } = null!;
 
     [Inject]
-    private ImportService ImportService { get; set; } = default!;
+    private ImportService ImportService { get; set; } = null!;
 
     [Inject]
-    private IModalService ModalService { get; set; } = default!;
+    private IModalService ModalService { get; set; } = null!;
 
     [Inject]
-    private ToastService ToastService { get; set; } = default!;
+    private ToastService ToastService { get; set; } = null!;
 
 
     private static string GetFilePath(LocalFile file) => Path.Combine(file.ImportFolder?.Path ?? "<MISSING IMPORT FLD>", file.PathTail);

@@ -14,17 +14,17 @@ public record ToastItem(string Title, string Body, DateTimeOffset TriggerTime, T
 
 public partial class Toast : IDisposable
 {
-    private bool _opened = false;
+    private bool _opened;
     private string _classes = string.Empty;
     private string _displayClass = "showing";
     private Timer? _fadeoutTimer;
 
     [CascadingParameter]
-    private ToastContainer ToastDisplay { get; set; } = default!;
+    private ToastContainer ToastDisplay { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
-    public ToastItem ToastItem { get; set; } = default!;
+    public ToastItem ToastItem { get; set; } = null!;
 
     public void Dispose()
     {

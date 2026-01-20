@@ -28,11 +28,11 @@ public class AniDbAnime
     public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
 
     [JsonIgnore]
-    public List<MalAniDbXref> MalAniDbXrefs { get; set; } = default!;
+    public List<MalAniDbXref> MalAniDbXrefs { get; set; } = null!;
 
     [JsonIgnore]
-    public List<MalAnime> MalAnimes { get; set; } = default!;
+    public List<MalAnime> MalAnimes { get; set; } = null!;
 
     [JsonIgnore]
-    public List<AniDbCredit> AniDbCredits { get; set; } = default!;
+    public List<AniDbCredit> AniDbCredits { get; set; } = null!;
 }

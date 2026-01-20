@@ -7,7 +7,7 @@ using Microsoft.Extensions.Primitives;
 using Shizou.Blazor.Components.Account.Manage;
 using Shizou.Blazor.Components.Account.Pages;
 
-namespace Microsoft.AspNetCore.Routing;
+namespace Shizou.Blazor.Components.Account;
 
 internal static class IdentityComponentsEndpointRouteBuilderExtensions
 {
@@ -40,7 +40,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
         });
 
         accountGroup.MapPost("/Logout", async (
-            ClaimsPrincipal user,
+            ClaimsPrincipal _,
             SignInManager<IdentityUser> signInManager,
             [FromForm] string returnUrl) =>
         {

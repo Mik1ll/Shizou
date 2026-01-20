@@ -29,7 +29,7 @@ public class AniDbNormalFile : AniDbFile
     public AniDbGroup? AniDbGroup { get; set; }
 
     [JsonIgnore]
-    public List<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; set; } = default!;
+    public List<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; set; } = null!;
 
     public AniDbVideo? Video { get; set; }
     public List<AniDbAudio> Audio { get; set; } = null!;

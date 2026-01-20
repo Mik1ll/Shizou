@@ -9,14 +9,14 @@ public class AniDbCredit
     public required int AniDbAnimeId { get; set; }
 
     [JsonIgnore]
-    public AniDbAnime AniDbAnime { get; set; } = default!;
+    public AniDbAnime AniDbAnime { get; set; } = null!;
 
     public required int Id { get; set; }
     public required string? Role { get; set; }
 
     public required int AniDbCreatorId { get; set; }
 
-    public AniDbCreator AniDbCreator { get; set; } = default!;
+    public AniDbCreator AniDbCreator { get; set; } = null!;
 
     public int? AniDbCharacterId { get; set; }
 

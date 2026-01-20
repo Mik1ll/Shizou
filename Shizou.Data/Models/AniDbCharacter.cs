@@ -14,5 +14,5 @@ public class AniDbCharacter
     public required string? ImageFilename { get; set; }
 
     [JsonIgnore]
-    public List<AniDbCredit> AniDbCredits { get; set; } = default!;
+    public List<AniDbCredit> AniDbCredits { get; set; } = null!;
 }

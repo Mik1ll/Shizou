@@ -17,6 +17,11 @@ public class UserRequest : AniDbUdpRequest<UserResponse>, IUserRequest
     {
     }
 
+    public void SetParameters()
+    {
+        ParametersSet = true;
+    }
+
     public void SetParameters(string username)
     {
         Args["user"] = username;

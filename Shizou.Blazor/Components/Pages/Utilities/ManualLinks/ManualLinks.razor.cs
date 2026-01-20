@@ -11,20 +11,20 @@ namespace Shizou.Blazor.Components.Pages.Utilities.ManualLinks;
 
 public partial class ManualLinks
 {
-    private List<LocalFile> _manuallyLinkedFiles = default!;
+    private List<LocalFile> _manuallyLinkedFiles = null!;
     private List<LocalFile> _selectedFiles = [];
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = null!;
 
     [Inject]
-    private CommandService CommandService { get; set; } = default!;
+    private CommandService CommandService { get; set; } = null!;
 
     [Inject]
-    private ManualLinkService ManualLinkService { get; set; } = default!;
+    private ManualLinkService ManualLinkService { get; set; } = null!;
 
     [Inject]
-    private ToastService ToastService { get; set; } = default!;
+    private ToastService ToastService { get; set; } = null!;
 
     private static string GetFilePath(LocalFile file) => Path.Combine(file.ImportFolder?.Path ?? "<MISSING IMPORT FLD>", file.PathTail);
 

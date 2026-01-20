@@ -7,5 +7,5 @@ public class HangingEpisodeFileXref
 {
     public required int AniDbEpisodeId { get; set; }
     public required int AniDbNormalFileId { get; set; }
-    public AniDbNormalFile AniDbNormalFile { get; set; } = default!;
+    public AniDbNormalFile AniDbNormalFile { get; set; } = null!;
 }

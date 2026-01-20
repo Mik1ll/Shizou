@@ -9,14 +9,14 @@ public partial class Modal
     private FocusTrap? _focusTrap;
     private string _extraClasses = string.Empty;
     private string _showClass = string.Empty;
-    private bool _opened = false;
+    private bool _opened;
 
     [CascadingParameter]
-    private BlazoredModalInstance ModalInstance { get; set; } = default!;
+    private BlazoredModalInstance ModalInstance { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
-    public RenderFragment ChildContent { get; set; } = default!;
+    public RenderFragment ChildContent { get; set; } = null!;
 
     [Parameter]
     public EventCallback OnCancel { get; set; }

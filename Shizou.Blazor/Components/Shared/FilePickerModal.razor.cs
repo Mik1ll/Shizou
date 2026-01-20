@@ -18,7 +18,7 @@ public partial class FilePickerModal
     private string _typeStr = string.Empty;
     private string _parentPath = string.Empty;
     private (string Name, bool IsFile)? _selectedEntry;
-    private Modal _modal = default!;
+    private Modal _modal = null!;
 
     [Parameter]
     public FilePickerType FilePickerType { get; set; }

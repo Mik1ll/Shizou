@@ -7,7 +7,7 @@ namespace Shizou.Blazor.Components.Layout;
 public partial class NavMenu : IDisposable
 {
     private bool _collapsed = true;
-    private bool _expandFileUtils = false;
+    private bool _expandFileUtils;
     private string _theme = "auto";
     private Dictionary<string, string> _themeIconClasses = new() { { "light", "bi-sun-fill" }, { "dark", "bi-moon-stars-fill" }, { "auto", "bi-circle-half" } };
     private IJSObjectReference? _themeModule;

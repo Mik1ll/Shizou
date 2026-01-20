@@ -1,0 +1,3 @@
+﻿[*]
+resharper_property_can_be_made_init_only_global_highlighting = none
+resharper_auto_property_can_be_made_get_only_global_highlighting = none

@@ -7,15 +7,15 @@ namespace Shizou.Blazor.Components.Pages.Anime.Components;
 public partial class EpisodeTable
 {
     private readonly Dictionary<int, bool> _episodeExpanded = new();
-    private Dictionary<int, int> _fileCounts = default!;
-    private HashSet<int> _watchedEps = default!;
+    private Dictionary<int, int> _fileCounts = null!;
+    private HashSet<int> _watchedEps = null!;
 
     [Inject]
-    private LinkGenerator LinkGenerator { get; set; } = default!;
+    private LinkGenerator LinkGenerator { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
-    public AniDbAnime AniDbAnime { get; set; } = default!;
+    public AniDbAnime AniDbAnime { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]

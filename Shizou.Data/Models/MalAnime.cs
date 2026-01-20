@@ -14,8 +14,8 @@ public class MalAnime
     public MalStatus? Status { get; set; }
 
     [JsonIgnore]
-    public List<MalAniDbXref> MalAniDbXrefs { get; set; } = default!;
+    public List<MalAniDbXref> MalAniDbXrefs { get; set; } = null!;
 
     [JsonIgnore]
-    public List<AniDbAnime> AniDbAnimes { get; set; } = default!;
+    public List<AniDbAnime> AniDbAnimes { get; set; } = null!;
 }

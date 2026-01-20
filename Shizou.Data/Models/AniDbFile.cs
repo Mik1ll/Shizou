@@ -10,14 +10,14 @@ public abstract class AniDbFile
 
 
     [JsonIgnore]
-    public List<AniDbEpisode> AniDbEpisodes { get; set; } = default!;
+    public List<AniDbEpisode> AniDbEpisodes { get; set; } = null!;
 
     [JsonIgnore]
-    public List<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; set; } = default!;
+    public List<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; set; } = null!;
 
     [JsonIgnore]
-    public FileWatchedState FileWatchedState { get; set; } = default!;
+    public FileWatchedState FileWatchedState { get; set; } = null!;
 
     [JsonIgnore]
-    public List<LocalFile> LocalFiles { get; set; } = default!;
+    public List<LocalFile> LocalFiles { get; set; } = null!;
 }

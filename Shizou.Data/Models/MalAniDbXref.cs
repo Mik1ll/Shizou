@@ -6,7 +6,7 @@ namespace Shizou.Data.Models;
 public class MalAniDbXref
 {
     public required int MalAnimeId { get; set; }
-    public MalAnime MalAnime { get; set; } = default!;
+    public MalAnime MalAnime { get; set; } = null!;
     public required int AniDbAnimeId { get; set; }
-    public AniDbAnime AniDbAnime { get; set; } = default!;
+    public AniDbAnime AniDbAnime { get; set; } = null!;
 }

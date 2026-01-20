@@ -17,29 +17,29 @@ public partial class ManuallyLinkModal
     private int? _selected;
     private AniDbAnime? _selectedAnime;
     private bool _restrictInCollection = true;
-    private Modal _modal = default!;
-    private HashSet<int> _collectionAids = default!;
+    private Modal _modal = null!;
+    private HashSet<int> _collectionAids = null!;
 
     [Inject]
-    private IAnimeTitleSearchService AnimeTitleSearchService { get; set; } = default!;
+    private IAnimeTitleSearchService AnimeTitleSearchService { get; set; } = null!;
 
     [Inject]
-    private CommandService CommandService { get; set; } = default!;
+    private CommandService CommandService { get; set; } = null!;
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = null!;
 
     [Inject]
-    private ToastService ToastService { get; set; } = default!;
+    private ToastService ToastService { get; set; } = null!;
 
     [Inject]
-    private ManualLinkService ManualLinkService { get; set; } = default!;
+    private ManualLinkService ManualLinkService { get; set; } = null!;
 
     [CascadingParameter]
-    private IModalService ModalService { get; set; } = default!;
+    private IModalService ModalService { get; set; } = null!;
 
     [Parameter]
-    public List<LocalFile> SelectedFiles { get; set; } = default!;
+    public List<LocalFile> SelectedFiles { get; set; } = null!;
 
     public override Task SetParametersAsync(ParameterView parameters)
     {

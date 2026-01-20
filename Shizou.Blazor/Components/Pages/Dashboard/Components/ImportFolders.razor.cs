@@ -10,16 +10,16 @@ namespace Shizou.Blazor.Components.Pages.Dashboard.Components;
 
 public partial class ImportFolders
 {
-    private List<ImportFolder> _importFolders = default!;
+    private List<ImportFolder> _importFolders = null!;
 
     [Inject]
-    private IShizouContextFactory ContextFactory { get; set; } = default!;
+    private IShizouContextFactory ContextFactory { get; set; } = null!;
 
     [Inject]
-    private ImportService ImportService { get; set; } = default!;
+    private ImportService ImportService { get; set; } = null!;
 
     [CascadingParameter]
-    private IModalService ModalService { get; set; } = default!;
+    private IModalService ModalService { get; set; } = null!;
 
     protected override void OnInitialized()
     {

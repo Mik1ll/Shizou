@@ -5,7 +5,7 @@ namespace Shizou.Blazor.Components.Shared;
 
 public partial class SelectRow<TValue> : IDisposable
 {
-    private HashSet<string> _classes = default!;
+    private HashSet<string> _classes = null!;
 
     public bool Active
     {
@@ -18,7 +18,7 @@ public partial class SelectRow<TValue> : IDisposable
     }
 
     [CascadingParameter]
-    private SelectTable<TValue> ParentTable { get; set; } = default!;
+    private SelectTable<TValue> ParentTable { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]

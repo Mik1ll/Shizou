@@ -5,7 +5,7 @@ namespace Shizou.Blazor.Components.Layout;
 public partial class AccountLayout : LayoutComponentBase
 {
     [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = null!;
 
     [CascadingParameter]
     private HttpContext? HttpContext { get; set; }

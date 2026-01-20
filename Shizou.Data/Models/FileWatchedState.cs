@@ -11,7 +11,7 @@ public class FileWatchedState
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public required int AniDbFileId { get; set; }
 
-    public AniDbFile AniDbFile { get; set; } = default!;
+    public AniDbFile AniDbFile { get; set; } = null!;
 
     public required bool Watched { get; set; }
     public required DateTime? WatchedUpdated { get; set; }

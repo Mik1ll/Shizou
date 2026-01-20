@@ -22,9 +22,6 @@ public partial class ChangePassword : ComponentBase
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
-    [Inject]
-    private UserManager<IdentityUser> UserManager { get; set; } = null!;
-
 
     protected override void OnInitialized()
     {

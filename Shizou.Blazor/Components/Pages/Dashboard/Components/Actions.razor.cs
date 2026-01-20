@@ -1,7 +1,6 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
 using Shizou.Data;
@@ -13,22 +12,19 @@ namespace Shizou.Blazor.Components.Pages.Dashboard.Components;
 public partial class Actions
 {
     [Inject]
-    private IServiceProvider ServiceProvider { get; set; } = default!;
+    private IServiceProvider ServiceProvider { get; set; } = null!;
 
     [Inject]
-    private IJSRuntime JsRuntime { get; set; } = default!;
+    private ToastService ToastService { get; set; } = null!;
 
     [Inject]
-    private ToastService ToastService { get; set; } = default!;
-
-    [Inject]
-    private AnimeService AnimeService { get; set; } = default!;
+    private AnimeService AnimeService { get; set; } = null!;
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
     [CascadingParameter]
-    private IModalService ModalService { get; set; } = default!;
+    private IModalService ModalService { get; set; } = null!;
 
     private void DispatchNoop()
     {
