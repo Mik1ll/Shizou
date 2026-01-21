@@ -14,7 +14,7 @@ public abstract class EntityGetController<TEntity> : ControllerBase where TEntit
 {
     protected readonly IShizouContext Context;
     protected readonly Expression<Func<TEntity, int>> Selector;
-    protected readonly IShizouDbSet<TEntity> DbSet;
+    protected readonly ShizouDbSet<TEntity> DbSet;
 
     protected EntityGetController(IShizouContext context, Expression<Func<TEntity, int>> selector)
     {

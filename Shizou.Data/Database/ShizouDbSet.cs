@@ -8,11 +8,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Shizou.Data.Database;
 
-public class ShizouDbSet<TEntity> : IShizouDbSet<TEntity>
-    where TEntity : class
+/// <inheritdoc cref="DbSet{TEntity}" />
+public class ShizouDbSet<TEntity> : IInfrastructure<IServiceProvider>, IListSource, IQueryable<TEntity> where TEntity : class
 {
     private readonly DbSet<TEntity> _dbSet;
     public ShizouDbSet(DbSet<TEntity> dbSet) => _dbSet = dbSet;
+    public static implicit operator ShizouDbSet<TEntity>(DbSet<TEntity> dbSet) => new(dbSet);
+
     public IEntityType EntityType => _dbSet.EntityType;
     public LocalView<TEntity> Local => _dbSet.Local;
     IServiceProvider IInfrastructure<IServiceProvider>.Instance => ((IInfrastructure<IServiceProvider>)_dbSet).Instance;

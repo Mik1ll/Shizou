@@ -11,68 +11,47 @@ namespace Shizou.Data.Database;
 /// <inheritdoc cref="DbContext" />
 public interface IShizouContext : IDisposable
 {
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<CommandRequest> CommandRequests { get; }
+    ShizouDbSet<CommandRequest> CommandRequests { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<ImportFolder> ImportFolders { get; }
+    ShizouDbSet<ImportFolder> ImportFolders { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbAnime> AniDbAnimes { get; }
+    ShizouDbSet<AniDbAnime> AniDbAnimes { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbEpisode> AniDbEpisodes { get; }
+    ShizouDbSet<AniDbEpisode> AniDbEpisodes { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbFile> AniDbFiles { get; }
+    ShizouDbSet<AniDbFile> AniDbFiles { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbNormalFile> AniDbNormalFiles { get; }
+    ShizouDbSet<AniDbNormalFile> AniDbNormalFiles { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbGenericFile> AniDbGenericFiles { get; }
+    ShizouDbSet<AniDbGenericFile> AniDbGenericFiles { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbGroup> AniDbGroups { get; }
+    ShizouDbSet<AniDbGroup> AniDbGroups { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<LocalFile> LocalFiles { get; }
+    ShizouDbSet<LocalFile> LocalFiles { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; }
+    ShizouDbSet<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<ScheduledCommand> ScheduledCommands { get; }
+    ShizouDbSet<ScheduledCommand> ScheduledCommands { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<MalAniDbXref> MalAniDbXrefs { get; }
+    ShizouDbSet<MalAniDbXref> MalAniDbXrefs { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<MalAnime> MalAnimes { get; }
+    ShizouDbSet<MalAnime> MalAnimes { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<FileWatchedState> FileWatchedStates { get; }
+    ShizouDbSet<FileWatchedState> FileWatchedStates { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; }
+    ShizouDbSet<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<Timer> Timers { get; }
+    ShizouDbSet<Timer> Timers { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbAnimeRelation> AniDbAnimeRelations { get; }
+    ShizouDbSet<AniDbAnimeRelation> AniDbAnimeRelations { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AnimeFilter> AnimeFilters { get; }
+    ShizouDbSet<AnimeFilter> AnimeFilters { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbCreator> AniDbCreators { get; }
+    ShizouDbSet<AniDbCreator> AniDbCreators { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbCharacter> AniDbCharacters { get; }
+    ShizouDbSet<AniDbCharacter> AniDbCharacters { get; }
 
-    /// <inheritdoc cref="DbSet{TEntity}" />
-    IShizouDbSet<AniDbCredit> AniDbCredits { get; }
+    ShizouDbSet<AniDbCredit> AniDbCredits { get; }
 
     #region BaseMembers
 
@@ -90,10 +69,10 @@ public interface IShizouContext : IDisposable
 
 
     /// <inheritdoc cref="DbContext.Set{TEntity}()" />
-    IShizouDbSet<TEntity> Set<TEntity>() where TEntity : class;
+    ShizouDbSet<TEntity> Set<TEntity>() where TEntity : class;
 
     /// <inheritdoc cref="DbContext.Set{TEntity}(string)" />
-    IShizouDbSet<TEntity> Set<TEntity>(string name) where TEntity : class;
+    ShizouDbSet<TEntity> Set<TEntity>(string name) where TEntity : class;
 
     /// <inheritdoc cref="DbContext.SaveChanges()" />
     int SaveChanges();

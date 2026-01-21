@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shizou.Data.CommandInputArgs;
 using Shizou.Data.FilterCriteria;
@@ -17,12 +18,6 @@ public sealed class ShizouContext : DbContext, IShizouContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<AniDbNormalFile>()
-            .OwnsMany(f => f.Audio, builder => builder.ToJson());
-        modelBuilder.Entity<AniDbNormalFile>()
-            .OwnsMany(f => f.Subtitles, builder => builder.ToJson());
-        modelBuilder.Entity<AniDbNormalFile>()
-            .OwnsOne(f => f.Video, builder => builder.ToJson());
         modelBuilder.Entity<AniDbAnime>()
             .HasMany(a => a.MalAnimes)
             .WithMany(a => a.AniDbAnimes)
@@ -31,17 +26,27 @@ public sealed class ShizouContext : DbContext, IShizouContext
             .HasMany(ep => ep.AniDbFiles)
             .WithMany(f => f.AniDbEpisodes)
             .UsingEntity<AniDbEpisodeFileXref>();
+        modelBuilder.Entity<AniDbNormalFile>()
+            .OwnsMany(f => f.Audio, builder => builder.ToJson())
+            .OwnsMany(f => f.Subtitles, builder => builder.ToJson())
+            .OwnsOne(f => f.Video, builder => builder.ToJson());
+        modelBuilder.Entity<AnimeFilter>()
+            .Property(f => f.Criteria)
+            .HasConversion<AnimeCriterionConverter>();
         modelBuilder.Entity<CommandRequest>()
             .Property(cr => cr.CommandArgs)
             .HasConversion<CommandArgsConverter>();
         modelBuilder.Entity<ScheduledCommand>()
             .Property(cr => cr.CommandArgs)
             .HasConversion<CommandArgsConverter>();
-        modelBuilder.Entity<AnimeFilter>()
-            .Property(f => f.Criteria)
-            .HasConversion<AnimeCriterionConverter>();
 
         base.OnModelCreating(modelBuilder);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.ReplaceService<IDbSetFinder, ShizouDbSetFinder>();
+        base.OnConfiguring(optionsBuilder);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
@@ -86,65 +91,45 @@ public sealed class ShizouContext : DbContext, IShizouContext
 
     private class AnimeCriterionConverter : ValueConverter<OrAnyCriterion, string>
     {
+        private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+        {
+            TypeInfoResolver = new PolymorphicJsonTypeResolver<TermCriterion>(),
+        };
+
         public AnimeCriterionConverter() : base(
-            v => JsonSerializer.Serialize(v, new JsonSerializerOptions
-            {
-                TypeInfoResolver = new PolymorphicJsonTypeResolver<TermCriterion>()
-            }),
-            v => JsonSerializer.Deserialize<OrAnyCriterion>(v, new JsonSerializerOptions
-            {
-                TypeInfoResolver = new PolymorphicJsonTypeResolver<TermCriterion>()
-            })!)
+            v => JsonSerializer.Serialize(v, JsonSerializerOptions),
+            v => JsonSerializer.Deserialize<OrAnyCriterion>(v, JsonSerializerOptions)!
+        )
         {
         }
     }
 
     #region DbSets
 
-    IShizouDbSet<TEntity> IShizouContext.Set<TEntity>() => new ShizouDbSet<TEntity>(base.Set<TEntity>());
-    IShizouDbSet<TEntity> IShizouContext.Set<TEntity>(string name) => new ShizouDbSet<TEntity>(base.Set<TEntity>(name));
-    public DbSet<CommandRequest> CommandRequests { get; set; }
-    IShizouDbSet<CommandRequest> IShizouContext.CommandRequests => new ShizouDbSet<CommandRequest>(CommandRequests);
-    public DbSet<ImportFolder> ImportFolders { get; set; }
-    IShizouDbSet<ImportFolder> IShizouContext.ImportFolders => new ShizouDbSet<ImportFolder>(ImportFolders);
-    public DbSet<AniDbAnime> AniDbAnimes { get; set; }
-    IShizouDbSet<AniDbAnime> IShizouContext.AniDbAnimes => new ShizouDbSet<AniDbAnime>(AniDbAnimes);
-    public DbSet<AniDbEpisode> AniDbEpisodes { get; set; }
-    IShizouDbSet<AniDbEpisode> IShizouContext.AniDbEpisodes => new ShizouDbSet<AniDbEpisode>(AniDbEpisodes);
-    public DbSet<AniDbFile> AniDbFiles { get; set; }
-    IShizouDbSet<AniDbFile> IShizouContext.AniDbFiles => new ShizouDbSet<AniDbFile>(AniDbFiles);
-    public DbSet<AniDbNormalFile> AniDbNormalFiles { get; set; }
-    IShizouDbSet<AniDbNormalFile> IShizouContext.AniDbNormalFiles => new ShizouDbSet<AniDbNormalFile>(AniDbNormalFiles);
-    public DbSet<AniDbGenericFile> AniDbGenericFiles { get; set; }
-    IShizouDbSet<AniDbGenericFile> IShizouContext.AniDbGenericFiles => new ShizouDbSet<AniDbGenericFile>(AniDbGenericFiles);
-    public DbSet<AniDbGroup> AniDbGroups { get; set; }
-    IShizouDbSet<AniDbGroup> IShizouContext.AniDbGroups => new ShizouDbSet<AniDbGroup>(AniDbGroups);
-    public DbSet<LocalFile> LocalFiles { get; set; }
-    IShizouDbSet<LocalFile> IShizouContext.LocalFiles => new ShizouDbSet<LocalFile>(LocalFiles);
-    public DbSet<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs { get; set; }
-    IShizouDbSet<AniDbEpisodeFileXref> IShizouContext.AniDbEpisodeFileXrefs => new ShizouDbSet<AniDbEpisodeFileXref>(AniDbEpisodeFileXrefs);
-    public DbSet<ScheduledCommand> ScheduledCommands { get; set; }
-    IShizouDbSet<ScheduledCommand> IShizouContext.ScheduledCommands => new ShizouDbSet<ScheduledCommand>(ScheduledCommands);
-    public DbSet<MalAniDbXref> MalAniDbXrefs { get; set; }
-    IShizouDbSet<MalAniDbXref> IShizouContext.MalAniDbXrefs => new ShizouDbSet<MalAniDbXref>(MalAniDbXrefs);
-    public DbSet<MalAnime> MalAnimes { get; set; }
-    IShizouDbSet<MalAnime> IShizouContext.MalAnimes => new ShizouDbSet<MalAnime>(MalAnimes);
-    public DbSet<FileWatchedState> FileWatchedStates { get; set; }
-    IShizouDbSet<FileWatchedState> IShizouContext.FileWatchedStates => new ShizouDbSet<FileWatchedState>(FileWatchedStates);
-    public DbSet<HangingEpisodeFileXref> HangingEpisodeFileXrefs { get; set; }
-    IShizouDbSet<HangingEpisodeFileXref> IShizouContext.HangingEpisodeFileXrefs => new ShizouDbSet<HangingEpisodeFileXref>(HangingEpisodeFileXrefs);
-    public DbSet<Timer> Timers { get; set; }
-    IShizouDbSet<Timer> IShizouContext.Timers => new ShizouDbSet<Timer>(Timers);
-    public DbSet<AniDbAnimeRelation> AniDbAnimeRelations { get; set; }
-    IShizouDbSet<AniDbAnimeRelation> IShizouContext.AniDbAnimeRelations => new ShizouDbSet<AniDbAnimeRelation>(AniDbAnimeRelations);
-    public DbSet<AnimeFilter> AnimeFilters { get; set; }
-    IShizouDbSet<AnimeFilter> IShizouContext.AnimeFilters => new ShizouDbSet<AnimeFilter>(AnimeFilters);
-    public DbSet<AniDbCreator> AniDbCreators { get; set; }
-    IShizouDbSet<AniDbCreator> IShizouContext.AniDbCreators => new ShizouDbSet<AniDbCreator>(AniDbCreators);
-    public DbSet<AniDbCharacter> AniDbCharacters { get; set; }
-    IShizouDbSet<AniDbCharacter> IShizouContext.AniDbCharacters => new ShizouDbSet<AniDbCharacter>(AniDbCharacters);
-    public DbSet<AniDbCredit> AniDbCredits { get; set; }
-    IShizouDbSet<AniDbCredit> IShizouContext.AniDbCredits => new ShizouDbSet<AniDbCredit>(AniDbCredits);
+    ShizouDbSet<TEntity> IShizouContext.Set<TEntity>() => base.Set<TEntity>();
+    ShizouDbSet<TEntity> IShizouContext.Set<TEntity>(string name) => base.Set<TEntity>(name);
+
+    public ShizouDbSet<AniDbAnime> AniDbAnimes => Set<AniDbAnime>();
+    public ShizouDbSet<AniDbAnimeRelation> AniDbAnimeRelations => Set<AniDbAnimeRelation>();
+    public ShizouDbSet<AniDbCharacter> AniDbCharacters => Set<AniDbCharacter>();
+    public ShizouDbSet<AniDbCreator> AniDbCreators => Set<AniDbCreator>();
+    public ShizouDbSet<AniDbCredit> AniDbCredits => Set<AniDbCredit>();
+    public ShizouDbSet<AniDbEpisode> AniDbEpisodes => Set<AniDbEpisode>();
+    public ShizouDbSet<AniDbEpisodeFileXref> AniDbEpisodeFileXrefs => Set<AniDbEpisodeFileXref>();
+    public ShizouDbSet<AniDbFile> AniDbFiles => Set<AniDbFile>();
+    public ShizouDbSet<AniDbGenericFile> AniDbGenericFiles => Set<AniDbGenericFile>();
+    public ShizouDbSet<AniDbGroup> AniDbGroups => Set<AniDbGroup>();
+    public ShizouDbSet<AniDbNormalFile> AniDbNormalFiles => Set<AniDbNormalFile>();
+    public ShizouDbSet<AnimeFilter> AnimeFilters => Set<AnimeFilter>();
+    public ShizouDbSet<CommandRequest> CommandRequests => Set<CommandRequest>();
+    public ShizouDbSet<FileWatchedState> FileWatchedStates => Set<FileWatchedState>();
+    public ShizouDbSet<HangingEpisodeFileXref> HangingEpisodeFileXrefs => Set<HangingEpisodeFileXref>();
+    public ShizouDbSet<ImportFolder> ImportFolders => Set<ImportFolder>();
+    public ShizouDbSet<LocalFile> LocalFiles => Set<LocalFile>();
+    public ShizouDbSet<MalAniDbXref> MalAniDbXrefs => Set<MalAniDbXref>();
+    public ShizouDbSet<MalAnime> MalAnimes => Set<MalAnime>();
+    public ShizouDbSet<ScheduledCommand> ScheduledCommands => Set<ScheduledCommand>();
+    public ShizouDbSet<Timer> Timers => Set<Timer>();
 
     #endregion
 }
