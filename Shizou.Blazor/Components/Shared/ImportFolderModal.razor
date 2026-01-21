@@ -5,20 +5,20 @@
             <h4 class="modal-title">Edit Import Folder</h4>
         </div>
         <div class="modal-body">
-            <EditForm Model="@MyImportFolder" id="editImportFolderForm" OnValidSubmit="@UpsertAsync">
+            <EditForm Model="@MyImportFolder" id="edit-import-folder-form" OnValidSubmit="@UpsertAsync">
                 <DataAnnotationsValidator/>
                 <div class="mb-3">
                     <div class="form-floating mb-1">
-                        <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(MyImportFolder.Name)"></InputText>
-                        <label for="nameInput">Name</label>
+                        <InputText class="form-control" id="name-input" placeholder="Name" @bind-Value="@(MyImportFolder.Name)"></InputText>
+                        <label for="name-input">Name</label>
                     </div>
                     <ValidationMessage For="@(() => MyImportFolder.Name)"></ValidationMessage>
                 </div>
                 <div class="mb-3">
                     <div class="input-group mb-1">
                         <div class="form-floating">
-                            <InputText class="form-control" id="pathInput" placeholder="Path" @bind-Value="@(MyImportFolder.Path)"></InputText>
-                            <label for="pathInput">Path</label>
+                            <InputText class="form-control" id="path-input" placeholder="Path" @bind-Value="@(MyImportFolder.Path)"></InputText>
+                            <label for="path-input">Path</label>
                         </div>
                         <button type="button" class="input-group-text" @onclick="@OpenFolderPickerAsync">Browse</button>
                     </div>
@@ -29,14 +29,14 @@
                     <label class="form-check-label" for="scanOnImportInput">Scan on import</label>
                 </div>
                 <div class="mb-3 form-check">
-                    <InputCheckbox class="form-check-input" id="watchFiles" @bind-Value="@(MyImportFolder.Watched)"></InputCheckbox>
-                    <label class="form-check-label" for="watchFiles">Watch folder and scan on changes</label>
+                    <InputCheckbox class="form-check-input" id="watch-files" @bind-Value="@(MyImportFolder.Watched)"></InputCheckbox>
+                    <label class="form-check-label" for="watch-files">Watch folder and scan on changes</label>
                 </div>
             </EditForm>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @onclick="@CancelAsync">Cancel</button>
-            <button type="submit" form="editImportFolderForm" class="btn btn-success">Submit</button>
+            <button type="submit" form="edit-import-folder-form" class="btn btn-success">Submit</button>
         </div>
     </Modal>
 }

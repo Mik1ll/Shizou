@@ -7,8 +7,8 @@
             <DataAnnotationsValidator/>
             <div class="mb-3">
                 <div class="form-floating mb-1">
-                    <InputText class="form-control" id="nameInput" placeholder="Name" @bind-Value="@(_filter!.Name)"></InputText>
-                    <label for="nameInput">Name</label>
+                    <InputText class="form-control" id="name-input" placeholder="Name" @bind-Value="@(_filter!.Name)"></InputText>
+                    <label for="name-input">Name</label>
                 </div>
                 <ValidationMessage For="@(() => _filter.Name)"></ValidationMessage>
             </div>

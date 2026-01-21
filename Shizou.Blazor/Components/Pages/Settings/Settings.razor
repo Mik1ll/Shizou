@@ -21,45 +21,45 @@
                                 <InputText id="password" class="form-control" type="password" @bind-Value="@(ServerSettings.AniDb.Password)"></InputText>
                             </div>
                             <div class="col-sm-6">
-                                <label for="serverhost" class="form-label">AniDB API Host</label>
-                                <InputText id="serverhost" class="form-control" @bind-Value="@(ServerSettings.AniDb.ServerHost)"></InputText>
+                                <label for="server-host" class="form-label">AniDB API Host</label>
+                                <InputText id="server-host" class="form-control" @bind-Value="@(ServerSettings.AniDb.ServerHost)"></InputText>
                             </div>
                             <div class="col-sm-6">
-                                <label for="serverport" class="form-label">AniDB HTTP Server Port</label>
-                                <InputNumber id="serverport" class="form-control" @bind-Value="@(ServerSettings.AniDb.HttpServerPort)"></InputNumber>
+                                <label for="server-port" class="form-label">AniDB HTTP Server Port</label>
+                                <InputNumber id="server-port" class="form-control" @bind-Value="@(ServerSettings.AniDb.HttpServerPort)"></InputNumber>
                             </div>
                             <div class="col-sm-6">
-                                <label for="udpclientport" class="form-label">AniDB UDP Client Port</label>
-                                <InputNumber id="udpclientport" class="form-control" @bind-Value="@(ServerSettings.AniDb.UdpClientPort)"></InputNumber>
+                                <label for="udp-client-port" class="form-label">AniDB UDP Client Port</label>
+                                <InputNumber id="udp-client-port" class="form-control" @bind-Value="@(ServerSettings.AniDb.UdpClientPort)"></InputNumber>
                             </div>
                             <div class="col-sm-6">
-                                <label for="udpserverport" class="form-label">AniDB UDP Server Port</label>
-                                <InputNumber id="udpserverport" class="form-control" @bind-Value="@(ServerSettings.AniDb.UdpServerPort)"></InputNumber>
+                                <label for="udp-server-port" class="form-label">AniDB UDP Server Port</label>
+                                <InputNumber id="udp-server-port" class="form-control" @bind-Value="@(ServerSettings.AniDb.UdpServerPort)"></InputNumber>
                             </div>
                             <div class="col-sm-6">
-                                <label for="udpkey" class="form-label">AVDump UDP Key</label>
-                                <InputText id="udpkey" class="form-control" @bind-Value="@(ServerSettings.AniDb.AvDump.UdpKey)"></InputText>
+                                <label for="udp-key" class="form-label">AVDump UDP Key</label>
+                                <InputText id="udp-key" class="form-control" @bind-Value="@(ServerSettings.AniDb.AvDump.UdpKey)"></InputText>
                             </div>
                             <div class="col-sm-6">
-                                <label for="avdumpudpclientport" class="form-label">AVDump UDP Client Port</label>
-                                <InputNumber id="avdumpudpclientport" class="form-control"
+                                <label for="avdump-udp-client-port" class="form-label">AVDump UDP Client Port</label>
+                                <InputNumber id="avdump-udp-client-port" class="form-control"
                                              @bind-Value="@(ServerSettings.AniDb.AvDump.UdpClientPort)"></InputNumber>
                             </div>
                             <div class="col-sm-6">
-                                <label for="fetchrelationdepth" class="form-label">Anime relation fetch depth</label>
-                                <InputNumber id="fetchrelationdepth" class="form-control"
+                                <label for="fetch-relation-depth" class="form-label">Anime relation fetch depth</label>
+                                <InputNumber id="fetch-relation-depth" class="form-control"
                                              @bind-Value="@(ServerSettings.AniDb.FetchRelationDepth)"></InputNumber>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-check">
-                                    <InputCheckbox id="syncmylisttoggle" class="form-check-input"
+                                    <InputCheckbox id="sync-mylist-toggle" class="form-check-input"
                                                    @bind-Value="@(ServerSettings.AniDb.MyList.DisableSync)"></InputCheckbox>
-                                    <label for="syncmylisttoggle" class="form-check-label">Disable MyList Sync</label>
+                                    <label for="sync-mylist-toggle" class="form-check-label">Disable MyList Sync</label>
                                 </div>
                             </div>
                             <div class="col-sm-6">
-                                <label for="presentstate" class="form-label me-3">Present files state</label>
-                                <InputSelect id="presentstate" class="form-select" @bind-Value="@(ServerSettings.AniDb.MyList.PresentFileState)">
+                                <label for="present-state" class="form-label me-3">Present files state</label>
+                                <InputSelect id="present-state" class="form-select" @bind-Value="@(ServerSettings.AniDb.MyList.PresentFileState)">
                                     @foreach (var state in Enum.GetValues<MyListState>())
                                     {
                                         <option value="@state">@state</option>
@@ -67,8 +67,8 @@
                                 </InputSelect>
                             </div>
                             <div class="col-sm-6">
-                                <label for="absentstate" class="form-label">Absent files state</label>
-                                <InputSelect id="absentstate" class="form-select" @bind-Value="@(ServerSettings.AniDb.MyList.AbsentFileState)">
+                                <label for="absent-state" class="form-label">Absent files state</label>
+                                <InputSelect id="absent-state" class="form-select" @bind-Value="@(ServerSettings.AniDb.MyList.AbsentFileState)">
                                     @foreach (var state in Enum.GetValues<MyListState>())
                                     {
                                         <option value="@state">@state</option>
@@ -76,12 +76,12 @@
                                 </InputSelect>
                             </div>
                             <div class="col-sm-6">
-                                <label for="malclientid" class="form-label">MyAnimeList Client ID</label>
-                                <InputText id="malclientid" class="form-control" @bind-Value="@(ServerSettings.MyAnimeList.ClientId)"></InputText>
+                                <label for="mal-client-id" class="form-label">MyAnimeList Client ID</label>
+                                <InputText id="mal-client-id" class="form-control" @bind-Value="@(ServerSettings.MyAnimeList.ClientId)"></InputText>
                             </div>
                             <div class="col-12">
-                                <label for="scanFileExtensions" class="form-label">Scan File Extensions (space delimited)</label>
-                                <InputTextArea id="scanFileExtensions" class="form-control" spellcheck="false"
+                                <label for="scan-file-extensions" class="form-label">Scan File Extensions (space delimited)</label>
+                                <InputTextArea id="scan-file-extensions" class="form-control" spellcheck="false"
                                                @bind-Value="@ServerSettings.Import.ScanFileExtensions"></InputTextArea>
                             </div>
                             <div class="col-12">
@@ -101,8 +101,8 @@
                     <div class="card-body">
                         <EditForm Model="@BrowserSettings" OnValidSubmit="@SaveBrowserAsync">
                             <div class="col-sm-6">
-                                <label for="externalscheme" class="form-label">External Player Scheme</label>
-                                <InputText id="externalscheme" class="form-control" @bind-Value="@BrowserSettings!.ExternalPlayerScheme"></InputText>
+                                <label for="external-scheme" class="form-label">External Player Scheme</label>
+                                <InputText id="external-scheme" class="form-control" @bind-Value="@BrowserSettings!.ExternalPlayerScheme"></InputText>
                             </div>
                             <div class="col-12">
                                 <div class="d-flex justify-content-end">
