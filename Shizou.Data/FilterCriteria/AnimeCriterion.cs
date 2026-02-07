@@ -7,7 +7,6 @@ namespace Shizou.Data.FilterCriteria;
 public abstract record AnimeCriterion
 {
     [JsonIgnore]
-    public Expression<Func<AniDbAnime, bool>> Criterion => Create();
-
-    protected abstract Expression<Func<AniDbAnime, bool>> Create();
+    // ReSharper disable once UnusedMemberInSuper.Global
+    public abstract Expression<Func<AniDbAnime, bool>> Predicate { get; }
 }

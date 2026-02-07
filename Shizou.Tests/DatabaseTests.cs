@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Text.Json;
 using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
@@ -44,7 +45,7 @@ public class DatabaseTests : SeededDatabaseTests
         ]);
         var orAny = new OrAnyCriterion([and1, and2]);
         // ReSharper disable once UnusedVariable
-        var res = context.AniDbAnimes.Where(orAny.Criterion).ToList();
+        var res = context.AniDbAnimes.Where(orAny.Predicate).ToList();
 
         var serializationOpts = new JsonSerializerOptions { TypeInfoResolver = new PolymorphicJsonTypeResolver<TermCriterion>() };
         var serialized = JsonSerializer.Serialize(orAny, serializationOpts);

@@ -84,7 +84,7 @@ public partial class Collection
         _filter = _filters.FirstOrDefault(f => f.Id == FilterId);
         var queryable = context.AniDbAnimes.AsNoTracking().HasLocalFiles();
         if (_filter is not null)
-            queryable = queryable.Where(_filter.Criteria.Criterion);
+            queryable = queryable.Where(_filter.Criteria.Predicate);
         FilterSeasonYear(ref queryable);
         if (AnimeTypeEnum is not null)
             queryable = queryable.Where(a => a.AnimeType == AnimeTypeEnum);
@@ -107,7 +107,8 @@ public partial class Collection
             ]);
         if (SeasonEnum is not null)
             criteria.Add(new SeasonCriterion { Season = SeasonEnum.Value });
-        queryable = queryable.Where(new AndAllCriterion(criteria).Criterion);
+        var tempQualifier = new AndAllCriterion(criteria);
+        queryable = queryable.Where(tempQualifier.Predicate);
     }
 
     private void SortAnime(ref IQueryable<AniDbAnime> queryable)

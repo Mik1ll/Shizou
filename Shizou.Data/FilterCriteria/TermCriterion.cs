@@ -12,9 +12,12 @@ public abstract record TermCriterion : AnimeCriterion
 
     protected abstract Expression<Func<AniDbAnime, bool>> MakeTerm();
 
-    protected override Expression<Func<AniDbAnime, bool>> Create()
+    public sealed override Expression<Func<AniDbAnime, bool>> Predicate
     {
-        var term = MakeTerm();
-        return Negated ? Expression.Lambda<Func<AniDbAnime, bool>>(Expression.Not(term.Body), term.Parameters) : term;
+        get
+        {
+            var term = MakeTerm();
+            return Negated ? Expression.Lambda<Func<AniDbAnime, bool>>(Expression.Not(term.Body), term.Parameters) : term;
+        }
     }
 }
