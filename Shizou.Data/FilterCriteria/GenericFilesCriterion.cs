@@ -5,8 +5,6 @@ namespace Shizou.Data.FilterCriteria;
 
 public record GenericFilesCriterion : TermCriterion
 {
-    protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
-    {
-        return anime => anime.AniDbEpisodes.Any(e => e.AniDbFiles.OfType<AniDbGenericFile>().Any(f => f.LocalFiles.Any()));
-    }
+    protected override Expression<Func<AniDbAnime, bool>> PredicateInner =>
+        anime => anime.AniDbEpisodes.Any(e => e.AniDbFiles.OfType<AniDbGenericFile>().Any(f => f.LocalFiles.Count != 0));
 }

@@ -15,16 +15,19 @@ public record SeasonCriterion : TermCriterion
 {
     public AnimeSeason Season { get; set; } = AnimeSeason.Winter;
 
-    protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
+    protected override Expression<Func<AniDbAnime, bool>> PredicateInner
     {
-        var startMonth = Season switch
+        get
         {
-            AnimeSeason.Winter => 1,
-            AnimeSeason.Spring => 4,
-            AnimeSeason.Summer => 7,
-            AnimeSeason.Fall => 10,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        return anime => anime.AirDate != null && anime.AirDate.Value.Month >= startMonth && anime.AirDate.Value.Month < startMonth + 3;
+            var startMonth = Season switch
+            {
+                AnimeSeason.Winter => 1,
+                AnimeSeason.Spring => 4,
+                AnimeSeason.Summer => 7,
+                AnimeSeason.Fall => 10,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+            return anime => anime.AirDate != null && anime.AirDate.Value.Month >= startMonth && anime.AirDate.Value.Month < startMonth + 3;
+        }
     }
 }

@@ -7,8 +7,6 @@ public record ReleaseGroupCriterion : TermCriterion
 {
     public int? GroupId { get; set; }
 
-    protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
-    {
-        return anime => anime.AniDbEpisodes.Any(ep => ep.AniDbFiles.Cast<AniDbNormalFile>().Any(f => f.AniDbGroupId == GroupId));
-    }
+    protected override Expression<Func<AniDbAnime, bool>> PredicateInner => anime =>
+        anime.AniDbEpisodes.Any(ep => ep.AniDbFiles.Cast<AniDbNormalFile>().Any(f => f.AniDbGroupId == GroupId));
 }

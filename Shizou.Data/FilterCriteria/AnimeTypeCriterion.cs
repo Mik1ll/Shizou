@@ -8,8 +8,5 @@ public record AnimeTypeCriterion : TermCriterion
 {
     public AnimeType AnimeType { get; set; } = AnimeType.TvSeries;
 
-    protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
-    {
-        return anime => anime.AnimeType == AnimeType;
-    }
+    protected override Expression<Func<AniDbAnime, bool>> PredicateInner => anime => anime.AnimeType == AnimeType;
 }

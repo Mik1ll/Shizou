@@ -4,7 +4,7 @@ using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public record OrAnyCriterion(List<AndAllCriterion> Criteria) : AnimeCriterion, IEnumerable<AndAllCriterion>
+public sealed record OrAnyCriterion(List<AndAllCriterion> Criteria) : AnimeCriterion, IEnumerable<AndAllCriterion>
 {
     public OrAnyCriterion() : this(new List<AndAllCriterion>())
     {

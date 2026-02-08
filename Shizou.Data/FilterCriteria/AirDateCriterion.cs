@@ -31,28 +31,31 @@ public record AirDateCriterion : TermCriterion
     [Compare(nameof(HasMonth))]
     public int? Day { get; set; }
 
-    protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
+    protected override Expression<Func<AniDbAnime, bool>> PredicateInner
     {
-        DateOnly? date = null;
-        // ReSharper disable once InvertIf
-        if (AirDateTermRange is not AirDateTermRange.Missing)
+        get
         {
-            if (Year is null)
-                throw new ArgumentException("Year is required");
-            if (Month is null && Day is not null)
-                throw new ArgumentException("Cannot specify day without month");
-            date = new DateOnly(Year.Value, Month ?? 1, Day ?? 1);
-        }
+            DateOnly? date = null;
+            // ReSharper disable once InvertIf
+            if (AirDateTermRange is not AirDateTermRange.Missing)
+            {
+                if (Year is null)
+                    throw new ArgumentException("Year is required");
+                if (Month is null && Day is not null)
+                    throw new ArgumentException("Cannot specify day without month");
+                date = new DateOnly(Year.Value, Month ?? 1, Day ?? 1);
+            }
 
-        return (AirDateTermRange, AirDateTermType) switch
-        {
-            (AirDateTermRange.OnOrAfter, AirDateTermType.AirDate) => anime => anime.AirDate != null && anime.AirDate >= date,
-            (AirDateTermRange.OnOrAfter, AirDateTermType.EndDate) => anime => anime.EndDate != null && anime.EndDate >= date,
-            (AirDateTermRange.Before, AirDateTermType.AirDate) => anime => anime.AirDate != null && anime.AirDate < date,
-            (AirDateTermRange.Before, AirDateTermType.EndDate) => anime => anime.EndDate != null && anime.EndDate < date,
-            (AirDateTermRange.Missing, AirDateTermType.AirDate) => anime => anime.AirDate == null,
-            (AirDateTermRange.Missing, AirDateTermType.EndDate) => anime => anime.EndDate == null,
-            _ => throw new ArgumentOutOfRangeException(),
-        };
+            return (AirDateTermRange, AirDateTermType) switch
+            {
+                (AirDateTermRange.OnOrAfter, AirDateTermType.AirDate) => anime => anime.AirDate != null && anime.AirDate >= date,
+                (AirDateTermRange.OnOrAfter, AirDateTermType.EndDate) => anime => anime.EndDate != null && anime.EndDate >= date,
+                (AirDateTermRange.Before, AirDateTermType.AirDate) => anime => anime.AirDate != null && anime.AirDate < date,
+                (AirDateTermRange.Before, AirDateTermType.EndDate) => anime => anime.EndDate != null && anime.EndDate < date,
+                (AirDateTermRange.Missing, AirDateTermType.AirDate) => anime => anime.AirDate == null,
+                (AirDateTermRange.Missing, AirDateTermType.EndDate) => anime => anime.EndDate == null,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+        }
     }
 }

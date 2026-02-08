@@ -10,14 +10,9 @@ public abstract record TermCriterion : AnimeCriterion
 {
     public bool Negated { get; set; }
 
-    protected abstract Expression<Func<AniDbAnime, bool>> MakeTerm();
+    protected abstract Expression<Func<AniDbAnime, bool>> PredicateInner { get; }
 
-    public sealed override Expression<Func<AniDbAnime, bool>> Predicate
-    {
-        get
-        {
-            var term = MakeTerm();
-            return Negated ? Expression.Lambda<Func<AniDbAnime, bool>>(Expression.Not(term.Body), term.Parameters) : term;
-        }
-    }
+    public sealed override Expression<Func<AniDbAnime, bool>> Predicate => PredicateInner is var term && Negated
+        ? Expression.Lambda<Func<AniDbAnime, bool>>(Expression.Not(term.Body), term.Parameters)
+        : term;
 }

@@ -6,10 +6,8 @@ namespace Shizou.Data.FilterCriteria;
 
 public record UnwatchedFilesCriterion : TermCriterion
 {
-    protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
-    {
-        return anime => anime.AniDbEpisodes.Any(e =>
+    protected override Expression<Func<AniDbAnime, bool>> PredicateInner =>
+        anime => anime.AniDbEpisodes.Any(e =>
             e.EpisodeType != EpisodeType.Credits && e.EpisodeType != EpisodeType.Trailer &&
-            e.AniDbFiles.Any(f => !f.FileWatchedState.Watched && f.LocalFiles.Any()));
-    }
+            e.AniDbFiles.Any(f => !f.FileWatchedState.Watched && f.LocalFiles.Count != 0));
 }

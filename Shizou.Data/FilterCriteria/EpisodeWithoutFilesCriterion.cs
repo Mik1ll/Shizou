@@ -6,9 +6,7 @@ namespace Shizou.Data.FilterCriteria;
 
 public record EpisodeWithoutFilesCriterion : TermCriterion
 {
-    protected override Expression<Func<AniDbAnime, bool>> MakeTerm()
-    {
-        return anime => anime.AniDbEpisodes.Where(e => e.EpisodeType == EpisodeType.Episode)
-            .Any(e => e.AniDbFiles.All(gf => !gf.LocalFiles.Any()));
-    }
+    protected override Expression<Func<AniDbAnime, bool>> PredicateInner =>
+        anime => anime.AniDbEpisodes.Where(e => e.EpisodeType == EpisodeType.Episode)
+            .Any(e => e.AniDbFiles.All(gf => gf.LocalFiles.Count == 0));
 }

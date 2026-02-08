@@ -4,7 +4,7 @@ using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public record AndAllCriterion(List<TermCriterion> Criteria) : AnimeCriterion, IEnumerable<TermCriterion>
+public sealed record AndAllCriterion(List<TermCriterion> Criteria) : AnimeCriterion, IEnumerable<TermCriterion>
 {
     public AndAllCriterion() : this(new List<TermCriterion>())
     {
