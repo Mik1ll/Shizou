@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using System.Text.Json;
 using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
@@ -33,17 +32,18 @@ public class DatabaseTests : SeededDatabaseTests
     {
         using var context = GetContext();
 
-        var and1 = new AndAllCriterion([
-            new AirDateCriterion { AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.Before, Year = 2000 },
-            new AirDateCriterion { AirDateTermType = AirDateTermType.AirDate, Year = 2005, Month = 5, AirDateTermRange = AirDateTermRange.OnOrAfter },
-        ]);
-
-        var and2 = new AndAllCriterion([
-            new AirDateCriterion { Negated = true, AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.Before, Year = 1995 },
-            new AirDateCriterion
-                { Negated = true, AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.OnOrAfter, Year = 2005, Month = 12 },
-        ]);
-        var orAny = new OrAnyCriterion([and1, and2]);
+        OrAnyCriterion orAny =
+        [
+            [
+                new AirDateCriterion { AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.Before, Year = 2000 },
+                new AirDateCriterion { AirDateTermType = AirDateTermType.AirDate, Year = 2005, Month = 5, AirDateTermRange = AirDateTermRange.OnOrAfter },
+            ],
+            [
+                new AirDateCriterion { Negated = true, AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.Before, Year = 1995 },
+                new AirDateCriterion
+                    { Negated = true, AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.OnOrAfter, Year = 2005, Month = 12 },
+            ],
+        ];
         // ReSharper disable once UnusedVariable
         var res = context.AniDbAnimes.Where(orAny.Predicate).ToList();
 

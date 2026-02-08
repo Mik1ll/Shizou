@@ -43,15 +43,9 @@ public partial class CriteriaPicker
 
         var term = TermFactories[newTermType].Factory();
         if (and?.Criteria.Count > index)
-        {
             and.Criteria[index] = term;
-        }
-        else
-        {
-            if (and is null)
-                or.Criteria.Add(and = new AndAllCriterion([]));
-            and.Criteria.Add(term);
-        }
+        else if (and is null)
+            or.Criteria.Add([term]);
 
         StateHasChanged();
     }
