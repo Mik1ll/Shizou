@@ -1,33 +1,35 @@
 {
   "version": "3.0",
-  "defaultProvider": "cdnjs",
+  "defaultProvider": "jsdelivr",
   "libraries": [
     {
       "library": "bootstrap-icons@1.13.1",
       "destination": "wwwroot/lib/bootstrap-icons",
       "files": [
         "font/fonts/bootstrap-icons.woff2",
-        "font/bootstrap-icons.css",
-        "font/bootstrap-icons.min.css"
+        "font/bootstrap-icons.css"
       ]
     },
     {
       "library": "video.js@8.23.4",
-      "destination": "wwwroot/lib/video.js"
+      "destination": "wwwroot/lib/video.js",
+      "files": [
+        "dist/alt/video.novtt.js",
+        "dist/video-js.css"
+      ]
     },
     {
-      "provider": "jsdelivr",
-      "library": "jassub@1.8.6",
-      "destination": "wwwroot/lib/jassub"
+      "library": "jassub@2.4.1",
+      "destination": "wwwroot/lib/jassub",
+      "files": [
+        "dist/*"
+      ]
     },
     {
       "library": "bootstrap@5.3.8",
       "destination": "wwwroot/lib/bootstrap",
       "files": [
-        "css/bootstrap.css",
-        "css/bootstrap.css.map",
-        "css/bootstrap.min.css",
-        "css/bootstrap.min.css.map"
+        "dist/css/bootstrap.css"
       ]
     }
   ]

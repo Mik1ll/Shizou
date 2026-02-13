@@ -5,7 +5,7 @@
 import {setTheme} from "./js/theme.js";
 
 export function beforeWebStart(options, extensions) {
-    import("/lib/video.js/alt/video.novtt.min.js");
+    import("/lib/video.js/dist/alt/video.novtt.js");
     setTheme();
 }
 
