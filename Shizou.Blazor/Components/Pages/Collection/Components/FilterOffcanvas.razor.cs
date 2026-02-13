@@ -2,6 +2,7 @@
 using Shizou.Blazor.Components.Shared;
 using Shizou.Blazor.Services;
 using Shizou.Data.Database;
+using Shizou.Data.FilterCriteria;
 using Shizou.Data.Models;
 
 namespace Shizou.Blazor.Components.Pages.Collection.Components;
@@ -31,7 +32,7 @@ public partial class FilterOffcanvas
         _filter = new AnimeFilter
         {
             Name = "New Filter",
-            Criteria = [],
+            Criteria = new OrAnyCriterion([]),
         };
         await _offcanvas.OpenAsync();
     }

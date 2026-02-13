@@ -1,15 +1,12 @@
-﻿using System.Collections;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using System.Text.Json.Serialization;
 using Shizou.Data.Models;
 
 namespace Shizou.Data.FilterCriteria;
 
-public sealed record OrAnyCriterion(List<AndAllCriterion> Criteria) : AnimeCriterion, IEnumerable<AndAllCriterion>
+public record OrAnyCriterion(List<AndAllCriterion> Criteria) : AnimeCriterion
 {
-    public OrAnyCriterion() : this(new List<AndAllCriterion>())
-    {
-    }
-
+    [JsonIgnore]
     public override Expression<Func<AniDbAnime, bool>> Predicate
     {
         get
@@ -22,10 +19,4 @@ public sealed record OrAnyCriterion(List<AndAllCriterion> Criteria) : AnimeCrite
             return lambda;
         }
     }
-
-    public void Add(AndAllCriterion criterion) => Criteria.Add(criterion);
-
-    public IEnumerator<AndAllCriterion> GetEnumerator() => Criteria.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

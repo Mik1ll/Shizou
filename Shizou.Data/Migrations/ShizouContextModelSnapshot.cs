@@ -68,7 +68,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AniDbAnimes");
+                    b.ToTable("AniDbAnimes", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbAnimeRelation", b =>
@@ -84,7 +84,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasKey("AnimeId", "ToAnimeId", "RelationType");
 
-                    b.ToTable("AniDbAnimeRelations");
+                    b.ToTable("AniDbAnimeRelations", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbCharacter", b =>
@@ -104,7 +104,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AniDbCharacters");
+                    b.ToTable("AniDbCharacters", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbCreator", b =>
@@ -124,7 +124,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AniDbCreators");
+                    b.ToTable("AniDbCreators", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbCredit", b =>
@@ -150,7 +150,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasIndex("AniDbCreatorId");
 
-                    b.ToTable("AniDbCredits");
+                    b.ToTable("AniDbCredits", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbEpisode", b =>
@@ -193,7 +193,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasIndex("AniDbAnimeId");
 
-                    b.ToTable("AniDbEpisodes");
+                    b.ToTable("AniDbEpisodes", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbEpisodeFileXref", b =>
@@ -208,7 +208,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasIndex("AniDbFileId");
 
-                    b.ToTable("AniDbEpisodeFileXrefs");
+                    b.ToTable("AniDbEpisodeFileXrefs", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbFile", b =>
@@ -223,7 +223,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AniDbFiles");
+                    b.ToTable("AniDbFiles", (string)null);
 
                     b.HasDiscriminator().HasValue("AniDbFile");
 
@@ -248,7 +248,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AniDbGroups");
+                    b.ToTable("AniDbGroups", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AnimeFilter", b =>
@@ -267,7 +267,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AnimeFilters");
+                    b.ToTable("AnimeFilters", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.CommandRequest", b =>
@@ -295,7 +295,7 @@ namespace Shizou.Data.Migrations
                     b.HasIndex("CommandId")
                         .IsUnique();
 
-                    b.ToTable("CommandRequests");
+                    b.ToTable("CommandRequests", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.FileWatchedState", b =>
@@ -316,7 +316,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasIndex("MyListId");
 
-                    b.ToTable("FileWatchedStates");
+                    b.ToTable("FileWatchedStates", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.HangingEpisodeFileXref", b =>
@@ -331,7 +331,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasIndex("AniDbNormalFileId");
 
-                    b.ToTable("HangingEpisodeFileXrefs");
+                    b.ToTable("HangingEpisodeFileXrefs", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.ImportFolder", b =>
@@ -362,7 +362,7 @@ namespace Shizou.Data.Migrations
                     b.HasIndex("Path")
                         .IsUnique();
 
-                    b.ToTable("ImportFolders");
+                    b.ToTable("ImportFolders", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.LocalFile", b =>
@@ -415,7 +415,7 @@ namespace Shizou.Data.Migrations
                     b.HasIndex("ImportFolderId", "PathTail")
                         .IsUnique();
 
-                    b.ToTable("LocalFiles");
+                    b.ToTable("LocalFiles", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.MalAniDbXref", b =>
@@ -430,7 +430,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasIndex("AniDbAnimeId");
 
-                    b.ToTable("MalAniDbXrefs");
+                    b.ToTable("MalAniDbXrefs", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.MalAnime", b =>
@@ -451,7 +451,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MalAnimes");
+                    b.ToTable("MalAnimes", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.ScheduledCommand", b =>
@@ -488,7 +488,7 @@ namespace Shizou.Data.Migrations
                     b.HasIndex("CommandId")
                         .IsUnique();
 
-                    b.ToTable("ScheduledCommands");
+                    b.ToTable("ScheduledCommands", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.Timer", b =>
@@ -504,7 +504,7 @@ namespace Shizou.Data.Migrations
 
                     b.HasKey("Type", "ExtraId");
 
-                    b.ToTable("Timers");
+                    b.ToTable("Timers", (string)null);
                 });
 
             modelBuilder.Entity("Shizou.Data.Models.AniDbGenericFile", b =>
@@ -699,7 +699,7 @@ namespace Shizou.Data.Migrations
 
                             b1.HasKey("MalAnimeId");
 
-                            b1.ToTable("MalAnimes");
+                            b1.ToTable("MalAnimes", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("MalAnimeId");
@@ -736,7 +736,7 @@ namespace Shizou.Data.Migrations
 
                             b1.HasKey("AniDbNormalFileId", "__synthesizedOrdinal");
 
-                            b1.ToTable("AniDbFiles");
+                            b1.ToTable("AniDbFiles", (string)null);
 
                             b1.ToJson("Audio");
 
@@ -759,7 +759,7 @@ namespace Shizou.Data.Migrations
 
                             b1.HasKey("AniDbNormalFileId", "__synthesizedOrdinal");
 
-                            b1.ToTable("AniDbFiles");
+                            b1.ToTable("AniDbFiles", (string)null);
 
                             b1.ToJson("Subtitles");
 
@@ -790,7 +790,7 @@ namespace Shizou.Data.Migrations
 
                             b1.HasKey("AniDbNormalFileId");
 
-                            b1.ToTable("AniDbFiles");
+                            b1.ToTable("AniDbFiles", (string)null);
 
                             b1.ToJson("Video");
 

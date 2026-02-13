@@ -32,18 +32,17 @@ public class DatabaseTests : SeededDatabaseTests
     {
         using var context = GetContext();
 
-        OrAnyCriterion orAny =
-        [
-            [
+        var orAny = new OrAnyCriterion([
+            new AndAllCriterion([
                 new AirDateCriterion { AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.Before, Year = 2000 },
                 new AirDateCriterion { AirDateTermType = AirDateTermType.AirDate, Year = 2005, Month = 5, AirDateTermRange = AirDateTermRange.OnOrAfter },
-            ],
-            [
+            ]),
+            new AndAllCriterion([
                 new AirDateCriterion { Negated = true, AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.Before, Year = 1995 },
                 new AirDateCriterion
                     { Negated = true, AirDateTermType = AirDateTermType.AirDate, AirDateTermRange = AirDateTermRange.OnOrAfter, Year = 2005, Month = 12 },
-            ],
-        ];
+            ]),
+        ]);
         // ReSharper disable once UnusedVariable
         var res = context.AniDbAnimes.Where(orAny.Predicate).ToList();
 

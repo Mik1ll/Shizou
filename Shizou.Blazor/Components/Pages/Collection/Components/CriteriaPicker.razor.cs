@@ -45,7 +45,7 @@ public partial class CriteriaPicker
         if (and?.Criteria.Count > index)
             and.Criteria[index] = term;
         else if (and is null)
-            or.Criteria.Add([term]);
+            or.Criteria.Add(new AndAllCriterion([term]));
 
         StateHasChanged();
     }
