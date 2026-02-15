@@ -51,3 +51,5 @@ Desktop.ini
 
 # Keep empty directories if .gitkeep present
 !.gitkeep
+
+node_modules/

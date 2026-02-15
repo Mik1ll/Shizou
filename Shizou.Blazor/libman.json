@@ -19,13 +19,6 @@
       ]
     },
     {
-      "library": "jassub@2.4.1",
-      "destination": "wwwroot/lib/jassub",
-      "files": [
-        "dist/*"
-      ]
-    },
-    {
       "library": "bootstrap@5.3.8",
       "destination": "wwwroot/lib/bootstrap",
       "files": [

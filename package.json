@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "esbuild": "0.27.3"
+  },
+  "dependencies": {
+    "jassub": "^2.4.1"
+  },
+  "scripts": {
+    "build-jassub": "esbuild ./node_modules/jassub/dist/jassub.js ./node_modules/jassub/dist/worker/worker.js ./node_modules/jassub/dist/wasm/jassub-worker.js ./node_modules/jassub/dist/**/*.wasm ./node_modules/jassub/dist/**/*.woff2 --bundle --format=esm --splitting --outdir=./Shizou.Blazor/wwwroot/js/jassub_dist --loader:.wasm=copy --loader:.woff2=copy --target=es2022"
+  }
+}
