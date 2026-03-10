@@ -192,7 +192,7 @@ public class FfmpegService
     /// </summary>
     /// <param name="fileInfo">The file to inspect</param>
     /// <returns>The duration in seconds, if it exists</returns>
-    private async Task<double?> GetDurationAsync(FileInfo fileInfo)
+    public async Task<double?> GetDurationAsync(FileInfo fileInfo)
     {
         using var process = NewFfprobeProcess([
             "-v", "fatal",
@@ -234,6 +234,18 @@ public class FfmpegService
     }
 
     /// <summary>
+    ///     Try to get the duration of a media file
+    /// </summary>
+    /// <param name="localFile">The file to inspect</param>
+    /// <returns>The duration in seconds, if it exists</returns>
+    public async Task<double?> GetDurationAsync(LocalFile localFile)
+    {
+        if (GetLocalFileInfo(localFile) is not { } fileInfo)
+            return null;
+        return await GetDurationAsync(fileInfo).ConfigureAwait(false);
+    }
+
+    /// <summary>
     ///     Check if a file has a video stream
     /// </summary>
     /// <param name="fileInfo">The file to inspect</param>
@@ -250,6 +262,48 @@ public class FfmpegService
         process.Start();
         var hasVideo = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
         return !string.IsNullOrWhiteSpace(hasVideo);
+    }
+
+    public async Task GenerateSegmentAsync(LocalFile localFile, int segment, double startTime, double duration)
+    {
+        if (GetLocalFileInfo(localFile) is not { } fileInfo)
+            return;
+
+        _logger.LogInformation("Generating segment for local file id: {LocalFileId} at \"{Path}\"", localFile.Id, fileInfo.FullName);
+
+        var outputPath = FilePaths.VideoSegmentPath(localFile.Ed2k, segment);
+        if (Path.GetDirectoryName(outputPath) is { } parentPath)
+            Directory.CreateDirectory(parentPath);
+
+
+        // Extract key frames list before
+        // ffprobe -v error -select_streams V:0 -skip_frame nokey -show_entries frame=pts_time -of csv=p=0 <input>
+        // seek to 
+
+        using var process = NewFfmpegProcess([
+            "-hide_banner",
+            "-ss", startTime.ToString("F6", CultureInfo.InvariantCulture),
+            "-t", duration.ToString("F6", CultureInfo.InvariantCulture),
+            "-i", fileInfo.FullName,
+            "-map", "0:V",
+            "-map", "0:a",
+            "-c", "copy",
+            "-copyts",
+            "-avoid_negative_ts", "disabled",
+            "-muxdelay", "0",
+            "-bsf:v", "hevc_mp4toannexb",
+            "-y",
+            "-f", "mpegts",
+            outputPath,
+        ]);
+
+
+        var t1 = DateTimeOffset.Now;
+        process.Start();
+        var error = await process.StandardError.ReadToEndAsync().ConfigureAwait(false);
+        await process.WaitForExitAsync().ConfigureAwait(false);
+        var dur = DateTimeOffset.Now - t1;
+        _logger.LogInformation("Segment {Segment} generated for \"{Filename}\" completed in {Seconds} seconds", segment, fileInfo.Name, dur.TotalSeconds);
     }
 
     private Process NewFfprobeProcess(IEnumerable<string> arguments)
@@ -275,7 +329,8 @@ public class FfmpegService
         {
             UseShellExecute = false,
             CreateNoWindow = true,
-            WorkingDirectory = FilePaths.InstallDir
+            WorkingDirectory = FilePaths.InstallDir,
+            RedirectStandardError = true,
         };
         var ffmpegProcess = new Process() { StartInfo = startInfo };
         return ffmpegProcess;

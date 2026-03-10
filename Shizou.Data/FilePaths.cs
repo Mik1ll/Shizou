@@ -10,6 +10,8 @@ public static class FilePaths
         ? throw new ArgumentException("Install directory shouldn't be empty or null")
         : AppContext.BaseDirectory;
 
+    public static readonly string TempDir = Path.Combine(Path.GetTempPath(), "ShizouTmp");
+
     public static readonly string HttpCacheDir = Path.Combine(ApplicationDataDir, "HTTPAnime");
     public static string HttpCachePath(int animeId) => Path.Combine(HttpCacheDir, $"AnimeDoc_{animeId}.xml");
     public static readonly string MyListBackupDir = Path.Combine(ApplicationDataDir, "MyListBackup");
@@ -29,6 +31,8 @@ public static class FilePaths
     public static readonly string DefaultCollectionViewDir = Path.Combine(ApplicationDataDir, "CollectionView");
     public static readonly string StaticFilesDir = Path.Combine(InstallDir, "StaticFiles");
     public static readonly string MissingAnimePosterPath = Path.Combine(StaticFilesDir, "missing_poster.png");
+    public static string VideoSegmentsDir(string ed2K) => Path.Combine(TempDir, "segments", ed2K);
+    public static string VideoSegmentPath(string ed2K, int segment) => Path.Combine(VideoSegmentsDir(ed2K), $"{segment}.ts");
 
     public static string DatabasePath(string username) => Path.Combine(ApplicationDataDir, "ShizouDB" +
                                                                                            (string.IsNullOrWhiteSpace(username)

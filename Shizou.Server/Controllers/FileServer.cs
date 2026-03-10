@@ -27,16 +27,19 @@ namespace Shizou.Server.Controllers;
 [Route($"{Constants.ApiPrefix}/[controller]")]
 public class FileServer : ControllerBase
 {
+    private const double SegmentDuration = 6d;
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> FontLocks = new();
     private readonly IShizouContext _context;
     private readonly SubtitleService _subtitleService;
     private readonly LinkGenerator _linkGenerator;
+    private readonly FfmpegService _ffmpegService;
 
-    public FileServer(IShizouContext context, SubtitleService subtitleService, LinkGenerator linkGenerator)
+    public FileServer(IShizouContext context, SubtitleService subtitleService, LinkGenerator linkGenerator, FfmpegService ffmpegService)
     {
         _context = context;
         _subtitleService = subtitleService;
         _linkGenerator = linkGenerator;
+        _ffmpegService = ffmpegService;
     }
 
     /// <summary>
@@ -44,7 +47,7 @@ public class FileServer : ControllerBase
     /// </summary>
     /// <param name="ed2K"></param>
     /// <returns></returns>
-    [HttpGet("{ed2K}")]
+    [HttpGet("ByEd2k/{ed2K}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status416RangeNotSatisfiable)]
     [SwaggerResponse(StatusCodes.Status206PartialContent, null, typeof(Stream), MediaTypeNames.Application.Octet)]
@@ -63,61 +66,50 @@ public class FileServer : ControllerBase
         return TypedResults.PhysicalFile(filePath, MediaTypeNames.Application.Octet, Path.GetFileName(filePath), enableRangeProcessing: true);
     }
 
-    [HttpGet("{ed2K}/Playlist")]
+    [HttpGet("ByEd2k/{ed2K}/playlist.m3u8")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), "application/x-mpegurl")]
-    public Results<FileContentHttpResult, NotFound> GetPlaylist([FromRoute] string ed2K, [FromQuery] bool? single)
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), "application/x-mpegURL")]
+    public async Task<Results<FileContentHttpResult, NotFound>> GetPlaylist([FromRoute] string ed2K)
     {
-        var m3U8 = "#EXTM3U\n";
+        var m3U8 = new StringBuilder("#EXTM3U\n");
+        m3U8.AppendLine("#EXT-X-VERSION:3");
+        m3U8.AppendLine($"#EXT-X-TARGETDURATION:{SegmentDuration}"); // Max duration of a segment
+        m3U8.AppendLine("#EXT-X-MEDIA-SEQUENCE:0");
+        m3U8.AppendLine("#EXT-X-PLAYLIST-TYPE:VOD");
 
         var localFile = _context.LocalFiles.AsNoTracking()
-            .Where(lf => lf.ImportFolder != null && lf.Ed2k == ed2K)
-            .Select(lf => new { AniDbAnimeId = (int?)lf.AniDbFile!.AniDbEpisodes.FirstOrDefault()!.AniDbAnimeId, lf.Ed2k, lf.ImportFolder!.Path, lf.PathTail })
-            .FirstOrDefault();
+            .Include(lf => lf.ImportFolder)
+            .FirstOrDefault(lf => lf.ImportFolder != null && lf.Ed2k == ed2K);
         if (localFile is null)
             return TypedResults.NotFound();
 
-        var animeId = localFile.AniDbAnimeId;
-        if (animeId is null)
+        var duration = await _ffmpegService.GetDurationAsync(localFile).ConfigureAwait(false);
+        if (duration is null)
+            return TypedResults.NotFound();
+
+        var totalSegments = (int)Math.Ceiling(duration.Value / SegmentDuration);
+
+        for (var i = 0; i < totalSegments; i++)
         {
-            var filePath = Path.Combine(localFile.Path, localFile.PathTail);
-            m3U8 += $"#EXTINF:-1,{Path.GetFileName(filePath)}\n";
-            m3U8 += $"{GetFileUri(localFile.Ed2k)}\n";
-            return TypedResults.File(Encoding.UTF8.GetBytes(m3U8), "application/x-mpegurl", $"{ed2K}.m3u8");
+            // Last segment might be shorter
+            var currentSegmentDuration = i == totalSegments - 1
+                ? duration - i * SegmentDuration
+                : SegmentDuration;
+
+            m3U8.AppendLine($"#EXTINF:{currentSegmentDuration:F6},");
+            // The URL for the specific segment
+            m3U8.AppendLine(GetFileUri(ed2K, i));
         }
 
-        var eps = _context.AniDbEpisodes.AsNoTracking()
-            .Include(e => e.AniDbAnime)
-            .Include(e => e.AniDbFiles)
-            .ThenInclude(f => f.LocalFiles)
-            .Where(e => e.AniDbAnimeId == animeId)
-            .OrderBy(e => e.EpisodeType)
-            .ThenBy(e => e.Number).ToList();
-        var episode = eps.First(ep => ep.AniDbFiles.Any(f => f.LocalFiles.Any(lf => lf.Ed2k == ed2K)));
-        var groupId = eps.SelectMany(ep => ep.AniDbFiles)
-            .OfType<AniDbNormalFile>()
-            .FirstOrDefault(f => f.LocalFiles.Any(lf => ed2K == lf.Ed2k))?.AniDbGroupId;
-        var lastEpNo = episode.Number - 1;
-        foreach (var loopEp in eps.SkipWhile(x => x != episode))
-        {
-            if (loopEp.EpisodeType != episode.EpisodeType || loopEp.Number != lastEpNo + 1)
-                break;
-            var loopLocalFile = loopEp.AniDbFiles.OrderBy(l => (l as AniDbNormalFile)?.AniDbGroupId != groupId).SelectMany(f => f.LocalFiles).FirstOrDefault();
-            if (loopLocalFile is null)
-                break;
-            m3U8 += $"#EXTINF:-1,{episode.AniDbAnime.TitleTranscription} - {loopEp.EpString}\n";
-            m3U8 += $"{GetFileUri(loopLocalFile.Ed2k, loopEp)}\n";
-            lastEpNo = loopEp.Number;
-            if (single is true)
-                break;
-        }
+        m3U8.AppendLine("#EXT-X-ENDLIST");
 
-        return TypedResults.File(Encoding.UTF8.GetBytes(m3U8), "application/x-mpegurl", $"{ed2K}.m3u8");
+        return TypedResults.File(Encoding.UTF8.GetBytes(m3U8.ToString()), "application/x-mpegURL", "playlist.m3u8");
 
-        string GetFileUri(string fileEd2K, AniDbEpisode? ep = null)
+        string GetFileUri(string fileEd2K, int segment, AniDbEpisode? ep = null)
         {
             IDictionary<string, object?> values = new ExpandoObject();
             values["ed2K"] = fileEd2K;
+            values["segment"] = segment;
             if (ep is not null)
             {
                 values["posterFilename"] = ep.AniDbAnime.ImageFilename;
@@ -131,10 +123,40 @@ public class FileServer : ControllerBase
             }
 
             values[IdentityConstants.ApplicationScheme] = HttpContext.Request.Cookies[IdentityConstants.ApplicationScheme];
-            var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
-                nameof(FileServer), values) ?? throw new ArgumentException("Could not generate file uri");
+            var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), "GetSegment",
+                "FileServer", values) ?? throw new ArgumentException("Could not generate file uri");
             return fileUri;
         }
+    }
+
+    /// <summary>
+    ///     Get file by local Id, can optionally end in arbitrary extension
+    /// </summary>
+    /// <param name="ed2K"></param>
+    /// <param name="segment"></param>
+    /// <returns></returns>
+    [HttpGet("ByEd2k/{ed2K}/{segment:int}.ts")]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status416RangeNotSatisfiable)]
+    [SwaggerResponse(StatusCodes.Status206PartialContent, null, typeof(Stream), "video/mp2t")]
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), "video/mp2t")]
+    public async Task<Results<PhysicalFileHttpResult, NotFound>> GetSegmentAsync([FromRoute] string ed2K, [FromRoute] int segment)
+    {
+        var segmentPath = FilePaths.VideoSegmentPath(ed2K, segment);
+        if (Path.Exists(segmentPath))
+            return TypedResults.PhysicalFile(segmentPath, "video/mp2t", Path.GetFileName(segmentPath), enableRangeProcessing: true);
+
+        var localFile = _context.LocalFiles.AsNoTracking()
+            .Include(lf => lf.ImportFolder)
+            .FirstOrDefault(e => e.ImportFolder != null && e.Ed2k == ed2K);
+        if (localFile is null)
+            return TypedResults.NotFound();
+
+        var startTime = segment * SegmentDuration;
+
+        await _ffmpegService.GenerateSegmentAsync(localFile, segment, startTime, SegmentDuration).ConfigureAwait(false);
+
+        return TypedResults.PhysicalFile(segmentPath, MediaTypeNames.Application.Octet, Path.GetFileName(segmentPath), enableRangeProcessing: true);
     }
 
     /// <summary>
@@ -143,7 +165,7 @@ public class FileServer : ControllerBase
     /// <param name="ed2K"></param>
     /// <param name="index"></param>
     /// <returns></returns>
-    [HttpGet("{ed2K}/Subtitles/{index:int}")]
+    [HttpGet("ByEd2k/{ed2K}/Subtitles/{index:int}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), "text/x-ssa")]
     public Results<PhysicalFileHttpResult, NotFound> GetSubtitle([FromRoute] string ed2K, [FromRoute] int index)
@@ -161,7 +183,7 @@ public class FileServer : ControllerBase
     /// <param name="ed2K"></param>
     /// <param name="fontName"></param>
     /// <returns></returns>
-    [HttpGet("{ed2k}/Fonts/{fontName}")]
+    [HttpGet("ByEd2k/{ed2K}/Fonts/{fontName}")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), "font/ttf", "font/otf")]
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont([FromRoute] string ed2K, [FromRoute] string fontName)
@@ -189,5 +211,65 @@ public class FileServer : ControllerBase
         if (!new FileExtensionContentTypeProvider().TryGetContentType(fontName, out var mimeType))
             mimeType = "font/otf";
         return TypedResults.PhysicalFile(fontPath, mimeType, Path.GetFileName(fontPath));
+    }
+
+    [HttpGet("ByAnimeId/{animeId:int}/upnext.m3u8")]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), "application/x-mpegurl")]
+    public Results<FileContentHttpResult, NotFound> GetUpNext([FromRoute] int animeId)
+    {
+        var m3U8 = "#EXTM3U\n";
+
+        var eps = _context.AniDbEpisodes.AsNoTracking()
+            .Include(e => e.AniDbAnime)
+            .Include(e => e.AniDbFiles)
+            .ThenInclude(f => f.LocalFiles)
+            .Where(e => e.AniDbAnimeId == animeId)
+            .OrderBy(e => e.EpisodeType)
+            .ThenBy(e => e.Number).ToList();
+        var episode = eps.Where(e => e.AniDbFiles.Any(f => f.LocalFiles.Count != 0) && e.AniDbFiles.All(f => !f.FileWatchedState.Watched))
+            .OrderBy(e => e.EpisodeType).ThenBy(e => e.Number).FirstOrDefault();
+        var localFile = episode?.AniDbFiles.SelectMany(f => f.LocalFiles).FirstOrDefault();
+        if (episode is null || localFile is null)
+            return TypedResults.NotFound();
+        var groupId = eps.SelectMany(ep => ep.AniDbFiles)
+            .OfType<AniDbNormalFile>()
+            .FirstOrDefault(f => f.LocalFiles.Any(lf => localFile.Ed2k == lf.Ed2k))?.AniDbGroupId;
+        var lastEpNo = episode.Number - 1;
+        foreach (var loopEp in eps)
+        {
+            if (loopEp.EpisodeType != episode.EpisodeType || loopEp.Number != lastEpNo + 1)
+                break;
+            var loopLocalFile = loopEp.AniDbFiles.OrderBy(l => (l as AniDbNormalFile)?.AniDbGroupId != groupId).SelectMany(f => f.LocalFiles).FirstOrDefault();
+            if (loopLocalFile is null)
+                break;
+            m3U8 += $"#EXTINF:-1,{episode.AniDbAnime.TitleTranscription} - {loopEp.EpString}\n";
+            m3U8 += $"{GetFileUri(loopLocalFile.Ed2k, loopEp)}\n";
+            lastEpNo = loopEp.Number;
+        }
+
+        return TypedResults.File(Encoding.UTF8.GetBytes(m3U8), "application/x-mpegurl", "playlist.m3u8");
+
+        string GetFileUri(string fileEd2K, AniDbEpisode? ep = null)
+        {
+            IDictionary<string, object?> values = new ExpandoObject();
+            values["ed2K"] = fileEd2K;
+            if (ep is not null)
+            {
+                values["posterFilename"] = ep.AniDbAnime.ImageFilename;
+                values["animeName"] = ep.AniDbAnime.TitleEnglish ?? ep.AniDbAnime.TitleTranscription;
+                values["episodeName"] = ep.TitleEnglish;
+                values["epNo"] = ep.EpString;
+                values["epCount"] = ep.AniDbAnime.EpisodeCount;
+                values["animeId"] = ep.AniDbAnimeId;
+                values["restricted"] = ep.AniDbAnime.Restricted;
+                values["appId"] = "07a58b50-5109-5aa3-abbc-782fed0df04f";
+            }
+
+            values[IdentityConstants.ApplicationScheme] = HttpContext.Request.Cookies[IdentityConstants.ApplicationScheme];
+            var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
+                nameof(FileServer), values) ?? throw new ArgumentException("Could not generate file uri");
+            return fileUri;
+        }
     }
 }

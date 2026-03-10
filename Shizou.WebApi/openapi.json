@@ -900,7 +900,7 @@
         }
       }
     },
-    "/api/FileServer/{ed2K}": {
+    "/api/FileServer/ByEd2k/{ed2K}": {
       "get": {
         "tags": [
           "FileServer"
@@ -951,7 +951,67 @@
         }
       }
     },
-    "/api/FileServer/{ed2K}/Playlist": {
+    "/api/FileServer/ByEd2k/{ed2K}/{segment}.ts": {
+      "get": {
+        "tags": [
+          "FileServer"
+        ],
+        "operationId": "ShizouHttpClient_FileServerGetSegment",
+        "parameters": [
+          {
+            "name": "ed2K",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "segment",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found"
+          },
+          "416": {
+            "description": "Range Not Satisfiable"
+          },
+          "206": {
+            "description": "Partial Content",
+            "content": {
+              "video/mp2t": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "video/mp2t": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/FileServer/ByEd2k/{ed2K}/playlist.m3u8": {
       "get": {
         "tags": [
           "FileServer"
@@ -964,13 +1024,6 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "single",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
             }
           }
         ],
@@ -995,7 +1048,7 @@
         }
       }
     },
-    "/api/FileServer/{ed2k}/Fonts/{fontName}": {
+    "/api/FileServer/ByEd2k/{ed2K}/Fonts/{fontName}": {
       "get": {
         "tags": [
           "FileServer"
@@ -1046,7 +1099,7 @@
         }
       }
     },
-    "/api/FileServer/{ed2K}/Subtitles/{index}": {
+    "/api/FileServer/ByEd2k/{ed2K}/Subtitles/{index}": {
       "get": {
         "tags": [
           "FileServer"
@@ -1079,6 +1132,44 @@
             "description": "OK",
             "content": {
               "text/x-ssa": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/FileServer/ByAnimeId/{animeId}/upnext.m3u8": {
+      "get": {
+        "tags": [
+          "FileServer"
+        ],
+        "operationId": "ShizouHttpClient_FileServerGetUpNext",
+        "parameters": [
+          {
+            "name": "animeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/x-mpegurl": {
                 "schema": {
                   "type": "string",
                   "format": "binary"

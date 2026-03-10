@@ -32,10 +32,6 @@ public partial class ExternalPlaybackButton : ComponentWithExtraClasses
     public string Ed2K { get; set; } = null!;
 
     [Parameter]
-    [EditorRequired]
-    public bool Single { get; set; }
-
-    [Parameter]
     public string? Label { get; set; }
 
     protected override async Task OnParametersSetAsync()
@@ -43,17 +39,16 @@ public partial class ExternalPlaybackButton : ComponentWithExtraClasses
         _schemeHandlerInstalled = (await BrowserSettings.GetSettingsAsync(JsRuntime)).ExternalPlayerInstalled;
         var baseUri = new Uri(NavigationManager.BaseUri);
 
-        _externalPlaybackUri = await GetExternalPlaylistUriAsync(Ed2K, Single, baseUri, IdentityCookie);
+        _externalPlaybackUri = await GetExternalPlaylistUriAsync(Ed2K, baseUri, IdentityCookie);
         await base.OnParametersSetAsync();
     }
 
-    private async Task<string> GetExternalPlaylistUriAsync(string ed2K, bool single, Uri baseUri, string identityCookie)
+    private async Task<string> GetExternalPlaylistUriAsync(string ed2K, Uri baseUri, string identityCookie)
     {
         var extPlayerScheme = (await BrowserSettings.GetSettingsAsync(JsRuntime)).ExternalPlayerScheme;
 
         IDictionary<string, object?> values = new ExpandoObject();
         values["ed2K"] = ed2K;
-        values["single"] = single;
         values[IdentityConstants.ApplicationScheme] = identityCookie;
         var fileUri = LinkGenerator.GetUriByAction(nameof(FileServer.GetPlaylist), nameof(FileServer), values,
                           baseUri.Scheme, new HostString(baseUri.Authority), new PathString(baseUri.AbsolutePath)) ??

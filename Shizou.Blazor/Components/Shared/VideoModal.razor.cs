@@ -1,6 +1,4 @@
-﻿using System.Net.Mime;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.StaticFiles;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using Shizou.Blazor.Extensions;
@@ -13,7 +11,7 @@ namespace Shizou.Blazor.Components.Shared;
 
 public partial class VideoModal
 {
-    private readonly string _videoId = "videoModalId";
+    private const string VideoId = "videoModalId";
     private readonly List<(string Url, string? Lang, string? Title)> _assSubs = [];
     private readonly List<string> _fontUrls = [];
     private bool _loadPlayer;
@@ -46,13 +44,7 @@ public partial class VideoModal
     {
         using var context = ContextFactory.CreateDbContext();
         _localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == LocalFileId);
-        if (_localFile is not null)
-        {
-            if (!new FileExtensionContentTypeProvider().TryGetContentType(_localFile.PathTail, out _localFileMimeType))
-                _localFileMimeType = MediaTypeNames.Application.Octet;
-            if (Path.GetExtension(_localFile.PathTail) == ".mkv") // Lie so browser will try to interpret mkv as webm for web player
-                _localFileMimeType = "video/webm";
-        }
+        _localFileMimeType = "application/x-mpegURL";
 
         await GetStreamUrlsAsync();
         _loadPlayer = true;
@@ -63,7 +55,7 @@ public partial class VideoModal
         if (_loadPlayer)
         {
             var module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/webplayer.js");
-            _player = await module.InvokeAsync<IJSObjectReference>("newPlayer", _videoId, _assSubs.Select(s => s.Url).ToList(), _fontUrls);
+            _player = await module.InvokeAsync<IJSObjectReference>("newPlayer", VideoId, _assSubs.Select(s => s.Url).ToList(), _fontUrls);
             _loadPlayer = false;
         }
     }
@@ -76,7 +68,7 @@ public partial class VideoModal
 
     private async Task GetStreamUrlsAsync()
     {
-        if (_localFile is null || _localFile.ImportFolder is null)
+        if (_localFile?.ImportFolder is null)
             return;
         var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(_localFile.ImportFolder.Path, _localFile.PathTail)));
         if (!fileInfo.Exists)
@@ -104,6 +96,6 @@ public partial class VideoModal
             }
     }
 
-    private string GetVideoPath() => LinkGenerator.GetPathByAction(nameof(FileServer.Get), nameof(FileServer), new { ed2k = _localFile?.Ed2k }) ??
+    private string GetVideoPath() => LinkGenerator.GetPathByAction(nameof(FileServer.GetPlaylist), nameof(FileServer), new { ed2k = _localFile?.Ed2k }) ??
                                      throw new ArgumentException("Could not generate video file path");
 }
