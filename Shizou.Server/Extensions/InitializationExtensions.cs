@@ -144,6 +144,7 @@ public static class InitializationExtensions
                     "img-src data: https: blob:;" +
                     "object-src 'none';" +
                     $"script-src 'self' 'wasm-unsafe-eval' 'unsafe-hashes' {string.Join(' ', unsafeHashes.Select(uh => $"'{uh}'"))};" +
+                    "worker-src 'self' blob:;" +
                     "style-src 'self' 'unsafe-inline';" +
                     "font-src 'self' data:;" +
                     "connect-src 'self' http: ws: wss:;" +
