@@ -39,8 +39,7 @@ public class ExtractExtraDataCommand : Command<ExtractExtraDataArgs>
             return;
         }
 
-        await _ffmpegService.ExtractThumbnailAsync(localFile).ConfigureAwait(false);
-        await _ffmpegService.ExtractSubtitlesAsync(localFile).ConfigureAwait(false);
+        await _ffmpegService.ExtractThumbnailAndSubtitlesAsync(localFile).ConfigureAwait(false);
         Completed = true;
     }
 }

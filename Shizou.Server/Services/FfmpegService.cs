@@ -41,81 +41,91 @@ public class FfmpegService
     }
 
     /// <summary>
-    ///     Extract and convert compatible subtitle streams to ASS subtitles
+    ///     Extract thumbnail and subtitles from a media file in a single ffmpeg call
     /// </summary>
-    /// <param name="localFile">The file to extract subtitles from</param>
-    public async Task ExtractSubtitlesAsync(LocalFile localFile)
+    /// <param name="localFile">The file to extract from</param>
+    public async Task ExtractThumbnailAndSubtitlesAsync(LocalFile localFile)
     {
-        _logger.LogInformation("Extracting subtitles for local file id: {LocalFileId}", localFile.Id);
-
         if (GetLocalFileInfo(localFile) is not { } fileInfo)
             return;
 
+        _logger.LogInformation("Extracting thumbnail and subtitles for local file id: {LocalFileId} at \"{Path}\"", localFile.Id, fileInfo.FullName);
+
+        // Get video info and subtitle streams in parallel
+        var videoInfoTask = GetVideoInfoAsync(fileInfo);
+        var streamsTask = GetStreamsAsync(fileInfo);
+
+        await Task.WhenAll(videoInfoTask, streamsTask).ConfigureAwait(false);
+
+        var (hasVideo, duration) = await videoInfoTask.ConfigureAwait(false);
+        var streams = await streamsTask.ConfigureAwait(false);
+
+        // Prepare thumbnail extraction
+        string? thumbnailPath = null;
+        double? thumbnailOffset = null;
+        if (hasVideo)
+        {
+            thumbnailPath = FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k);
+            if (Path.GetDirectoryName(thumbnailPath) is { } parentPath)
+                Directory.CreateDirectory(parentPath);
+            thumbnailOffset = Math.Min(duration * .50, Math.Max(Math.Min(duration * .20, 300), 40));
+        }
+        else
+        {
+            _logger.LogInformation("File at \"{FilePath}\" has no video stream, skipping thumbnail", fileInfo.FullName);
+        }
+
+        // Prepare subtitle streams
         var subsDir = FilePaths.ExtraFileData.SubsDir(localFile.Ed2k);
         Directory.CreateDirectory(subsDir);
 
-        var subStreams = (await GetStreamsAsync(fileInfo).ConfigureAwait(false)).Where(s => ValidSubFormats.Contains(s.codec))
+        var subStreams = streams.Where(s => ValidSubFormats.Contains(s.codec))
             .Select(s => (s.index, filename: Path.GetFileName(FilePaths.ExtraFileData.SubPath(localFile.Ed2k, s.index)))).ToList();
 
         if (subStreams.Count <= 0)
         {
-            _logger.LogDebug("No valid streams for {LocalFileId}, skipping subtitle extraction", localFile.Id);
-            return;
+            _logger.LogDebug("No valid subtitle streams for {LocalFileId}", localFile.Id);
+            if (!hasVideo)
+                return;
         }
 
-        using var process = NewFfmpegProcess([
-            "-v", "fatal", "-y",
-            "-i", fileInfo.FullName,
-            .. subStreams.SelectMany(IEnumerable<string> (s) => ["-map", $"0:{s.index}", "-c", "ass", Path.Combine(subsDir, s.filename)])
-        ]);
-        process.Start();
-        await process.WaitForExitAsync().ConfigureAwait(false);
-    }
+        // Build ffmpeg command
+        var args = new List<string> { "-v", thumbnailPath != null ? "quiet" : "fatal", "-y" };
 
-    /// <summary>
-    ///     Create a thumbnail from the file's video stream
-    /// </summary>
-    /// <param name="localFile">The file to extract a thumbnail from</param>
-    public async Task ExtractThumbnailAsync(LocalFile localFile)
-    {
-        if (GetLocalFileInfo(localFile) is not { } fileInfo)
-            return;
+        // Add thumbnail seek if needed
+        if (thumbnailPath != null && thumbnailOffset.HasValue) args.AddRange(["-ss", thumbnailOffset.Value.ToString("F3", CultureInfo.InvariantCulture)]);
 
-        _logger.LogInformation("Extracting thumbnail for local file id: {LocalFileId} at \"{Path}\"", localFile.Id, fileInfo.FullName);
+        args.AddRange(["-i", fileInfo.FullName]);
 
-        var (hasVideo, duration) = await GetVideoInfoAsync(fileInfo).ConfigureAwait(false);
+        // Add thumbnail output
+        if (thumbnailPath != null)
+            args.AddRange([
+                "-map", "0:V:0",
+                "-vf", "fps=5,thumbnail=50,scale=-2:480,crop='min(854,iw)'",
+                "-frames:v", "1",
+                "-c:v", "libwebp",
+                "-compression_level", "6",
+                "-preset", "drawing",
+                thumbnailPath,
+            ]);
 
-        if (!hasVideo)
-        {
-            _logger.LogInformation("File at \"{FilePath}\" has no video stream", fileInfo.FullName);
-            return;
-        }
+        // Add subtitle outputs
+        if (subStreams.Count > 0) args.AddRange(subStreams.SelectMany(s => new[] { "-map", $"0:{s.index}", "-c", "ass", Path.Combine(subsDir, s.filename) }));
 
-        var outputPath = FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k);
-        if (Path.GetDirectoryName(outputPath) is { } parentPath)
-            Directory.CreateDirectory(parentPath);
-        var offset = Math.Min(duration * .50, Math.Max(Math.Min(duration * .20, 300), 40));
-        using var process = NewFfmpegProcess([
-            "-v", "quiet", "-y",
-            "-ss", offset.ToString("F3", CultureInfo.InvariantCulture),
-            "-i", fileInfo.FullName,
-            "-map", "0:V:0",
-            "-vf", "fps=5,thumbnail=50,scale=-2:480,crop='min(854,iw)'",
-            "-frames:v", "1",
-            "-c:v", "libwebp",
-            "-compression_level", "6",
-            "-preset", "drawing",
-            outputPath,
-        ]);
         var t1 = DateTimeOffset.Now;
+        using var process = NewFfmpegProcess(args);
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
         var dur = DateTimeOffset.Now - t1;
-        _logger.LogInformation("Thumbnail generation for \"{Filename}\" completed in {Seconds} seconds", fileInfo.Name, dur.TotalSeconds);
 
-        var outputInfo = new FileInfo(outputPath);
-        if (outputInfo is not { Exists: true, Length: > 0 })
-            outputInfo.Delete();
+        _logger.LogInformation("Extraction for \"{Filename}\" completed in {Seconds} seconds", fileInfo.Name, dur.TotalSeconds);
+
+        if (thumbnailPath != null)
+        {
+            var outputInfo = new FileInfo(thumbnailPath);
+            if (outputInfo is not { Exists: true, Length: > 0 })
+                outputInfo.Delete();
+        }
     }
 
     /// <summary>
@@ -129,7 +139,7 @@ public class FfmpegService
             "-v", "fatal",
             "-show_entries", "stream=index,codec_name : stream_tags=language,title,filename",
             "-of", "json=c=1",
-            fileInfo.FullName
+            fileInfo.FullName,
         ]);
         p.Start();
         List<(int index, string codec, string? lang, string? title, string? filename)> streams = [];
@@ -199,7 +209,7 @@ public class FfmpegService
             "-select_streams", "V",
             "-show_entries", "format=duration:stream=codec_name,duration:stream_tags",
             "-sexagesimal", "-of", "json",
-            fileInfo.FullName
+            fileInfo.FullName,
         ]);
         process.Start();
         using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream).ConfigureAwait(false);
@@ -266,9 +276,9 @@ public class FfmpegService
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardOutput = true,
-            WorkingDirectory = FilePaths.InstallDir
+            WorkingDirectory = FilePaths.InstallDir,
         };
-        var ffprobeProcess = new Process() { StartInfo = startInfo };
+        var ffprobeProcess = new Process { StartInfo = startInfo };
         return ffprobeProcess;
     }
 
@@ -280,9 +290,9 @@ public class FfmpegService
         {
             UseShellExecute = false,
             CreateNoWindow = true,
-            WorkingDirectory = FilePaths.InstallDir
+            WorkingDirectory = FilePaths.InstallDir,
         };
-        var ffmpegProcess = new Process() { StartInfo = startInfo };
+        var ffmpegProcess = new Process { StartInfo = startInfo };
         return ffmpegProcess;
     }
 }
