@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using Serilog;
+using Serilog.Events;
 using Shizou.Blazor.Components;
 using Shizou.Blazor.Components.Account;
 using Shizou.Blazor.Services;
@@ -91,8 +92,14 @@ try
     app.MapScalarApiReference();
     app.UseSwaggerUI(opt => { opt.SwaggerEndpoint("/openapi/v1.json", "V1"); });
 
-    app.UseSerilogRequestLogging();
-
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.GetLevel = (httpContext, _, ex) => ex is null
+            ? httpContext.Request.Path.Value?.StartsWith("/healthz") is true
+                ? LogEventLevel.Debug
+                : LogEventLevel.Information
+            : LogEventLevel.Error;
+    });
     app.UseHttpsRedirection();
 
     app.UseStaticFiles();

@@ -214,7 +214,7 @@ public static class InitializationExtensions
                         Cache = SqliteCacheMode.Private,
                         Pooling = false,
                     }.ConnectionString)
-                    .EnableSensitiveDataLogging();
+                    .EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
             })
             .AddDbContext<AuthContext>()
             .AddIdentity<IdentityUser, IdentityRole>(options =>

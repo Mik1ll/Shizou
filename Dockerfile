@@ -36,7 +36,7 @@ RUN --mount=source=Shizou.HealthChecker,dst=/src/Shizou.HealthChecker,rw \
     dotnet publish -c Release -a $TARGETARCH --no-self-contained -o /app/publish
 
 WORKDIR /src/Shizou.Blazor
-COPY Shizou.sln /src/
+COPY Shizou.slnx /src/
 RUN --mount=source=Shizou.Blazor/.config/dotnet-tools.json,dst=/src/Shizou.Blazor/.config/dotnet-tools.json \
     dotnet tool restore
 RUN --mount=source=Shizou.Blazor/.config/dotnet-tools.json,dst=/src/Shizou.Blazor/.config/dotnet-tools.json \

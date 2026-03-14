@@ -1,0 +1,11 @@
+<Solution>
+    <Project Path="Shizou.Blazor/Shizou.Blazor.csproj">
+        <BuildDependency Project="Shizou.WebApi/Shizou.WebApi.csproj" />
+    </Project>
+    <Project Path="Shizou.Data/Shizou.Data.csproj" />
+    <Project Path="Shizou.HealthChecker/Shizou.HealthChecker.csproj" />
+    <Project Path="Shizou.HttpClient/Shizou.HttpClient.csproj" />
+    <Project Path="Shizou.Server/Shizou.Server.csproj" />
+    <Project Path="Shizou.Tests/Shizou.Tests.csproj" />
+    <Project Path="Shizou.WebApi/Shizou.WebApi.csproj" />
+</Solution>
