@@ -83,13 +83,13 @@ public class FfmpegService
 
         _logger.LogInformation("Extracting thumbnail for local file id: {LocalFileId} at \"{Path}\"", localFile.Id, fileInfo.FullName);
 
-        if (!await HasVideoAsync(fileInfo).ConfigureAwait(false))
+        var (hasVideo, duration) = await GetVideoInfoAsync(fileInfo).ConfigureAwait(false);
+
+        if (!hasVideo)
         {
             _logger.LogInformation("File at \"{FilePath}\" has no video stream", fileInfo.FullName);
             return;
         }
-
-        var duration = await GetDurationAsync(fileInfo).ConfigureAwait(false) ?? 0;
 
         var outputPath = FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k);
         if (Path.GetDirectoryName(outputPath) is { } parentPath)
@@ -188,68 +188,73 @@ public class FfmpegService
     }
 
     /// <summary>
-    ///     Try to get the duration of a media file
+    ///     Get video information (duration and presence of video stream) in a single ffprobe call
     /// </summary>
     /// <param name="fileInfo">The file to inspect</param>
-    /// <returns>The duration in seconds, if it exists</returns>
-    private async Task<double?> GetDurationAsync(FileInfo fileInfo)
+    /// <returns>A tuple containing whether the file has a video stream and the duration in seconds</returns>
+    private async Task<(bool hasVideo, double duration)> GetVideoInfoAsync(FileInfo fileInfo)
     {
         using var process = NewFfprobeProcess([
             "-v", "fatal",
             "-select_streams", "V",
-            "-show_entries", "format=duration:stream=duration:stream_tags",
+            "-show_entries", "format=duration:stream=codec_name,duration:stream_tags",
             "-sexagesimal", "-of", "json",
             fileInfo.FullName
         ]);
         process.Start();
         using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream).ConfigureAwait(false);
         var rootEl = doc.RootElement;
-        if (rootEl.TryGetProperty("streams", out var streamsEl))
+
+        // Check for video stream
+        var hasVideo = false;
+        if (rootEl.TryGetProperty("streams", out var streamsEl) && streamsEl.GetArrayLength() > 0)
+            foreach (var stream in streamsEl.EnumerateArray())
+                if (stream.TryGetProperty("codec_name", out var codecEl) && !string.IsNullOrWhiteSpace(codecEl.GetString()))
+                {
+                    hasVideo = true;
+                    break;
+                }
+
+        // Get duration
+        double duration = 0;
+        if (rootEl.TryGetProperty("streams", out streamsEl))
             foreach (var stream in streamsEl.EnumerateArray())
             {
                 if (stream.TryGetProperty("tags", out var tagsEl))
                     foreach (var tagDurProp in tagsEl.EnumerateObject().Where(p => p.Name.StartsWith("duration", StringComparison.OrdinalIgnoreCase)))
                         if (tagDurProp.Value.GetString() is { } durStr)
                             if (TimeSpan.TryParse(TrimFractional(durStr), CultureInfo.InvariantCulture, out var tagDur))
-                                return tagDur.TotalSeconds;
+                            {
+                                duration = tagDur.TotalSeconds;
+                                return (hasVideo, duration);
+                            }
 
-                if (rootEl.TryGetProperty("duration", out var streamDurEl))
+                if (stream.TryGetProperty("duration", out var streamDurEl))
                     if (streamDurEl.GetString() is { } streamDurStr)
                         if (TimeSpan.TryParse(TrimFractional(streamDurStr), CultureInfo.InvariantCulture, out var streamDur))
-                            return streamDur.TotalSeconds;
+                        {
+                            duration = streamDur.TotalSeconds;
+                            return (hasVideo, duration);
+                        }
             }
 
         if (rootEl.TryGetProperty("format", out var formatEl))
             if (formatEl.TryGetProperty("duration", out var formatDurEl))
                 if (formatDurEl.GetString() is { } formatDurStr)
                     if (TimeSpan.TryParse(TrimFractional(formatDurStr), CultureInfo.InvariantCulture, out var formatDur))
-                        return formatDur.TotalSeconds;
+                    {
+                        duration = formatDur.TotalSeconds;
+                        return (hasVideo, duration);
+                    }
 
-        _logger.LogWarning("Could not get a duration for file \"{FilePath}\"", fileInfo.FullName);
-        return null;
+        if (duration == 0)
+            _logger.LogWarning("Could not get a duration for file \"{FilePath}\"", fileInfo.FullName);
+
+        return (hasVideo, duration);
 
         // Trim fractional value https://learn.microsoft.com/en-us/dotnet/api/system.timespan.parse?view=net-7.0#notes-to-callers
         string TrimFractional(string durStr) =>
             durStr.LastIndexOf('.') is var idx && idx >= 0 && durStr.Length - 1 >= idx + 8 ? durStr.Remove(idx + 8) : durStr;
-    }
-
-    /// <summary>
-    ///     Check if a file has a video stream
-    /// </summary>
-    /// <param name="fileInfo">The file to inspect</param>
-    /// <returns>True if the file has a vieo stream</returns>
-    private async Task<bool> HasVideoAsync(FileInfo fileInfo)
-    {
-        using var process = NewFfprobeProcess([
-            "-v", "fatal",
-            "-select_streams", "V",
-            "-show_entries", "stream=codec_name",
-            "-of", "csv",
-            fileInfo.FullName
-        ]);
-        process.Start();
-        var hasVideo = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-        return !string.IsNullOrWhiteSpace(hasVideo);
     }
 
     private Process NewFfprobeProcess(IEnumerable<string> arguments)
