@@ -36,4 +36,17 @@
         </Content>
     </ItemGroup>
 
+    <ItemGroup>
+        <_ContentIncludedByDefault Remove="wwwroot\js\jassub_dist\chunk-7JMQBDTU.js" />
+        <_ContentIncludedByDefault Remove="wwwroot\js\jassub_dist\chunk-JSBRDJBE.js" />
+        <_ContentIncludedByDefault Remove="wwwroot\js\jassub_dist\chunk-UEU5YF2M.js" />
+        <_ContentIncludedByDefault Remove="wwwroot\js\jassub_dist\default.woff2" />
+        <_ContentIncludedByDefault Remove="wwwroot\js\jassub_dist\fonts-PN3EKUGO.js" />
+        <_ContentIncludedByDefault Remove="wwwroot\js\jassub_dist\jassub.js" />
+        <_ContentIncludedByDefault Remove="wwwroot\js\jassub_dist\wasm\jassub-worker-modern.wasm" />
+        <_ContentIncludedByDefault Remove="wwwroot\js\jassub_dist\wasm\jassub-worker.js" />
+        <_ContentIncludedByDefault Remove="wwwroot\js\jassub_dist\wasm\jassub-worker.wasm" />
+        <_ContentIncludedByDefault Remove="wwwroot\js\jassub_dist\worker\worker.js" />
+    </ItemGroup>
+
 </Project>

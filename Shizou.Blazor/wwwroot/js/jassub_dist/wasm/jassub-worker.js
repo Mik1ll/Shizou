@@ -1,7 +1,8 @@
 import {
   jassub_worker_default
-} from "../chunk-7JMQBDTU.js";
-import "../chunk-JSBRDJBE.js";
+} from "../chunk-UWKOJTYB.js";
+import "../chunk-5WRI5ZAA.js";
 export {
   jassub_worker_default as default
 };
+//# sourceMappingURL=jassub-worker.js.map

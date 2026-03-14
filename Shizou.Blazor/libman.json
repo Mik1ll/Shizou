@@ -22,7 +22,7 @@
       "library": "bootstrap@5.3.8",
       "destination": "wwwroot/lib/bootstrap",
       "files": [
-        "dist/css/bootstrap.css"
+        "dist/css/bootstrap.css*"
       ]
     }
   ]

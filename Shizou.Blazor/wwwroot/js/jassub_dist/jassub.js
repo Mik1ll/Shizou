@@ -2,11 +2,11 @@ import {
   proxy,
   releaseProxy,
   wrap
-} from "./chunk-UEU5YF2M.js";
+} from "./chunk-LNQWGF3A.js";
 import {
   __commonJS,
   __toESM
-} from "./chunk-JSBRDJBE.js";
+} from "./chunk-5WRI5ZAA.js";
 
 // node_modules/throughput/index.js
 var require_throughput = __commonJS({
@@ -399,3 +399,4 @@ var JASSUB = class _JASSUB {
 export {
   JASSUB as default
 };
+//# sourceMappingURL=jassub.js.map

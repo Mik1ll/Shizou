@@ -1,11 +1,11 @@
 import {
   expose,
   finalizer
-} from "../chunk-UEU5YF2M.js";
+} from "../chunk-LNQWGF3A.js";
 import {
   jassub_worker_default
-} from "../chunk-7JMQBDTU.js";
-import "../chunk-JSBRDJBE.js";
+} from "../chunk-UWKOJTYB.js";
+import "../chunk-5WRI5ZAA.js";
 
 // node_modules/lfa-ponyfill/index.js
 var SUPPORTS = "queryLocalFonts" in globalThis && globalThis.queryLocalFonts;
@@ -91,7 +91,7 @@ function fromMetadata([family, sizes]) {
 var fontCache = /* @__PURE__ */ new Map();
 async function getFontCache() {
   if (fontCache.size === 0) {
-    const fonts = await import("../fonts-PN3EKUGO.js");
+    const fonts = await import("../fonts-J4BT6LTG.js");
     for (const font of fonts.default.flatMap((familyMetadata) => fromMetadata(familyMetadata))) {
       fontCache.set(font.postscriptName.toLowerCase().replace(/-/g, ""), font);
     }
@@ -1264,3 +1264,4 @@ if (self.name === "jassub-worker") {
 export {
   ASSRenderer
 };
+//# sourceMappingURL=worker.js.map

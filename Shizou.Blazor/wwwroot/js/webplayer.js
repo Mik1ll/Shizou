@@ -41,6 +41,7 @@ class WebPlayer {
             this.jassub = new JASSUB({
                 video: this.video, // HTML5 video element
                 subUrl: subUrl, // Link to subtitles
+                fonts: this.fontUrls,
             });
             this.jassub.ready.then(() => {
                 this.player.textTracks().addEventListener('change', () => {
