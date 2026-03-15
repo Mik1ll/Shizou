@@ -13,7 +13,7 @@ namespace Shizou.Blazor.Components.Shared;
 
 public partial class VideoModal
 {
-    private readonly string _videoId = "videoModalId";
+    private const string VideoId = "videoModalId";
     private readonly List<(string Url, string? Lang, string? Title)> _assSubs = [];
     private readonly List<string> _fontUrls = [];
     private bool _loadPlayer;
@@ -63,7 +63,7 @@ public partial class VideoModal
         if (_loadPlayer)
         {
             var module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/webplayer.js");
-            _player = await module.InvokeAsync<IJSObjectReference>("newPlayer", _videoId, _assSubs.Select(s => s.Url).ToList(), _fontUrls);
+            _player = await module.InvokeAsync<IJSObjectReference>("newPlayer", VideoId, _assSubs.Select(s => s.Url).ToList(), _fontUrls);
             _loadPlayer = false;
         }
     }
@@ -76,7 +76,7 @@ public partial class VideoModal
 
     private async Task GetStreamUrlsAsync()
     {
-        if (_localFile is null || _localFile.ImportFolder is null)
+        if (_localFile?.ImportFolder is null)
             return;
         var fileInfo = new FileInfo(Path.GetFullPath(Path.Combine(_localFile.ImportFolder.Path, _localFile.PathTail)));
         if (!fileInfo.Exists)
@@ -87,20 +87,24 @@ public partial class VideoModal
         var streams = await FfmpegService.GetStreamsAsync(fileInfo);
 
         foreach (var stream in streams)
-            if (stream.StreamType == StreamType.Subtitle)
+            switch (stream)
             {
-                var subUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetSubtitle), nameof(FileServer),
-                                                           // ReSharper disable once RedundantAnonymousTypePropertyName
-                                                           new { ed2k = _localFile.Ed2k, index = stream.Index }) ??
-                             throw new ArgumentException("Could not generate subtitle path");
-                _assSubs.Add((subUrl, stream.Lang, stream.Title));
-            }
-            else if (stream.StreamType == StreamType.Font && stream.Filename is { })
-            {
-                var fontUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetFont), nameof(FileServer),
-                                                            new { ed2k = _localFile.Ed2k, fontName = stream.Filename }) ??
-                              throw new ArgumentException("Could not generate font path");
-                _fontUrls.Add(fontUrl);
+                case { StreamType: StreamType.Subtitle }:
+                {
+                    var subUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetSubtitle), nameof(FileServer),
+                                                               new { ed2k = _localFile.Ed2k, index = stream.Index }) ??
+                                 throw new ArgumentException("Could not generate subtitle path");
+                    _assSubs.Add((subUrl, stream.Lang, stream.Title));
+                    break;
+                }
+                case { StreamType: StreamType.Font, Filename: { } }:
+                {
+                    var fontUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetFont), nameof(FileServer),
+                                                                new { ed2k = _localFile.Ed2k, fontName = stream.Filename }) ??
+                                  throw new ArgumentException("Could not generate font path");
+                    _fontUrls.Add(fontUrl);
+                    break;
+                }
             }
     }
 
