@@ -49,9 +49,10 @@ public class FfmpegService
         if (GetLocalFileInfo(localFile) is not { } fileInfo)
             return;
 
-        _logger.LogInformation("Extracting thumbnail and subtitles for local file id: {LocalFileId} at \"{Path}\"", localFile.Id, fileInfo.FullName);
+        _logger.LogInformation("Starting extraction for local file id: {LocalFileId} at \"{Path}\"", localFile.Id, fileInfo.FullName);
 
         // Get video info and subtitle streams in parallel
+        var probeStart = DateTimeOffset.Now;
         var videoInfoTask = GetVideoInfoAsync(fileInfo);
         var streamsTask = GetStreamsAsync(fileInfo);
 
@@ -59,20 +60,25 @@ public class FfmpegService
 
         var (hasVideo, duration) = await videoInfoTask.ConfigureAwait(false);
         var streams = await streamsTask.ConfigureAwait(false);
+        var probeDuration = DateTimeOffset.Now - probeStart;
+
+        _logger.LogDebug("Probing completed in {Seconds:F2}s - HasVideo: {HasVideo}, Duration: {Duration:F1}s, TotalStreams: {StreamCount}",
+                         probeDuration.TotalSeconds, hasVideo, duration, streams.Count);
 
         // Prepare thumbnail extraction
         string? thumbnailPath = null;
-        double? thumbnailOffset = null;
+        double thumbnailOffset = 0;
         if (hasVideo)
         {
             thumbnailPath = FilePaths.ExtraFileData.ThumbnailPath(localFile.Ed2k);
             if (Path.GetDirectoryName(thumbnailPath) is { } parentPath)
                 Directory.CreateDirectory(parentPath);
             thumbnailOffset = Math.Min(duration * .50, Math.Max(Math.Min(duration * .20, 300), 40));
+            _logger.LogDebug("Thumbnail will be extracted at offset {Offset:F1}s", thumbnailOffset);
         }
         else
         {
-            _logger.LogInformation("File at \"{FilePath}\" has no video stream, skipping thumbnail", fileInfo.FullName);
+            _logger.LogInformation("No video stream found, skipping thumbnail extraction");
         }
 
         // Prepare subtitle streams
@@ -80,52 +86,85 @@ public class FfmpegService
         Directory.CreateDirectory(subsDir);
 
         var subStreams = streams.Where(s => ValidSubFormats.Contains(s.codec))
-            .Select(s => (s.index, filename: Path.GetFileName(FilePaths.ExtraFileData.SubPath(localFile.Ed2k, s.index)))).ToList();
+                                .Select(s => (s.index, filename: Path.GetFileName(FilePaths.ExtraFileData.SubPath(localFile.Ed2k, s.index)))).ToList();
 
-        if (subStreams.Count <= 0)
+        if (subStreams.Count > 0)
         {
-            _logger.LogDebug("No valid subtitle streams for {LocalFileId}", localFile.Id);
+            _logger.LogDebug("Found {SubtitleCount} subtitle stream(s) to extract", subStreams.Count);
+        }
+        else
+        {
+            _logger.LogDebug("No valid subtitle streams found");
             if (!hasVideo)
+            {
+                _logger.LogWarning("No video or subtitle streams to extract, aborting");
                 return;
+            }
         }
 
-        // Build ffmpeg command
-        var args = new List<string> { "-v", thumbnailPath != null ? "quiet" : "fatal", "-y" };
+        // Build ffmpeg command with two separate inputs to avoid performance issues
+        // Input 0: With seek for thumbnail (fast seek to offset)
+        // Input 1: Without seek for subtitles (efficient full-file processing)
+        var args = new List<string> { "-v", "fatal", "-y" };
 
-        // Add thumbnail seek if needed
-        if (thumbnailPath != null && thumbnailOffset.HasValue) args.AddRange(["-ss", thumbnailOffset.Value.ToString("F3", CultureInfo.InvariantCulture)]);
+        if (thumbnailPath != null) args.AddRange(["-ss", thumbnailOffset.ToString("F3", CultureInfo.InvariantCulture), "-i", fileInfo.FullName]);
 
-        args.AddRange(["-i", fileInfo.FullName]);
+        if (subStreams.Count > 0) args.AddRange(["-i", fileInfo.FullName]);
 
-        // Add thumbnail output
+        // Map thumbnail output from first input
         if (thumbnailPath != null)
             args.AddRange([
-                "-map", "0:V:0",
-                "-vf", "fps=5,thumbnail=50,scale=-2:480,crop='min(854,iw)'",
-                "-frames:v", "1",
-                "-c:v", "libwebp",
-                "-compression_level", "6",
-                "-preset", "drawing",
-                thumbnailPath,
-            ]);
+                              "-map", "0:V:0",
+                              "-vf", "fps=5,thumbnail=50,scale=-2:480,crop='min(854,iw)'",
+                              "-frames:v", "1",
+                              "-c:v", "libwebp",
+                              "-compression_level", "6",
+                              "-preset", "drawing",
+                              thumbnailPath,
+                          ]);
 
-        // Add subtitle outputs
-        if (subStreams.Count > 0) args.AddRange(subStreams.SelectMany(s => new[] { "-map", $"0:{s.index}", "-c", "ass", Path.Combine(subsDir, s.filename) }));
+        // Map subtitle outputs from appropriate input
+        if (subStreams.Count > 0)
+        {
+            var subtitleInputIndex = thumbnailPath != null ? 1 : 0;
+            args.AddRange(subStreams.SelectMany(s => new[] { "-map", $"{subtitleInputIndex}:{s.index}", "-c", "ass", Path.Combine(subsDir, s.filename) }));
+        }
 
-        var t1 = DateTimeOffset.Now;
+        _logger.LogDebug("Beginning extraction with ffmpeg");
+
+        var extractionStart = DateTimeOffset.Now;
         using var process = NewFfmpegProcess(args);
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
-        var dur = DateTimeOffset.Now - t1;
+        var extractionDuration = DateTimeOffset.Now - extractionStart;
 
-        _logger.LogInformation("Extraction for \"{Filename}\" completed in {Seconds} seconds", fileInfo.Name, dur.TotalSeconds);
+        var exitCode = process.ExitCode;
+        if (exitCode != 0) _logger.LogWarning("ffmpeg process exited with code {ExitCode} for file \"{Filename}\"", exitCode, fileInfo.Name);
 
+        // Verify thumbnail output
         if (thumbnailPath != null)
         {
             var outputInfo = new FileInfo(thumbnailPath);
-            if (outputInfo is not { Exists: true, Length: > 0 })
+            if (outputInfo is { Exists: true, Length: > 0 })
+            {
+                _logger.LogDebug("Thumbnail created successfully: {Size} bytes at \"{Path}\"", outputInfo.Length, thumbnailPath);
+            }
+            else
+            {
+                _logger.LogWarning("Thumbnail extraction failed or produced empty file");
                 outputInfo.Delete();
+            }
         }
+
+        // Log subtitle extraction results
+        if (subStreams.Count > 0)
+        {
+            var extractedCount = subStreams.Count(s => File.Exists(Path.Combine(subsDir, s.filename)));
+            _logger.LogDebug("Extracted {ExtractedCount}/{TotalCount} subtitle file(s)", extractedCount, subStreams.Count);
+        }
+
+        _logger.LogInformation("Extraction for \"{Filename}\" completed in {Seconds:F2}s (thumbnail: {HasThumbnail}, subtitles: {SubtitleCount})",
+                               fileInfo.Name, extractionDuration.TotalSeconds, thumbnailPath != null, subStreams.Count);
     }
 
     /// <summary>
@@ -136,11 +175,11 @@ public class FfmpegService
     public async Task<List<(int index, string codec, string? lang, string? title, string? filename)>> GetStreamsAsync(FileInfo fileInfo)
     {
         using var p = NewFfprobeProcess([
-            "-v", "fatal",
-            "-show_entries", "stream=index,codec_name : stream_tags=language,title,filename",
-            "-of", "json=c=1",
-            fileInfo.FullName,
-        ]);
+                                            "-v", "fatal",
+                                            "-show_entries", "stream=index,codec_name : stream_tags=language,title,filename",
+                                            "-of", "json=c=1",
+                                            fileInfo.FullName,
+                                        ]);
         p.Start();
         List<(int index, string codec, string? lang, string? title, string? filename)> streams = [];
         using var document = JsonDocument.Parse(await p.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
@@ -205,12 +244,12 @@ public class FfmpegService
     private async Task<(bool hasVideo, double duration)> GetVideoInfoAsync(FileInfo fileInfo)
     {
         using var process = NewFfprobeProcess([
-            "-v", "fatal",
-            "-select_streams", "V",
-            "-show_entries", "format=duration:stream=codec_name,duration:stream_tags",
-            "-sexagesimal", "-of", "json",
-            fileInfo.FullName,
-        ]);
+                                                  "-v", "fatal",
+                                                  "-select_streams", "V",
+                                                  "-show_entries", "format=duration:stream=codec_name,duration:stream_tags",
+                                                  "-sexagesimal", "-of", "json",
+                                                  fileInfo.FullName,
+                                              ]);
         process.Start();
         using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream).ConfigureAwait(false);
         var rootEl = doc.RootElement;
@@ -272,12 +311,12 @@ public class FfmpegService
         var ffprobePath = _optionsMonitor.CurrentValue.Import.FfprobePath;
         ffprobePath = string.IsNullOrWhiteSpace(ffprobePath) ? "ffprobe" : ffprobePath;
         var startInfo = new ProcessStartInfo(ffprobePath, arguments)
-        {
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            WorkingDirectory = FilePaths.InstallDir,
-        };
+                        {
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            RedirectStandardOutput = true,
+                            WorkingDirectory = FilePaths.InstallDir,
+                        };
         var ffprobeProcess = new Process { StartInfo = startInfo };
         return ffprobeProcess;
     }
@@ -287,11 +326,11 @@ public class FfmpegService
         var ffmpegPath = _optionsMonitor.CurrentValue.Import.FfmpegPath;
         ffmpegPath = string.IsNullOrWhiteSpace(ffmpegPath) ? "ffmpeg" : ffmpegPath;
         var startInfo = new ProcessStartInfo(ffmpegPath, arguments)
-        {
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            WorkingDirectory = FilePaths.InstallDir,
-        };
+                        {
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            WorkingDirectory = FilePaths.InstallDir,
+                        };
         var ffmpegProcess = new Process { StartInfo = startInfo };
         return ffmpegProcess;
     }
