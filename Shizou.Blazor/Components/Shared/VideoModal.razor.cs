@@ -87,20 +87,18 @@ public partial class VideoModal
         var streams = await FfmpegService.GetStreamsAsync(fileInfo);
 
         foreach (var stream in streams)
-            if (SubtitleService.ValidSubFormats.Contains(stream.codec))
+            if (stream.StreamType == StreamType.Subtitle)
             {
                 var subUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetSubtitle), nameof(FileServer),
                                                            // ReSharper disable once RedundantAnonymousTypePropertyName
-                                                           new { ed2k = _localFile.Ed2k, index = stream.index }) ??
+                                                           new { ed2k = _localFile.Ed2k, index = stream.Index }) ??
                              throw new ArgumentException("Could not generate subtitle path");
-                _assSubs.Add((subUrl, stream.lang, stream.title));
+                _assSubs.Add((subUrl, stream.Lang, stream.Title));
             }
-            else if (stream.filename is { } && (SubtitleService.ValidFontFormats.Contains(stream.codec) ||
-                                                SubtitleService.ValidFontFormats.Any(f =>
-                                                                                         stream.filename.EndsWith(f, StringComparison.OrdinalIgnoreCase))))
+            else if (stream.StreamType == StreamType.Font && stream.Filename is { })
             {
                 var fontUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetFont), nameof(FileServer),
-                                                            new { ed2k = _localFile.Ed2k, fontName = stream.filename }) ??
+                                                            new { ed2k = _localFile.Ed2k, fontName = stream.Filename }) ??
                               throw new ArgumentException("Could not generate font path");
                 _fontUrls.Add(fontUrl);
             }

@@ -29,13 +29,13 @@ public class FileServer : ControllerBase
 {
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> FontLocks = new();
     private readonly IShizouContext _context;
-    private readonly SubtitleService _subtitleService;
+    private readonly FfmpegService _ffmpegService;
     private readonly LinkGenerator _linkGenerator;
 
-    public FileServer(IShizouContext context, SubtitleService subtitleService, LinkGenerator linkGenerator)
+    public FileServer(IShizouContext context, FfmpegService ffmpegService, LinkGenerator linkGenerator)
     {
         _context = context;
-        _subtitleService = subtitleService;
+        _ffmpegService = ffmpegService;
         _linkGenerator = linkGenerator;
     }
 
@@ -166,17 +166,17 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), "font/ttf", "font/otf")]
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetFont([FromRoute] string ed2K, [FromRoute] string fontName)
     {
-        if (!SubtitleService.ValidFontFormats.Any(f => fontName.EndsWith(f, StringComparison.OrdinalIgnoreCase)))
+        if (!FfmpegService.ValidFontFormats.Any(f => fontName.EndsWith(f, StringComparison.OrdinalIgnoreCase)))
             return TypedResults.NotFound();
-        var fontPath = await _subtitleService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
+        var fontPath = await _ffmpegService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
         var fontLock = FontLocks.GetOrAdd(ed2K, new SemaphoreSlim(1));
         await fontLock.WaitAsync().ConfigureAwait(false);
         try
         {
             if (fontPath is null || !System.IO.File.Exists(fontPath))
             {
-                await _subtitleService.ExtractAttachmentsAsync(ed2K).ConfigureAwait(false);
-                fontPath = await _subtitleService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
+                await _ffmpegService.ExtractAttachmentsAsync(ed2K).ConfigureAwait(false);
+                fontPath = await _ffmpegService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
                 if (fontPath is null || !System.IO.File.Exists(fontPath))
                     return TypedResults.NotFound();
             }

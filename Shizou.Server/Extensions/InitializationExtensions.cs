@@ -277,7 +277,6 @@ public static class InitializationExtensions
             .AddTransient<WatchStateService>()
             .AddTransient<ImageService>()
             .AddTransient<HashService>()
-            .AddTransient<SubtitleService>()
             .AddSingleton<IAnimeTitleSearchService, AnimeTitleSearchService>() // Uses an in memory cache
             .AddTransient<MyAnimeListService>()
             .AddTransient<FfmpegService>()

@@ -6,24 +6,65 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shizou.Data;
+using Shizou.Data.Database;
 using Shizou.Data.Models;
 using Shizou.Server.Options;
+using Shizou.Server.RHash;
 
 namespace Shizou.Server.Services;
+
+public enum StreamType
+{
+    Video,
+    Audio,
+    Subtitle,
+    Font,
+    Attachment,
+    Unknown,
+}
+
+public record StreamInfo(int Index, string Codec, string? Lang, string? Title, string? Filename, StreamType StreamType);
 
 public class FfmpegService
 {
     private static readonly string[] ValidSubFormats = ["ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext"];
     private readonly ILogger<FfmpegService> _logger;
     private readonly IOptionsMonitor<ShizouOptions> _optionsMonitor;
+    private readonly IShizouContextFactory _contextFactory;
+    private readonly HashService _hashService;
 
-    public FfmpegService(ILogger<FfmpegService> logger, IOptionsMonitor<ShizouOptions> optionsMonitor)
+    public FfmpegService(ILogger<FfmpegService> logger, IOptionsMonitor<ShizouOptions> optionsMonitor, IShizouContextFactory contextFactory,
+                         HashService hashService)
     {
         _logger = logger;
         _optionsMonitor = optionsMonitor;
+        _contextFactory = contextFactory;
+        _hashService = hashService;
+    }
+
+    public static string[] ValidFontFormats { get; } = ["ttf", "otf"];
+
+    /// <summary>
+    ///     Determine the stream type based on codec_type, codec name, and filename
+    /// </summary>
+    private static StreamType DetermineStreamType(string codecType, string codec, string? filename)
+    {
+        return codecType.ToLowerInvariant() switch
+               {
+                   "video"                                         => StreamType.Video,
+                   "audio"                                         => StreamType.Audio,
+                   "subtitle" when ValidSubFormats.Contains(codec) => StreamType.Subtitle,
+                   "attachment" when filename != null
+                                  && (ValidFontFormats.Contains(codec)
+                                   || ValidFontFormats.Any(f => filename.EndsWith(f, StringComparison.OrdinalIgnoreCase))
+                                     ) => StreamType.Font,
+                   "attachment" => StreamType.Attachment,
+                   _            => StreamType.Unknown,
+               };
     }
 
     /// <summary>
@@ -85,8 +126,8 @@ public class FfmpegService
         var subsDir = FilePaths.ExtraFileData.SubsDir(localFile.Ed2k);
         Directory.CreateDirectory(subsDir);
 
-        var subStreams = streams.Where(s => ValidSubFormats.Contains(s.codec))
-                                .Select(s => (s.index, filename: Path.GetFileName(FilePaths.ExtraFileData.SubPath(localFile.Ed2k, s.index)))).ToList();
+        var subStreams = streams.Where(s => s.StreamType == StreamType.Subtitle)
+                                .Select(s => (s.Index, filename: Path.GetFileName(FilePaths.ExtraFileData.SubPath(localFile.Ed2k, s.Index)))).ToList();
 
         if (subStreams.Count > 0)
         {
@@ -114,20 +155,20 @@ public class FfmpegService
         // Map thumbnail output from first input
         if (thumbnailPath != null)
             args.AddRange([
-                              "-map", "0:V:0",
-                              "-vf", "fps=5,thumbnail=50,scale=-2:480,crop='min(854,iw)'",
-                              "-frames:v", "1",
-                              "-c:v", "libwebp",
-                              "-compression_level", "6",
-                              "-preset", "drawing",
-                              thumbnailPath,
-                          ]);
+                "-map", "0:V:0",
+                "-vf", "fps=5,thumbnail=50,scale=-2:480,crop='min(854,iw)'",
+                "-frames:v", "1",
+                "-c:v", "libwebp",
+                "-compression_level", "6",
+                "-preset", "drawing",
+                thumbnailPath,
+            ]);
 
         // Map subtitle outputs from appropriate input
         if (subStreams.Count > 0)
         {
             var subtitleInputIndex = thumbnailPath != null ? 1 : 0;
-            args.AddRange(subStreams.SelectMany(s => new[] { "-map", $"{subtitleInputIndex}:{s.index}", "-c", "ass", Path.Combine(subsDir, s.filename) }));
+            args.AddRange(subStreams.SelectMany(s => new[] { "-map", $"{subtitleInputIndex}:{s.Index}", "-c", "ass", Path.Combine(subsDir, s.filename) }));
         }
 
         _logger.LogDebug("Beginning extraction with ffmpeg");
@@ -172,16 +213,16 @@ public class FfmpegService
     /// </summary>
     /// <param name="fileInfo">The file to inspect</param>
     /// <returns>A list of stream information</returns>
-    public async Task<List<(int index, string codec, string? lang, string? title, string? filename)>> GetStreamsAsync(FileInfo fileInfo)
+    public async Task<List<StreamInfo>> GetStreamsAsync(FileInfo fileInfo)
     {
         using var p = NewFfprobeProcess([
-                                            "-v", "fatal",
-                                            "-show_entries", "stream=index,codec_name : stream_tags=language,title,filename",
-                                            "-of", "json=c=1",
-                                            fileInfo.FullName,
-                                        ]);
+            "-v", "fatal",
+            "-show_entries", "stream=index,codec_name,codec_type : stream_tags=language,title,filename",
+            "-of", "json=c=1",
+            fileInfo.FullName,
+        ]);
         p.Start();
-        List<(int index, string codec, string? lang, string? title, string? filename)> streams = [];
+        List<StreamInfo> streams = [];
         using var document = JsonDocument.Parse(await p.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
         if (!document.RootElement.TryGetProperty("streams", out var streamsEl))
             return streams;
@@ -191,6 +232,10 @@ public class FfmpegService
             var codec = string.Empty;
             if (streamEl.TryGetProperty("codec_name", out var codecEl))
                 codec = codecEl.GetString() ?? string.Empty;
+
+            var codecType = string.Empty;
+            if (streamEl.TryGetProperty("codec_type", out var codecTypeEl))
+                codecType = codecTypeEl.GetString() ?? string.Empty;
 
             string? filename = null;
             string? lang = null;
@@ -205,11 +250,95 @@ public class FfmpegService
                     title = titleEl.GetString();
             }
 
-            var stream = (index, codec, lang, title, filename);
+            var streamType = DetermineStreamType(codecType, codec, filename);
+            var stream = new StreamInfo(index, codec, lang, title, filename, streamType);
             streams.Add(stream);
         }
 
         return streams;
+    }
+
+    public async Task<string?> GetAttachmentPathAsync(string ed2K, string fileName)
+    {
+        using var context = _contextFactory.CreateDbContext();
+        var attachment = await context.LocalFileAttachments
+                                      .Include(a => a.LocalFile)
+                                      .FirstOrDefaultAsync(a => a.LocalFile.Ed2k == ed2K && a.Filename == fileName)
+                                      .ConfigureAwait(false);
+
+        return attachment is null ? null : FilePaths.ExtraFileData.AttachmentPath(attachment.Hash);
+    }
+
+    public async Task ExtractAttachmentsAsync(string ed2K)
+    {
+        using var context = _contextFactory.CreateDbContext();
+        var localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Ed2k == ed2K);
+        if (localFile is null)
+            return;
+        if (localFile.ImportFolder is null)
+        {
+            _logger.LogWarning("Tried to get local file {LocalFileId} with no import folder", localFile.Id);
+            return;
+        }
+
+        var fullPath = Path.GetFullPath(Path.Combine(localFile.ImportFolder.Path, localFile.PathTail));
+        var fileInfo = new FileInfo(fullPath);
+        if (!fileInfo.Exists)
+        {
+            _logger.LogWarning("Local file path \"{FullPath}\" does not exist", fullPath);
+            return;
+        }
+
+        // Create temporary directory for extraction
+        var tempDir = Path.Combine(Path.GetTempPath(), $"shizou_attachments_{Guid.NewGuid()}");
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            var attachmentsDir = FilePaths.ExtraFileData.AttachmentsDir;
+            Directory.CreateDirectory(attachmentsDir);
+
+            await ExtractAttachmentsAsync(fileInfo, tempDir).ConfigureAwait(false);
+
+            foreach (var attachment in new DirectoryInfo(tempDir).EnumerateFiles())
+            {
+                var hash = (await _hashService.GetFileHashesAsync(attachment, HashIds.Crc32).ConfigureAwait(false))[HashIds.Crc32];
+                var attachmentPath = FilePaths.ExtraFileData.AttachmentPath(hash);
+
+                // Move to central location if it doesn't exist
+                if (!File.Exists(attachmentPath)) File.Move(attachment.FullName, attachmentPath);
+
+                // Save or update database record
+                var existingAttachment = await context.LocalFileAttachments
+                                                      .FirstOrDefaultAsync(a => a.LocalFileId == localFile.Id && a.Filename == attachment.Name)
+                                                      .ConfigureAwait(false);
+
+                if (existingAttachment is null)
+                    context.LocalFileAttachments.Add(new()
+                    {
+                        LocalFileId = localFile.Id,
+                        Filename = attachment.Name,
+                        Hash = hash,
+                    });
+                else
+                    existingAttachment.Hash = hash;
+            }
+
+            context.SaveChanges();
+        }
+        finally
+        {
+            // Clean up temp directory
+            if (Directory.Exists(tempDir))
+                try
+                {
+                    Directory.Delete(tempDir, true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to delete temporary directory {TempDir}", tempDir);
+                }
+        }
     }
 
     /// <summary>
@@ -244,12 +373,12 @@ public class FfmpegService
     private async Task<(bool hasVideo, double duration)> GetVideoInfoAsync(FileInfo fileInfo)
     {
         using var process = NewFfprobeProcess([
-                                                  "-v", "fatal",
-                                                  "-select_streams", "V",
-                                                  "-show_entries", "format=duration:stream=codec_name,duration:stream_tags",
-                                                  "-sexagesimal", "-of", "json",
-                                                  fileInfo.FullName,
-                                              ]);
+            "-v", "fatal",
+            "-select_streams", "V",
+            "-show_entries", "format=duration:stream=codec_name,duration:stream_tags",
+            "-sexagesimal", "-of", "json",
+            fileInfo.FullName,
+        ]);
         process.Start();
         using var doc = await JsonDocument.ParseAsync(process.StandardOutput.BaseStream).ConfigureAwait(false);
         var rootEl = doc.RootElement;
@@ -311,12 +440,12 @@ public class FfmpegService
         var ffprobePath = _optionsMonitor.CurrentValue.Import.FfprobePath;
         ffprobePath = string.IsNullOrWhiteSpace(ffprobePath) ? "ffprobe" : ffprobePath;
         var startInfo = new ProcessStartInfo(ffprobePath, arguments)
-                        {
-                            UseShellExecute = false,
-                            CreateNoWindow = true,
-                            RedirectStandardOutput = true,
-                            WorkingDirectory = FilePaths.InstallDir,
-                        };
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            WorkingDirectory = FilePaths.InstallDir,
+        };
         var ffprobeProcess = new Process { StartInfo = startInfo };
         return ffprobeProcess;
     }
@@ -326,11 +455,11 @@ public class FfmpegService
         var ffmpegPath = _optionsMonitor.CurrentValue.Import.FfmpegPath;
         ffmpegPath = string.IsNullOrWhiteSpace(ffmpegPath) ? "ffmpeg" : ffmpegPath;
         var startInfo = new ProcessStartInfo(ffmpegPath, arguments)
-                        {
-                            UseShellExecute = false,
-                            CreateNoWindow = true,
-                            WorkingDirectory = FilePaths.InstallDir,
-                        };
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WorkingDirectory = FilePaths.InstallDir,
+        };
         var ffmpegProcess = new Process { StartInfo = startInfo };
         return ffmpegProcess;
     }
