@@ -126,6 +126,7 @@ public sealed class ShizouContext : DbContext, IShizouContext
     public ShizouDbSet<HangingEpisodeFileXref> HangingEpisodeFileXrefs => Set<HangingEpisodeFileXref>();
     public ShizouDbSet<ImportFolder> ImportFolders => Set<ImportFolder>();
     public ShizouDbSet<LocalFile> LocalFiles => Set<LocalFile>();
+    public ShizouDbSet<LocalFileAttachment> LocalFileAttachments => Set<LocalFileAttachment>();
     public ShizouDbSet<MalAniDbXref> MalAniDbXrefs => Set<MalAniDbXref>();
     public ShizouDbSet<MalAnime> MalAnimes => Set<MalAnime>();
     public ShizouDbSet<ScheduledCommand> ScheduledCommands => Set<ScheduledCommand>();

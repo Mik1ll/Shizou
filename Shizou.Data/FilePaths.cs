@@ -61,12 +61,11 @@ public static class FilePaths
 
     public static class ExtraFileData
     {
-        public static string AttachmentHashMapPath => Path.Combine(ExtraFileDataDir, "AttachmentHashMap.json");
+        public static string AttachmentsDir => Path.Combine(ExtraFileDataDir, "Attachments");
+        public static string AttachmentPath(string hash) => Path.Combine(AttachmentsDir, hash);
         public static string FileDir(string ed2K) => Path.Combine(ExtraFileDataDir, ed2K);
         public static string ThumbnailPath(string ed2K) => Path.Combine(FileDir(ed2K), "thumb.webp");
         public static string SubsDir(string ed2K) => Path.Combine(FileDir(ed2K), "Subtitles");
         public static string SubPath(string ed2K, int index) => Path.Combine(SubsDir(ed2K), $"{index}.ass");
-        public static string AttachmentsDir(string ed2K) => Path.Combine(FileDir(ed2K), "Attachments");
-        public static string AttachmentPath(string ed2K, string filename) => Path.Combine(AttachmentsDir(ed2K), filename);
     }
 }

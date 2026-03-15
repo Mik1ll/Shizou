@@ -168,16 +168,16 @@ public class FileServer : ControllerBase
     {
         if (!SubtitleService.ValidFontFormats.Any(f => fontName.EndsWith(f, StringComparison.OrdinalIgnoreCase)))
             return TypedResults.NotFound();
-        var fontPath = await SubtitleService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
+        var fontPath = await _subtitleService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
         var fontLock = FontLocks.GetOrAdd(ed2K, new SemaphoreSlim(1));
         await fontLock.WaitAsync().ConfigureAwait(false);
         try
         {
-            if (!System.IO.File.Exists(fontPath))
+            if (fontPath is null || !System.IO.File.Exists(fontPath))
             {
                 await _subtitleService.ExtractAttachmentsAsync(ed2K).ConfigureAwait(false);
-                fontPath = await SubtitleService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
-                if (!System.IO.File.Exists(fontPath))
+                fontPath = await _subtitleService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
+                if (fontPath is null || !System.IO.File.Exists(fontPath))
                     return TypedResults.NotFound();
             }
         }
@@ -188,6 +188,6 @@ public class FileServer : ControllerBase
 
         if (!new FileExtensionContentTypeProvider().TryGetContentType(fontName, out var mimeType))
             mimeType = "font/otf";
-        return TypedResults.PhysicalFile(fontPath, mimeType, Path.GetFileName(fontPath));
+        return TypedResults.PhysicalFile(fontPath, mimeType, fontName);
     }
 }

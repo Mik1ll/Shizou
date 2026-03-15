@@ -46,7 +46,7 @@ public partial class VideoModal
     {
         using var context = ContextFactory.CreateDbContext();
         _localFile = context.LocalFiles.Include(e => e.ImportFolder).FirstOrDefault(e => e.Id == LocalFileId);
-        if (_localFile is not null)
+        if (_localFile is { })
         {
             if (!new FileExtensionContentTypeProvider().TryGetContentType(_localFile.PathTail, out _localFileMimeType))
                 _localFileMimeType = MediaTypeNames.Application.Octet;
@@ -70,7 +70,7 @@ public partial class VideoModal
 
     private async Task DisposeJavascriptAsync()
     {
-        if (_player is not null)
+        if (_player is { })
             await _player.InvokeVoidAsync("dispose");
     }
 
@@ -90,16 +90,18 @@ public partial class VideoModal
             if (SubtitleService.ValidSubFormats.Contains(stream.codec))
             {
                 var subUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetSubtitle), nameof(FileServer),
-                    // ReSharper disable once RedundantAnonymousTypePropertyName
-                    new { ed2k = _localFile.Ed2k, index = stream.index }) ?? throw new ArgumentException("Could not generate subtitle path");
+                                                           // ReSharper disable once RedundantAnonymousTypePropertyName
+                                                           new { ed2k = _localFile.Ed2k, index = stream.index }) ??
+                             throw new ArgumentException("Could not generate subtitle path");
                 _assSubs.Add((subUrl, stream.lang, stream.title));
             }
-            else if (stream.filename is not null && (SubtitleService.ValidFontFormats.Contains(stream.codec) ||
-                                                     SubtitleService.ValidFontFormats.Any(f =>
-                                                         stream.filename.EndsWith(f, StringComparison.OrdinalIgnoreCase))))
+            else if (stream.filename is { } && (SubtitleService.ValidFontFormats.Contains(stream.codec) ||
+                                                SubtitleService.ValidFontFormats.Any(f =>
+                                                                                         stream.filename.EndsWith(f, StringComparison.OrdinalIgnoreCase))))
             {
                 var fontUrl = LinkGenerator.GetPathByAction(nameof(FileServer.GetFont), nameof(FileServer),
-                    new { ed2k = _localFile.Ed2k, fontName = stream.filename }) ?? throw new ArgumentException("Could not generate font path");
+                                                            new { ed2k = _localFile.Ed2k, fontName = stream.filename }) ??
+                              throw new ArgumentException("Could not generate font path");
                 _fontUrls.Add(fontUrl);
             }
     }

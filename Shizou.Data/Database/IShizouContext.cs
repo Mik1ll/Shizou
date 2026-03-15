@@ -53,6 +53,8 @@ public interface IShizouContext : IDisposable
 
     ShizouDbSet<AniDbCredit> AniDbCredits { get; }
 
+    ShizouDbSet<LocalFileAttachment> LocalFileAttachments { get; }
+
     #region BaseMembers
 
     /// <inheritdoc cref="DbContext.Database" />

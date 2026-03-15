@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
+using System;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,8 +12,6 @@ namespace Shizou.Server.Services;
 
 public class SubtitleService
 {
-    private static Dictionary<string, List<AttachmentPath>>? _attachmentHashMap;
-    private static Dictionary<AttachmentPath, string>? _attachmentHashMapReverse;
     private readonly ILogger<SubtitleService> _logger;
     private readonly IShizouContextFactory _contextFactory;
     private readonly FfmpegService _ffmpegService;
@@ -31,85 +28,15 @@ public class SubtitleService
     public static string[] ValidSubFormats { get; } = { "ass", "ssa", "srt", "webvtt", "subrip", "ttml", "text", "mov_text", "dvb_teletext" };
     public static string[] ValidFontFormats { get; } = { "ttf", "otf" };
 
-    public static async Task<string> GetAttachmentPathAsync(string ed2K, string fileName)
+    public async Task<string?> GetAttachmentPathAsync(string ed2K, string fileName)
     {
-        await PopulateAttachmentHashMapAsync().ConfigureAwait(false);
-        var attachmentPath = new AttachmentPath(ed2K, fileName);
-        if (_attachmentHashMapReverse!.TryGetValue(attachmentPath, out var hash))
-        {
-            var newPath = GetOrAddAttachmentHashMap(hash, attachmentPath);
-            return FilePaths.ExtraFileData.AttachmentPath(newPath.Ed2K, newPath.Filename);
-        }
+        using var context = _contextFactory.CreateDbContext();
+        var attachment = await context.LocalFileAttachments
+                                      .Include(a => a.LocalFile)
+                                      .FirstOrDefaultAsync(a => a.LocalFile.Ed2k == ed2K && a.Filename == fileName)
+                                      .ConfigureAwait(false);
 
-        return FilePaths.ExtraFileData.AttachmentPath(ed2K, fileName);
-    }
-
-    private static async Task SaveAttachmentHashMapAsync()
-    {
-        var stream = new FileInfo(FilePaths.ExtraFileData.AttachmentHashMapPath).OpenWrite();
-        await using (stream.ConfigureAwait(false))
-        {
-            await JsonSerializer.SerializeAsync(stream, _attachmentHashMap).ConfigureAwait(false);
-        }
-    }
-
-    private static async Task PopulateAttachmentHashMapAsync()
-    {
-        if (_attachmentHashMap is null || _attachmentHashMapReverse is null)
-        {
-            if (new FileInfo(FilePaths.ExtraFileData.AttachmentHashMapPath) is { Exists: true } attachmentLinkTargetsFileInfo)
-            {
-                var stream = attachmentLinkTargetsFileInfo.OpenRead();
-                await using (stream.ConfigureAwait(false))
-                {
-                    try
-                    {
-                        _attachmentHashMap = await JsonSerializer.DeserializeAsync<Dictionary<string, List<AttachmentPath>>>(stream).ConfigureAwait(false);
-                        _attachmentHashMapReverse = _attachmentHashMap!
-                            .SelectMany(kvp => kvp.Value.Select(v => new { kvp.Key, Value = v }))
-                            .ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
-                    }
-                    catch (JsonException)
-                    {
-                        _attachmentHashMap = new Dictionary<string, List<AttachmentPath>>();
-                        _attachmentHashMapReverse = new Dictionary<AttachmentPath, string>();
-                    }
-                }
-            }
-            else
-            {
-                _attachmentHashMap = new Dictionary<string, List<AttachmentPath>>();
-                _attachmentHashMapReverse = new Dictionary<AttachmentPath, string>();
-            }
-        }
-    }
-
-    private static AttachmentPath GetOrAddAttachmentHashMap(string hash, AttachmentPath attachmentPath)
-    {
-        var resolvedPath = attachmentPath;
-        if (_attachmentHashMap!.TryGetValue(hash, out var attachmentPaths))
-        {
-            if (!attachmentPaths.Contains(attachmentPath))
-                attachmentPaths.Add(attachmentPath);
-            _attachmentHashMapReverse![attachmentPath] = hash;
-            foreach (var path in attachmentPaths)
-                if (File.Exists(FilePaths.ExtraFileData.AttachmentPath(path.Ed2K, path.Filename)))
-                {
-                    if (path != attachmentPath)
-                        File.Delete(FilePaths.ExtraFileData.AttachmentPath(attachmentPath.Ed2K, attachmentPath.Filename));
-                    resolvedPath = path;
-                    attachmentPaths.Remove(path);
-                    attachmentPaths.Insert(0, path);
-                    break;
-                }
-        }
-        else
-        {
-            _attachmentHashMap[hash] = new List<AttachmentPath> { attachmentPath };
-            _attachmentHashMapReverse![attachmentPath] = hash;
-        }
-
-        return resolvedPath;
+        return attachment is null ? null : FilePaths.ExtraFileData.AttachmentPath(attachment.Hash);
     }
 
     public async Task ExtractAttachmentsAsync(string ed2K)
@@ -132,19 +59,55 @@ public class SubtitleService
             return;
         }
 
-        var attachmentsDir = FilePaths.ExtraFileData.AttachmentsDir(ed2K);
-        Directory.CreateDirectory(attachmentsDir);
+        // Create temporary directory for extraction
+        var tempDir = Path.Combine(Path.GetTempPath(), $"shizou_attachments_{Guid.NewGuid()}");
+        Directory.CreateDirectory(tempDir);
 
-        await _ffmpegService.ExtractAttachmentsAsync(fileInfo, attachmentsDir).ConfigureAwait(false);
-        await PopulateAttachmentHashMapAsync().ConfigureAwait(false);
-        foreach (var attachment in new DirectoryInfo(attachmentsDir).EnumerateFiles())
+        try
         {
-            var hash = (await _hashService.GetFileHashesAsync(attachment, HashIds.Crc32).ConfigureAwait(false))[HashIds.Crc32];
-            GetOrAddAttachmentHashMap(hash, new AttachmentPath(ed2K, attachment.Name));
+            var attachmentsDir = FilePaths.ExtraFileData.AttachmentsDir;
+            Directory.CreateDirectory(attachmentsDir);
+
+            await _ffmpegService.ExtractAttachmentsAsync(fileInfo, tempDir).ConfigureAwait(false);
+
+            foreach (var attachment in new DirectoryInfo(tempDir).EnumerateFiles())
+            {
+                var hash = (await _hashService.GetFileHashesAsync(attachment, HashIds.Crc32).ConfigureAwait(false))[HashIds.Crc32];
+                var attachmentPath = FilePaths.ExtraFileData.AttachmentPath(hash);
+
+                // Move to central location if it doesn't exist
+                if (!File.Exists(attachmentPath)) File.Move(attachment.FullName, attachmentPath);
+
+                // Save or update database record
+                var existingAttachment = await context.LocalFileAttachments
+                                                      .FirstOrDefaultAsync(a => a.LocalFileId == localFile.Id && a.Filename == attachment.Name)
+                                                      .ConfigureAwait(false);
+
+                if (existingAttachment is null)
+                    context.LocalFileAttachments.Add(new()
+                    {
+                        LocalFileId = localFile.Id,
+                        Filename = attachment.Name,
+                        Hash = hash,
+                    });
+                else
+                    existingAttachment.Hash = hash;
+            }
+
+            context.SaveChanges();
         }
-
-        await SaveAttachmentHashMapAsync().ConfigureAwait(false);
+        finally
+        {
+            // Clean up temp directory
+            if (Directory.Exists(tempDir))
+                try
+                {
+                    Directory.Delete(tempDir, true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to delete temporary directory {TempDir}", tempDir);
+                }
+        }
     }
-
-    private record AttachmentPath(string Ed2K, string Filename);
 }
