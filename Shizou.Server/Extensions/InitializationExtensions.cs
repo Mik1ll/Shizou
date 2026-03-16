@@ -45,7 +45,7 @@ using UdpAnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.AnimeRequest;
 using IUdpAnimeRequest = Shizou.Server.AniDbApi.Requests.Udp.Interfaces.IAnimeRequest;
 using HttpAnimeRequest = Shizou.Server.AniDbApi.Requests.Http.AnimeRequest;
 using IHttpAnimeRequest = Shizou.Server.AniDbApi.Requests.Http.Interfaces.IAnimeRequest;
-using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
+using IPNetwork = System.Net.IPNetwork;
 
 namespace Shizou.Server.Extensions;
 
@@ -103,7 +103,7 @@ public static class InitializationExtensions
                 if (!builder.Configuration.GetSection("ForwardedHeaders:ForwardedHeaders").Exists())
                     opts.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
                 if (builder.Configuration.GetSection("ForwardedHeaders:KnownNetworks").Exists())
-                    opts.KnownNetworks.Clear();
+                    opts.KnownIPNetworks.Clear();
                 if (builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Exists())
                     opts.KnownProxies.Clear();
             })

@@ -1314,6 +1314,9 @@
           }
         ],
         "responses": {
+          "404": {
+            "description": "Not Found"
+          },
           "200": {
             "description": "OK",
             "content": {
@@ -1336,9 +1339,6 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "Not Found"
           },
           "401": {
             "description": "Unauthorized"
@@ -1364,6 +1364,9 @@
           }
         ],
         "responses": {
+          "404": {
+            "description": "Not Found"
+          },
           "200": {
             "description": "OK",
             "content": {
@@ -1386,9 +1389,6 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "Not Found"
           },
           "401": {
             "description": "Unauthorized"
@@ -1414,6 +1414,9 @@
           }
         ],
         "responses": {
+          "404": {
+            "description": "Not Found"
+          },
           "200": {
             "description": "OK",
             "content": {
@@ -1424,9 +1427,6 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "Not Found"
           },
           "401": {
             "description": "Unauthorized"
@@ -1798,6 +1798,9 @@
         ],
         "operationId": "ShizouHttpClient_LogsGetCurrentFile",
         "responses": {
+          "404": {
+            "description": "Not Found"
+          },
           "200": {
             "description": "OK",
             "content": {
@@ -1808,9 +1811,6 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "Not Found"
           },
           "401": {
             "description": "Unauthorized"
@@ -1863,9 +1863,6 @@
         ],
         "operationId": "ShizouHttpClient_MyAnimeListAuthenticate",
         "responses": {
-          "400": {
-            "description": "Bad Request"
-          },
           "200": {
             "description": "OK",
             "content": {
@@ -1875,6 +1872,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"
@@ -1901,7 +1901,17 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MalAnime"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"
@@ -2716,6 +2726,16 @@
         },
         "additionalProperties": false
       },
+      "AnimeState": {
+        "enum": [
+          "Watching",
+          "Completed",
+          "OnHold",
+          "Dropped",
+          "PlanToWatch"
+        ],
+        "type": "string"
+      },
       "AnimeType": {
         "enum": [
           "Unknown",
@@ -3013,6 +3033,66 @@
         },
         "additionalProperties": false
       },
+      "MalAnime": {
+        "required": [
+          "animeType",
+          "episodeCount",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": {
+            "type": "string"
+          },
+          "animeType": {
+            "type": "string"
+          },
+          "episodeCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MalStatus"
+              }
+            ],
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MalStatus": {
+        "required": [
+          "state",
+          "updated",
+          "watchedEpisodes"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AnimeState"
+              }
+            ]
+          },
+          "watchedEpisodes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
       "MicrosoftLoginOptions": {
         "type": "object",
         "properties": {
@@ -3205,5 +3285,61 @@
         "additionalProperties": false
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Account"
+    },
+    {
+      "name": "AniDbAnimes"
+    },
+    {
+      "name": "AniDbCredits"
+    },
+    {
+      "name": "AniDbEpisodeFileXrefs"
+    },
+    {
+      "name": "AniDbEpisodes"
+    },
+    {
+      "name": "AniDbFiles"
+    },
+    {
+      "name": "AniDbNormalFiles"
+    },
+    {
+      "name": "Command"
+    },
+    {
+      "name": "FileServer"
+    },
+    {
+      "name": "FileWatchedStates"
+    },
+    {
+      "name": "Images"
+    },
+    {
+      "name": "Import"
+    },
+    {
+      "name": "ImportFolders"
+    },
+    {
+      "name": "LocalFiles"
+    },
+    {
+      "name": "Logs"
+    },
+    {
+      "name": "MyAnimeList"
+    },
+    {
+      "name": "Options"
+    },
+    {
+      "name": "Queues"
+    }
+  ]
 }

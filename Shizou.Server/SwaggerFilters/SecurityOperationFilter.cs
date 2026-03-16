@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Shizou.Server.SwaggerFilters;
@@ -24,7 +24,7 @@ public class SecurityOperationFilter : IOperationFilter
             return;
 
 
-        if (!operation.Responses.ContainsKey("401"))
+        if (operation.Responses != null && !operation.Responses.ContainsKey("401"))
             operation.Responses.Add("401", new OpenApiResponse { Description = "Unauthorized" });
 
         // if (!operation.Security.Any(requirement => requirement.Any(scheme => scheme.Key.Reference.Id == IdentityConstants.ApplicationScheme)))

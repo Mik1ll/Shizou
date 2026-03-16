@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using Json.More;
 using Json.Schema;
 using Json.Schema.Generation.Intents;
@@ -21,7 +22,10 @@ public class ShizouOptions : IValidatableObject
 {
     public const string Shizou = "Shizou";
 
-    private static readonly object FileLock = new();
+    private static readonly Lock FileLock = new();
+
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+        { WriteIndented = true, IgnoreReadOnlyProperties = true, Converters = { new JsonStringEnumConverter() } };
 
     [JsonSchema.Description("Config related to the import/scanning process")]
     public ImportOptions Import { get; set; } = new();
@@ -39,14 +43,13 @@ public class ShizouOptions : IValidatableObject
     public static void GenerateSchema()
     {
         var innerBuilder =
-            JsonSchema.JsonSchemaBuilderExtensions.FromType<ShizouOptions>(new JsonSchemaBuilder(),
-                new JsonSchema.SchemaGeneratorConfiguration());
+            JsonSchema.JsonSchemaBuilderExtensions.FromType<ShizouOptions>(new JsonSchemaBuilder(), new JsonSchema.SchemaGeneratorConfiguration());
         var builder = new JsonSchemaBuilder()
-            .Type(SchemaValueType.Object)
-            .Properties((Shizou, innerBuilder.Build()));
+                     .Type(SchemaValueType.Object)
+                     .Properties((Shizou, innerBuilder));
         var schema = builder.Build();
         using var file = File.Create(FilePaths.SchemaPath);
-        using var writer = new Utf8JsonWriter(file, new JsonWriterOptions() { Indented = true });
+        using var writer = new Utf8JsonWriter(file, new JsonWriterOptions { Indented = true });
         schema.ToJsonDocument().WriteTo(writer);
     }
 
@@ -57,8 +60,7 @@ public class ShizouOptions : IValidatableObject
         {
             Dictionary<string, object> json = new() { { "$schema", Path.GetFileName(FilePaths.SchemaPath) }, { Shizou, this } };
             using var file = File.Create(FilePaths.OptionsPath);
-            JsonSerializer.Serialize(file, json,
-                new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true, Converters = { new JsonStringEnumConverter() } });
+            JsonSerializer.Serialize(file, json, JsonSerializerOptions);
             file.Write(Encoding.ASCII.GetBytes(Environment.NewLine));
         }
     }
@@ -74,15 +76,14 @@ public class ShizouOptions : IValidatableObject
 }
 
 [AttributeUsage(AttributeTargets.Property)]
-public class FormatAttribute : Attribute, JsonSchema.IAttributeHandler<FormatAttribute>
+public class FormatAttribute(string format) : Attribute, JsonSchema.IAttributeHandler<FormatAttribute>
 {
-    public FormatAttribute(string format) => Format = format;
-
-    public string Format { get; }
+    // ReSharper disable once MemberCanBePrivate.Global
+    public string Format { get; } = format;
 
     public void AddConstraints(JsonSchema.SchemaGenerationContextBase context, Attribute attribute)
     {
-        context.Intents.Add(new FormatIntent(Formats.Get(Format)));
+        context.Intents.Add(new FormatIntent(FormatRegistry.Global.Get(Format)));
     }
 }
 
@@ -107,7 +108,7 @@ public class ImportOptions
 
 public class AniDbOptions
 {
-    private static readonly object UserLock = new();
+    private static readonly Lock UserLock = new();
     private static bool _userSet;
     private static string _username = string.Empty;
 

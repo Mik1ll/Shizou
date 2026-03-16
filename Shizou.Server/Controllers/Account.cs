@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi;
 using Shizou.Data;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
@@ -27,7 +28,7 @@ public class Account : ControllerBase
 
     [HttpPost("Login")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", "string", "Sets the Identity cookie")]
+    [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", JsonSchemaType.String, "Sets the Identity cookie")]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [AllowAnonymous]
     public async Task<Results<Ok, BadRequest<string>>> Login([FromBody] [SwaggerRequestBody("Password", Required = true)] string password)
@@ -40,7 +41,7 @@ public class Account : ControllerBase
 
     [HttpPost("SetPassword")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", "string", "Sets the Identity cookie")]
+    [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", JsonSchemaType.String, "Sets the Identity cookie")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails))]
     [SwaggerResponse(StatusCodes.Status500InternalServerError, type: typeof(ProblemDetails))]
     [AllowAnonymous]

@@ -9,7 +9,7 @@
     <DataAnnotationsValidator/>
     <ValidationSummary class="text-danger" role="alert"/>
     <div class="form-floating mb-2">
-        <InputText id="password" @bind-Value="@(Input.Password)" type="password" placeholder="Password" class="form-control" autocomplete="current-password"
+        <InputText id="password" @bind-Value="@(Input!.Password)" type="password" placeholder="Password" class="form-control" autocomplete="current-password"
                    aria-required="true"></InputText>
         <label for="password" class="form-label">Password</label>
     </div>

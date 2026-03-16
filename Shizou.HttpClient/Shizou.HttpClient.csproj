@@ -1,15 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <LangVersion>12</LangVersion>
         <Title>Shizou HttpClient</Title>
         <Description>A generated HTTP Client for consuming the Shizou API.</Description>
         <RepositoryType>git</RepositoryType>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="NSwag.ApiDescription.Client" Version="14.6.2">
+        <PackageReference Include="NSwag.ApiDescription.Client" Version="14.6.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
