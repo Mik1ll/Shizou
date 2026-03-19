@@ -15,7 +15,7 @@ public partial class Login : ComponentBase
     private string? ReturnUrl { get; set; }
 
     [SupplyParameterFromForm]
-    private InputModel? Input { get; set; }
+    private InputModel Input { get; set; } = null!;
 
     [Inject]
     private SignInManager<IdentityUser> SignInManager { get; set; } = null!;
@@ -28,6 +28,7 @@ public partial class Login : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+        // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
         Input ??= new InputModel();
         if (HttpMethods.IsGet(HttpContext.Request.Method))
             // Clear the existing external cookie to ensure a clean login process
@@ -38,7 +39,7 @@ public partial class Login : ComponentBase
     {
         var messageStore = new ValidationMessageStore(editContext);
 
-        var result = await SignInManager.PasswordSignInAsync(Constants.IdentityUsername, Input!.Password, true, false);
+        var result = await SignInManager.PasswordSignInAsync(Constants.IdentityUsername, Input.Password, true, false);
         if (result.Succeeded)
             RedirectManager.RedirectTo(ReturnUrl);
         else

@@ -13,7 +13,7 @@ public partial class ChangePassword : ComponentBase
     private IdentityUser? _adminUser;
 
     [SupplyParameterFromForm]
-    private InputModel? Input { get; set; }
+    private InputModel Input { get; set; }
 
     [Inject]
     private SignInManager<IdentityUser> SignInManager { get; set; } = null!;
@@ -24,6 +24,7 @@ public partial class ChangePassword : ComponentBase
 
     protected override void OnInitialized()
     {
+        // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
         Input ??= new InputModel();
         _adminUser = SignInManager.UserManager.Users.SingleOrDefault(u => u.UserName == Constants.IdentityUsername);
     }
@@ -37,11 +38,11 @@ public partial class ChangePassword : ComponentBase
         if (_adminUser is null)
         {
             _adminUser = new IdentityUser { UserName = Constants.IdentityUsername };
-            result = await SignInManager.UserManager.CreateAsync(_adminUser, Input!.NewPassword);
+            result = await SignInManager.UserManager.CreateAsync(_adminUser, Input.NewPassword);
         }
         else
         {
-            if (await SignInManager.UserManager.CheckPasswordAsync(_adminUser, Input!.Password).ConfigureAwait(false))
+            if (await SignInManager.UserManager.CheckPasswordAsync(_adminUser, Input.Password).ConfigureAwait(false))
             {
                 result = await SignInManager.UserManager
                                             .ResetPasswordAsync(
