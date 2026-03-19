@@ -226,28 +226,6 @@ public static class InitializationExtensions
             })
             .AddEntityFrameworkStores<AuthContext>()
             .AddDefaultTokenProviders().Services
-            // Fix web api endpoints redirecting when Blazor is hosted
-            // https://github.com/dotnet/aspnetcore/issues/9039#issuecomment-1026158591
-            .ConfigureApplicationCookie(opts =>
-            {
-                var loginEvent = opts.Events.OnRedirectToLogin;
-                opts.Events.OnRedirectToLogin = async ctx =>
-                {
-                    if (ctx.Request.Path.StartsWithSegments(Constants.ApiPrefix) && ctx.Response.StatusCode == StatusCodes.Status200OK)
-                        ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    else
-                        await loginEvent(ctx).ConfigureAwait(false);
-                };
-                var accDenEvent = opts.Events.OnRedirectToAccessDenied;
-                opts.Events.OnRedirectToAccessDenied = async ctx =>
-                {
-                    if (ctx.Request.Path.StartsWithSegments(Constants.ApiPrefix) && ctx.Response.StatusCode == StatusCodes.Status200OK)
-                        ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    else
-                        await accDenEvent(ctx).ConfigureAwait(false);
-                };
-                opts.Cookie.Name = IdentityConstants.ApplicationScheme;
-            })
             .AddAuthorization()
             .AddHealthChecks().Services
             .AddScoped<IShizouContext, ShizouContext>(p => p.GetRequiredService<ShizouContext>())
