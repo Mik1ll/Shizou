@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0-jammy-chiseled AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS base
 EXPOSE 8080
 EXPOSE 8443
 USER 1654
@@ -22,7 +22,7 @@ ADD --link --checksum=sha256:f4149bb2b0784e30e99bdda85471c9b5930d3402014e934a509
 
 FROM ${TARGETARCH}-dl AS dl
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-jammy AS publish
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-noble AS publish
 ARG TARGETARCH
 
 RUN apt-get update && apt-get install -y --no-install-recommends xz-utils unzip
