@@ -15,7 +15,7 @@ jobs:
         fetch-depth: 1
     - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
     - name: Add Source Credential
       run: |
         dotnet nuget remove source "github.com/$GITHUB_REPOSITORY_OWNER"
