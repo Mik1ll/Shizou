@@ -38,7 +38,6 @@ try
 
     var builder = WebApplication.CreateBuilder();
 
-    builder.Services.AddRazorPages();
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
 
