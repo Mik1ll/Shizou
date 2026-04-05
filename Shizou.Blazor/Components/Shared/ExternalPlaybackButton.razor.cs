@@ -22,7 +22,7 @@ public partial class ExternalPlaybackButton : ComponentWithExtraClasses
     private NavigationManager NavigationManager { get; set; } = null!;
 
     [CascadingParameter(Name = "IdentityCookie")]
-    public string IdentityCookie { get; set; } = null!;
+    public string? IdentityCookie { get; set; }
 
     [CascadingParameter]
     public IModalService ModalService { get; set; } = null!;
@@ -41,23 +41,22 @@ public partial class ExternalPlaybackButton : ComponentWithExtraClasses
     protected override async Task OnParametersSetAsync()
     {
         _schemeHandlerInstalled = (await BrowserSettings.GetSettingsAsync(JsRuntime)).ExternalPlayerInstalled;
-        var baseUri = new Uri(NavigationManager.BaseUri);
 
-        _externalPlaybackUri = await GetExternalPlaylistUriAsync(Ed2K, Single, baseUri, IdentityCookie);
+        _externalPlaybackUri = await GetExternalPlaylistUriAsync();
         await base.OnParametersSetAsync();
     }
 
-    private async Task<string> GetExternalPlaylistUriAsync(string ed2K, bool single, Uri baseUri, string identityCookie)
+    private async Task<string> GetExternalPlaylistUriAsync()
     {
         var extPlayerScheme = (await BrowserSettings.GetSettingsAsync(JsRuntime)).ExternalPlayerScheme;
-
+        var baseUri = new Uri(NavigationManager.BaseUri);
         IDictionary<string, object?> values = new ExpandoObject();
-        values["ed2K"] = ed2K;
-        values["single"] = single;
-        values[IdentityConstants.ApplicationScheme] = identityCookie;
+        values["ed2K"] = Ed2K;
+        values["single"] = Single;
+        values[IdentityConstants.ApplicationScheme] = IdentityCookie;
         var fileUri = LinkGenerator.GetUriByAction(nameof(FileServer.GetPlaylist), nameof(FileServer), values,
-                          baseUri.Scheme, new HostString(baseUri.Authority), new PathString(baseUri.AbsolutePath)) ??
-                      throw new ArgumentException("Failed to generate playlist uri");
+                baseUri.Scheme, new HostString(baseUri.Authority), new PathString(baseUri.AbsolutePath)) ??
+            throw new ArgumentException("Failed to generate playlist uri");
         fileUri = Uri.EscapeDataString(fileUri);
         return $"{extPlayerScheme}{fileUri}";
     }
