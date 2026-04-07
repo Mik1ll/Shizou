@@ -1,6 +1,5 @@
 using Blazored.Modal;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
@@ -49,19 +48,6 @@ try
     builder.Services.AddScoped<IdentityUserAccessor>();
     builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-    builder.Services.Configure<StaticFileOptions>(options =>
-    {
-        options.ContentTypeProvider = new FileExtensionContentTypeProvider
-        {
-            Mappings =
-            {
-                [".ass"] = "text/x-ssa",
-                [".ssa"] = "text/x-ssa",
-                [".vtt"] = "text/vtt"
-            }
-        };
-    });
-
     builder.AddShizouOptions()
         .AddShizouLogging(Constants.LogTemplate)
         .AddWorkerServices();
@@ -101,7 +87,6 @@ try
     });
     app.UseHttpsRedirection();
 
-    app.UseStaticFiles();
     app.UseRouting();
 
     app.UseIdentityCookieParameter();
@@ -117,6 +102,7 @@ try
 
     app.MapHealthChecks("/healthz");
 
+    app.MapStaticAssets();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
