@@ -329,6 +329,7 @@ public static class InitializationExtensions
 
     public static IServiceCollection AddShizouApiServices(this IServiceCollection services)
     {
+        services.AddProblemDetails();
         services.AddControllers(opts => opts.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true)
             .AddMvcOptions(opt =>
             {

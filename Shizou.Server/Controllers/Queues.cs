@@ -36,15 +36,15 @@ public class Queues : ControllerBase
 
     [HttpPut("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
-    [SwaggerResponse(StatusCodes.Status409Conflict, type: typeof(ProblemDetails))]
+    [SwaggerResponse(StatusCodes.Status409Conflict)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    public Results<Ok, Conflict<string>> Unpause([FromRoute] QueueType queueType)
+    public Results<Ok, ProblemHttpResult> Unpause([FromRoute] QueueType queueType)
     {
         var processor = GetProcessor(queueType);
         if (processor.Unpause())
             return TypedResults.Ok();
         else
-            return TypedResults.Conflict($"Pause state locked: {processor.PauseReason}");
+            return TypedResults.Problem(title: $"Pause state locked: {processor.PauseReason}", statusCode: StatusCodes.Status409Conflict);
     }
 
     [HttpGet("{queueType}/[action]")]

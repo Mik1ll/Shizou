@@ -98,6 +98,9 @@ try
 
     app.UseSecurityHeaders();
 
+    app.UseStatusCodePages();
+    app.UseExceptionHandler();
+
     app.MapControllers().RequireAuthorization();
 
     app.MapHealthChecks("/healthz");

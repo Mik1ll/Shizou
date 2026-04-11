@@ -58,7 +58,7 @@ public class Command : ControllerBase
 
     [HttpPut("[action]")]
     [SwaggerResponse(StatusCodes.Status200OK, null, typeof(string), MediaTypeNames.Text.Plain)]
-    [SwaggerResponse(StatusCodes.Status424FailedDependency, null, typeof(ProblemDetails))]
+    [SwaggerResponse(StatusCodes.Status424FailedDependency)]
     public async Task<Results<Ok<string>, ProblemHttpResult>> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
         _genericRequest.SetParameters(command, args);

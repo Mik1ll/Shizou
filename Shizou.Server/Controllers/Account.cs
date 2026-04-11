@@ -29,21 +29,20 @@ public class Account : ControllerBase
     [HttpPost("Login")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", JsonSchemaType.String, "Sets the Identity cookie")]
-    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    [SwaggerResponse(StatusCodes.Status401Unauthorized)]
     [AllowAnonymous]
-    public async Task<Results<Ok, BadRequest<string>>> Login([FromBody] [SwaggerRequestBody("Password", Required = true)] string password)
+    public async Task<Results<Ok, UnauthorizedHttpResult>> Login([FromBody] [SwaggerRequestBody("Password", Required = true)] string password)
     {
-        if (string.IsNullOrWhiteSpace(password)) return TypedResults.BadRequest("Password not supplied");
         var signInResult = await _signInManager.PasswordSignInAsync(Constants.IdentityUsername, password, true, false).ConfigureAwait(false);
-        if (!signInResult.Succeeded) return TypedResults.BadRequest("Failed to log in");
+        if (!signInResult.Succeeded) return TypedResults.Unauthorized();
         return TypedResults.Ok();
     }
 
     [HttpPost("SetPassword")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", JsonSchemaType.String, "Sets the Identity cookie")]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails))]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, type: typeof(ProblemDetails))]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    [SwaggerResponse(StatusCodes.Status500InternalServerError)]
     [AllowAnonymous]
     public async Task<Results<Ok, ProblemHttpResult>> ChangePassword([FromBody] PasswordModel passwordModel)
     {

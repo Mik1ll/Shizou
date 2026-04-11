@@ -19,7 +19,7 @@ public abstract class EntityController<TEntity> : EntityGetController<TEntity> w
 
     [HttpPost]
     [SwaggerResponse(StatusCodes.Status201Created)]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails))]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
     [SwaggerResponse(StatusCodes.Status409Conflict)]
     public ActionResult<TEntity> Post([FromBody] TEntity entity)
     {
@@ -43,12 +43,12 @@ public abstract class EntityController<TEntity> : EntityGetController<TEntity> w
     [HttpPut]
     [SwaggerResponse(StatusCodes.Status204NoContent)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails))]
-    public Results<NoContent, NotFound, BadRequest<ProblemDetails>> Put([FromBody] TEntity entity)
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    public Results<NoContent, NotFound, ProblemHttpResult> Put([FromBody] TEntity entity)
     {
         var id = Selector.Compile()(entity);
         if (id == 0)
-            return TypedResults.BadRequest(new ProblemDetails { Detail = "Entity id cannot be 0", Title = "Invalid Entity Id" });
+            return TypedResults.Problem("Entity id cannot be 0", title: "Invalid Entity Id", statusCode: StatusCodes.Status400BadRequest);
         Context.Entry(entity).State = EntityState.Modified;
         try
         {
@@ -68,8 +68,7 @@ public abstract class EntityController<TEntity> : EntityGetController<TEntity> w
     [HttpDelete("{id:int}")]
     [SwaggerResponse(StatusCodes.Status204NoContent, "Entity deleted")]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, type: typeof(ProblemDetails))]
-    public Results<NoContent, NotFound, BadRequest<ProblemDetails>> Delete(int id)
+    public Results<NoContent, NotFound> Delete(int id)
     {
         var entity = DbSet.FirstOrDefault(KeyEqualsExpression(id));
         if (entity is null)
