@@ -23,7 +23,7 @@ public class AniDbEpisodeFileXrefs : ControllerBase
     }
 
     [HttpGet]
-    [SwaggerResponse(StatusCodes.Status200OK)]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbEpisodeFileXref>))]
     public Ok<List<AniDbEpisodeFileXref>> Get() => TypedResults.Ok(_context.AniDbEpisodeFileXrefs.AsNoTracking().ToList());
 
     [HttpGet("[action]/{id:int}")]
