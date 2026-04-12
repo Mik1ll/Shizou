@@ -15,17 +15,8 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class Account : ControllerBase
+public class Account(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager) : ControllerBase
 {
-    private readonly SignInManager<IdentityUser> _signInManager;
-    private readonly UserManager<IdentityUser> _userManager;
-
-    public Account(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
-    {
-        _signInManager = signInManager;
-        _userManager = userManager;
-    }
-
     [HttpPost("Login")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponseHeader(StatusCodes.Status200OK, "Set-Cookie", JsonSchemaType.String, "Sets the Identity cookie")]
@@ -33,7 +24,7 @@ public class Account : ControllerBase
     [AllowAnonymous]
     public async Task<Results<Ok, UnauthorizedHttpResult>> Login([FromBody] [SwaggerRequestBody("Password", Required = true)] string password)
     {
-        var signInResult = await _signInManager.PasswordSignInAsync(Constants.IdentityUsername, password, true, false).ConfigureAwait(false);
+        var signInResult = await signInManager.PasswordSignInAsync(Constants.IdentityUsername, password, true, false).ConfigureAwait(false);
         if (!signInResult.Succeeded) return TypedResults.Unauthorized();
         return TypedResults.Ok();
     }
@@ -49,19 +40,19 @@ public class Account : ControllerBase
         var password = passwordModel.Password;
         var newPassword = passwordModel.NewPassword;
 
-        var user = _userManager.Users.SingleOrDefault();
+        var user = userManager.Users.SingleOrDefault();
 
         IdentityResult result;
         if (user is null)
         {
             user = new IdentityUser { UserName = Constants.IdentityUsername };
-            result = await _userManager.CreateAsync(user, newPassword).ConfigureAwait(false);
+            result = await userManager.CreateAsync(user, newPassword).ConfigureAwait(false);
         }
         else
         {
-            if (await _userManager.CheckPasswordAsync(user, password).ConfigureAwait(false))
-                result = await _userManager
-                    .ResetPasswordAsync(user, await _userManager.GeneratePasswordResetTokenAsync(user).ConfigureAwait(false), newPassword)
+            if (await userManager.CheckPasswordAsync(user, password).ConfigureAwait(false))
+                result = await userManager
+                    .ResetPasswordAsync(user, await userManager.GeneratePasswordResetTokenAsync(user).ConfigureAwait(false), newPassword)
                     .ConfigureAwait(false);
             else
                 return TypedResults.Problem(title: "Password is incorrect", statusCode: StatusCodes.Status401Unauthorized);
@@ -71,7 +62,7 @@ public class Account : ControllerBase
             return TypedResults.Problem(title: $"Something went wrong when creating account/changing password: {result}",
                 statusCode: StatusCodes.Status500InternalServerError);
 
-        var signInResult = await _signInManager.PasswordSignInAsync(user, newPassword, true, false).ConfigureAwait(false);
+        var signInResult = await signInManager.PasswordSignInAsync(user, newPassword, true, false).ConfigureAwait(false);
         if (!signInResult.Succeeded)
             return TypedResults.Problem(title: $"Something went wrong when logging in after changing password: {signInResult}",
                 statusCode: StatusCodes.Status500InternalServerError);

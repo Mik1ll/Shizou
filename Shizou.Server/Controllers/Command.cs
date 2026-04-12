@@ -14,28 +14,17 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class Command : ControllerBase
+public class Command(
+    CommandService commandService,
+    IPingRequest pingRequest,
+    IGenericRequest genericRequest
+) : ControllerBase
 {
-    private readonly CommandService _commandService;
-    private readonly IPingRequest _pingRequest;
-    private readonly IGenericRequest _genericRequest;
-
-    public Command(
-        CommandService commandService,
-        IPingRequest pingRequest,
-        IGenericRequest genericRequest
-    )
-    {
-        _commandService = commandService;
-        _pingRequest = pingRequest;
-        _genericRequest = genericRequest;
-    }
-
     [HttpPut("[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     public Ok UpdateMyList([FromBody] UpdateMyListArgs commandArgs)
     {
-        _commandService.Dispatch(commandArgs);
+        commandService.Dispatch(commandArgs);
         return TypedResults.Ok();
     }
 
@@ -43,7 +32,7 @@ public class Command : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK)]
     public Ok SyncMyList()
     {
-        _commandService.Dispatch(new SyncMyListArgs());
+        commandService.Dispatch(new SyncMyListArgs());
         return TypedResults.Ok();
     }
 
@@ -51,8 +40,8 @@ public class Command : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK)]
     public async Task<Ok> PingAniDb()
     {
-        _pingRequest.SetParameters();
-        await _pingRequest.ProcessAsync().ConfigureAwait(false);
+        pingRequest.SetParameters();
+        await pingRequest.ProcessAsync().ConfigureAwait(false);
         return TypedResults.Ok();
     }
 
@@ -61,8 +50,8 @@ public class Command : ControllerBase
     [SwaggerResponse(StatusCodes.Status424FailedDependency)]
     public async Task<Results<Ok<string>, ProblemHttpResult>> GenericUdpRequest(string command, Dictionary<string, string> args)
     {
-        _genericRequest.SetParameters(command, args);
-        var resp = await _genericRequest.ProcessAsync().ConfigureAwait(false);
+        genericRequest.SetParameters(command, args);
+        var resp = await genericRequest.ProcessAsync().ConfigureAwait(false);
         if (resp is null)
             return TypedResults.Problem("AniDB did not respond.", statusCode: StatusCodes.Status424FailedDependency);
         return TypedResults.Ok(resp.ResponseCodeText + "\n" + resp.ResponseText);

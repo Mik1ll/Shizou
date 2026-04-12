@@ -12,18 +12,14 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class Logs : ControllerBase
+public class Logs(LogFileService logFileService) : ControllerBase
 {
-    private readonly LogFileService _logFileService;
-
-    public Logs(LogFileService logFileService) => _logFileService = logFileService;
-
     [HttpGet("CurrentFile")]
     [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), MediaTypeNames.Text.Plain)]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public async Task<Results<PhysicalFileHttpResult, NotFound>> GetCurrentFile()
     {
-        var currentFile = _logFileService.CurrentFile;
+        var currentFile = logFileService.CurrentFile;
         if (currentFile?.Exists is not true)
             return TypedResults.NotFound();
         var tempFile = new FileInfo(Path.GetTempFileName());

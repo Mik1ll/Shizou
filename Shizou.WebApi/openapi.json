@@ -89,7 +89,7 @@
         "tags": [
           "AniDbAnimes"
         ],
-        "operationId": "ShizouHttpClient_AniDbAnimesGet",
+        "operationId": "ShizouHttpClient_AniDbAnimesGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -231,7 +231,7 @@
         "tags": [
           "AniDbEpisodeFileXrefs"
         ],
-        "operationId": "ShizouHttpClient_AniDbEpisodeFileXrefsGet",
+        "operationId": "ShizouHttpClient_AniDbEpisodeFileXrefsGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -377,7 +377,7 @@
         "tags": [
           "AniDbEpisodes"
         ],
-        "operationId": "ShizouHttpClient_AniDbEpisodesGet",
+        "operationId": "ShizouHttpClient_AniDbEpisodesGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -520,7 +520,7 @@
         "tags": [
           "AniDbFiles"
         ],
-        "operationId": "ShizouHttpClient_AniDbFilesGet",
+        "operationId": "ShizouHttpClient_AniDbFilesGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -683,7 +683,7 @@
         "tags": [
           "AniDbNormalFiles"
         ],
-        "operationId": "ShizouHttpClient_AniDbNormalFilesGet",
+        "operationId": "ShizouHttpClient_AniDbNormalFilesGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -1086,7 +1086,7 @@
         "tags": [
           "FileWatchedStates"
         ],
-        "operationId": "ShizouHttpClient_FileWatchedStatesGet",
+        "operationId": "ShizouHttpClient_FileWatchedStatesGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -1168,11 +1168,11 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request"
-          },
           "409": {
             "description": "Conflict"
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"
@@ -1447,7 +1447,7 @@
         "tags": [
           "ImportFolders"
         ],
-        "operationId": "ShizouHttpClient_ImportFoldersGet",
+        "operationId": "ShizouHttpClient_ImportFoldersGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -1529,11 +1529,11 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request"
-          },
           "409": {
             "description": "Conflict"
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"
@@ -1647,7 +1647,7 @@
         "tags": [
           "LocalFiles"
         ],
-        "operationId": "ShizouHttpClient_LocalFilesGet",
+        "operationId": "ShizouHttpClient_LocalFilesGetAll",
         "responses": {
           "200": {
             "description": "OK",

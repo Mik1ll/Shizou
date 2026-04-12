@@ -13,27 +13,20 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class AniDbEpisodeFileXrefs : ControllerBase
+public class AniDbEpisodeFileXrefs(IShizouContext context) : ControllerBase
 {
-    private readonly IShizouContext _context;
-
-    public AniDbEpisodeFileXrefs(IShizouContext context)
-    {
-        _context = context;
-    }
-
     [HttpGet]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbEpisodeFileXref>))]
-    public Ok<List<AniDbEpisodeFileXref>> Get() => TypedResults.Ok(_context.AniDbEpisodeFileXrefs.AsNoTracking().ToList());
+    public Ok<List<AniDbEpisodeFileXref>> GetAll() => TypedResults.Ok(context.AniDbEpisodeFileXrefs.AsNoTracking().ToList());
 
     [HttpGet("[action]/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbEpisodeFileXref>))]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<Ok<List<AniDbEpisodeFileXref>>, NotFound> ByEpisodeId([FromRoute] int id)
     {
-        if (!_context.AniDbEpisodes.Any(e => e.Id == id))
+        if (!context.AniDbEpisodes.Any(e => e.Id == id))
             return TypedResults.NotFound();
-        return TypedResults.Ok(_context.AniDbEpisodeFileXrefs.AsNoTracking().Where(xref => xref.AniDbEpisodeId == id).ToList());
+        return TypedResults.Ok(context.AniDbEpisodeFileXrefs.AsNoTracking().Where(xref => xref.AniDbEpisodeId == id).ToList());
     }
 
     [HttpGet("[action]/{id:int}")]
@@ -41,9 +34,9 @@ public class AniDbEpisodeFileXrefs : ControllerBase
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<Ok<List<AniDbEpisodeFileXref>>, NotFound> ByAniDbFileId([FromRoute] int id)
     {
-        if (!_context.AniDbFiles.Any(e => e.Id == id))
+        if (!context.AniDbFiles.Any(e => e.Id == id))
             return TypedResults.NotFound();
-        return TypedResults.Ok(_context.AniDbEpisodeFileXrefs.AsNoTracking().Where(xref => xref.AniDbFileId == id).ToList());
+        return TypedResults.Ok(context.AniDbEpisodeFileXrefs.AsNoTracking().Where(xref => xref.AniDbFileId == id).ToList());
     }
 
     [HttpGet("[action]/{id:int}")]
@@ -51,8 +44,8 @@ public class AniDbEpisodeFileXrefs : ControllerBase
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<Ok<List<AniDbEpisodeFileXref>>, NotFound> ByAniDbAnimeId([FromRoute] int id)
     {
-        if (!_context.AniDbAnimes.Any(e => e.Id == id))
+        if (!context.AniDbAnimes.Any(e => e.Id == id))
             return TypedResults.NotFound();
-        return TypedResults.Ok(_context.AniDbEpisodeFileXrefs.AsNoTracking().Where(xref => xref.AniDbEpisode.AniDbAnimeId == id).ToList());
+        return TypedResults.Ok(context.AniDbEpisodeFileXrefs.AsNoTracking().Where(xref => xref.AniDbEpisode.AniDbAnimeId == id).ToList());
     }
 }

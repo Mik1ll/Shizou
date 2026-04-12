@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -13,20 +13,26 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class AniDbEpisodes : EntityGetController<AniDbEpisode>
+public class AniDbEpisodes(IShizouContext context) : ControllerBase
 {
-    public AniDbEpisodes(IShizouContext context) : base(context, episode => episode.Id)
-    {
-    }
+    [HttpGet]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbEpisode>))]
+    public Ok<List<AniDbEpisode>> GetAll() => EntityEndpoints.GetAll(context.AniDbEpisodes);
+
+    [HttpGet("{id:int}")]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(AniDbEpisode))]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    public Results<Ok<AniDbEpisode>, NotFound> Get([FromRoute] int id)
+        => EntityEndpoints.GetById(context.AniDbEpisodes, e => e.Id == id);
 
     [HttpGet("[action]/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbEpisode>))]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<Ok<List<AniDbEpisode>>, NotFound> ByAniDbFileId([FromRoute] int id)
     {
-        if (!Context.AniDbFiles.Any(f => f.Id == id))
+        if (!context.AniDbFiles.Any(f => f.Id == id))
             return TypedResults.NotFound();
-        var result = DbSet.AsNoTracking().Where(e => e.AniDbEpisodeFileXrefs.Any(xref => xref.AniDbFileId == id)).ToList();
+        var result = context.AniDbEpisodes.AsNoTracking().Where(e => e.AniDbEpisodeFileXrefs.Any(xref => xref.AniDbFileId == id)).ToList();
         return TypedResults.Ok(result);
     }
 
@@ -35,8 +41,8 @@ public class AniDbEpisodes : EntityGetController<AniDbEpisode>
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<Ok<List<AniDbEpisode>>, NotFound> ByAniDbAnimeId([FromRoute] int id)
     {
-        if (!Context.AniDbAnimes.Any(a => a.Id == id))
+        if (!context.AniDbAnimes.Any(a => a.Id == id))
             return TypedResults.NotFound();
-        return TypedResults.Ok(DbSet.AsNoTracking().Where(e => e.AniDbAnimeId == id).ToList());
+        return TypedResults.Ok(context.AniDbEpisodes.AsNoTracking().Where(e => e.AniDbAnimeId == id).ToList());
     }
 }

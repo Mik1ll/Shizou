@@ -16,15 +16,8 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class Queues : ControllerBase
+public class Queues(IEnumerable<CommandProcessor> processors) : ControllerBase
 {
-    private readonly IList<CommandProcessor> _processors;
-
-    public Queues(IEnumerable<CommandProcessor> processors)
-    {
-        _processors = processors.ToList();
-    }
-
     [HttpPut("{queueType}/[action]")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
@@ -85,7 +78,7 @@ public class Queues : ControllerBase
 
     private CommandProcessor GetProcessor(QueueType queueType)
     {
-        return _processors.First(p => p.QueueType == queueType);
+        return processors.First(p => p.QueueType == queueType);
     }
 
     [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Global")]

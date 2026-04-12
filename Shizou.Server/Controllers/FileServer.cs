@@ -25,19 +25,9 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class FileServer : ControllerBase
+public class FileServer(IShizouContext context, FfmpegService ffmpegService, LinkGenerator linkGenerator) : ControllerBase
 {
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> FontLocks = new();
-    private readonly IShizouContext _context;
-    private readonly FfmpegService _ffmpegService;
-    private readonly LinkGenerator _linkGenerator;
-
-    public FileServer(IShizouContext context, FfmpegService ffmpegService, LinkGenerator linkGenerator)
-    {
-        _context = context;
-        _ffmpegService = ffmpegService;
-        _linkGenerator = linkGenerator;
-    }
 
     /// <summary>
     ///     Get file by local Id, can optionally end in arbitrary extension
@@ -51,7 +41,7 @@ public class FileServer : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK, null, typeof(Stream), MediaTypeNames.Application.Octet)]
     public Results<PhysicalFileHttpResult, NotFound> Get([FromRoute] string ed2K)
     {
-        var localFile = _context.LocalFiles.AsNoTracking()
+        var localFile = context.LocalFiles.AsNoTracking()
             .Where(e => e.ImportFolder != null && e.Ed2k == ed2K)
             .Select(lf => new { lf.ImportFolder!.Path, lf.PathTail })
             .FirstOrDefault();
@@ -70,7 +60,7 @@ public class FileServer : ControllerBase
     {
         var m3U8 = "#EXTM3U\n";
 
-        var localFile = _context.LocalFiles.AsNoTracking()
+        var localFile = context.LocalFiles.AsNoTracking()
             .Where(lf => lf.ImportFolder != null && lf.Ed2k == ed2K)
             .Select(lf => new { AniDbAnimeId = (int?)lf.AniDbFile!.AniDbEpisodes.FirstOrDefault()!.AniDbAnimeId, lf.Ed2k, lf.ImportFolder!.Path, lf.PathTail })
             .FirstOrDefault();
@@ -86,7 +76,7 @@ public class FileServer : ControllerBase
             return TypedResults.File(Encoding.UTF8.GetBytes(m3U8), "application/x-mpegurl", $"{ed2K}.m3u8");
         }
 
-        var eps = _context.AniDbEpisodes.AsNoTracking()
+        var eps = context.AniDbEpisodes.AsNoTracking()
             .Include(e => e.AniDbAnime)
             .Include(e => e.AniDbFiles)
             .ThenInclude(f => f.LocalFiles)
@@ -131,7 +121,7 @@ public class FileServer : ControllerBase
             }
 
             values[IdentityConstants.ApplicationScheme] = HttpContext.Request.Cookies[IdentityConstants.ApplicationScheme];
-            var fileUri = _linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
+            var fileUri = linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
                 nameof(FileServer), values) ?? throw new ArgumentException("Could not generate file uri");
             return fileUri;
         }
@@ -168,15 +158,15 @@ public class FileServer : ControllerBase
     {
         if (!FfmpegService.ValidFontFormats.Any(f => fontName.EndsWith(f, StringComparison.OrdinalIgnoreCase)))
             return TypedResults.NotFound();
-        var fontPath = await _ffmpegService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
+        var fontPath = await ffmpegService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
         var fontLock = FontLocks.GetOrAdd(ed2K, new SemaphoreSlim(1));
         await fontLock.WaitAsync().ConfigureAwait(false);
         try
         {
             if (fontPath is null || !System.IO.File.Exists(fontPath))
             {
-                await _ffmpegService.ExtractAttachmentsAsync(ed2K).ConfigureAwait(false);
-                fontPath = await _ffmpegService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
+                await ffmpegService.ExtractAttachmentsAsync(ed2K).ConfigureAwait(false);
+                fontPath = await ffmpegService.GetAttachmentPathAsync(ed2K, fontName).ConfigureAwait(false);
                 if (fontPath is null || !System.IO.File.Exists(fontPath))
                     return TypedResults.NotFound();
             }

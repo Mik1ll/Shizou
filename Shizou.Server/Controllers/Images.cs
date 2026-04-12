@@ -15,24 +15,13 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class Images : ControllerBase
+public class Images(ImageService imageService, IShizouContext context, IContentTypeProvider contentTypeProvider) : ControllerBase
 {
-    private readonly ImageService _imageService;
-    private readonly IShizouContext _context;
-    private readonly IContentTypeProvider _contentTypeProvider;
-
-    public Images(ImageService imageService, IShizouContext context, IContentTypeProvider contentTypeProvider)
-    {
-        _imageService = imageService;
-        _context = context;
-        _contentTypeProvider = contentTypeProvider;
-    }
-
     [HttpPut("MissingAnimePosters")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     public Ok GetMissingAnimePosters()
     {
-        _imageService.GetMissingAnimePosters();
+        imageService.GetMissingAnimePosters();
         return TypedResults.Ok();
     }
 
@@ -41,7 +30,7 @@ public class Images : ControllerBase
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<PhysicalFileHttpResult, NotFound> GetAnimePoster([FromRoute] int animeId)
     {
-        var posterName = _context.AniDbAnimes.AsNoTracking().Where(a => a.Id == animeId).Select(a => a.ImageFilename).FirstOrDefault();
+        var posterName = context.AniDbAnimes.AsNoTracking().Where(a => a.Id == animeId).Select(a => a.ImageFilename).FirstOrDefault();
         if (posterName is null || new FileInfo(FilePaths.AnimePosterPath(posterName)) is not { Exists: true } poster)
         {
             Response.Headers.CacheControl = "no-cache";
@@ -49,7 +38,7 @@ public class Images : ControllerBase
             poster = new FileInfo(FilePaths.MissingAnimePosterPath);
         }
 
-        _contentTypeProvider.TryGetContentType(poster.Name, out var mimeType);
+        contentTypeProvider.TryGetContentType(poster.Name, out var mimeType);
         return TypedResults.PhysicalFile(poster.FullName, mimeType, poster.Name, poster.LastWriteTimeUtc);
     }
 
@@ -58,9 +47,9 @@ public class Images : ControllerBase
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<PhysicalFileHttpResult, NotFound> GetEpisodeThumbnail([FromRoute] int episodeId)
     {
-        if (_imageService.GetEpisodeThumbnail(episodeId) is not { Exists: true } thumbnail)
+        if (imageService.GetEpisodeThumbnail(episodeId) is not { Exists: true } thumbnail)
             return TypedResults.NotFound();
-        _contentTypeProvider.TryGetContentType(thumbnail.Name, out var mimeType);
+        contentTypeProvider.TryGetContentType(thumbnail.Name, out var mimeType);
         return TypedResults.PhysicalFile(thumbnail.FullName, mimeType, thumbnail.Name, thumbnail.LastWriteTimeUtc);
     }
 
@@ -69,10 +58,10 @@ public class Images : ControllerBase
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public Results<PhysicalFileHttpResult, NotFound> GetCreatorImage([FromRoute] int creatorId)
     {
-        var posterName = _context.AniDbCreators.AsNoTracking().Where(a => a.Id == creatorId).Select(a => a.ImageFilename).FirstOrDefault();
+        var posterName = context.AniDbCreators.AsNoTracking().Where(a => a.Id == creatorId).Select(a => a.ImageFilename).FirstOrDefault();
         if (posterName is null || new FileInfo(FilePaths.CreatorImagePath(posterName)) is not { Exists: true } poster)
             return TypedResults.NotFound();
-        _contentTypeProvider.TryGetContentType(posterName, out var mimeType);
+        contentTypeProvider.TryGetContentType(posterName, out var mimeType);
         return TypedResults.PhysicalFile(poster.FullName, mimeType, poster.Name, poster.LastWriteTimeUtc);
     }
 }
