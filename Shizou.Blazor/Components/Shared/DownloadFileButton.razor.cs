@@ -20,7 +20,7 @@ public partial class DownloadFileButton : ComponentWithExtraClasses
     public IModalService ModalService { get; set; } = null!;
 
     [CascadingParameter(Name = "IdentityCookie")]
-    public string IdentityCookie { get; set; } = null!;
+    public string? IdentityCookie { get; set; }
 
     [Parameter]
     [EditorRequired]

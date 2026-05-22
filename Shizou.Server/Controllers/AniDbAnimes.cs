@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -14,20 +14,24 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class AniDbAnimes : EntityGetController<AniDbAnime>
+public class AniDbAnimes(IShizouContext context, IAnimeTitleSearchService animeTitleSearchService) : ControllerBase
 {
-    private readonly IAnimeTitleSearchService _animeTitleSearchService;
+    [HttpGet]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<AniDbAnime>))]
+    public Ok<List<AniDbAnime>> GetAll() => EntityEndpoints.GetAll(context.AniDbAnimes);
 
-    public AniDbAnimes(IShizouContext context, IAnimeTitleSearchService animeTitleSearchService
-    ) : base(context, anime => anime.Id) =>
-        _animeTitleSearchService = animeTitleSearchService;
+    [HttpGet("{id:int}")]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(AniDbAnime))]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    public Results<Ok<AniDbAnime>, NotFound> Get([FromRoute] int id)
+        => EntityEndpoints.GetById(context.AniDbAnimes, e => e.Id == id);
 
     [HttpGet("[action]")]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<int>))]
     [SwaggerResponse(StatusCodes.Status404NotFound)]
     public async Task<Results<Ok<List<int>>, NotFound>> GetAnimeSearch([FromQuery] string query)
     {
-        var result = await _animeTitleSearchService.SearchAsync(query).ConfigureAwait(false);
+        var result = await animeTitleSearchService.SearchAsync(query).ConfigureAwait(false);
         if (result is not null)
             return TypedResults.Ok(result.Select(r => r.Item1).ToList());
 

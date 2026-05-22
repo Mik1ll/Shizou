@@ -63,7 +63,7 @@ try
     app.UseSerilogRequestLogging(options =>
     {
         options.GetLevel = (httpContext, _, ex) => ex is null
-            ? httpContext.Request.Path.Value?.StartsWith("/health") is true
+            ? httpContext.Request.Path.Value?.StartsWith("/healthz") is true
                 ? LogEventLevel.Debug
                 : LogEventLevel.Information
             : LogEventLevel.Error;
@@ -80,6 +80,9 @@ try
     app.UseAuthorization();
 
     app.UseSecurityHeaders();
+
+    app.UseStatusCodePages();
+    app.UseExceptionHandler();
 
     app.MapControllers().RequireAuthorization();
 

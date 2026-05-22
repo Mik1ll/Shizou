@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Shizou.Data;
@@ -13,21 +14,23 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class LocalFiles : EntityGetController<LocalFile>
+public class LocalFiles(IShizouContext context, CommandService commandService) : ControllerBase
 {
-    private readonly CommandService _commandService;
+    [HttpGet]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(List<LocalFile>))]
+    public Ok<List<LocalFile>> GetAll() => EntityEndpoints.GetAll(context.LocalFiles);
 
-    public LocalFiles(IShizouContext context, CommandService commandService) : base(context,
-        file => file.Id)
-    {
-        _commandService = commandService;
-    }
+    [HttpGet("{id:int}")]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(LocalFile))]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    public Results<Ok<LocalFile>, NotFound> Get([FromRoute] int id)
+        => EntityEndpoints.GetById(context.LocalFiles, e => e.Id == id);
 
     [HttpPut("ProcessFile/{id:int}")]
     [SwaggerResponse(StatusCodes.Status200OK)]
     public Ok ProcessFile([FromRoute] int id)
     {
-        _commandService.Dispatch(new ProcessArgs(id, IdTypeLocalOrFile.LocalId));
+        commandService.Dispatch(new ProcessArgs(id, IdTypeLocalOrFile.LocalId));
         return TypedResults.Ok();
     }
 }

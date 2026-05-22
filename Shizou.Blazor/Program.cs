@@ -1,6 +1,5 @@
 using Blazored.Modal;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
@@ -38,7 +37,6 @@ try
 
     var builder = WebApplication.CreateBuilder();
 
-    builder.Services.AddRazorPages();
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
 
@@ -49,19 +47,6 @@ try
     builder.Services.AddScoped<IdentityRedirectManager>();
     builder.Services.AddScoped<IdentityUserAccessor>();
     builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-
-    builder.Services.Configure<StaticFileOptions>(options =>
-    {
-        options.ContentTypeProvider = new FileExtensionContentTypeProvider
-        {
-            Mappings =
-            {
-                [".ass"] = "text/x-ssa",
-                [".ssa"] = "text/x-ssa",
-                [".vtt"] = "text/vtt"
-            }
-        };
-    });
 
     builder.AddShizouOptions()
         .AddShizouLogging(Constants.LogTemplate)
@@ -102,7 +87,6 @@ try
     });
     app.UseHttpsRedirection();
 
-    app.UseStaticFiles();
     app.UseRouting();
 
     app.UseIdentityCookieParameter();
@@ -114,10 +98,14 @@ try
 
     app.UseSecurityHeaders();
 
+    app.UseStatusCodePages();
+    app.UseExceptionHandler();
+
     app.MapControllers().RequireAuthorization();
 
     app.MapHealthChecks("/healthz");
 
+    app.MapStaticAssets();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 

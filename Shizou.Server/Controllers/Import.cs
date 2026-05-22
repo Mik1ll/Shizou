@@ -9,14 +9,8 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class Import : ControllerBase
+public class Import(ImportService importService) : ControllerBase
 {
-    private readonly ImportService _importService;
-
-    public Import(ImportService importService)
-    {
-        _importService = importService;
-    }
 
     /// <summary>
     ///     Start import
@@ -26,7 +20,7 @@ public class Import : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK)]
     public Ok StartImport()
     {
-        _importService.Import();
+        importService.Import();
         return TypedResults.Ok();
     }
 
@@ -39,7 +33,7 @@ public class Import : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK)]
     public Ok ScanFolder([FromRoute] int id)
     {
-        _importService.ScanImportFolder(id);
+        importService.ScanImportFolder(id);
         return TypedResults.Ok();
     }
 }

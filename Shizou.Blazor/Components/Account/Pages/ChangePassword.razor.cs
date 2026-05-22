@@ -13,7 +13,7 @@ public partial class ChangePassword : ComponentBase
     private IdentityUser? _adminUser;
 
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; }
+    private InputModel Input { get; set; } = null!;
 
     [Inject]
     private SignInManager<IdentityUser> SignInManager { get; set; } = null!;

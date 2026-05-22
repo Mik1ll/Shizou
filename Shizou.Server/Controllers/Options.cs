@@ -10,14 +10,8 @@ namespace Shizou.Server.Controllers;
 
 [ApiController]
 [Route($"{Constants.ApiPrefix}/[controller]")]
-public class Options : ControllerBase
+public class Options(IOptionsSnapshot<ShizouOptions> options) : ControllerBase
 {
-    private readonly ShizouOptions _options;
-
-    public Options(IOptionsSnapshot<ShizouOptions> options)
-    {
-        _options = options.Value;
-    }
 
     /// <summary>
     ///     Gets current settings.
@@ -25,10 +19,7 @@ public class Options : ControllerBase
     /// <returns></returns>
     [HttpGet]
     [SwaggerResponse(StatusCodes.Status200OK, type: typeof(ShizouOptions))]
-    public Ok<ShizouOptions> Get()
-    {
-        return TypedResults.Ok(_options);
-    }
+    public Ok<ShizouOptions> Get() => TypedResults.Ok(options.Value);
 
     /// <summary>
     ///     Overwrites all settings.

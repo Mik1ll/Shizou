@@ -8,7 +8,7 @@
         <RepositoryType>git</RepositoryType>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="NSwag.ApiDescription.Client" Version="14.6.3">
+        <PackageReference Include="NSwag.ApiDescription.Client" Version="14.7.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
