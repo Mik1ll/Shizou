@@ -1,5 +1,5 @@
-﻿@using Microsoft.AspNetCore.Identity
-@using Shizou.Blazor.Components.Layout
+﻿@using Shizou.Blazor.Components.Layout
+@using Shizou.Data
 <!DOCTYPE html>
 <html lang="en">
 <!--suppress HtmlRequiredTitleElement -->
@@ -30,7 +30,7 @@
     <HeadOutlet @rendermode="@RenderModeForPage"/>
 </head>
 <body class="invisible">
-<Routes @rendermode="@RenderModeForPage" IdentityCookie="@(HttpContext.Request.Cookies[IdentityConstants.ApplicationScheme])"/>
+<Routes @rendermode="@RenderModeForPage" IdentityCookie="@(HttpContext.Request.Cookies[Constants.IdentityCookieName])"/>
 <ReconnectModal/>
 
 @* ReSharper disable Html.PathError *@

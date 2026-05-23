@@ -1,8 +1,8 @@
 ﻿using System.Dynamic;
 using Blazored.Modal.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.JSInterop;
+using Shizou.Data;
 using Shizou.Server.Controllers;
 
 namespace Shizou.Blazor.Components.Shared;
@@ -53,7 +53,7 @@ public partial class ExternalPlaybackButton : ComponentWithExtraClasses
         IDictionary<string, object?> values = new ExpandoObject();
         values["ed2K"] = Ed2K;
         values["single"] = Single;
-        values[IdentityConstants.ApplicationScheme] = IdentityCookie;
+        values[Constants.IdentityCookieName] = IdentityCookie;
         var fileUri = LinkGenerator.GetUriByAction(nameof(FileServer.GetPlaylist), nameof(FileServer), values,
                 baseUri.Scheme, new HostString(baseUri.Authority), new PathString(baseUri.AbsolutePath)) ??
             throw new ArgumentException("Failed to generate playlist uri");

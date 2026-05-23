@@ -120,7 +120,7 @@ public class FileServer(IShizouContext context, FfmpegService ffmpegService, Lin
                 values["appId"] = "07a58b50-5109-5aa3-abbc-782fed0df04f";
             }
 
-            values[IdentityConstants.ApplicationScheme] = HttpContext.Request.Cookies[IdentityConstants.ApplicationScheme];
+            values[Constants.IdentityCookieName] = HttpContext.Request.Cookies[Constants.IdentityCookieName];
             var fileUri = linkGenerator.GetUriByAction(HttpContext ?? throw new InvalidOperationException(), nameof(Get),
                 nameof(FileServer), values) ?? throw new ArgumentException("Could not generate file uri");
             return fileUri;

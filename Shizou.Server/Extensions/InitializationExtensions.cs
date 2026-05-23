@@ -369,11 +369,11 @@ public static class InitializationExtensions
     {
         return app.Use((context, next) =>
         {
-            if (!context.Request.Cookies.ContainsKey(IdentityConstants.ApplicationScheme) &&
-                context.Request.Query.TryGetValue(IdentityConstants.ApplicationScheme, out var identityParam))
+            if (!context.Request.Cookies.ContainsKey(Constants.IdentityCookieName) &&
+                context.Request.Query.TryGetValue(Constants.IdentityCookieName, out var identityParam))
                 context.Request.Headers.Cookie = new StringValues(
                     (string.IsNullOrWhiteSpace(context.Request.Headers.Cookie) ? string.Empty : $"{context.Request.Headers.Cookie}; ") +
-                    $"{IdentityConstants.ApplicationScheme}={identityParam}");
+                    $"{Constants.IdentityCookieName}={identityParam}");
 
             return next.Invoke();
         });
