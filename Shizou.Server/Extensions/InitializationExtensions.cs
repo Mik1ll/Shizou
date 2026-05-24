@@ -232,6 +232,7 @@ public static class InitializationExtensions
             })
             .AddEntityFrameworkStores<AuthContext>()
             .AddDefaultTokenProviders().Services
+            .ConfigureApplicationCookie(opts => opts.Cookie.Name = Constants.IdentityCookieName)
             .AddAuthorization()
             .AddHealthChecks().Services
             .AddScoped<IShizouContext, ShizouContext>(p => p.GetRequiredService<ShizouContext>())
